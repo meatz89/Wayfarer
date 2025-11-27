@@ -24,20 +24,20 @@ public class SocialChallengeContext
     public Situation Situation { get; set; }
 
     /// <summary>
-    /// Reward to apply if conversation succeeds
+    /// Consequence to apply if conversation succeeds
     /// Set when challenge started from Choice with ActionType = StartChallenge
     /// Applied in SocialFacade.EndConversation() when outcome.Success == true
     /// Tutorial Elena path uses this to grant coins and bond after social challenge
     /// </summary>
-    public ChoiceReward CompletionReward { get; set; }
+    public Consequence CompletionReward { get; set; }
 
     /// <summary>
-    /// Reward to apply if conversation fails
+    /// Consequence to apply if conversation fails
     /// Set when challenge started from Choice with ActionType = StartChallenge
     /// Applied when player abandons or fails conversation
     /// Enables OnFailure transitions in scene state machine
     /// </summary>
-    public ChoiceReward FailureReward { get; set; }
+    public Consequence FailureReward { get; set; }
 
     /// <summary>
     /// PROCEDURAL CONTENT TRACING: Choice execution trace node

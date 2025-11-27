@@ -1806,10 +1806,10 @@ public class GameFacade
                 if (plan.DirectRewards.FocusRecovery > 0)
                     player.Focus = Math.Min(player.MaxFocus, player.Focus + plan.DirectRewards.FocusRecovery);
             }
-            else if (plan.ChoiceReward != null)
+            else if (plan.Consequence != null)
             {
-                // SCENE-BASED ACTION: Apply complex ChoiceReward
-                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+                // SCENE-BASED ACTION: Apply unified Consequence
+                await _rewardApplicationService.ApplyConsequence(plan.Consequence, situation);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -1918,10 +1918,10 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards
-            if (plan.ChoiceReward != null)
+            // Apply consequences
+            if (plan.Consequence != null)
             {
-                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+                await _rewardApplicationService.ApplyConsequence(plan.Consequence, situation);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -2036,10 +2036,10 @@ public class GameFacade
                     // For now, tokens not implemented
                 }
             }
-            else if (plan.ChoiceReward != null)
+            else if (plan.Consequence != null)
             {
-                // SCENE-BASED PATHCARD: Apply complex ChoiceReward
-                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+                // SCENE-BASED PATHCARD: Apply unified Consequence
+                await _rewardApplicationService.ApplyConsequence(plan.Consequence, situation);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -2178,13 +2178,13 @@ public class GameFacade
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
         // Store CompletionReward in appropriate PendingContext
-        // Reward will be applied when challenge completes successfully
+        // Consequence will be applied when challenge completes successfully
         if (plan.ChallengeType == TacticalSystemType.Social)
         {
             // Store Social context with CompletionReward
             _gameWorld.PendingSocialContext = new SocialChallengeContext
             {
-                CompletionReward = plan.ChoiceReward
+                CompletionReward = plan.Consequence
             };
             // Navigate to social challenge screen
             return IntentResult.NavigateScreen(ScreenMode.SocialChallenge);
@@ -2194,7 +2194,7 @@ public class GameFacade
             // Store Mental context with CompletionReward
             _gameWorld.PendingMentalContext = new MentalChallengeContext
             {
-                CompletionReward = plan.ChoiceReward
+                CompletionReward = plan.Consequence
             };
             // Navigate to mental challenge screen
             return IntentResult.NavigateScreen(ScreenMode.MentalChallenge);
@@ -2204,7 +2204,7 @@ public class GameFacade
             // Store Physical context with CompletionReward
             _gameWorld.PendingPhysicalContext = new PhysicalChallengeContext
             {
-                CompletionReward = plan.ChoiceReward
+                CompletionReward = plan.Consequence
             };
             // Navigate to physical challenge screen
             return IntentResult.NavigateScreen(ScreenMode.PhysicalChallenge);
@@ -2232,7 +2232,7 @@ public class GameFacade
                 _gameWorld.PendingSocialContext?.CompletionReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingSocialContext.CompletionReward,
                     currentSituation);
             }
@@ -2240,7 +2240,7 @@ public class GameFacade
                      _gameWorld.PendingSocialContext?.FailureReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingSocialContext.FailureReward,
                     currentSituation);
             }
@@ -2275,7 +2275,7 @@ public class GameFacade
                 _gameWorld.PendingMentalContext?.CompletionReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingMentalContext.CompletionReward,
                     currentSituation);
             }
@@ -2283,7 +2283,7 @@ public class GameFacade
                      _gameWorld.PendingMentalContext?.FailureReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingMentalContext.FailureReward,
                     currentSituation);
             }
@@ -2318,7 +2318,7 @@ public class GameFacade
                 _gameWorld.PendingPhysicalContext?.CompletionReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingPhysicalContext.CompletionReward,
                     currentSituation);
             }
@@ -2326,7 +2326,7 @@ public class GameFacade
                      _gameWorld.PendingPhysicalContext?.FailureReward != null)
             {
                 Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
-                await _rewardApplicationService.ApplyChoiceReward(
+                await _rewardApplicationService.ApplyConsequence(
                     _gameWorld.PendingPhysicalContext.FailureReward,
                     currentSituation);
             }

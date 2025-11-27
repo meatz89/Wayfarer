@@ -825,8 +825,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = GenerateStatGatedActionText(archetype),
             RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence(),
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(statGatedChoice);
@@ -837,8 +836,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = GenerateMoneyActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { Coins = -scaledCoinCost },
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(moneyChoice);
@@ -849,8 +847,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.Challenge,
             ActionTextTemplate = GenerateChallengeActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { Resolve = -archetype.ResolveCost },
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
             ChallengeType = archetype.ChallengeType,
@@ -864,8 +861,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.Fallback,
             ActionTextTemplate = GenerateFallbackActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { TimeSegments = archetype.FallbackTimeCost },
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(fallbackChoice);
@@ -1026,7 +1022,7 @@ public static class SituationArchetypeCatalog
     /// <summary>
     /// Generate service_negotiation choices with context-aware scaling.
     /// Scales stat thresholds by NPC.Demeanor and coin costs by Service.Quality.
-    /// Returns 4 choices with EMPTY RewardTemplate (SceneArchetypeCatalog enriches them).
+    /// Returns 4 choices with EMPTY Consequence (SceneArchetypeCatalog enriches them).
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceNegotiationChoices(
         SituationArchetype archetype,
@@ -1077,8 +1073,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Stat-gated instant success
             ActionTextTemplate = "Leverage your rapport",
             RequirementFormula = rapportReq,
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+            Consequence = new Consequence(),  // Empty, enriched by scene archetype
             ActionType = ChoiceActionType.Instant
         });
 
@@ -1089,8 +1084,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Money-gated instant success
             ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
-            RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+            Consequence = new Consequence { Coins = -scaledCoinCost },  // Empty, enriched by scene archetype
             ActionType = ChoiceActionType.Instant
         });
 
@@ -1101,8 +1095,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.Challenge,  // Challenge path
             ActionTextTemplate = "Attempt to negotiate better terms",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
-            RewardTemplate = new ChoiceReward(),  // Empty
+            Consequence = new Consequence { Resolve = -archetype.ResolveCost },  // Empty
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeType = archetype.ChallengeType,
             DeckId = archetype.DeckId
@@ -1115,8 +1108,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.Fallback,  // Fallback path
             ActionTextTemplate = "Politely decline",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence(),
             ActionType = ChoiceActionType.Instant
         });
 
@@ -1154,8 +1146,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Standard rest choice
             ActionTextTemplate = "Sleep peacefully",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward
+            Consequence = new Consequence
             {
                 Health = baseHealth + baseHealth / 2,      // 15/30/45
                 Stamina = baseStamina + baseStamina / 2,   // 15/30/45
@@ -1173,8 +1164,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Physical variant
             ActionTextTemplate = "Rest deeply",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward
+            Consequence = new Consequence
             {
                 Health = baseHealth * 2 + baseHealth / 2,  // 25/50/75
                 Stamina = baseStamina,                      // 10/20/30
@@ -1192,8 +1182,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Mental variant
             ActionTextTemplate = "Meditate before sleeping",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward
+            Consequence = new Consequence
             {
                 Health = baseHealth / 2,                    // 5/10/15
                 Stamina = baseStamina,                      // 10/20/30
@@ -1211,8 +1200,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Special variant with buff
             ActionTextTemplate = "Dream vividly",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward
+            Consequence = new Consequence
             {
                 Health = baseHealth + baseFocus / 2,        // 13/27/40
                 Stamina = baseStamina + baseFocus / 2,      // 13/27/40
@@ -1238,7 +1226,7 @@ public static class SituationArchetypeCatalog
     /// <summary>
     /// Generate service_departure choices (only 2, not 4).
     /// Universal buff granted for careful departure (Focused).
-    /// Returns choices with PARTIAL RewardTemplate (SceneArchetypeCatalog adds cleanup).
+    /// Returns choices with PARTIAL Consequence (SceneArchetypeCatalog adds cleanup).
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceDepartureChoices(
         string situationTemplateId,
@@ -1256,8 +1244,7 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.Fallback,  // Quick exit, minimal benefit
             ActionTextTemplate = "Leave immediately",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward(),  // Empty, enriched with cleanup by scene archetype
+            Consequence = new Consequence(),  // Empty, enriched with cleanup by scene archetype
             ActionType = ChoiceActionType.Instant
         });
 
@@ -1268,9 +1255,9 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,  // Careful preparation, grants buff
             ActionTextTemplate = "Gather your belongings carefully",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { TimeSegments = 1 },
-            RewardTemplate = new ChoiceReward
+            Consequence = new Consequence
             {
+                TimeSegments = 1,
                 StateApplications = new List<StateApplication>
             {
                 new StateApplication

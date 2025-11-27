@@ -640,8 +640,9 @@ public class SceneTemplateParser
             PathType = pathType,
             ActionTextTemplate = dto.ActionTextTemplate,
             RequirementFormula = RequirementParser.ConvertDTOToCompoundRequirement(dto.RequirementFormula),
-            CostTemplate = ParseChoiceCost(dto.CostTemplate),
-            RewardTemplate = ParseChoiceReward(dto.RewardTemplate),
+            Consequence = ParseConsequence(dto.Consequence),
+            OnSuccessConsequence = ParseConsequence(dto.OnSuccessConsequence),
+            OnFailureConsequence = ParseConsequence(dto.OnFailureConsequence),
             ActionType = actionType,
             ChallengeId = dto.ChallengeId,
             ChallengeType = challengeType,
@@ -652,53 +653,40 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse ChoiceCost from DTO
+    /// Parse unified Consequence from DTO
+    /// DESIGN: Negative values = costs, positive values = rewards
+    /// Example: Coins = -5 means pay 5 coins, Coins = 10 means gain 10 coins
     /// </summary>
-    private ChoiceCost ParseChoiceCost(ChoiceCostDTO dto)
+    private Consequence ParseConsequence(ConsequenceDTO dto)
     {
         if (dto == null)
-            return new ChoiceCost(); // All costs default to 0
+            return new Consequence(); // No effects
 
-        return new ChoiceCost
+        return new Consequence
         {
+            // Resource changes (negative = cost, positive = reward)
             Coins = dto.Coins,
             Resolve = dto.Resolve,
             TimeSegments = dto.TimeSegments,
-            Health = dto.Health,
-            Hunger = dto.Hunger,
-            Stamina = dto.Stamina,
-            Focus = dto.Focus
-        };
-    }
-
-    /// <summary>
-    /// Parse ChoiceReward from DTO
-    /// </summary>
-    private ChoiceReward ParseChoiceReward(ChoiceRewardDTO dto)
-    {
-        if (dto == null)
-            return new ChoiceReward(); // No rewards
-
-        return new ChoiceReward
-        {
-            Coins = dto.Coins,
-            Resolve = dto.Resolve,
-            TimeSegments = dto.TimeSegments,
-            AdvanceToBlock = ParseTimeBlock(dto.AdvanceToBlock),
-            AdvanceToDay = ParseDayAdvancement(dto.AdvanceToDay),
             Health = dto.Health,
             Hunger = dto.Hunger,
             Stamina = dto.Stamina,
             Focus = dto.Focus,
+            // Five Stats
             Insight = dto.Insight,
             Rapport = dto.Rapport,
             Authority = dto.Authority,
             Diplomacy = dto.Diplomacy,
             Cunning = dto.Cunning,
+            // Time advancement
+            AdvanceToBlock = ParseTimeBlock(dto.AdvanceToBlock),
+            AdvanceToDay = ParseDayAdvancement(dto.AdvanceToDay),
             FullRecovery = dto.FullRecovery,
+            // Relationships
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
+            // Progression
             Achievements = ParseAchievements(dto.AchievementIds),
             Items = ParseItems(dto.ItemIds),
             ItemsToRemove = ParseItemsToRemove(dto.ItemsToRemove),
@@ -1032,34 +1020,31 @@ public class SceneTemplateParser
             Id = $"{situationTemplateId}_stat",
             ActionTextTemplate = GenerateStatGatedActionText(archetype),
             RequirementFormula = SituationArchetypeCatalog.CreateStatRequirement(archetype, archetype.StatThreshold),
-            CostTemplate = new ChoiceCost(), // Free
-            RewardTemplate = new ChoiceReward(), // Will be defined in JSON or instantiated at spawn time
+            Consequence = new Consequence(), // Free - no costs, rewards defined later
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(statGatedChoice);
 
         // CHOICE 2: Money
-        // Guaranteed success, expensive
+        // Guaranteed success, expensive (negative Coins = cost)
         ChoiceTemplate moneyChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_money",
             ActionTextTemplate = GenerateMoneyActionText(archetype),
             RequirementFormula = new CompoundRequirement(), // No requirements
-            CostTemplate = new ChoiceCost { Coins = archetype.CoinCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { Coins = -archetype.CoinCost }, // Negative = cost
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(moneyChoice);
 
         // CHOICE 3: Challenge
-        // Variable outcome, risky
+        // Variable outcome, risky (negative Resolve = cost)
         ChoiceTemplate challengeChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
             ActionTextTemplate = GenerateChallengeActionText(archetype),
             RequirementFormula = new CompoundRequirement(), // No requirements (but has resource cost)
-            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { Resolve = -archetype.ResolveCost }, // Negative = cost
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null, // Will be set by spawn-time instantiation
             ChallengeType = archetype.ChallengeType
@@ -1067,14 +1052,13 @@ public class SceneTemplateParser
         choices.Add(challengeChoice);
 
         // CHOICE 4: Fallback
-        // Poor outcome, always available
+        // Poor outcome, always available (TimeSegments is always a cost, so positive)
         ChoiceTemplate fallbackChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_fallback",
             ActionTextTemplate = GenerateFallbackActionText(archetype),
             RequirementFormula = new CompoundRequirement(), // No requirements
-            CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
-            RewardTemplate = new ChoiceReward(),
+            Consequence = new Consequence { TimeSegments = archetype.FallbackTimeCost }, // Time is always positive (passes)
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(fallbackChoice);

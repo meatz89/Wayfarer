@@ -22,52 +22,60 @@ public class SituationChoiceExecutor
             }
         }
 
-        // STEP 2: Validate strategic costs
-        if (player.Resolve < template.CostTemplate.Resolve)
+        // STEP 2: Validate strategic costs (extract from Consequence - costs are NEGATIVE)
+        int resolveCost = template.Consequence.Resolve < 0 ? -template.Consequence.Resolve : 0;
+        int coinsCost = template.Consequence.Coins < 0 ? -template.Consequence.Coins : 0;
+
+        if (player.Resolve < resolveCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Resolve (need {template.CostTemplate.Resolve}, have {player.Resolve})");
+            return ActionExecutionPlan.Invalid($"Not enough Resolve (need {resolveCost}, have {player.Resolve})");
         }
 
-        if (player.Coins < template.CostTemplate.Coins)
+        if (player.Coins < coinsCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {template.CostTemplate.Coins}, have {player.Coins})");
+            return ActionExecutionPlan.Invalid($"Not enough Coins (need {coinsCost}, have {player.Coins})");
         }
 
-        // Tutorial resource validation
-        if (template.CostTemplate.Health > 0 && player.Health < template.CostTemplate.Health)
+        // Tutorial resource validation (costs are NEGATIVE in Consequence)
+        int healthCost = template.Consequence.Health < 0 ? -template.Consequence.Health : 0;
+        int staminaCost = template.Consequence.Stamina < 0 ? -template.Consequence.Stamina : 0;
+        int focusCost = template.Consequence.Focus < 0 ? -template.Consequence.Focus : 0;
+        int hungerCost = template.Consequence.Hunger > 0 ? template.Consequence.Hunger : 0; // Positive hunger is a cost
+
+        if (healthCost > 0 && player.Health < healthCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Health (need {template.CostTemplate.Health}, have {player.Health})");
+            return ActionExecutionPlan.Invalid($"Not enough Health (need {healthCost}, have {player.Health})");
         }
 
-        if (template.CostTemplate.Stamina > 0 && player.Stamina < template.CostTemplate.Stamina)
+        if (staminaCost > 0 && player.Stamina < staminaCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {template.CostTemplate.Stamina}, have {player.Stamina})");
+            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {staminaCost}, have {player.Stamina})");
         }
 
-        if (template.CostTemplate.Focus > 0 && player.Focus < template.CostTemplate.Focus)
+        if (focusCost > 0 && player.Focus < focusCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Focus (need {template.CostTemplate.Focus}, have {player.Focus})");
+            return ActionExecutionPlan.Invalid($"Not enough Focus (need {focusCost}, have {player.Focus})");
         }
 
         // Hunger validation: Check if adding hunger would exceed max (100)
-        if (template.CostTemplate.Hunger > 0 && player.Hunger + template.CostTemplate.Hunger > player.MaxHunger)
+        if (hungerCost > 0 && player.Hunger + hungerCost > player.MaxHunger)
         {
-            return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {template.CostTemplate.Hunger}, max {player.MaxHunger})");
+            return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {hungerCost}, max {player.MaxHunger})");
         }
 
         // STEP 3: Build execution plan
         ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.ResolveCoins = template.CostTemplate.Resolve;
-        plan.CoinsCost = template.CostTemplate.Coins;
-        plan.TimeSegments = template.CostTemplate.TimeSegments;
+        plan.ResolveCoins = resolveCost;
+        plan.CoinsCost = coinsCost;
+        plan.TimeSegments = template.Consequence.TimeSegments;
 
         // Tutorial resource costs
-        plan.HealthCost = template.CostTemplate.Health;
-        plan.StaminaCost = template.CostTemplate.Stamina;
-        plan.FocusCost = template.CostTemplate.Focus;
-        plan.HungerCost = template.CostTemplate.Hunger;
+        plan.HealthCost = healthCost;
+        plan.StaminaCost = staminaCost;
+        plan.FocusCost = focusCost;
+        plan.HungerCost = hungerCost;
 
-        plan.ChoiceReward = template.RewardTemplate;
+        plan.Consequence = template.Consequence;
         plan.ActionType = template.ActionType;
         plan.ChallengeType = template.ChallengeType;
         plan.ChallengeId = template.ChallengeId;

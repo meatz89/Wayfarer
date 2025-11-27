@@ -226,17 +226,14 @@ public class ProceduralContentTracer
                 RequirementSnapshot = choiceTemplate.RequirementFormula != null
                     ? SnapshotFactory.CreateRequirementSnapshot(choiceTemplate.RequirementFormula)
                     : null,
-                CostSnapshot = choiceTemplate.CostTemplate != null
-                    ? SnapshotFactory.CreateCostSnapshot(choiceTemplate.CostTemplate)
+                RewardSnapshot = choiceTemplate.Consequence != null
+                    ? SnapshotFactory.CreateRewardSnapshotFromConsequence(choiceTemplate.Consequence)
                     : null,
-                RewardSnapshot = choiceTemplate.RewardTemplate != null
-                    ? SnapshotFactory.CreateRewardSnapshot(choiceTemplate.RewardTemplate)
+                OnSuccessRewardSnapshot = choiceTemplate.OnSuccessConsequence != null
+                    ? SnapshotFactory.CreateRewardSnapshotFromConsequence(choiceTemplate.OnSuccessConsequence)
                     : null,
-                OnSuccessRewardSnapshot = choiceTemplate.OnSuccessReward != null
-                    ? SnapshotFactory.CreateRewardSnapshot(choiceTemplate.OnSuccessReward)
-                    : null,
-                OnFailureRewardSnapshot = choiceTemplate.OnFailureReward != null
-                    ? SnapshotFactory.CreateRewardSnapshot(choiceTemplate.OnFailureReward)
+                OnFailureRewardSnapshot = choiceTemplate.OnFailureConsequence != null
+                    ? SnapshotFactory.CreateRewardSnapshotFromConsequence(choiceTemplate.OnFailureConsequence)
                     : null
             };
 

@@ -207,9 +207,9 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Chat warmly with the innkeeper",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 5 },
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
+                    Coins = -5,
                     Rapport = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -220,9 +220,9 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Assert your need for accommodation",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 5 },
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
+                    Coins = -5,
                     Authority = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -233,9 +233,9 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Seek advantageous deal",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 5 },
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
+                    Coins = -5,
                     Cunning = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -246,9 +246,9 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Negotiate a fair arrangement",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 5 },
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
+                    Coins = -5,
                     Diplomacy = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -312,8 +312,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Read and study",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
                     Insight = 1,
                     Health = 1,
@@ -328,8 +327,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Plan tomorrow's route",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
                     Cunning = 1  // Planning builds cunning
                 },
@@ -341,8 +339,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Rest peacefully",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
                     Health = 3,  // Full rest restores health
                     Stamina = 3,
@@ -356,8 +353,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Visit the common room",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
+                Consequence = new Consequence
                 {
                     Rapport = 1  // Socializing builds rapport
                 },
@@ -376,8 +372,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Rest through the night",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward
+                    Consequence = new Consequence
                     {
                         Health = 15,
                         Stamina = 15,
@@ -391,8 +386,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Light rest",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward
+                    Consequence = new Consequence
                     {
                         Health = 8,
                         Stamina = 8,
@@ -432,30 +426,34 @@ public static class SceneArchetypeCatalog
         // Determine rewards based on tutorial context
         bool isA1Tutorial = context.AStorySequence.HasValue && context.AStorySequence.Value == 1;
 
-        ChoiceReward earlyDepartureReward = new ChoiceReward
-        {
-            Cunning = 1  // Early planning shows cunning
-        };
-
-        ChoiceReward socializeReward = new ChoiceReward
-        {
-            Rapport = 1
-            // Bond changes with situation NPC not supported in catalog-generated templates
-            // (NPC not resolved until instantiation)
-        };
-
-        // A1 tutorial: ALL departure choices spawn A2
-        if (isA1Tutorial)
-        {
-            earlyDepartureReward.ScenesToSpawn = new List<SceneSpawnReward>
+        // Create consequences with conditional scene spawning
+        Consequence earlyDepartureReward = isA1Tutorial
+            ? new Consequence
             {
-                new SceneSpawnReward { SceneTemplateId = "a2_morning" }
-            };
-            socializeReward.ScenesToSpawn = new List<SceneSpawnReward>
+                Cunning = 1,  // Early planning shows cunning
+                ScenesToSpawn = new List<SceneSpawnReward>
+                {
+                    new SceneSpawnReward { SceneTemplateId = "a2_morning" }
+                }
+            }
+            : new Consequence
             {
-                new SceneSpawnReward { SceneTemplateId = "a2_morning" }
+                Cunning = 1
             };
-        }
+
+        Consequence socializeReward = isA1Tutorial
+            ? new Consequence
+            {
+                Rapport = 1,
+                ScenesToSpawn = new List<SceneSpawnReward>
+                {
+                    new SceneSpawnReward { SceneTemplateId = "a2_morning" }
+                }
+            }
+            : new Consequence
+            {
+                Rapport = 1
+            };
 
         departChoices.Add(new ChoiceTemplate
         {
@@ -463,8 +461,7 @@ public static class SceneArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Leave early",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = earlyDepartureReward,
+            Consequence = earlyDepartureReward,
             ActionType = ChoiceActionType.Instant
         });
 
@@ -474,8 +471,7 @@ public static class SceneArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Take time to socialize",
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = socializeReward,
+            Consequence = socializeReward,
             ActionType = ChoiceActionType.Instant
         });
 
@@ -652,8 +648,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Accept the opportunity",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),  // Advances to negotiation
+                    Consequence = new Consequence(),  // Advances to negotiation
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -662,8 +657,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Fallback,
                     ActionTextTemplate = "Not right now",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),  // Stays at offer (repeatable)
+                    Consequence = new Consequence(),  // Stays at offer (repeatable)
                     ActionType = ChoiceActionType.Instant
                 }
             },
@@ -701,9 +695,9 @@ public static class SceneArchetypeCatalog
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            ChoiceReward baseReward = choice.RewardTemplate ?? new ChoiceReward();
-            ChoiceReward successReward = choice.OnSuccessReward;
-            ChoiceReward failureReward = choice.OnFailureReward;
+            Consequence baseConsequence = choice.Consequence ?? new Consequence();
+            Consequence successConsequence = choice.OnSuccessConsequence;
+            Consequence failureConsequence = choice.OnFailureConsequence;
             CompoundRequirement modifiedRequirement = choice.RequirementFormula;
 
             // Tutorial A2 (sequence 2): Lower stat requirements to 2 (player has 3-5 from A1)
@@ -743,9 +737,10 @@ public static class SceneArchetypeCatalog
                 bool hasStatRequirement = modifiedRequirement != null &&
                                          modifiedRequirement.OrPaths != null &&
                                          modifiedRequirement.OrPaths.Any();
-                bool hasCoinCost = choice.CostTemplate != null && choice.CostTemplate.Coins > 0;
+                bool hasCoinCost = choice.Consequence != null && choice.Consequence.Coins < 0;
 
-                // Add A3 spawning and immediate coin payment to appropriate reward based on path type
+                // Add A3 spawning and immediate coin payment to appropriate consequence based on path type
+                // Must create NEW Consequence objects (init-only properties)
                 switch (choice.PathType)
                 {
                     case ChoicePathType.InstantSuccess:
@@ -753,33 +748,53 @@ public static class SceneArchetypeCatalog
                         if (hasStatRequirement)
                         {
                             // Stat path (Rapport): Coins = 15, spawn A3
-                            baseReward.Coins = 15;
+                            baseConsequence = new Consequence
+                            {
+                                Coins = 15,
+                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
+                            };
                         }
                         else if (hasCoinCost)
                         {
                             // Money path: Coins = 13, spawn A3
-                            baseReward.Coins = 13;
+                            baseConsequence = new Consequence
+                            {
+                                Coins = 13,
+                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
+                            };
                         }
-                        baseReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
+                        else
+                        {
+                            // No cost, just spawn
+                            baseConsequence = new Consequence
+                            {
+                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
+                            };
+                        }
                         break;
 
                     case ChoicePathType.Challenge:
                         // Challenge path: Success = 17, Failure = 8, spawn A3 regardless
-                        if (successReward == null)
-                            successReward = new ChoiceReward();
-                        successReward.Coins = 17;
-                        successReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
+                        successConsequence = new Consequence
+                        {
+                            Coins = 17,
+                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
+                        };
 
-                        if (failureReward == null)
-                            failureReward = new ChoiceReward();
-                        failureReward.Coins = 8;
-                        failureReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
+                        failureConsequence = new Consequence
+                        {
+                            Coins = 8,
+                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
+                        };
                         break;
 
                     case ChoicePathType.Fallback:
                         // Fallback: Player breaks commitment after accepting - consequences but no requirements
                         // See arc42/08 §8.16 Fallback Context Rules: Post-commitment fallback has penalty
-                        baseReward.Rapport = -1;  // Breaking commitment disappoints the merchant
+                        baseConsequence = new Consequence
+                        {
+                            Rapport = -1  // Breaking commitment disappoints the merchant
+                        };
                         break;
                 }
             }
@@ -795,10 +810,9 @@ public static class SceneArchetypeCatalog
                 PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
                 ActionTextTemplate = enrichedActionText,
                 RequirementFormula = modifiedRequirement,  // Use modified requirements for A2
-                CostTemplate = choice.CostTemplate,
-                RewardTemplate = baseReward,
-                OnSuccessReward = successReward,
-                OnFailureReward = failureReward,
+                Consequence = baseConsequence,
+                OnSuccessConsequence = successConsequence,
+                OnFailureConsequence = failureConsequence,
                 ActionType = choice.ActionType,
                 ChallengeId = choice.ChallengeId,
                 ChallengeType = choice.ChallengeType,
@@ -905,7 +919,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: PHYSICAL OBSTACLE (Segment 0)
         CompoundRequirement obstacle1AuthorityReq = new CompoundRequirement();
-        ChoiceReward obstacle1FallbackReward = new ChoiceReward();
+        Consequence obstacle1FallbackReward;
 
         if (isA3Tutorial)
         {
@@ -927,7 +941,11 @@ public static class SceneArchetypeCatalog
                     }
                 }
             };
-            obstacle1FallbackReward.Health = -10;  // Crisis: Damage control choice
+            obstacle1FallbackReward = new Consequence { Health = -10 };  // Crisis: Damage control choice
+        }
+        else
+        {
+            obstacle1FallbackReward = new Consequence();  // No penalty outside tutorial
         }
 
         SituationTemplate obstacle1Situation = new SituationTemplate
@@ -944,8 +962,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Direct locals to clear path",
                     RequirementFormula = obstacle1AuthorityReq,
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence(),
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -954,8 +971,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Pay locals to clear it",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost { Coins = 5 },
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence { Coins = -5 },
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -964,10 +980,9 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Challenge,
                     ActionTextTemplate = "Clear obstacle yourself",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time/stamina costs
-                    RewardTemplate = new ChoiceReward(),
-                    OnSuccessReward = new ChoiceReward(),  // Understanding +1
-                    OnFailureReward = new ChoiceReward(),  // Health -10
+                    Consequence = new Consequence(),  // Time/stamina costs
+                    OnSuccessConsequence = new Consequence(),  // Understanding +1
+                    OnFailureConsequence = new Consequence(),  // Health -10
                     ChallengeType = TacticalSystemType.Physical,
                     ActionType = ChoiceActionType.Instant
                 },
@@ -977,8 +992,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Fallback,
                     ActionTextTemplate = "Take longer detour",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time cost
-                    RewardTemplate = obstacle1FallbackReward,  // A3: Health -10 (crisis!)
+                    Consequence = obstacle1FallbackReward,  // A3: Health -10 (crisis!)
                     ActionType = ChoiceActionType.Instant
                 }
             },
@@ -1005,7 +1019,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: MENTAL OBSTACLE (Segment 1)
         CompoundRequirement obstacle2InsightReq = new CompoundRequirement();
-        ChoiceReward obstacle2FallbackReward = new ChoiceReward();
+        Consequence obstacle2FallbackReward;
 
         if (isA3Tutorial)
         {
@@ -1027,7 +1041,11 @@ public static class SceneArchetypeCatalog
                     }
                 }
             };
-            obstacle2FallbackReward.Stamina = -10;  // Crisis: Exhausting failed attempt
+            obstacle2FallbackReward = new Consequence { Stamina = -10 };  // Crisis: Exhausting failed attempt
+        }
+        else
+        {
+            obstacle2FallbackReward = new Consequence();  // No penalty outside tutorial
         }
 
         SituationTemplate obstacle2Situation = new SituationTemplate
@@ -1044,8 +1062,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Spot safe shallows through analysis",
                     RequirementFormula = obstacle2InsightReq,
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence(),
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -1054,8 +1071,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Pay ferryman",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost { Coins = 8 },
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence { Coins = -8 },
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -1064,10 +1080,9 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Challenge,
                     ActionTextTemplate = "Study crossing carefully",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time/focus costs
-                    RewardTemplate = new ChoiceReward(),
-                    OnSuccessReward = new ChoiceReward(),  // Understanding +1
-                    OnFailureReward = new ChoiceReward(),  // Health -5
+                    Consequence = new Consequence(),  // Time/focus costs
+                    OnSuccessConsequence = new Consequence(),  // Understanding +1
+                    OnFailureConsequence = new Consequence(),  // Health -5
                     ChallengeType = TacticalSystemType.Mental,
                     ActionType = ChoiceActionType.Instant
                 },
@@ -1077,8 +1092,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Fallback,
                     ActionTextTemplate = "Wade across carefully",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = obstacle2FallbackReward,  // A3: Stamina -10 (crisis!)
+                    Consequence = obstacle2FallbackReward,  // A3: Stamina -10 (crisis!)
                     ActionType = ChoiceActionType.Instant
                 }
             },
@@ -1105,7 +1119,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: SOCIAL OBSTACLE (Segment 2)
         CompoundRequirement obstacle3RapportReq = new CompoundRequirement();
-        ChoiceReward obstacle3FallbackReward = new ChoiceReward();
+        Consequence obstacle3FallbackReward;
 
         if (isA3Tutorial)
         {
@@ -1127,7 +1141,11 @@ public static class SceneArchetypeCatalog
                     }
                 }
             };
-            obstacle3FallbackReward.Coins = -5;  // Crisis: Forced to pay penalty
+            obstacle3FallbackReward = new Consequence { Coins = -5 };  // Crisis: Forced to pay penalty
+        }
+        else
+        {
+            obstacle3FallbackReward = new Consequence();  // No penalty outside tutorial
         }
 
         SituationTemplate obstacle3Situation = new SituationTemplate
@@ -1144,8 +1162,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Friendly conversation about the road",
                     RequirementFormula = obstacle3RapportReq,
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),  // Guard bond +1
+                    Consequence = new Consequence(),  // Guard bond +1
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -1154,8 +1171,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Pay toll and inspection fee",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost { Coins = 10 },
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence { Coins = -10 },
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -1164,10 +1180,9 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Challenge,
                     ActionTextTemplate = "Persuade to waive toll",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time/resolve costs
-                    RewardTemplate = new ChoiceReward(),
-                    OnSuccessReward = new ChoiceReward(),  // Understanding +1, Guard bond +2
-                    OnFailureReward = new ChoiceReward(),  // Coins -12, Guard bond -1
+                    Consequence = new Consequence(),  // Time/resolve costs
+                    OnSuccessConsequence = new Consequence(),  // Understanding +1, Guard bond +2
+                    OnFailureConsequence = new Consequence(),  // Coins -12, Guard bond -1
                     ChallengeType = TacticalSystemType.Social,
                     ActionType = ChoiceActionType.Instant
                 },
@@ -1177,8 +1192,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Fallback,
                     ActionTextTemplate = "Wait patiently through thorough inspection",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time cost
-                    RewardTemplate = obstacle3FallbackReward,  // A3: Coins -5 (crisis!)
+                    Consequence = obstacle3FallbackReward,  // A3: Coins -5 (crisis!)
                     ActionType = ChoiceActionType.Instant
                 }
             },
@@ -1218,8 +1232,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.InstantSuccess,
                     ActionTextTemplate = "Head to destination",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),
+                    Consequence = new Consequence(),
                     ActionType = ChoiceActionType.Instant
                 },
                 new ChoiceTemplate
@@ -1228,8 +1241,7 @@ public static class SceneArchetypeCatalog
                     PathType = ChoicePathType.Fallback,
                     ActionTextTemplate = "Catch breath before arrival",
                     RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),  // Time cost
-                    RewardTemplate = new ChoiceReward(),  // Stamina +5, Focus +5
+                    Consequence = new Consequence(),  // Stamina +5, Focus +5
                     ActionType = ChoiceActionType.Instant
                 }
             },
@@ -1255,6 +1267,11 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 5: ARRIVAL AT DESTINATION
+        // Tutorial A3 (sequence 3): Fixed +10 coin completion bonus (totals with A2: 25/23/27/18/20)
+        Consequence arrivalConsequence = (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
+            ? new Consequence { Coins = 10 }
+            : new Consequence();
+
         List<ChoiceTemplate> arrivalChoices = new List<ChoiceTemplate>
         {
             new ChoiceTemplate
@@ -1263,17 +1280,10 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Accept completion bonus and conclude business",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward(),
+                Consequence = arrivalConsequence,
                 ActionType = ChoiceActionType.Instant
             }
         };
-
-        // Tutorial A3 (sequence 3): Fixed +10 coin completion bonus (totals with A2: 25/23/27/18/20)
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
-        {
-            arrivalChoices[0].RewardTemplate.Coins = 10;
-        }
 
         SituationTemplate arrivalSituation = new SituationTemplate
         {
@@ -1397,7 +1407,7 @@ public static class SceneArchetypeCatalog
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+            Consequence consequence = choice.Consequence ?? new Consequence();
 
             // NEW ARCHITECTURE: Dual-model accessibility - situation presence at dependent location grants access
             // No need for reward-based unlock - when situation advances to meeting_chamber, access is automatic
@@ -1408,8 +1418,7 @@ public static class SceneArchetypeCatalog
                 PathType = choice.PathType,
                 ActionTextTemplate = choice.ActionTextTemplate,
                 RequirementFormula = choice.RequirementFormula,
-                CostTemplate = choice.CostTemplate,
-                RewardTemplate = reward,
+                Consequence = consequence,
                 ActionType = choice.ActionType,
                 ChallengeType = choice.ChallengeType
             });
@@ -2484,18 +2493,36 @@ public static class SceneArchetypeCatalog
         List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
         {
-            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+            // Create NEW Consequence with scene spawn (init-only properties)
+            // Copy existing properties from original consequence and add spawn
+            Consequence originalConsequence = choice.Consequence ?? new Consequence();
 
-            // Add next A-scene spawn reward
-            // Uses template's PlacementFilter for categorical resolution (no override needed)
-            reward.ScenesToSpawn = new List<SceneSpawnReward>
-        {
-            new SceneSpawnReward
+            Consequence enrichedConsequence = new Consequence
             {
-                SceneTemplateId = nextASceneId
-                // PlacementFilterOverride = null (uses template's filter)
-            }
-        };
+                // Copy all stat/resource changes from original
+                Insight = originalConsequence.Insight,
+                Rapport = originalConsequence.Rapport,
+                Authority = originalConsequence.Authority,
+                Diplomacy = originalConsequence.Diplomacy,
+                Cunning = originalConsequence.Cunning,
+                Health = originalConsequence.Health,
+                Stamina = originalConsequence.Stamina,
+                Focus = originalConsequence.Focus,
+                Resolve = originalConsequence.Resolve,
+                Coins = originalConsequence.Coins,
+                TimeSegments = originalConsequence.TimeSegments,
+
+                // Add next A-scene spawn reward
+                // Uses template's PlacementFilter for categorical resolution (no override needed)
+                ScenesToSpawn = new List<SceneSpawnReward>
+                {
+                    new SceneSpawnReward
+                    {
+                        SceneTemplateId = nextASceneId
+                        // PlacementFilterOverride = null (uses template's filter)
+                    }
+                }
+            };
 
             enrichedChoices.Add(new ChoiceTemplate
             {
@@ -2503,8 +2530,7 @@ public static class SceneArchetypeCatalog
                 PathType = choice.PathType,
                 ActionTextTemplate = choice.ActionTextTemplate,
                 RequirementFormula = choice.RequirementFormula,
-                CostTemplate = choice.CostTemplate,
-                RewardTemplate = reward,
+                Consequence = enrichedConsequence,
                 ActionType = choice.ActionType,
                 ChallengeType = choice.ChallengeType
             });

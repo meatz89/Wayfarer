@@ -34,6 +34,7 @@ Domain and technical terms used throughout this documentation.
 |------|------------|
 | **Catalogue** | Static class translating categorical properties to concrete values at parse-time |
 | **ChoiceTemplate** | Template defining choice costs, rewards, and requirements; used by scene-based actions |
+| **Consequence** | Unified ValueObject for costs and rewards; negative values = costs, positive = rewards; used by scene-based actions |
 | **DTO** | Data Transfer Object; intermediate structure between JSON and domain entity |
 | **Dual-Tier Actions** | Union type pattern: LocationAction supports atmospheric (direct properties) OR scene-based (ChoiceTemplate) |
 | **EntityResolver** | Pattern for find-or-create queries using categorical filters |

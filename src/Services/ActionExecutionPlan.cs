@@ -19,9 +19,9 @@ public class ActionExecutionPlan
     public int FocusCost { get; set; }
     public int HungerCost { get; set; }  // Positive value increases hunger (exertion)
 
-    // Rewards to apply (GameFacade routes to appropriate facade)
-    public ChoiceReward ChoiceReward { get; set; }  // Scene-based actions
-    public ActionRewards DirectRewards { get; set; }  // Atmospheric actions
+    // Consequences to apply (unified pattern for costs and rewards)
+    public Consequence Consequence { get; set; }  // Scene-based actions (ChoiceTemplate)
+    public ActionRewards DirectRewards { get; set; }  // Atmospheric actions (LocationActionCatalog)
 
     // Execution routing
     public ChoiceActionType ActionType { get; set; }

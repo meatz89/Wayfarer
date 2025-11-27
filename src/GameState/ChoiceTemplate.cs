@@ -39,43 +39,36 @@ public class ChoiceTemplate
     public CompoundRequirement RequirementFormula { get; init; }
 
     /// <summary>
-    /// Cost template structure
-    /// May use categorical values that scale at spawn time
-    /// Example: "Medium" cost becomes actual number based on tier
-    /// Or concrete values if costs are fixed
-    /// </summary>
-    public ChoiceCost CostTemplate { get; init; } = new ChoiceCost();
-
-    /// <summary>
-    /// Reward template structure
-    /// Defines what rewards to apply when Choice selected
-    /// For Instant actions: Applied immediately
+    /// Unified consequence - all costs and rewards in single structure
+    /// DESIGN: Negative values = costs, positive values = rewards
+    /// Example: Coins = -5 means pay 5 coins, Coins = 10 means gain 10 coins
+    /// For Instant actions: Applied immediately on selection
     /// For StartChallenge actions: Applied BEFORE challenge (immediate effects)
     /// May include Scene spawning with categorical placement
     /// </summary>
-    public ChoiceReward RewardTemplate { get; init; } = new ChoiceReward();
+    public Consequence Consequence { get; init; } = new Consequence();
 
     /// <summary>
-    /// Conditional reward applied if challenge SUCCEEDS
+    /// Conditional consequence applied if challenge SUCCEEDS
     /// Only used for StartChallenge action types
     /// Applied AFTER challenge completion when player wins
-    /// null = no success-specific rewards (use RewardTemplate only)
+    /// null = no success-specific consequences (use base Consequence only)
     /// Example: Unlock location on challenge success, grant key item
     /// </summary>
-    public ChoiceReward OnSuccessReward { get; init; }
+    public Consequence OnSuccessConsequence { get; init; }
 
     /// <summary>
-    /// Conditional reward applied if challenge FAILS
+    /// Conditional consequence applied if challenge FAILS
     /// Only used for StartChallenge action types
     /// Applied AFTER challenge completion when player loses
-    /// null = no failure-specific rewards
-    /// Example: Apply negative consequences, spawn follow-up situations
+    /// null = no failure-specific consequences
+    /// Example: Apply negative outcomes, spawn follow-up situations
     /// </summary>
-    public ChoiceReward OnFailureReward { get; init; }
+    public Consequence OnFailureConsequence { get; init; }
 
     /// <summary>
     /// Action classification - what happens when player selects this Choice
-    /// Instant: Apply cost and reward immediately
+    /// Instant: Apply consequence immediately
     /// StartChallenge: Enter tactical challenge
     /// Navigate: Move to new location/NPC/route
     /// Same as runtime Choice.ActionType (no translation needed)

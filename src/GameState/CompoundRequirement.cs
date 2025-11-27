@@ -28,6 +28,38 @@ public class CompoundRequirement
 
         return false; // No path satisfied
     }
+
+    /// <summary>
+    /// Project which paths are satisfied and which are missing.
+    /// Returns detailed status for Perfect Information UI display.
+    /// </summary>
+    public RequirementProjection GetProjection(Player player, GameWorld gameWorld)
+    {
+        if (OrPaths == null || OrPaths.Count == 0)
+        {
+            return RequirementProjection.NoRequirements();
+        }
+
+        List<PathProjection> paths = new List<PathProjection>();
+        bool anyPathSatisfied = false;
+
+        foreach (OrPath path in OrPaths)
+        {
+            PathProjection pathProjection = path.GetProjection(player, gameWorld);
+            paths.Add(pathProjection);
+            if (pathProjection.IsSatisfied)
+            {
+                anyPathSatisfied = true;
+            }
+        }
+
+        return new RequirementProjection
+        {
+            HasRequirements = true,
+            IsSatisfied = anyPathSatisfied,
+            Paths = paths
+        };
+    }
 }
 
 /// <summary>
@@ -63,5 +95,44 @@ public class OrPath
         }
 
         return true; // All requirements satisfied
+    }
+
+    /// <summary>
+    /// Project the satisfaction status of each requirement in this path.
+    /// Returns detailed status including current values and gaps.
+    /// </summary>
+    public PathProjection GetProjection(Player player, GameWorld gameWorld)
+    {
+        List<RequirementStatus> requirements = new List<RequirementStatus>();
+        bool allSatisfied = true;
+
+        if (NumericRequirements != null)
+        {
+            foreach (NumericRequirement req in NumericRequirements)
+            {
+                bool satisfied = req.IsSatisfied(player, gameWorld);
+                int currentValue = req.GetCurrentValue(player, gameWorld);
+
+                requirements.Add(new RequirementStatus
+                {
+                    Requirement = req,
+                    IsSatisfied = satisfied,
+                    CurrentValue = currentValue,
+                    RequiredValue = req.Threshold
+                });
+
+                if (!satisfied)
+                {
+                    allSatisfied = false;
+                }
+            }
+        }
+
+        return new PathProjection
+        {
+            Label = Label,
+            IsSatisfied = allSatisfied,
+            Requirements = requirements
+        };
     }
 }

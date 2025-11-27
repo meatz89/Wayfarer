@@ -23,19 +23,19 @@ public class MentalChallengeContext
     public Situation Situation { get; set; }
 
     /// <summary>
-    /// Reward to apply if mental challenge succeeds
+    /// Consequence to apply if mental challenge succeeds
     /// Set when challenge started from Choice with ActionType = StartChallenge
     /// Applied in MentalFacade.EndSession() when outcome.Success == true
     /// </summary>
-    public ChoiceReward CompletionReward { get; set; }
+    public Consequence CompletionReward { get; set; }
 
     /// <summary>
-    /// Reward to apply if mental challenge fails
+    /// Consequence to apply if mental challenge fails
     /// Set when challenge started from Choice with ActionType = StartChallenge
     /// Applied when player escapes or fails challenge
     /// Enables OnFailure transitions in scene state machine
     /// </summary>
-    public ChoiceReward FailureReward { get; set; }
+    public Consequence FailureReward { get; set; }
 
     /// <summary>
     /// PROCEDURAL CONTENT TRACING: Choice execution trace node

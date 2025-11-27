@@ -333,7 +333,7 @@ public class SceneFacade
     }
 
     /// <summary>
-    /// Generate scene previews from ChoiceTemplate reward spawns
+    /// Generate scene previews from ChoiceTemplate consequence spawns
     /// PERFECT INFORMATION: Shows player WHERE scenes will spawn and WHAT they contain
     /// Replaces provisional scene pattern with DTO generation from template metadata
     /// </summary>
@@ -341,10 +341,10 @@ public class SceneFacade
     {
         List<ScenePreview> previews = new List<ScenePreview>();
 
-        if (choiceTemplate.RewardTemplate == null || !choiceTemplate.RewardTemplate.ScenesToSpawn.Any())
+        if (choiceTemplate.Consequence == null || !choiceTemplate.Consequence.ScenesToSpawn.Any())
             return previews; // No scenes to preview
 
-        foreach (SceneSpawnReward spawnReward in choiceTemplate.RewardTemplate.ScenesToSpawn)
+        foreach (SceneSpawnReward spawnReward in choiceTemplate.Consequence.ScenesToSpawn)
         {
             SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == spawnReward.SceneTemplateId);
             if (template == null)

@@ -275,4 +275,43 @@ public class RewardApplicationService
         // NO CLEANUP NEEDED: Provisional scenes don't exist in HIGHLANDER flow
     }
 
+    /// <summary>
+    /// Apply Consequence to player state (unified costs/rewards pattern)
+    /// Wraps ApplyChoiceReward for Consequence parameter type
+    /// Used by ChoiceTemplate.Consequence (new unified pattern)
+    /// </summary>
+    public async Task ApplyConsequence(Consequence consequence, Situation currentSituation)
+    {
+        // Consequence and ChoiceReward are semantically equivalent (costs + rewards)
+        // Consequence uses negative values for costs, ChoiceReward uses separate Cost/Reward objects
+        // This adapter bridges the gap until full refactoring
+
+        // For now, delegate to ApplyChoiceReward by converting Consequence → ChoiceReward
+        // TODO: Refactor all callers to use Consequence directly (HIGHLANDER)
+        ChoiceReward legacyReward = new ChoiceReward
+        {
+            Coins = consequence.Coins > 0 ? consequence.Coins : 0,
+            Resolve = consequence.Resolve > 0 ? consequence.Resolve : 0,
+            Health = consequence.Health > 0 ? consequence.Health : 0,
+            Stamina = consequence.Stamina > 0 ? consequence.Stamina : 0,
+            Focus = consequence.Focus > 0 ? consequence.Focus : 0,
+            Hunger = consequence.Hunger,
+            FullRecovery = consequence.FullRecovery,
+            Insight = consequence.Insight,
+            Rapport = consequence.Rapport,
+            Authority = consequence.Authority,
+            Diplomacy = consequence.Diplomacy,
+            Cunning = consequence.Cunning,
+            BondChanges = consequence.BondChanges,
+            ScaleShifts = consequence.ScaleShifts,
+            StateApplications = consequence.StateApplications,
+            Achievements = consequence.Achievements,
+            Items = consequence.Items,
+            ItemsToRemove = consequence.ItemsToRemove,
+            ScenesToSpawn = consequence.ScenesToSpawn
+        };
+
+        await ApplyChoiceReward(legacyReward, currentSituation);
+    }
+
 }

@@ -713,10 +713,16 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 **Verification Results (2025-11-27):**
 - ✅ **Action text changed**: "Politely decline" → "Back out of the deal" - VERIFIED in UI
-- ⚠️ **-1 Rapport consequence**: Set in code but NOT displaying in UI (needs investigation)
+- ✅ **-1 Rapport consequence**: Now displaying correctly (FIXED 2025-11-27)
 - ✅ **Situation 1 Fallback unchanged**: "Not right now" with no consequences - VERIFIED
 
-**Open Issue:** The `-1 Rapport` reward is set in `baseReward.Rapport = -1` in the enrichment loop, but the consequence doesn't display in the UI. The `SceneContent.razor.cs` display logic at line 191 checks `choice.RapportReward != 0`, so negative values should display. Root cause needs further investigation.
+**Root Cause (FIXED 2025-11-27):** The "no consequences" check in `SceneContent.razor` (lines 79-87) didn't include the Five Stats rewards (InsightReward, RapportReward, AuthorityReward, DiplomacyReward, CunningReward). When a choice had ONLY a stat reward (like -1 Rapport) and nothing else, it passed the "no consequences" check and displayed "(None)" instead of showing the actual Rapport consequence.
+
+**Fix Applied:** Added Five Stats rewards to the "no consequences" condition in `SceneContent.razor`:
+```razor
+choice.InsightReward == 0 && choice.RapportReward == 0 && choice.AuthorityReward == 0 &&
+choice.DiplomacyReward == 0 && choice.CunningReward == 0 &&
+```
 
 ---
 

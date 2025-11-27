@@ -88,72 +88,75 @@ public class SceneContentBase : ComponentBase
                 }
             }
 
+            // Map ALL costs/rewards from unified Consequence (Perfect Information)
+            // Consequence uses NEGATIVE VALUES for costs, POSITIVE VALUES for rewards
+            Consequence consequence = choiceTemplate.Consequence ?? Consequence.None();
+
+            // Extract costs (negative values, convert to positive for display)
+            int resolveCost = consequence.Resolve < 0 ? -consequence.Resolve : 0;
+            int coinsCost = consequence.Coins < 0 ? -consequence.Coins : 0;
+            int healthCost = consequence.Health < 0 ? -consequence.Health : 0;
+            int staminaCost = consequence.Stamina < 0 ? -consequence.Stamina : 0;
+            int focusCost = consequence.Focus < 0 ? -consequence.Focus : 0;
+            int hungerCost = consequence.Hunger > 0 ? consequence.Hunger : 0;
+            int timeSegments = consequence.TimeSegments;
+
             // Validate costs (only if requirements are met)
-            if (requirementsMet && choiceTemplate.CostTemplate != null)
+            if (requirementsMet && consequence != null)
             {
-                if (player.Resolve < choiceTemplate.CostTemplate.Resolve)
+                if (player.Resolve < resolveCost)
                 {
                     requirementsMet = false;
-                    lockReason = $"Not enough Resolve (need {choiceTemplate.CostTemplate.Resolve}, have {player.Resolve})";
+                    lockReason = $"Not enough Resolve (need {resolveCost}, have {player.Resolve})";
                 }
-                else if (player.Coins < choiceTemplate.CostTemplate.Coins)
+                else if (player.Coins < coinsCost)
                 {
                     requirementsMet = false;
-                    lockReason = $"Not enough Coins (need {choiceTemplate.CostTemplate.Coins}, have {player.Coins})";
+                    lockReason = $"Not enough Coins (need {coinsCost}, have {player.Coins})";
                 }
-                else if (player.Health < choiceTemplate.CostTemplate.Health)
+                else if (player.Health < healthCost)
                 {
                     requirementsMet = false;
-                    lockReason = $"Not enough Health (need {choiceTemplate.CostTemplate.Health}, have {player.Health})";
+                    lockReason = $"Not enough Health (need {healthCost}, have {player.Health})";
                 }
-                else if (player.Stamina < choiceTemplate.CostTemplate.Stamina)
+                else if (player.Stamina < staminaCost)
                 {
                     requirementsMet = false;
-                    lockReason = $"Not enough Stamina (need {choiceTemplate.CostTemplate.Stamina}, have {player.Stamina})";
+                    lockReason = $"Not enough Stamina (need {staminaCost}, have {player.Stamina})";
                 }
-                else if (player.Focus < choiceTemplate.CostTemplate.Focus)
+                else if (player.Focus < focusCost)
                 {
                     requirementsMet = false;
-                    lockReason = $"Not enough Focus (need {choiceTemplate.CostTemplate.Focus}, have {player.Focus})";
+                    lockReason = $"Not enough Focus (need {focusCost}, have {player.Focus})";
                 }
-                else if (player.Hunger + choiceTemplate.CostTemplate.Hunger > player.MaxHunger)
+                else if (player.Hunger + hungerCost > player.MaxHunger)
                 {
                     requirementsMet = false;
-                    lockReason = $"Too hungry to continue (current {player.Hunger}, action adds {choiceTemplate.CostTemplate.Hunger})";
+                    lockReason = $"Too hungry to continue (current {player.Hunger}, action adds {hungerCost})";
                 }
             }
 
-            // Map ALL costs (Perfect Information)
-            int resolveCost = choiceTemplate.CostTemplate?.Resolve ?? 0;
-            int coinsCost = choiceTemplate.CostTemplate?.Coins ?? 0;
-            int timeSegments = choiceTemplate.CostTemplate?.TimeSegments ?? 0;
-            int healthCost = choiceTemplate.CostTemplate?.Health ?? 0;
-            int staminaCost = choiceTemplate.CostTemplate?.Stamina ?? 0;
-            int focusCost = choiceTemplate.CostTemplate?.Focus ?? 0;
-            int hungerCost = choiceTemplate.CostTemplate?.Hunger ?? 0;
-
-            // Map ALL rewards (Perfect Information)
-            ChoiceReward reward = choiceTemplate.RewardTemplate;
-            int coinsReward = reward?.Coins ?? 0;
-            int resolveReward = reward?.Resolve ?? 0;
-            int healthReward = reward?.Health ?? 0;
-            int staminaReward = reward?.Stamina ?? 0;
-            int focusReward = reward?.Focus ?? 0;
-            int hungerChange = reward?.Hunger ?? 0;
-            bool fullRecovery = reward?.FullRecovery ?? false;
+            // Extract rewards (positive values)
+            int coinsReward = consequence.Coins > 0 ? consequence.Coins : 0;
+            int resolveReward = consequence.Resolve > 0 ? consequence.Resolve : 0;
+            int healthReward = consequence.Health > 0 ? consequence.Health : 0;
+            int staminaReward = consequence.Stamina > 0 ? consequence.Stamina : 0;
+            int focusReward = consequence.Focus > 0 ? consequence.Focus : 0;
+            int hungerChange = consequence.Hunger < 0 ? consequence.Hunger : 0; // Negative hunger is good (less hungry)
+            bool fullRecovery = consequence.FullRecovery;
 
             // Map Five Stats rewards (Sir Brante pattern: direct grants)
-            int insightReward = reward?.Insight ?? 0;
-            int rapportReward = reward?.Rapport ?? 0;
-            int authorityReward = reward?.Authority ?? 0;
-            int diplomacyReward = reward?.Diplomacy ?? 0;
-            int cunningReward = reward?.Cunning ?? 0;
+            int insightReward = consequence.Insight;
+            int rapportReward = consequence.Rapport;
+            int authorityReward = consequence.Authority;
+            int diplomacyReward = consequence.Diplomacy;
+            int cunningReward = consequence.Cunning;
 
             // Map relationship consequences (BondChanges) with current/final values
             List<BondChangeVM> bondChanges = new List<BondChangeVM>();
-            if (reward?.BondChanges != null)
+            if (consequence.BondChanges != null)
             {
-                foreach (BondChange bondChange in reward.BondChanges)
+                foreach (BondChange bondChange in consequence.BondChanges)
                 {
                     // Direct object reference, NO ID lookup
                     NPC npc = bondChange.Npc;
@@ -179,9 +182,9 @@ public class SceneContentBase : ComponentBase
 
             // Map reputation consequences (ScaleShifts) with current/final values
             List<ScaleShiftVM> scaleShifts = new List<ScaleShiftVM>();
-            if (reward?.ScaleShifts != null)
+            if (consequence.ScaleShifts != null)
             {
-                foreach (ScaleShift scaleShift in reward.ScaleShifts)
+                foreach (ScaleShift scaleShift in consequence.ScaleShifts)
                 {
                     string scaleName = scaleShift.ScaleType.ToString();
                     int currentScale = GetScaleValue(player, scaleName);
@@ -200,9 +203,9 @@ public class SceneContentBase : ComponentBase
 
             // Map condition consequences (StateApplications)
             List<StateApplicationVM> stateApplications = new List<StateApplicationVM>();
-            if (reward?.StateApplications != null)
+            if (consequence.StateApplications != null)
             {
-                foreach (StateApplication stateApp in reward.StateApplications)
+                foreach (StateApplication stateApp in consequence.StateApplications)
                 {
                     stateApplications.Add(new StateApplicationVM
                     {
@@ -214,16 +217,16 @@ public class SceneContentBase : ComponentBase
             }
 
             // Map progression unlocks
-            // HIGHLANDER: reward uses Achievement and Item objects, extract Names for display
-            List<string> achievementsGranted = reward?.Achievements?.Select(a => a.Name).ToList() ?? new List<string>();
-            List<string> itemsGranted = reward?.Items?.Select(i => i.Name).ToList() ?? new List<string>();
+            // HIGHLANDER: consequence uses Achievement and Item objects, extract Names for display
+            List<string> achievementsGranted = consequence.Achievements?.Select(a => a.Name).ToList() ?? new List<string>();
+            List<string> itemsGranted = consequence.Items?.Select(i => i.Name).ToList() ?? new List<string>();
             // LocationsToUnlock DELETED - new architecture uses dual-model accessibility (situation presence grants access)
 
             // Map scene spawns to display names
             List<string> scenesUnlocked = new List<string>();
-            if (reward?.ScenesToSpawn != null)
+            if (consequence.ScenesToSpawn != null)
             {
-                foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
+                foreach (SceneSpawnReward sceneSpawn in consequence.ScenesToSpawn)
                 {
                     // Scene spawning uses categorical PlacementFilter now (no context binding needed)
                     // SceneTemplate.PlacementFilter defines categories → EntityResolver finds/creates at spawn time
@@ -470,25 +473,33 @@ public class SceneContentBase : ComponentBase
         }
 
         // Validate costs before applying
-        if (choiceTemplate.CostTemplate != null)
+        // Consequence uses NEGATIVE VALUES for costs: Coins = -5 means pay 5 coins
+        if (choiceTemplate.Consequence != null)
         {
-            if (player.Resolve < choiceTemplate.CostTemplate.Resolve ||
-                player.Coins < choiceTemplate.CostTemplate.Coins ||
-                player.Health < choiceTemplate.CostTemplate.Health ||
-                player.Stamina < choiceTemplate.CostTemplate.Stamina ||
-                player.Focus < choiceTemplate.CostTemplate.Focus ||
-                player.Hunger + choiceTemplate.CostTemplate.Hunger > player.MaxHunger)
+            int resolveCost = choiceTemplate.Consequence.Resolve < 0 ? -choiceTemplate.Consequence.Resolve : 0;
+            int coinsCost = choiceTemplate.Consequence.Coins < 0 ? -choiceTemplate.Consequence.Coins : 0;
+            int healthCost = choiceTemplate.Consequence.Health < 0 ? -choiceTemplate.Consequence.Health : 0;
+            int staminaCost = choiceTemplate.Consequence.Stamina < 0 ? -choiceTemplate.Consequence.Stamina : 0;
+            int focusCost = choiceTemplate.Consequence.Focus < 0 ? -choiceTemplate.Consequence.Focus : 0;
+            int hungerCost = choiceTemplate.Consequence.Hunger > 0 ? choiceTemplate.Consequence.Hunger : 0;
+
+            if (player.Resolve < resolveCost ||
+                player.Coins < coinsCost ||
+                player.Health < healthCost ||
+                player.Stamina < staminaCost ||
+                player.Focus < focusCost ||
+                player.Hunger + hungerCost > player.MaxHunger)
             {
                 return; // Cannot afford costs - should never happen if UI is correct
             }
 
             // Apply costs immediately (for both instant and challenge actions)
-            player.Coins -= choiceTemplate.CostTemplate.Coins;
-            player.Resolve -= choiceTemplate.CostTemplate.Resolve;
-            player.Health -= choiceTemplate.CostTemplate.Health;
-            player.Stamina -= choiceTemplate.CostTemplate.Stamina;
-            player.Focus -= choiceTemplate.CostTemplate.Focus;
-            player.Hunger += choiceTemplate.CostTemplate.Hunger;
+            player.Coins -= coinsCost;
+            player.Resolve -= resolveCost;
+            player.Health -= healthCost;
+            player.Stamina -= staminaCost;
+            player.Focus -= focusCost;
+            player.Hunger += hungerCost;
 
             // Note: TimeSegments handled by RewardApplicationService (time advancement)
         }
@@ -530,8 +541,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingSocialContext = new SocialChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
+                    CompletionReward = choiceTemplate.OnSuccessConsequence,
+                    FailureReward = choiceTemplate.OnFailureConsequence,
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -540,8 +551,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingMentalContext = new MentalChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
+                    CompletionReward = choiceTemplate.OnSuccessConsequence,
+                    FailureReward = choiceTemplate.OnFailureConsequence,
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -550,8 +561,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingPhysicalContext = new PhysicalChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
+                    CompletionReward = choiceTemplate.OnSuccessConsequence,
+                    FailureReward = choiceTemplate.OnFailureConsequence,
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -571,10 +582,10 @@ public class SceneContentBase : ComponentBase
             return;
         }
 
-        // INSTANT PATH: Apply rewards immediately
-        if (choiceTemplate.RewardTemplate != null)
+        // INSTANT PATH: Apply consequences immediately
+        if (choiceTemplate.Consequence != null)
         {
-            // PROCEDURAL CONTENT TRACING: Push context for instant reward application
+            // PROCEDURAL CONTENT TRACING: Push context for instant consequence application
             if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
                 GameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
@@ -582,7 +593,7 @@ public class SceneContentBase : ComponentBase
 
             try
             {
-                await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
+                await RewardApplicationService.ApplyConsequence(choiceTemplate.Consequence, CurrentSituation);
             }
             finally
             {

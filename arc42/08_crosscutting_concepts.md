@@ -646,6 +646,59 @@ When a situation transitions from pre-commitment to post-commitment, the Fallbac
 
 ---
 
+## 8.17 Consequence ValueObject Pattern
+
+**Unified representation of all costs and rewards using signed values.**
+
+The Consequence ValueObject consolidates separate cost/reward structures into a single object where **sign indicates direction**: negative values are costs, positive values are rewards.
+
+### Design Principle
+
+```
+Single property per resource type: Coins = -50 means PAY, Coins = 10 means EARN
+```
+
+| Old Pattern | New Pattern | Meaning |
+|-------------|-------------|---------|
+| `CostTemplate.Coins = 50` | `Consequence.Coins = -50` | Pay 50 coins |
+| `RewardTemplate.Coins = 10` | `Consequence.Coins = 10` | Earn 10 coins |
+| `CostTemplate.Resolve = 2` | `Consequence.Resolve = -2` | Spend 2 resolve |
+| `RewardTemplate.Health = 5` | `Consequence.Health = 5` | Heal 5 health |
+
+**Exception:** `TimeSegments` is always positive because time only moves forward. `Hunger` increase is positive (bad for player).
+
+### Query Methods (Perfect Information Pattern)
+
+The Consequence class provides projection methods for UI display:
+
+```csharp
+public bool HasAnyCosts()     // Negative resource changes exist?
+public bool HasAnyRewards()   // Positive changes or progression exist?
+public bool HasAnyEffect()    // Replaces 15+ field sprawl in UI code
+public bool IsAffordable(Player player)  // Can player pay all costs?
+public PlayerStateProjection GetProjectedState(Player player)  // What IF?
+```
+
+**Why Methods on ValueObject:** Projection is a pure function deriving data from state. No side effects, no mutation. The `ConsequenceApplicationService` handles actual state changes.
+
+### Applicability
+
+| Action Type | Consequence Pattern | Notes |
+|-------------|-------------------|-------|
+| **Scene-based** (ChoiceTemplate) | `Consequence`, `OnSuccessConsequence`, `OnFailureConsequence` | Full unified pattern |
+| **Atmospheric** (LocationAction) | `ActionCosts`, `ActionRewards` (ChoiceCost/ChoiceReward) | Legacy pattern per Dual-Tier Architecture |
+
+Atmospheric actions retain separate cost/reward types because their simplicity doesn't benefit from the unified pattern. Scene-based actions use Consequence because their complexity (OR requirements, conditional outcomes, scene spawning) benefits from unified projection.
+
+### Key Files
+
+- `src/GameState/Consequence.cs` — ValueObject with query methods
+- `src/GameState/PlayerStateProjection.cs` — Read-only projection for "what if" display
+- `src/GameState/RequirementProjection.cs` — Projection for requirement satisfaction status
+- `src/Content/DTOs/ConsequenceDTO.cs` — DTO for JSON parsing
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

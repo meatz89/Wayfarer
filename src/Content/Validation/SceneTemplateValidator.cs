@@ -140,8 +140,8 @@ public static class SceneTemplateValidator
 
         if (choice.ActionType == ChoiceActionType.StartChallenge && hasNoRequirements)
         {
-            bool successSpawns = choice.RewardTemplate?.ScenesToSpawn?.Any() == true;
-            bool failureSpawns = choice.OnFailureReward?.ScenesToSpawn?.Any() == true;
+            bool successSpawns = choice.OnSuccessConsequence?.ScenesToSpawn?.Any() == true;
+            bool failureSpawns = choice.OnFailureConsequence?.ScenesToSpawn?.Any() == true;
             return successSpawns && failureSpawns;
         }
 
@@ -166,7 +166,7 @@ public static class SceneTemplateValidator
             }
 
             List<SceneSpawnReward> spawnedScenes = finalSituation.ChoiceTemplates
-            .SelectMany(c => c.RewardTemplate?.ScenesToSpawn ?? new List<SceneSpawnReward>())
+            .SelectMany(c => c.Consequence?.ScenesToSpawn ?? new List<SceneSpawnReward>())
             .ToList();
 
             if (spawnedScenes.Any())

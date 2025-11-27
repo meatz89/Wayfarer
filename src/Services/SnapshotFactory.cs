@@ -234,4 +234,71 @@ public static class SnapshotFactory
                 : new List<string>()
         };
     }
+
+    /// <summary>
+    /// Create RewardSnapshot from Consequence (unified pattern adapter)
+    /// Converts Consequence (negative for costs, positive for rewards) to RewardSnapshot (positive values only)
+    /// </summary>
+    public static RewardSnapshot CreateRewardSnapshotFromConsequence(Consequence consequence)
+    {
+        if (consequence == null) return null;
+
+        RewardSnapshot snapshot = new RewardSnapshot
+        {
+            CoinsGained = consequence.Coins > 0 ? consequence.Coins : 0,
+            ResolveGained = consequence.Resolve > 0 ? consequence.Resolve : 0,
+            HealthGained = consequence.Health > 0 ? consequence.Health : 0,
+            StaminaGained = consequence.Stamina > 0 ? consequence.Stamina : 0,
+            FocusGained = consequence.Focus > 0 ? consequence.Focus : 0,
+            InsightGained = consequence.Insight,
+            RapportGained = consequence.Rapport,
+            AuthorityGained = consequence.Authority,
+            DiplomacyGained = consequence.Diplomacy,
+            CunningGained = consequence.Cunning,
+            BondChanges = new List<string>(),
+            ItemsGranted = new List<string>(),
+            StatesApplied = new List<string>(),
+            AchievementsGranted = new List<string>()
+        };
+
+        // Summarize bond changes
+        if (consequence.BondChanges != null)
+        {
+            foreach (BondChange bondChange in consequence.BondChanges)
+            {
+                string npcName = bondChange.Npc?.Name ?? "Unknown NPC";
+                snapshot.BondChanges.Add($"{npcName}: {bondChange.Delta:+#;-#;0}");
+            }
+        }
+
+        // Summarize state applications
+        if (consequence.StateApplications != null)
+        {
+            foreach (StateApplication stateApp in consequence.StateApplications)
+            {
+                string action = stateApp.Apply ? "+" : "-";
+                snapshot.StatesApplied.Add($"{action}{stateApp.StateType}");
+            }
+        }
+
+        // Summarize achievements
+        if (consequence.Achievements != null)
+        {
+            foreach (Achievement achievement in consequence.Achievements)
+            {
+                snapshot.AchievementsGranted.Add(achievement.Name);
+            }
+        }
+
+        // Summarize items
+        if (consequence.Items != null)
+        {
+            foreach (Item item in consequence.Items)
+            {
+                snapshot.ItemsGranted.Add(item.Name);
+            }
+        }
+
+        return snapshot;
+    }
 }

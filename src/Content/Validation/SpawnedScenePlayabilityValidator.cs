@@ -128,8 +128,8 @@ public class SpawnedScenePlayabilityValidator
         // Challenge choices with no requirements AND both success/failure paths are guaranteed progression
         if (choice.ActionType == ChoiceActionType.StartChallenge && hasNoRequirements)
         {
-            bool successSpawns = choice.RewardTemplate?.ScenesToSpawn?.Any() == true;
-            bool failureSpawns = choice.OnFailureReward?.ScenesToSpawn?.Any() == true;
+            bool successSpawns = choice.OnSuccessConsequence?.ScenesToSpawn?.Any() == true;
+            bool failureSpawns = choice.OnFailureConsequence?.ScenesToSpawn?.Any() == true;
             return successSpawns && failureSpawns;
         }
 

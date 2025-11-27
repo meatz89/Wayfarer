@@ -31,18 +31,27 @@ public class ChoiceTemplateDTO
     public CompoundRequirementDTO RequirementFormula { get; set; }
 
     /// <summary>
-    /// Resource cost structure
-    /// Coins, Resolve, Time that must be paid to select this Choice
-    /// VISIBLE to player before selection
+    /// Unified consequence structure (negative = cost, positive = reward)
+    /// Combines costs and rewards in single structure
+    /// Costs VISIBLE, rewards HIDDEN until selected (Sir Brante pattern)
     /// </summary>
-    public ChoiceCostDTO CostTemplate { get; set; }
+    public ConsequenceDTO Consequence { get; set; }
 
     /// <summary>
-    /// Reward structure
-    /// Resources, relationships, states, Scene spawning
-    /// HIDDEN until Choice is selected (Sir Brante pattern)
+    /// Conditional consequence applied if challenge SUCCEEDS
+    /// Only used for StartChallenge action types
+    /// Applied AFTER challenge completion when player wins
+    /// null = no success-specific consequences
     /// </summary>
-    public ChoiceRewardDTO RewardTemplate { get; set; }
+    public ConsequenceDTO OnSuccessConsequence { get; set; }
+
+    /// <summary>
+    /// Conditional consequence applied if challenge FAILS
+    /// Only used for StartChallenge action types
+    /// Applied AFTER challenge completion when player loses
+    /// null = no failure-specific consequences
+    /// </summary>
+    public ConsequenceDTO OnFailureConsequence { get; set; }
 
     /// <summary>
     /// Action classification - what happens when player selects this Choice
