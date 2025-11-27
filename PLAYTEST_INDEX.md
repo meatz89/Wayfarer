@@ -40,6 +40,29 @@ Fix critical UX issues discovered during playtesting.
 
 ---
 
+## Debugging Tools
+
+### Spawn Graph Visualizer (`/spawngraph`)
+**Purpose:** Interactive visual debugger for inspecting procedurally generated content - scenes, situations, choices, and entity dependencies.
+
+**Access:** Navigate to `/spawngraph` route while game is running (e.g., if game is at `http://localhost:5000`, go to `http://localhost:5000/spawngraph`)
+
+**Key Features:**
+- **Node Types:** Scenes, Situations, Choices, Entities (NPCs, Locations, Routes)
+- **Filters:** By type, story category (Main/Side/Service), and state (Active/Completed/Deferred)
+- **Search:** Find nodes by name
+- **Detail Panel:** Click any node to see full details and navigate to related nodes
+- **Zoom Controls:** Double-click scene to zoom to subtree, "Fit to View" button
+
+**When to Use:**
+- Debug why a scene didn't activate
+- Verify scene cascade flow (A1 → A2 → A3)
+- Check which choices were made and their consequences
+- Trace entity dependencies (which NPC is at which location)
+- Understand situation routing decisions
+
+---
+
 ## Technical Setup
 
 ### Fresh Game State

@@ -103,6 +103,62 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ---
 
+## Debugging with Spawn Graph (`/spawngraph`)
+
+**Purpose:** Visual debugging tool to inspect procedurally generated content - see which scenes spawned, which situations activated, which choices were made, and how entities are connected.
+
+**Access:** Add `/spawngraph` to your game URL (e.g., if playing at `http://localhost:5000`, navigate to `http://localhost:5000/spawngraph`)
+
+### What You Can See
+
+**Node Types:**
+- **Scenes** - Main story (A1, A2, A3...), Side stories, Service scenes
+- **Situations** - Individual encounters within scenes
+- **Choices** - Player decisions made (shows which path was taken)
+- **Entities** - NPCs, Locations, Routes referenced by content
+
+**Connection Types (Legend):**
+- **Solid gray line** = Contains (hierarchy - scene contains situations)
+- **Dashed green line** = Spawns scene (ScenesToSpawn reward fired)
+- **Dashed blue line** = Spawns situation
+- **Dotted orange line** = References location
+- **Dotted red line** = References NPC
+- **Dotted brown line** = References route
+
+### Filtering Options
+
+**By Type:** Toggle Scenes, Situations, Choices, Entities on/off
+
+**By Category:**
+- Main = A-story scenes (A1, A2, A3...)
+- Side = Side quests
+- Service = Utility scenes (job board, trading)
+
+**By State:**
+- Active = Currently in progress
+- Completed = Finished
+- Deferred = Created but waiting for activation conditions
+
+### When to Use Spawn Graph
+
+1. **Scene didn't activate?** Check if it's in Deferred state - may need correct location/NPC trigger
+2. **Wrong scene cascade?** Trace the "Spawns scene" connections to see what triggered what
+3. **Missing situation?** Look for situations that should be children of a scene
+4. **Player choice tracking?** See exactly which choices were made and their consequences
+5. **Entity dependencies?** Check which NPC/Location is assigned to which situation
+
+### Quick Workflow
+
+1. Play game, encounter issue
+2. Navigate to `/spawngraph`
+3. Use filters to focus on relevant content type
+4. Search for specific scene/situation by name
+5. Click node to see detail panel with full information
+6. Double-click scene to zoom to its subtree
+7. Click "Back to Game" to return
+
+---
+
 ## What is Wayfarer?
 
 **Genre:** Choice-picking narrative game like **The Life and Suffering of Sir Brante** with infinite journey structure like **Frieren: Beyond Journey's End**

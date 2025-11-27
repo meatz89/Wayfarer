@@ -615,8 +615,8 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 ---
 
-**Last Updated:** 2025-11-27 12:30 UTC
-**Current Phase:** Scene cascade JSON filters FIXED - Ready for integration testing
+**Last Updated:** 2025-11-27 16:00 UTC
+**Current Phase:** Documentation updated with Spawn Graph debugging tool
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
@@ -674,3 +674,49 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 - **NO "Sleep Outside"** (correctly filtered)
 
 **Technical Details:** The fix follows the existing pattern for `RequiredLocationRole` filtering, extending it to support environment-based filtering using the orthogonal `LocationEnvironment` enum (Indoor, Outdoor, Covered, Underground).
+
+---
+
+## Debugging Tools Reference
+
+### Spawn Graph Visualizer (`/spawngraph`)
+
+**What It Is:** Interactive graph visualization of all procedurally generated content. Shows scenes, situations, choices made, and entity dependencies as nodes with connections.
+
+**Access:** Navigate to `/spawngraph` route while game is running
+
+**Node Types:**
+- **Scene nodes** - Color-coded by category (Main/Side/Service) and state (Active/Completed/Deferred)
+- **Situation nodes** - Individual encounters, connected to parent scene
+- **Choice nodes** - Decisions player made, shows which path was taken
+- **Entity nodes** - NPCs, Locations, Routes referenced by content
+
+**Connection Legend:**
+| Line Style | Color | Meaning |
+|------------|-------|---------|
+| Solid | Gray | Contains (hierarchy) |
+| Dashed | Green | Spawns scene |
+| Dashed | Blue | Spawns situation |
+| Dotted | Orange | References location |
+| Dotted | Red | References NPC |
+| Dotted | Brown | References route |
+
+**Filters Available:**
+- By type: Scenes, Situations, Choices, Entities
+- By category: Main Story, Side Story, Service
+- By state: Active, Completed, Deferred
+- Search: Find nodes by name
+
+**Key Features:**
+- Click node to see detail panel with full information
+- Double-click scene to zoom to its subtree
+- "Fit to View" button to see entire graph
+- "Refresh" button to update after game state changes
+- "Back to Game" button to return to gameplay
+
+**Debugging Use Cases:**
+1. **Scene cascade verification:** Trace A1 → A2 → A3 flow via "Spawns scene" connections
+2. **Activation debugging:** Check if scene is Deferred (waiting) vs Active
+3. **Choice history:** See exactly which choices player made
+4. **Entity assignment:** Verify which NPC/Location is assigned to which situation
+5. **Missing content:** Search for expected scene/situation that isn't showing
