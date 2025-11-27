@@ -627,3 +627,50 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 **Open Issues:**
 - RECOMMENDED: Add validation to ensure at least one scene has IsStarter=true
 - RECOMMENDED: Add validation for ScenesToSpawn reference integrity
+
+---
+
+## Session 2025-11-27: Sleep Outside Environment Filter Fix
+
+### 13. Sleep Outside Showing at Indoor Locations (FIXED - 2025-11-27)
+**Issue:** "Sleep Outside" player action appeared at all locations including indoor locations like Common Room and Private Room. Should only appear at outdoor locations.
+
+**Root Cause:** PlayerAction entity had `RequiredLocationRole` property but NO `RequiredEnvironment` property. The comment in PlayerActionCatalog.cs said "filtering happens at execution time based on Environment" but this filtering was NEVER implemented.
+
+**Fix Applied (3 parts):**
+
+1. **PlayerAction.cs** - Added `RequiredEnvironment` property:
+   ```csharp
+   /// <summary>
+   /// Location environment required for this action to be available.
+   /// Action only appears if location has this environment.
+   /// null = available in any environment (default)
+   /// </summary>
+   public LocationEnvironment? RequiredEnvironment { get; set; } = null;
+   ```
+
+2. **PlayerActionCatalog.cs** - Set environment requirement for Sleep Outside:
+   ```csharp
+   RequiredEnvironment = LocationEnvironment.Outdoor  // Only available at outdoor locations
+   ```
+
+3. **LocationFacade.cs** - Added environment filtering in GetPlayerActions():
+   ```csharp
+   // Filter: Check if location has required environment for this action
+   if (action.RequiredEnvironment != null)
+   {
+       if (spot.Environment != action.RequiredEnvironment.Value)
+       {
+           continue;  // Skip - location missing required environment
+       }
+   }
+   ```
+
+**Verification:** At Common Room (Indoor location), player actions now show:
+- Look Around
+- Check Belongings
+- Wait
+- Travel to Another Location
+- **NO "Sleep Outside"** (correctly filtered)
+
+**Technical Details:** The fix follows the existing pattern for `RequiredLocationRole` filtering, extending it to support environment-based filtering using the orthogonal `LocationEnvironment` enum (Indoor, Outdoor, Covered, Underground).

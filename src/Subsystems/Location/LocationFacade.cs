@@ -804,6 +804,16 @@ public class LocationFacade
                 }
             }
 
+            // Filter: Check if location has required environment for this action
+            if (action.RequiredEnvironment != null)
+            {
+                // Check if spot has required environment
+                if (spot.Environment != action.RequiredEnvironment.Value)
+                {
+                    continue;  // Skip - location missing required environment
+                }
+            }
+
             playerActions.Add(new LocationActionViewModel
             {
                 Title = action.Name,

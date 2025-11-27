@@ -40,7 +40,7 @@ public static class PlayerActionCatalog
             Rewards = ActionRewards.None()
         },
 
-        // Sleep Outside - Emergency rest without shelter
+        // Sleep Outside - Emergency rest without shelter (outdoor only)
         new PlayerAction
         {
             Name = "Sleep Outside",
@@ -51,7 +51,8 @@ public static class PlayerActionCatalog
                 Health = 2  // Sleeping outside damages health
             },
             Rewards = ActionRewards.None(),  // No recovery from sleeping outside
-            RequiredLocationRole = null  // Available everywhere - filtering happens at execution time based on Environment
+            RequiredLocationRole = null,
+            RequiredEnvironment = LocationEnvironment.Outdoor  // Only available at outdoor locations
         },
 
         // Look Around - Navigate to LookingAround view

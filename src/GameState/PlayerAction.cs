@@ -48,4 +48,11 @@ public class PlayerAction
     /// null = available everywhere (default)
     /// </summary>
     public LocationRole? RequiredLocationRole { get; set; } = null;
+
+    /// <summary>
+    /// Location environment required for this action to be available.
+    /// Action only appears if location has this environment.
+    /// null = available in any environment (default)
+    /// </summary>
+    public LocationEnvironment? RequiredEnvironment { get; set; } = null;
 }
