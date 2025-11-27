@@ -149,8 +149,6 @@ public class SceneContentBase : ComponentBase
             int diplomacyReward = reward?.Diplomacy ?? 0;
             int cunningReward = reward?.Cunning ?? 0;
 
-            Console.WriteLine($"[DEBUG-UI] Choice '{choiceTemplate.ActionTextTemplate}' PathType={choiceTemplate.PathType} rapportReward={rapportReward} (from reward?.Rapport={reward?.Rapport})");
-
             // Map relationship consequences (BondChanges) with current/final values
             List<BondChangeVM> bondChanges = new List<BondChangeVM>();
             if (reward?.BondChanges != null)
