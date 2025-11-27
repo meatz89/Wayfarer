@@ -203,7 +203,7 @@ public class ProceduralTracingTests
         ChoiceExecutionNode choiceNode = gameWorld.ProceduralTracer.RecordChoiceExecution(choice, situationNode, "Instant Action", true);
 
         gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
-        Scene spawnedScene = await ApplyChoiceReward(choice.RewardTemplate, gameWorld);
+        Scene spawnedScene = await ApplyConsequence(choice.Consequence, gameWorld);
         gameWorld.ProceduralTracer.PopChoiceContext();
 
         // Assert - Choice recorded, scene spawned and linked
@@ -235,7 +235,7 @@ public class ProceduralTracingTests
         gameWorld.PendingSocialContext = new SocialChallengeContext
         {
             Situation = situation,
-            CompletionReward = choice.OnSuccessReward,
+            CompletionReward = choice.OnSuccessConsequence,
             ChoiceExecution = choiceNode // HIGHLANDER: Store object, not string
         };
 
@@ -247,7 +247,7 @@ public class ProceduralTracingTests
         Assert.Same(choiceNode, storedChoice); // Verify object identity
 
         gameWorld.ProceduralTracer.PushChoiceContext(storedChoice);
-        Scene spawnedScene = await ApplyChoiceReward(choice.OnSuccessReward, gameWorld);
+        Scene spawnedScene = await ApplyConsequence(choice.OnSuccessConsequence, gameWorld);
         gameWorld.ProceduralTracer.PopChoiceContext();
 
         // Assert - Scene spawned by choice
@@ -346,32 +346,41 @@ public class ProceduralTracingTests
 
     private ChoiceTemplate CreateInstantChoiceWithSceneReward()
     {
-        ChoiceTemplate choice = CreateTestChoice();
-        choice.RewardTemplate = new ChoiceReward
+        return new ChoiceTemplate
         {
-            ScenesToSpawn = new List<string> { "reward_scene" }
+            Id = "test_choice",
+            ActionTextTemplate = "Test Action",
+            ActionType = ChoiceActionType.Instant,
+            PathType = ChoicePathType.InstantSuccess,
+            Consequence = new Consequence
+            {
+                ScenesToSpawn = new List<SceneSpawnReward> { new SceneSpawnReward { SceneTemplateId = "reward_scene" } }
+            }
         };
-        return choice;
     }
 
     private ChoiceTemplate CreateChallengeChoiceWithSuccessReward()
     {
-        ChoiceTemplate choice = CreateTestChoice();
-        choice.ActionType = ChoiceActionType.StartChallenge;
-        choice.ChallengeType = TacticalSystemType.Social;
-        choice.OnSuccessReward = new ChoiceReward
+        return new ChoiceTemplate
         {
-            ScenesToSpawn = new List<string> { "success_scene" }
+            Id = "test_choice",
+            ActionTextTemplate = "Test Action",
+            ActionType = ChoiceActionType.StartChallenge,
+            PathType = ChoicePathType.InstantSuccess,
+            ChallengeType = TacticalSystemType.Social,
+            OnSuccessConsequence = new Consequence
+            {
+                ScenesToSpawn = new List<SceneSpawnReward> { new SceneSpawnReward { SceneTemplateId = "success_scene" } }
+            }
         };
-        return choice;
     }
 
-    private async Task<Scene> ApplyChoiceReward(ChoiceReward reward, GameWorld gameWorld)
+    private async Task<Scene> ApplyConsequence(Consequence consequence, GameWorld gameWorld)
     {
-        // Simplified reward application - in real code this goes through RewardApplicationService
+        // Simplified consequence application - in real code this goes through ConsequenceApplicationService
         Scene spawnedScene = new Scene
         {
-            TemplateId = reward.ScenesToSpawn[0],
+            TemplateId = consequence.ScenesToSpawn[0].SceneTemplateId,
             Category = StoryCategory.SideStory,
             State = SceneState.Provisional
         };

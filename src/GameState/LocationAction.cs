@@ -80,17 +80,17 @@ public class LocationAction
 
     /// <summary>
     /// ChoiceTemplate source (SCENE-BASED PATTERN - Scene-Situation architecture)
-    /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
+    /// COMPOSITION not copy - access CompoundRequirement, OnSuccessConsequence, OnFailureConsequence through this reference
     ///
     /// PATTERN DISCRIMINATION:
-    /// - IF ChoiceTemplate != null → SCENE-BASED action (use template costs/rewards)
+    /// - IF ChoiceTemplate != null → SCENE-BASED action (use template consequences)
     /// - IF ChoiceTemplate == null → ATMOSPHERIC action (use direct Costs/Rewards properties)
     ///
     /// Scene-spawned actions generated from ChoiceTemplate at spawn time.
     /// ChoiceTemplate provides:
     /// - RequirementFormula (CompoundRequirement with OR paths)
-    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    /// - OnSuccessConsequence (Consequence with resource changes, bonds, scales, states, scene spawns)
+    /// - OnFailureConsequence (Consequence with failure outcomes)
     ///
     /// See DUAL_TIER_ACTION_ARCHITECTURE.md for complete explanation.
     /// </summary>
@@ -108,7 +108,7 @@ public class LocationAction
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews
-    /// If this action spawns scenes (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// If this action spawns scenes (ChoiceTemplate.OnSuccessConsequence.ScenesToSpawn),
     /// SceneFacade generates ScenePreview from SceneTemplate metadata
     /// Player sees WHERE scene will spawn, WHAT it contains, BEFORE selecting action
     /// Enables strategic decision-making with full knowledge of consequences

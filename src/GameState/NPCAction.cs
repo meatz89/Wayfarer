@@ -82,7 +82,7 @@ public class NPCAction
 
     /// <summary>
     /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
-    /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
+    /// COMPOSITION not copy - access CompoundRequirement, OnSuccessConsequence, OnFailureConsequence through this reference
     ///
     /// Always non-null for NPCActions (Scene-spawned only, no legacy pattern)
     /// NPCActions are ONLY generated from ChoiceTemplates within Scenes
@@ -90,8 +90,8 @@ public class NPCAction
     ///
     /// ChoiceTemplate provides:
     /// - RequirementFormula (CompoundRequirement with OR paths for bond/scale requirements)
-    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    /// - RewardTemplate (ChoiceReward with bond changes, scale shifts, states, scene spawns)
+    /// - OnSuccessConsequence (Consequence with resource changes, bonds, scales, states, scene spawns)
+    /// - OnFailureConsequence (Consequence with failure outcomes)
     ///
     /// Enables unified action execution: All NPCActions use ChoiceTemplate for
     /// requirements checking, cost application, and consequence application
@@ -111,7 +111,7 @@ public class NPCAction
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews
-    /// If this action spawns scenes (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// If this action spawns scenes (ChoiceTemplate.OnSuccessConsequence.ScenesToSpawn),
     /// SceneFacade generates ScenePreview from SceneTemplate metadata
     /// Player sees WHERE scene will spawn, WHAT it contains, BEFORE selecting action
     /// Enables strategic decision-making with full knowledge of consequences

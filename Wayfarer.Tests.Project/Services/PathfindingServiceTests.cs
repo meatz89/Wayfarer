@@ -115,10 +115,11 @@ public class PathfindingServiceTests
     [Fact]
     public void FindPath_WalkingCannotCrossWater_ReturnsFailure()
     {
-        // Arrange: Create hex map with water hex blocking path
+        // Arrange: Create hex map with water barrier at r=2
+        // To test blocking, goal must be on the OTHER side of the barrier
         HexMap hexMap = CreateHexMapWithWaterBarrier();
-        AxialCoordinates start = new AxialCoordinates(0, 0);
-        AxialCoordinates goal = new AxialCoordinates(4, 0);
+        AxialCoordinates start = new AxialCoordinates(0, 0); // r=0, below water barrier
+        AxialCoordinates goal = new AxialCoordinates(0, 4);   // r=4, above water barrier (must cross r=2)
 
         // Act: Walking transport cannot cross water
         PathfindingResult result = PathfindingService.FindPath(start, goal, hexMap, TransportType.Walking);

@@ -29,6 +29,7 @@ public class AStoryValidatorTests
                 new SituationTemplate
                 {
                     Id = $"sit{sequence}_1",
+                    LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
                         new ChoiceTemplate
@@ -177,6 +178,7 @@ public class AStoryValidatorTests
                 new SituationTemplate
                 {
                     Id = "sit1_1",
+                    LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
                         new ChoiceTemplate
@@ -220,6 +222,7 @@ public class AStoryValidatorTests
                 new SituationTemplate
                 {
                     Id = "sit1_1",
+                    LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
                         new ChoiceTemplate
@@ -263,6 +266,7 @@ public class AStoryValidatorTests
     public void Validate_AStoryWithGuaranteedChallenge_IsValid()
     {
         // ARRANGE: Challenge choice that spawns scenes on both success AND failure
+        // Validator checks OnSuccessConsequence and OnFailureConsequence (not base Consequence)
         var template = new SceneTemplate
         {
             Id = "a1_test",
@@ -274,6 +278,7 @@ public class AStoryValidatorTests
                 new SituationTemplate
                 {
                     Id = "sit1_1",
+                    LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
                         new ChoiceTemplate
@@ -281,14 +286,14 @@ public class AStoryValidatorTests
                             Id = "challenge_guaranteed",
                             ActionType = ChoiceActionType.StartChallenge,
                             RequirementFormula = null,
-                            RewardTemplate = new ChoiceReward
+                            OnSuccessConsequence = new Consequence
                             {
                                 ScenesToSpawn = new List<SceneSpawnReward>
                                 {
                                     new SceneSpawnReward { SceneTemplateId = "next_scene" }
                                 }
                             },
-                            OnFailureReward = new ChoiceReward
+                            OnFailureConsequence = new Consequence
                             {
                                 ScenesToSpawn = new List<SceneSpawnReward>
                                 {
@@ -311,7 +316,7 @@ public class AStoryValidatorTests
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT: Challenge with both success/failure spawns = guaranteed progression
-        Assert.True(result.IsValid);
+        Assert.True(result.IsValid, $"Expected valid but got errors: {string.Join(", ", result.Errors.Select(e => e.Code + ": " + e.Message))}");
     }
 
     [Fact]
@@ -329,6 +334,7 @@ public class AStoryValidatorTests
                 new SituationTemplate
                 {
                     Id = "sit1_1",
+                    LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
                         new ChoiceTemplate
@@ -353,6 +359,6 @@ public class AStoryValidatorTests
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT: B/C stories don't need MainStorySequence
-        Assert.True(result.IsValid);
+        Assert.True(result.IsValid, $"Expected valid but got errors: {string.Join(", ", result.Errors.Select(e => e.Code + ": " + e.Message))}");
     }
 }

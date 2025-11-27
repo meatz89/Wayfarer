@@ -286,11 +286,8 @@ public class SceneContentBase : ComponentBase
                 // Affordability check - separate from requirements
                 // Requirements = prerequisites (stats, relationships, items)
                 // Affordability = resource availability (coins, resolve, stamina, focus, health)
-                IsAffordable = player.Coins >= coinsCost &&
-                              player.Resolve >= resolveCost &&
-                              player.Health >= healthCost &&
-                              player.Stamina >= staminaCost &&
-                              player.Focus >= focusCost,
+                IsAffordable = consequence.IsAffordable(player),
+                HasAnyConsequences = consequence.HasAnyEffect(),
 
                 // Current player resources (for Razor display)
                 CurrentCoins = player.Coins,

@@ -300,6 +300,76 @@ Dual-model accessibility via explicit `Location.Origin` enum (not nullable Prove
 
 ---
 
+## ADR-013: Provenance Entity Metadata
+
+**Status:** Accepted
+
+**Context:**
+Debugging scene-created entities requires knowing which scene created them and when. Without forensic metadata, answering "where did this NPC come from?" requires searching all scene templates. Provenance tracking is pure debugging utility—not used for game logic or accessibility.
+
+**Decision:**
+Add `Provenance` property to Location and NPC entities containing SceneTemplate.Id and creation timestamp. This is forensic metadata only, never used for game logic or accessibility decisions.
+
+**Consequences:**
+- Debugger shows entity origin immediately
+- No runtime logic depends on Provenance (kept separate from functional properties)
+- Provenance is nullable—null means authored entity, not scene-created
+- Separate from `LocationOrigin` enum which drives accessibility logic
+
+**Alternatives Rejected:**
+- Using Provenance for accessibility: Conflates debugging metadata with game logic
+- Provenance as discriminator: Null-as-domain-meaning antipattern
+
+---
+
+## ADR-014: Package-Round Principle
+
+**Status:** Accepted
+
+**Context:**
+A package is a unit of JSON content defining templates and initial entities. During initialization, parsers must process exactly the entities from the current package being loaded—no more, no less. Methods that process "all entities in GameWorld" violate this principle, causing O(n×p) performance and architectural drift.
+
+**Decision:**
+All initialization methods accept explicit entity lists as parameters. No method scans GameWorld collections during initialization. Package-round processing is enforced architecturally via `PackageLoadResult` tracking.
+
+**Consequences:**
+- O(n) total initialization instead of O(n×p)
+- Explicit data flow (entities flow through parameters)
+- Impossible to accidentally process entities from other packages
+- Spatial initialization methods are non-idempotent (fail-fast on double-call)
+- Slightly more verbose (explicit parameters vs implicit queries)
+
+**Related Decisions:**
+- ADR-011: Package-Round Entity Tracking implements this principle for spatial initialization
+
+---
+
+## ADR-015: Consequence ValueObject with Hybrid Responsibility Pattern
+
+**Status:** Accepted
+
+**Context:**
+Scene-based choices have complex cost/reward structures with 30+ properties scattered across ChoiceCost and ChoiceReward classes. This led to:
+- 15+ field sprawl in UI conditionals
+- Duplicate affordability logic across services and UI
+- No centralized projection for Perfect Information display
+
+**Decision:**
+1. Create unified `Consequence` ValueObject with signed values (negative = cost, positive = reward)
+2. Implement Hybrid Responsibility Pattern:
+   - Query methods on ValueObject: `HasAnyEffect()`, `IsAffordable()`, `GetProjectedState()`
+   - Mutation delegated to `RewardApplicationService`
+3. Keep separate `ActionCosts`/`ActionRewards` for atmospheric actions (Dual-Tier Architecture)
+
+**Consequences:**
+- (+) Single "no consequences" check: `consequence.HasAnyEffect()`
+- (+) Centralized affordability: `consequence.IsAffordable(player)`
+- (+) Perfect Information via `GetProjectedState()`
+- (+) UI simplified from 15+ field checks to single method call
+- (-) Breaking change requiring test updates
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement

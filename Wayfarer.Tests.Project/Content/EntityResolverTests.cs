@@ -27,9 +27,9 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Dwelling },
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Public },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe }
+            Purpose = LocationPurpose.Dwelling,
+            Privacy = LocationPrivacy.Public,
+            Safety = LocationSafety.Safe
         };
 
         // Act
@@ -48,8 +48,8 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Public }
+            Purpose = LocationPurpose.Commerce,
+            Privacy = LocationPrivacy.Public
         };
 
         // Act
@@ -82,7 +82,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Worship }
+            Purpose = LocationPurpose.Worship
         };
 
         // Act
@@ -116,7 +116,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Purpose = LocationPurpose.Commerce,
             SelectionStrategy = PlacementSelectionStrategy.LeastRecent
         };
 
@@ -125,38 +125,6 @@ public class EntityResolverTests
 
         // Assert: Selects location2 (least recent = lowest VisitCount)
         Assert.Same(location2, result);
-    }
-
-    [Fact]
-    public void FindLocation_CapabilitiesFilter_MatchesFlags()
-    {
-        // Arrange: Location with specific capabilities
-        (GameWorld world, EntityResolver resolver) = CreateTestContext();
-
-        Location locationWithCapabilities = new Location("Crossroads Market")
-        {
-            Capabilities = LocationCapability.Crossroads | LocationCapability.Commercial
-        };
-
-        Location locationWithoutCapabilities = new Location("Simple Room")
-        {
-            Capabilities = LocationCapability.None
-        };
-
-        world.Locations.Add(locationWithCapabilities);
-        world.Locations.Add(locationWithoutCapabilities);
-
-        PlacementFilter filter = new PlacementFilter
-        {
-            PlacementType = PlacementType.Location,
-            RequiredCapabilities = LocationCapability.Crossroads | LocationCapability.Commercial
-        };
-
-        // Act
-        Location result = resolver.FindLocation(filter, null);
-
-        // Assert: Finds location with required capabilities
-        Assert.Same(locationWithCapabilities, result);
     }
 
     [Fact]
@@ -177,8 +145,8 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Guard },
-            PersonalityTypes = new List<PersonalityType> { PersonalityType.STEADFAST }
+            Profession = Professions.Guard,
+            PersonalityType = PersonalityType.STEADFAST
         };
 
         // Act
@@ -197,8 +165,8 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Merchant },
-            PersonalityTypes = new List<PersonalityType> { PersonalityType.MERCANTILE }
+            Profession = Professions.Merchant,
+            PersonalityType = PersonalityType.MERCANTILE
         };
 
         // Act
@@ -238,7 +206,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Guard },
+            Profession = Professions.Guard,
             MinTier = 2,
             MaxTier = 4
         };
@@ -276,8 +244,8 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Merchant },
-            RequiredRelationships = new List<NPCRelationship> { NPCRelationship.Allied }
+            Profession = Professions.Merchant,
+            RequiredRelationship = NPCRelationship.Allied
         };
 
         // Act
@@ -313,7 +281,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Guard },
+            Profession = Professions.Guard,
             SelectionStrategy = PlacementSelectionStrategy.HighestBond
         };
 
@@ -473,9 +441,9 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Public },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe } // Requires Safe
+            Purpose = LocationPurpose.Commerce,
+            Privacy = LocationPrivacy.Public,
+            Safety = LocationSafety.Safe // Requires Safe
         };
 
         // Act
@@ -505,10 +473,10 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Guard },
-            SocialStandings = new List<NPCSocialStanding> { NPCSocialStanding.Notable },
-            StoryRoles = new List<NPCStoryRole> { NPCStoryRole.Obstacle },
-            KnowledgeLevels = new List<NPCKnowledgeLevel> { NPCKnowledgeLevel.Informed }
+            Profession = Professions.Guard,
+            SocialStanding = NPCSocialStanding.Notable,
+            StoryRole = NPCStoryRole.Obstacle,
+            KnowledgeLevel = NPCKnowledgeLevel.Informed
         };
 
         // Act
@@ -542,7 +510,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Purpose = LocationPurpose.Commerce,
             IsPlayerAccessible = true // Requires visited
         };
 
@@ -570,7 +538,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Purpose = LocationPurpose.Commerce,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -595,7 +563,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.NPC,
-            Professions = new List<Professions> { Professions.Scholar }
+            Profession = Professions.Scholar
         };
 
         // Act
@@ -639,7 +607,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Purpose = LocationPurpose.Commerce,
             SelectionStrategy = PlacementSelectionStrategy.First
         };
 
@@ -723,7 +691,7 @@ public class EntityResolverTests
         {
             PlacementType = PlacementType.NPC,
             Proximity = PlacementProximity.SameLocation,
-            Professions = new List<Professions> { Professions.Guard }
+            Profession = Professions.Guard
         };
 
         // Act

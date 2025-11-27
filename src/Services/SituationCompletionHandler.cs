@@ -58,7 +58,7 @@ public class SituationCompletionHandler
         }
 
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
-        // NEW ARCHITECTURE: Consequences applied from ChoiceReward when choice executed, not from Situation
+        // NEW ARCHITECTURE: Consequences applied from Consequence when choice executed, not from Situation
 
         // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
         ApplySituationCardRewards(situation);

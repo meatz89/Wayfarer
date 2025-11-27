@@ -42,6 +42,7 @@ Domain and technical terms used throughout this documentation.
 | **GameWorld** | Single source of truth; state container with zero external dependencies |
 | **HIGHLANDER** | "There can be only one" — single canonical storage for each piece of state |
 | **Hex Position** | AxialCoordinates (Q, R) defining spatial location on hex grid |
+| **Hybrid Responsibility Pattern** | ValueObject provides pure query methods (HasAnyEffect, IsAffordable); Service handles mutations |
 | **InstantiationState** | Scene/Situation lifecycle: Deferred → Instantiated |
 | **LocationActionCatalog** | Generator creating atmospheric actions for all locations at parse-time |
 | **Object Reference** | Direct entity relationship (not ID string); e.g., `NPC.Location` |
@@ -49,7 +50,9 @@ Domain and technical terms used throughout this documentation.
 | **Pattern Discrimination** | Runtime check (`ChoiceTemplate == null`) determining which action tier applies |
 | **PlacementFilter** | Strongly-typed filter for entity resolution; combines identity dimensions (Privacy, Safety, Activity, Purpose) and capabilities |
 | **PlacementProximity** | Enum controlling spatial resolution strategy; includes categorical search (SameVenue, SameDistrict) and special cases (RouteDestination) |
+| **PlayerStateProjection** | Read-only projection of player state after applying a Consequence; used for Perfect Information display |
 | **Query-Time** | Third timing tier; actions created when player enters context |
+| **RequirementProjection** | Projection of requirement satisfaction status showing which OR-paths are satisfied |
 | **RouteDestination** | Special PlacementProximity value (=6) that places a situation at the destination location of a route resolved earlier in the same scene; enables arrival situations to materialize at journey endpoints |
 | **Scene-Based Action** | Ephemeral action from ChoiceTemplate; exists only when scene active |
 | **Spawn-Time** | Second timing tier; scenes/situations created when triggered |

@@ -203,8 +203,8 @@ public class Situation
     public CompoundRequirement CompoundRequirement { get; set; }
 
     // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern violates architecture
-    // NEW ARCHITECTURE: UI queries ChoiceTemplate.RewardTemplate at display time (Perfect Information)
-    // Consequences applied from ChoiceReward when choice executed, not from Situation properties
+    // NEW ARCHITECTURE: UI queries ChoiceTemplate.OnSuccessConsequence at display time (Perfect Information)
+    // Consequences applied from Consequence when choice executed, not from Situation properties
 
     /// <summary>
     /// Spawn rules executed when situation succeeds

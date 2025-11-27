@@ -12,8 +12,8 @@ public class SceneTemplateValidatorTests
             Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {
-                new() { Id = "sit1" },
-                new() { Id = "sit2" }
+                new() { Id = "sit1", LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation } },
+                new() { Id = "sit2", LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation } }
             },
             SpawnRules = new SituationSpawnRules
             {

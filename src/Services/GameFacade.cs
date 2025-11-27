@@ -1790,7 +1790,7 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards (scene-based ChoiceReward OR atmospheric DirectRewards)
+            // Apply rewards (scene-based Consequence OR atmospheric DirectRewards)
             if (plan.IsAtmosphericAction && plan.DirectRewards != null)
             {
                 // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards
@@ -2014,7 +2014,7 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards (scene-based ChoiceReward OR atmospheric PathCard rewards)
+            // Apply rewards (scene-based Consequence OR atmospheric PathCard rewards)
             if (plan.IsAtmosphericAction)
             {
                 // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Apply PathCard-specific rewards
@@ -2345,7 +2345,7 @@ public class GameFacade
     private IntentResult ApplyNavigationPayload(NavigationPayload payload)
     {
         // Apply navigation based on payload type
-        // NavigationPayload structure from ChoiceReward - contains target location/route
+        // NavigationPayload structure from Consequence - contains target location/route
         // For now, return to location screen (navigation logic to be implemented)
         return IntentResult.Executed(requiresRefresh: true);
     }

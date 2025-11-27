@@ -144,17 +144,17 @@ public class PathCard
 
     /// <summary>
     /// ChoiceTemplate source (SCENE-BASED PATTERN - Scene-Situation architecture)
-    /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
+    /// COMPOSITION not copy - access CompoundRequirement, OnSuccessConsequence, OnFailureConsequence through this reference
     ///
     /// PATTERN DISCRIMINATION:
-    /// - IF ChoiceTemplate != null → SCENE-BASED path card (use template costs/rewards)
+    /// - IF ChoiceTemplate != null → SCENE-BASED path card (use template consequences)
     /// - IF ChoiceTemplate == null → ATMOSPHERIC path card (use direct properties above)
     ///
     /// Scene-spawned path cards generated from ChoiceTemplate at spawn time.
     /// ChoiceTemplate provides:
     /// - RequirementFormula (CompoundRequirement with OR paths)
-    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    /// - OnSuccessConsequence (Consequence with resource changes, bonds, scales, states, scene spawns)
+    /// - OnFailureConsequence (Consequence with failure outcomes)
     ///
     /// See DUAL_TIER_ACTION_ARCHITECTURE.md for complete explanation.
     /// </summary>
@@ -173,7 +173,7 @@ public class PathCard
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews
-    /// If this path card spawns scenes (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// If this path card spawns scenes (ChoiceTemplate.OnSuccessConsequence.ScenesToSpawn),
     /// SceneFacade generates ScenePreview from SceneTemplate metadata
     /// Player sees WHERE scene will spawn, WHAT it contains, BEFORE selecting path card
     /// Enables strategic decision-making with full knowledge of consequences
@@ -182,7 +182,7 @@ public class PathCard
     /// - OLD: Create Scene entity with State=Provisional, delete if not selected
     /// - NEW: Generate ScenePreview DTO from template, no entity until card executes
     ///
-    /// DISTINCTION: SceneId (line 151) = EXISTING scene on route (already spawned)
+    /// DISTINCTION: Scene (line 141) = EXISTING scene on route (already spawned)
     ///              ScenePreviews = Scenes that WILL spawn if this card selected
     /// </summary>
     public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();

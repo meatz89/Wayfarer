@@ -169,7 +169,7 @@ public class SituationDTO
     public CompoundRequirementDTO CompoundRequirement { get; set; }
 
     // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
-    // NEW ARCHITECTURE: UI queries ChoiceTemplate.RewardTemplate at display time
+    // NEW ARCHITECTURE: UI queries ChoiceTemplate.OnSuccessConsequence at display time
 
     /// <summary>
     /// Spawn rules executed when situation succeeds

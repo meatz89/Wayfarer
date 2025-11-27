@@ -9,8 +9,8 @@ public enum SpawnTriggerType
     /// <summary>Authored tutorial progression</summary>
     Tutorial,
 
-    /// <summary>Spawned by choice reward</summary>
-    ChoiceReward,
+    /// <summary>Spawned by choice consequence</summary>
+    ChoiceConsequence,
 
     /// <summary>Spawned by situation success</summary>
     SituationSuccess,

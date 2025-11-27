@@ -292,7 +292,7 @@ public class ActionCardViewModel
     // ViewModel layer for UI display, domain entity for execution
     public NPCAction SourceAction { get; set; }
 
-    // Costs (from CostTemplate)
+    // Costs (from Consequence)
     public int ResolveCost { get; set; }
     public int CoinsCost { get; set; }
     public int TimeSegments { get; set; }
@@ -309,7 +309,7 @@ public class ActionCardViewModel
     public bool RequirementsMet { get; set; }
     public string LockReason { get; set; }
 
-    // Rewards (from ChoiceReward) - Perfect Information principle
+    // Rewards (from Consequence) - Perfect Information principle
     public int CoinsReward { get; set; }
     public int ResolveReward { get; set; }
     public int HealthReward { get; set; }
@@ -344,6 +344,9 @@ public class ActionCardViewModel
     // Requirements = prerequisites (stats, relationships, items)
     // Affordability = resource availability (coins, resolve, stamina, focus, health)
     public bool IsAffordable { get; set; }
+
+    // Computed from Consequence.HasAnyEffect() - simplifies UI conditional
+    public bool HasAnyConsequences { get; set; }
 
     // Current player resources (for Sir Brante display in COSTS section)
     public int CurrentCoins { get; set; }

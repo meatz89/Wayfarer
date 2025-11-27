@@ -29,7 +29,7 @@ public enum LifecycleStatus
 
     /// <summary>
     /// Situation resolved successfully
-    /// Consequences applied from ChoiceReward, spawns executed
+    /// Consequences applied from Consequence, spawns executed
     /// Projected properties deleted - consequences applied when choice executed, not from Situation
     /// </summary>
     Completed,

@@ -10,7 +10,7 @@ public class SceneTemplate
     /// <summary>
     /// Unique identifier for this SceneTemplate
     /// Used to spawn Scene instances from this archetype
-    /// Referenced by ChoiceReward.SceneSpawnReward and Obligation phase rewards
+    /// Referenced by Consequence.ScenesToSpawn and Obligation phase rewards
     /// </summary>
     public string Id { get; init; }
 

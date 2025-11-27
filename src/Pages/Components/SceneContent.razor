@@ -76,15 +76,7 @@
                         <div class="choice-section">
                             <div class="choice-section-title">CONSEQUENCES:</div>
                             <div class="choice-consequences">
-                                @if (choice.ResolveCost == 0 && choice.CoinsCost == 0 && choice.TimeSegments == 0 &&
-                                     choice.HealthCost == 0 && choice.StaminaCost == 0 && choice.FocusCost == 0 && choice.HungerCost == 0 &&
-                                     choice.CoinsReward == 0 && choice.ResolveReward == 0 && choice.HealthReward == 0 &&
-                                     choice.StaminaReward == 0 && choice.FocusReward == 0 && choice.HungerChange == 0 &&
-                                     choice.InsightReward == 0 && choice.RapportReward == 0 && choice.AuthorityReward == 0 &&
-                                     choice.DiplomacyReward == 0 && choice.CunningReward == 0 &&
-                                     !choice.FullRecovery && !choice.BondChanges.Any() && !choice.ScaleShifts.Any() &&
-                                     !choice.StateApplications.Any() && !choice.AchievementsGranted.Any() &&
-                                     !choice.ItemsGranted.Any() && !choice.ScenesUnlocked.Any())
+                                @if (!choice.HasAnyConsequences)
                                 {
                                     <div class="consequence-item consequence-none">(None)</div>
                                 }

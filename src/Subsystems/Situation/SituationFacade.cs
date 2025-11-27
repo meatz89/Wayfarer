@@ -124,7 +124,7 @@ public class SituationFacade
     private SituationSelectionResult ResolveInstantSituation(Situation situation)
     {
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
-        // NEW ARCHITECTURE: Consequences applied from ChoiceReward when choice executed
+        // NEW ARCHITECTURE: Consequences applied from Consequence when choice executed
 
         // Mark situation as completed
         situation.Complete();

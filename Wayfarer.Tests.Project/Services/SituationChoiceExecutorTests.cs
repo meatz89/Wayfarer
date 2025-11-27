@@ -237,25 +237,23 @@ public class SituationChoiceExecutorTests
     }
 
     [Fact]
-    public void ValidateAndExtract_ChoiceReward_SetCorrectly()
+    public void ValidateAndExtract_ConsequenceRewards_SetCorrectly()
     {
-        // Arrange: Template with reward
+        // Arrange: Template with rewards (positive values in Consequence)
         Player player = CreateTestPlayer(resolve: 10);
-        ChoiceReward reward = new ChoiceReward
-        {
-            Coins = 15,
-            Resolve = 3
-        };
-        ChoiceTemplate template = CreateChoiceTemplate(reward: reward);
+        ChoiceTemplate template = CreateChoiceTemplate(
+            coinReward: 15,
+            resolveReward: 3
+        );
 
         // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
         // Assert
         Assert.True(plan.IsValid);
-        Assert.NotNull(plan.ChoiceReward);
-        Assert.Equal(15, plan.ChoiceReward.Coins);
-        Assert.Equal(3, plan.ChoiceReward.Resolve);
+        Assert.NotNull(plan.Consequence);
+        Assert.Equal(15, plan.Consequence.Coins);
+        Assert.Equal(3, plan.Consequence.Resolve);
     }
 
     [Fact]
@@ -481,6 +479,8 @@ public class SituationChoiceExecutorTests
 
     /// <summary>
     /// Create ChoiceTemplate with specified costs and requirements
+    /// DESIGN: Costs are NEGATIVE values in Consequence (Coins = -5 means pay 5)
+    /// DESIGN: Rewards are POSITIVE values in Consequence (Coins = 10 means gain 10)
     /// </summary>
     private ChoiceTemplate CreateChoiceTemplate(
         CompoundRequirement requirement = null,
@@ -491,7 +491,8 @@ public class SituationChoiceExecutorTests
         int focusCost = 0,
         int hungerCost = 0,
         int timeSegments = 0,
-        ChoiceReward reward = null,
+        int resolveReward = 0,
+        int coinReward = 0,
         ChoiceActionType actionType = ChoiceActionType.Instant,
         TacticalSystemType? challengeType = null,
         string challengeId = null,
@@ -502,17 +503,16 @@ public class SituationChoiceExecutorTests
             Id = "test_choice_template",
             ActionTextTemplate = "Test Action",
             RequirementFormula = requirement,
-            CostTemplate = new ChoiceCost
+            Consequence = new Consequence
             {
-                Resolve = resolveCost,
-                Coins = coinCost,
-                Health = healthCost,
-                Stamina = staminaCost,
-                Focus = focusCost,
-                Hunger = hungerCost,
+                Resolve = resolveReward - resolveCost,  // Negative = cost, positive = reward
+                Coins = coinReward - coinCost,
+                Health = -healthCost,
+                Stamina = -staminaCost,
+                Focus = -focusCost,
+                Hunger = hungerCost,  // Positive hunger IS the cost (increases hunger)
                 TimeSegments = timeSegments
             },
-            RewardTemplate = reward ?? new ChoiceReward(),
             ActionType = actionType,
             ChallengeType = challengeType,
             ChallengeId = challengeId,
