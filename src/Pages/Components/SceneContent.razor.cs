@@ -563,6 +563,14 @@ public class SceneContentBase : ComponentBase
             return;
         }
 
+        // FALLBACK PATH: Player declines - no rewards, exit to location, situation remains available
+        if (choiceTemplate.PathType == ChoicePathType.Fallback)
+        {
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] FALLBACK choice - exiting to location, no rewards applied");
+            await OnSceneEnd.InvokeAsync();
+            return;
+        }
+
         // INSTANT PATH: Apply rewards immediately
         if (choiceTemplate.RewardTemplate != null)
         {
@@ -584,18 +592,6 @@ public class SceneContentBase : ComponentBase
                     GameWorld.ProceduralTracer.PopChoiceContext();
                 }
             }
-        }
-
-        // FALLBACK PATH: Non-advancing choice (situation stays active and repeatable)
-        if (choiceTemplate.PathType == ChoicePathType.Fallback)
-        {
-            Console.WriteLine($"[SceneContent.HandleChoiceSelected] FALLBACK choice - situation remains active");
-            // Rewards already applied above
-            // Situation NOT completed - player can retry or leave and return
-            // Reload choices to show updated state (costs may have changed player resources)
-            LoadChoices();
-            StateHasChanged();
-            return;
         }
 
         // ADVANCING PATH: Complete situation and advance scene

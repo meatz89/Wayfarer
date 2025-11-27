@@ -777,9 +777,7 @@ public static class SceneArchetypeCatalog
                         break;
 
                     case ChoicePathType.Fallback:
-                        // Fallback: Coins = 8 (standard rate), spawn A3
-                        baseReward.Coins = 8;
-                        baseReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
+                        // Fallback: Player declines contract - no rewards, situation remains available
                         break;
                 }
             }
@@ -787,7 +785,7 @@ public static class SceneArchetypeCatalog
             enrichedNegotiateChoices.Add(new ChoiceTemplate
             {
                 Id = choice.Id,
-                PathType = choice.PathType,
+                PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
                 ActionTextTemplate = choice.ActionTextTemplate,
                 RequirementFormula = modifiedRequirement,  // Use modified requirements for A2
                 CostTemplate = choice.CostTemplate,

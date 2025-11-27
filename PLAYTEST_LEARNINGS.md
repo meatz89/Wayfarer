@@ -615,8 +615,8 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 ---
 
-**Last Updated:** 2025-11-27 16:00 UTC
-**Current Phase:** Documentation updated with Spawn Graph debugging tool
+**Last Updated:** 2025-11-27 16:30 UTC
+**Current Phase:** A2 scene testing - critical bug found
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
@@ -627,6 +627,58 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 **Open Issues:**
 - RECOMMENDED: Add validation to ensure at least one scene has IsStarter=true
 - RECOMMENDED: Add validation for ScenesToSpawn reference integrity
+- **CRITICAL: A2 Scene Choice Click Bug** - See Bug #14 below
+
+---
+
+## Session 2025-11-27: A2 Scene Testing - New Bugs Found
+
+### 14. A2 Scene Choice Card Click Bug (INVESTIGATING - 2025-11-27)
+**Issue:** Clicking scene choice cards in A2 "First Delivery" Situation 2 does NOT progress the game state. Multiple symptoms observed:
+
+**Symptoms:**
+1. **Header doesn't update:** Coins stays at 3 despite choice consequences being applied
+2. **UI doesn't progress:** Same 4 choices remain visible after clicking
+3. **Consequence calculations inflate:** "will have" values increase with each click
+   - First view: "now 3, will have 11"
+   - After clicks: "now 19, will have 27" (suggesting +8 coins applied multiple times internally)
+4. **Stat-gating works correctly:** Rapport 2+ and insufficient coins paths correctly locked
+
+**Test Path:**
+1. Completed A1 (all 3 situations) with Cunning+Insight build
+2. Stats after A1: Cunning=2, Insight=1, Coins=3
+3. Navigate to Common Room
+4. "Look Around" → "The Merchant" NPC shows "First Delivery" action
+5. Click "First Delivery" → A2 Situation 1 appears (Accept/Decline)
+6. Click "Accept the opportunity" → A2 Situation 2 appears with 4 contract options
+7. **BUG:** Click any choice (e.g., "Politely decline") → Nothing happens, same screen persists
+
+**Observations:**
+- A2 Situation 1 correctly shows two simple choices (Accept/Not right now) with "(None)" consequences
+- A2 Situation 2 correctly shows stat-gated choices with perfect information
+- Choice clicking works in A1 but fails in A2 Situation 2
+- Browser console shows NO errors (only normal Blazor WebSocket messages)
+- Server logs don't show new activity when clicking
+
+**Root Cause Investigation Needed:**
+- Compare SceneChoiceCard click handler between working (A1) and broken (A2 Sit2) scenarios
+- Check if ChoiceTemplate structure differs between A1 and A2
+- Check SituationCompletionHandler for A2-specific issues
+- Check if DeliveryContract archetype choice execution path is different
+
+**Player State at Bug:**
+- Location: Common Room (The Brass Bell Inn)
+- Time: Evening, Day 1
+- Stats: Health 5, Stamina 4/6, Focus 6/6, Coins 3, Insight 1, Cunning 2
+- Active Scene: a2_morning (First Delivery)
+- Current Situation: Situation 2 (contract negotiation)
+
+### A2 Scene Flow (Working Parts)
+1. ✅ A2 created as Deferred when A1 Situation 3 completes (ScenesToSpawn reward)
+2. ✅ A2 activates at Common Room (SemiPublic + Commercial filter matches)
+3. ✅ A2 Situation 1 displays correctly ("Accept the opportunity" / "Not right now")
+4. ✅ A2 Situation 2 displays correctly with 4 stat-gated choices
+5. ❌ A2 Situation 2 choice execution fails - no progression
 
 ---
 
