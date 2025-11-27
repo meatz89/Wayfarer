@@ -1,7 +1,7 @@
 # Playtest Documentation Index
 
 **Status:** Active playtest documentation
-**Last Updated:** 2025-11-25
+**Last Updated:** 2025-11-27
 
 ---
 
@@ -11,12 +11,21 @@
 - **[PLAYTEST_GUIDE.md](PLAYTEST_GUIDE.md)** - Complete playtest methodology and protocol
 - **[PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md)** - Session learnings and findings
 
-### Key Principles Tested
+### Key Principles Tested (from gdd/01_vision.md)
 
-1. **Impossible Choices** - Every decision forces sacrifice between valid alternatives
-2. **Perfect Information** - All costs visible before selection (no hidden gotchas)
-3. **Build Identity Through Constraint** - Specialization creates different viable paths
-4. **Stat Gating via Cost (Not Access)** - High stats pay less, low stats pay more
+1. **Impossible Choices** - Every decision forces sacrifice between valid alternatives. "I can afford A OR B, but not both."
+2. **Perfect Information** - All costs visible before selection (no hidden gotchas). Strategic layer shows everything.
+3. **Build Identity Through Constraint** - Specialization creates different viable paths. Cannot maximize all stats.
+4. **Requirement Inversion** - Stats affect COST not ACCESS. High stats pay less, low stats pay more. Everyone progresses.
+5. **Four-Choice Archetype** - Every A-story situation offers: stat-gated (free for specialists), resource (costs coins), challenge (skill test), fallback (always available)
+
+### Design Tier Hierarchy (Conflict Resolution)
+
+| Tier | Principle | Priority |
+|------|-----------|----------|
+| **TIER 1** | No Soft-Locks, Single Source of Truth | Never compromise |
+| **TIER 2** | Playability, Perfect Information, Resource Scarcity | Compromise only for Tier 1 |
+| **TIER 3** | Elegance, Verisimilitude | Compromise for Tier 1 or 2 |
 
 ---
 

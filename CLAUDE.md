@@ -10,34 +10,18 @@
 | `gdd/08_glossary.md` | Game design terminology | Any task - understand game concepts |
 | `gdd/01_vision.md` | Design pillars, Requirement Inversion, Tier Hierarchy | Any task - understand WHY things exist |
 
-## Implementation Documents (Read Before Coding)
-
-| Document | Purpose | When |
-|----------|---------|------|
-| `arc42/08_crosscutting_concepts.md` | HIGHLANDER, Catalogue Pattern, Three-Tier Timing, Dual-Tier Actions, Backend/Frontend Separation | Any implementation work |
-| `arc42/05_building_block_view.md` | Component structure, ownership hierarchy, entity relationships | Understanding where code lives |
-| `arc42/09_architecture_decisions.md` | ADRs explaining WHY patterns were chosen | Understanding architectural rationale |
-
-## Design Documents (Read for Game Logic)
-
-| Document | Purpose | When |
-|----------|---------|------|
-| `gdd/03_core_loop.md` | Strategic/tactical layer flow | Understanding gameplay structure |
-| `gdd/04_systems.md` | Stats, resources, economy overview | Working on game mechanics |
-| `design/BASELINE_ECONOMY.md` | Authoritative numeric values | Balance, costs, rewards work |
-
-## Deep Reference
+## Implementation Document
 
 | Location | Content |
 |----------|---------|
-| `design/` subdirectory | 15,000 lines of detailed mechanics, archetypes, balance methodology |
+| `gdd/` subdirectory | Detailed mechanics, archetypes, balance methodology |
 | `arc42/` subdirectory | Complete arc42 technical documentation |
 
 ## Reading Order by Task Type
 
 **Implement a feature** → Glossaries → `arc42/08` → `arc42/05` → `gdd/01` → `gdd/03`
 
-**Understand balance** → Glossaries → `gdd/01` → `gdd/06` → `design/BASELINE_ECONOMY.md`
+**Understand balance** → Glossaries → `gdd/01` → `gdd/06` → `gdd/BASELINE_ECONOMY.md`
 
 **Understand an entity** → Glossaries → `arc42/05` → `arc42/08` → Search codebase
 
@@ -115,7 +99,7 @@ You MUST achieve **100% CERTAINTY** before acting. If ANY doubt exists about a c
 2. Search codebase exhaustively (Glob/Grep for ALL references)
 3. Read COMPLETE files (no partial reads)
 4. Map dependencies (what breaks if I change this?)
-5. Verify ALL assumptions via code search
+5. Verify ALL assumptions via code search and tasks / agents
 
 **HOLISTIC DELETION:** When changing ANY property, update ALL layers:
 JSON → DTO → Parser → Entity → Service/UI
