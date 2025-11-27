@@ -1283,10 +1283,12 @@ public static class SceneArchetypeCatalog
                 Context = "delivery_success",
                 Style = "satisfying"
             },
-            // Explicit filters for delivery completion (warehouse with merchant)
+            // RouteDestination: Use route's destination location (resolved from earlier RouteFilter situations)
+            // Purpose remains as categorical validation hint
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
+                Proximity = PlacementProximity.RouteDestination,
                 Purpose = LocationPurpose.Commerce
             },
             NpcFilter = new PlacementFilter

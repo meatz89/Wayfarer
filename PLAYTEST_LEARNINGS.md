@@ -483,11 +483,74 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 ---
 
-**Last Updated:** 2025-11-27 09:27 UTC
-**Current Phase:** Tutorial Testing - Procedural routes FIXED, ready to test a2_morning
+## Session 2025-11-27: RouteDestination Fix Verification
+
+### 11. RouteSegmentTravel Arrival Location Resolution Bug (FIXED - 2025-11-27)
+**Issue:** After completing route travel (e.g., 3-segment journey from The Brass Bell Inn to The Old Mill), player remained at the origin location instead of arriving at the destination.
+
+**Root Cause:** The RouteSegmentTravel scene archetype's Arrival situation used `PlacementProximity.Spot` which was resolving to the player's CURRENT location (origin) instead of the route's DESTINATION.
+
+**Fix Applied (3 parts):**
+
+1. **New enum value:** Added `PlacementProximity.RouteDestination = 6` in `PlacementProximity.cs`:
+   ```csharp
+   /// <summary>Place at route's destination location (resolved from prior RouteFilter in same scene)</summary>
+   RouteDestination = 6
+   ```
+
+2. **SceneInstantiator route tracking:** Modified `SceneInstantiator.cs` to track the route across all situation iterations and resolve `RouteDestination` to `sceneRoute.DestinationLocation`:
+   ```csharp
+   case PlacementProximity.RouteDestination:
+       if (sceneRoute?.DestinationLocation?.HexPosition != null)
+       {
+           filterLocation = sceneRoute.DestinationLocation;
+       }
+       break;
+   ```
+
+3. **Player teleportation on scene complete:** Added logic in `SituationCompletionHandler.cs` to move player to final situation's location when scene completes:
+   ```csharp
+   if (routingDecision == SceneRoutingDecision.SceneComplete)
+   {
+       Location finalLocation = situation.Location;
+       if (finalLocation != null && finalLocation.HexPosition.HasValue)
+       {
+           Player player = _gameWorld.GetPlayer();
+           AxialCoordinates targetPosition = finalLocation.HexPosition.Value;
+           if (player.CurrentPosition.Q != targetPosition.Q || player.CurrentPosition.R != targetPosition.R)
+           {
+               player.CurrentPosition = targetPosition;
+           }
+       }
+   }
+   ```
+
+4. **Updated SceneArchetypeCatalog:** Changed Arrival situation's LocationFilter from `PlacementProximity.Spot` to `PlacementProximity.RouteDestination`.
+
+**Verification (Playwright Playtest):**
+- Started at The Brass Bell Inn, Common Room (hex 1,0)
+- Clicked "Travel to Another Location"
+- Selected The Old Mill route (3 segments)
+- Completed all 3 segments: chose paths like "Main Road", "Mountain Pass"
+- Saw "JOURNEY COMPLETE - You have reached your destination" screen
+- Clicked "FINISH ROUTE"
+- **RESULT:** Player is now at **The Old Mill > Mill Courtyard** (hex -3,3)
+- Notifications confirm: "6 segments pass...", "Route mastery increased: 1/10 exploration cubes"
+- Time advanced to MIDDAY Day 2 of Journey
+
+**Technical Details:**
+- The `RouteDestination` proximity type allows Arrival situations to resolve their location based on route context rather than player position
+- The route is tracked across all situation iterations during scene activation via `sceneRoute` parameter
+- Player teleportation ensures narrative coherence - player physically MOVES to destination when scene completes
+
+---
+
+**Last Updated:** 2025-11-27 10:27 UTC
+**Current Phase:** Route travel VERIFIED WORKING - Player successfully teleports to destination
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
+- CRITICAL: RouteSegmentTravel arrival location resolution (PlacementProximity.RouteDestination)
 
 **Open Issues:**
-- None critical - ready to continue a2_morning testing
+- None critical - route travel and destination arrival working correctly

@@ -126,6 +126,9 @@ public class SceneInstantiator
         // Create EntityResolver for FIND-only (venue-scoped categorical search)
         EntityResolver finder = new EntityResolver(_gameWorld, context.CurrentVenue);
 
+        // Track route for RouteDestination proximity (route resolved earlier, destination used later)
+        RouteOption sceneRoute = null;
+
         // INTEGRATED PROCESS: Create Situation instances AND resolve entities in one loop
         foreach (SituationTemplate sitTemplate in scene.Template.SituationTemplates)
         {
@@ -134,24 +137,49 @@ public class SceneInstantiator
             Console.WriteLine($"[SceneInstantiator]   Created Situation '{situation.Name}' from template '{sitTemplate.Id}'");
 
             // Step 2: Resolve entities (find-or-create) - INTEGRATED, NOT SEPARATE
-            // LOCATION: Find or create
+            // LOCATION: Find or create (with RouteDestination proximity support)
             if (situation.LocationFilter != null)
             {
-                Location location = finder.FindLocation(situation.LocationFilter, context.CurrentLocation);
+                Location location;
 
-                if (location == null)
+                // RouteDestination proximity: use route's destination instead of categorical search
+                if (situation.LocationFilter.Proximity == PlacementProximity.RouteDestination)
                 {
-                    // Not found - create via PackageLoader (HIGHLANDER single creation path)
-                    LocationDTO dto = BuildLocationDTOFromFilter(situation.LocationFilter);
-                    location = _packageLoader.CreateSingleLocation(dto, context.CurrentVenue);
-                    Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}'");
+                    if (sceneRoute == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"[SceneInstantiator] FAIL FAST: Situation '{situation.Name}' has RouteDestination proximity " +
+                            $"but no route was resolved in earlier situations of scene '{scene.DisplayName}'. " +
+                            $"Route-based situations must precede RouteDestination situations.");
+                    }
+                    if (sceneRoute.DestinationLocation == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"[SceneInstantiator] FAIL FAST: Route '{sceneRoute.Name}' has null DestinationLocation. " +
+                            $"Cannot resolve RouteDestination proximity for situation '{situation.Name}'.");
+                    }
+                    location = sceneRoute.DestinationLocation;
+                    Console.WriteLine($"[SceneInstantiator]     ✅ Using RouteDestination '{location.Name}' from route '{sceneRoute.Name}'");
                 }
                 else
                 {
-                    string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
-                        ? "SameLocation proximity"
-                        : "categorical filter";
-                    Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Location '{location.Name}' via {resolutionType}");
+                    // Standard categorical resolution
+                    location = finder.FindLocation(situation.LocationFilter, context.CurrentLocation);
+
+                    if (location == null)
+                    {
+                        // Not found - create via PackageLoader (HIGHLANDER single creation path)
+                        LocationDTO dto = BuildLocationDTOFromFilter(situation.LocationFilter);
+                        location = _packageLoader.CreateSingleLocation(dto, context.CurrentVenue);
+                        Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}'");
+                    }
+                    else
+                    {
+                        string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
+                            ? "SameLocation proximity"
+                            : "categorical filter";
+                        Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Location '{location.Name}' via {resolutionType}");
+                    }
                 }
 
                 situation.Location = location;
@@ -211,6 +239,9 @@ public class SceneInstantiator
                     : "categorical filter";
                 Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Route '{route.Name}' via {routeResolutionType}");
                 situation.Route = route;
+
+                // Track route for RouteDestination proximity (used by later situations like Arrival)
+                sceneRoute = route;
             }
 
             // Step 3: Add to Scene.Situations

@@ -180,6 +180,7 @@ All properties singular. Exact match semantics. Null = don't filter on that dime
 | SameDistrict | Search district's venues |
 | SameRegion | Search region's districts |
 | Anywhere | Unrestricted search |
+| RouteDestination | Use route's destination location (from prior RouteFilter in same scene) |
 
 ---
 

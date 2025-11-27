@@ -20,5 +20,8 @@ public enum PlacementProximity
     SameDistrict = 4,
 
     /// <summary>Place within same region boundary</summary>
-    SameRegion = 5
+    SameRegion = 5,
+
+    /// <summary>Place at route's destination location (resolved from prior RouteFilter in same scene)</summary>
+    RouteDestination = 6
 }

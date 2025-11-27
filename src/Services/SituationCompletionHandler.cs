@@ -92,6 +92,26 @@ public class SituationCompletionHandler
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
 
+            // SCENE COMPLETE: Teleport player to final situation's location
+            // RouteSegmentTravel scenes use RouteDestination proximity, resolving to route.DestinationLocation
+            // When scene completes, player should BE at that destination (narrative coherence)
+            if (routingDecision == SceneRoutingDecision.SceneComplete)
+            {
+                Location finalLocation = situation.Location;
+                if (finalLocation != null && finalLocation.HexPosition.HasValue)
+                {
+                    Player player = _gameWorld.GetPlayer();
+                    AxialCoordinates targetPosition = finalLocation.HexPosition.Value;
+
+                    // Only teleport if player is at a different location
+                    if (player.CurrentPosition.Q != targetPosition.Q || player.CurrentPosition.R != targetPosition.R)
+                    {
+                        player.CurrentPosition = targetPosition;
+                        Console.WriteLine($"[SituationCompletionHandler] Scene '{scene.DisplayName}' complete - teleported player to '{finalLocation.Name}'");
+                    }
+                }
+            }
+
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
             if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
             {
