@@ -780,6 +780,7 @@ public static class SceneArchetypeCatalog
                         // Fallback: Player breaks commitment after accepting - consequences but no requirements
                         // See arc42/08 §8.16 Fallback Context Rules: Post-commitment fallback has penalty
                         baseReward.Rapport = -1;  // Breaking commitment disappoints the merchant
+                        Console.WriteLine($"[DEBUG-FALLBACK] Set baseReward.Rapport = {baseReward.Rapport} for choice {choice.Id}");
                         break;
                 }
             }
@@ -789,7 +790,7 @@ public static class SceneArchetypeCatalog
                 ? "Back out of the deal"
                 : choice.ActionTextTemplate;
 
-            enrichedNegotiateChoices.Add(new ChoiceTemplate
+            ChoiceTemplate enrichedChoice = new ChoiceTemplate
             {
                 Id = choice.Id,
                 PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
@@ -804,7 +805,10 @@ public static class SceneArchetypeCatalog
                 ChallengeType = choice.ChallengeType,
                 DeckId = choice.DeckId,
                 NavigationPayload = choice.NavigationPayload
-            });
+            };
+
+            Console.WriteLine($"[DEBUG-ENRICH] Choice '{enrichedChoice.ActionTextTemplate}' PathType={enrichedChoice.PathType} Reward.Rapport={enrichedChoice.RewardTemplate?.Rapport}");
+            enrichedNegotiateChoices.Add(enrichedChoice);
         }
 
         SituationTemplate negotiateSituation = new SituationTemplate

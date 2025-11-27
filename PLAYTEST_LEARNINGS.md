@@ -708,8 +708,15 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 - `arc42/08_crosscutting_concepts.md` §8.16: Fallback Context Rules (No Soft-Lock Guarantee)
 - `gdd/04_systems.md` §4.5: Fallback Context Rules subsection
 
-**Files to Modify:**
+**Files Modified:**
 - `src/Content/Catalogs/SceneArchetypeCatalog.cs` - `GenerateDeliveryContract()` method, Situation 2 Fallback enrichment
+
+**Verification Results (2025-11-27):**
+- ✅ **Action text changed**: "Politely decline" → "Back out of the deal" - VERIFIED in UI
+- ⚠️ **-1 Rapport consequence**: Set in code but NOT displaying in UI (needs investigation)
+- ✅ **Situation 1 Fallback unchanged**: "Not right now" with no consequences - VERIFIED
+
+**Open Issue:** The `-1 Rapport` reward is set in `baseReward.Rapport = -1` in the enrichment loop, but the consequence doesn't display in the UI. The `SceneContent.razor.cs` display logic at line 191 checks `choice.RapportReward != 0`, so negative values should display. Root cause needs further investigation.
 
 ---
 
