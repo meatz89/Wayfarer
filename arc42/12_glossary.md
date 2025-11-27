@@ -47,7 +47,9 @@ Domain and technical terms used throughout this documentation.
 | **Parse-Time Translation** | One-time categorical → concrete conversion at startup |
 | **Pattern Discrimination** | Runtime check (`ChoiceTemplate == null`) determining which action tier applies |
 | **PlacementFilter** | Strongly-typed filter for entity resolution; combines identity dimensions (Privacy, Safety, Activity, Purpose) and capabilities |
+| **PlacementProximity** | Enum controlling spatial resolution strategy; includes categorical search (SameVenue, SameDistrict) and special cases (RouteDestination) |
 | **Query-Time** | Third timing tier; actions created when player enters context |
+| **RouteDestination** | Special PlacementProximity value (=6) that places a situation at the destination location of a route resolved earlier in the same scene; enables arrival situations to materialize at journey endpoints |
 | **Scene-Based Action** | Ephemeral action from ChoiceTemplate; exists only when scene active |
 | **Spawn-Time** | Second timing tier; scenes/situations created when triggered |
 | **Template** | Immutable archetype (SceneTemplate, ChoiceTemplate); first timing tier |

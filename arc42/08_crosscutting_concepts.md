@@ -450,6 +450,9 @@ At least one identity dimension is required alongside Proximity.
 | `SameDistrict` | Search district's venues |
 | `SameRegion` | Search region's districts |
 | `Anywhere` | Unrestricted search |
+| `RouteDestination` | Use route's destination location (resolved from prior RouteFilter in same scene) |
+
+**Note:** `RouteDestination` is a special proximity value used in multi-situation scenes (e.g., RouteSegmentTravel). It requires a route to be resolved in an earlier situation within the same scene. The SceneInstantiator tracks the route across situation iterations and resolves RouteDestination to `sceneRoute.DestinationLocation`.
 
 ### Filter Semantics
 
