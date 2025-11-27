@@ -545,12 +545,64 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 ---
 
-**Last Updated:** 2025-11-27 10:27 UTC
-**Current Phase:** Route travel VERIFIED WORKING - Player successfully teleports to destination
+## Session 2025-11-27: Scene Cascade Architecture Documentation
+
+### 12. Scene Auto-Cascade Bug - INTENDED BEHAVIOR DEFINITION
+
+**Bug Description:** Scene 2 (a2_morning) and Scene 3 (a3_route_travel) start immediately after the previous scene completes, bypassing player navigation. Player has no agency to explore between scenes.
+
+**Root Cause (Under Investigation):**
+- Scenes may be created as Deferred at game start instead of only when ScenesToSpawn fires
+- OR: Deferred scenes may auto-activate without checking locationActivationFilter
+- OR: SituationCompletionHandler may auto-cascade without ExitToWorld
+
+**INTENDED ARCHITECTURE (Authoritative Definition):**
+
+**Scene Lifecycle:**
+1. `SceneTemplate` - Immutable archetype in GameWorld.SceneTemplates (exists always)
+2. `Deferred Scene` - Created scene waiting for activation conditions (created on demand)
+3. `Active Scene` - Scene with player engagement (activated when conditions met)
+
+**Scene Creation Rules:**
+- `isStarter: true` scenes → Created as Deferred at game start
+- All other scenes → Remain as Templates only until `ScenesToSpawn` reward fires
+
+**Scene Activation Rules:**
+- `locationActivationFilter` → Scene activates when player ENTERS matching location
+- `npcActivationFilter` → Scene activates when player INTERACTS with matching NPC
+- Both must match if both specified
+
+**Correct A-Story Tutorial Flow:**
+1. Game Start → A1 created as Deferred (isStarter: true)
+2. Player at Common Room (Commercial + Restful) → A1 activates
+3. Player completes A1 Situation 3 → ScenesToSpawn creates A2 as Deferred
+4. Player returns to location screen (ExitToWorld)
+5. Player navigates to Town Square Center (Public + Commercial + Merchant NPC)
+6. A2 activates when filters match
+7. Player completes A2 → ScenesToSpawn creates A3 as Deferred
+8. Player returns to location screen (ExitToWorld)
+9. Player initiates route travel (Outdoor + Quiet)
+10. A3 activates during route travel
+
+**Key Validation Points:**
+- A2 should NOT appear at Common Room (it's SemiPublic, A2 needs Public)
+- A3 should NOT appear until route travel initiated
+- Player must have agency to explore between scenes
+
+**Files to Investigate:**
+- `src/Content/GameWorldInitializer.cs` - Scene startup logic (line 52: SpawnInitialScenes)
+- `src/Content/SceneInstantiator.cs` - Scene activation logic
+- `src/Services/SituationCompletionHandler.cs` - Scene routing decisions
+- `src/Subsystems/Consequence/RewardApplicationService.cs` - ScenesToSpawn reward application
+
+---
+
+**Last Updated:** 2025-11-27 11:00 UTC
+**Current Phase:** Scene cascade architecture documented - Bug investigation pending
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
 - CRITICAL: RouteSegmentTravel arrival location resolution (PlacementProximity.RouteDestination)
 
 **Open Issues:**
-- None critical - route travel and destination arrival working correctly
+- INVESTIGATING: Scene auto-cascade bug - scenes activate immediately without player navigation
