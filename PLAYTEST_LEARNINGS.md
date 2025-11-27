@@ -680,7 +680,7 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 4. ✅ A2 Situation 2 displays correctly with 4 stat-gated choices
 5. ❌ A2 Situation 2 choice execution fails - no progression
 
-### 15. DeliveryContract Duplicate Fallback Semantics (DESIGN FIX NEEDED - 2025-11-27)
+### 15. DeliveryContract Duplicate Fallback Semantics (PARTIALLY FIXED - 2025-11-27)
 **Issue:** A2 (DeliveryContract) scene has semantically identical Fallback choices across both situations:
 - Situation 1 Fallback: "Not right now" (decline opportunity)
 - Situation 2 Fallback: "Politely decline" (decline... after already accepting?)
