@@ -171,7 +171,18 @@ public class SceneInstantiator
                         // Not found - create via PackageLoader (HIGHLANDER single creation path)
                         LocationDTO dto = BuildLocationDTOFromFilter(situation.LocationFilter);
                         location = _packageLoader.CreateSingleLocation(dto, context.CurrentVenue);
-                        Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}'");
+
+                        // ADR-012: Mark as SceneCreated for dual-model accessibility
+                        // Scene-created locations only accessible when active scene's current situation is there
+                        location.Origin = LocationOrigin.SceneCreated;
+                        location.Provenance = new SceneProvenance
+                        {
+                            Scene = scene,
+                            CreatedDay = _gameWorld.CurrentDay,
+                            CreatedTimeBlock = _gameWorld.CurrentTimeBlock
+                        };
+
+                        Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}' (SceneCreated)");
                     }
                     else
                     {

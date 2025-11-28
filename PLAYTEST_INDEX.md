@@ -74,6 +74,13 @@ Fix critical UX issues discovered during playtesting.
 
 ## Technical Setup
 
+### Game URL
+**IMPORTANT:** The game is at the ROOT URL, NOT `/game`:
+- **Correct:** `http://localhost:<PORT>/` (root path)
+- **Wrong:** `http://localhost:<PORT>/game` (this route does not exist)
+
+The spawn graph visualizer is at `/spawngraph` route.
+
 ### Fresh Game State
 ```bash
 # Kill server

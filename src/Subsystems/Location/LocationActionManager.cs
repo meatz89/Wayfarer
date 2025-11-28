@@ -8,15 +8,18 @@ public class LocationActionManager
     // ActionGenerator DELETED - violates three-tier timing (actions created at wrong time)
     private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
+    private readonly LocationAccessibilityService _accessibilityService;
 
     public LocationActionManager(
         GameWorld gameWorld,
         TimeManager timeManager,
-        NPCRepository npcRepository)
+        NPCRepository npcRepository,
+        LocationAccessibilityService accessibilityService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
+        _accessibilityService = accessibilityService ?? throw new ArgumentNullException(nameof(accessibilityService));
     }
 
     /// <summary>
@@ -51,7 +54,8 @@ public class LocationActionManager
 
         List<LocationAction> availableActions = _gameWorld.LocationActions
             .Where(action => action.MatchesLocation(location, currentTime) &&
-                            IsTimeAvailable(action, currentTime))
+                            IsTimeAvailable(action, currentTime) &&
+                            IsDestinationAccessible(action))
             .OrderBy(action => action.Priority)
             .ThenBy(action => action.Name)
             .ToList();
@@ -82,9 +86,9 @@ public class LocationActionManager
             bool isAvailable = CanPerformAction(action);
             string lockReason = null;
 
-            // IsLocked check DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
-            // Accessibility checked by MovementValidator which queries LocationAccessibilityService
-            // UI should not show inaccessible locations as move targets
+            // ADR-012: Accessibility filtering implemented via IsDestinationAccessible() in LINQ query
+            // Scene-created locations filtered out unless active scene's current situation is there
+            // Authored locations always pass accessibility check (TIER 1 No Soft-Locks)
 
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
@@ -111,6 +115,22 @@ public class LocationActionManager
         if (action.Availability.Count == 0) return true; // Available at all times
 
         return action.Availability.Contains(currentTime);
+    }
+
+    /// <summary>
+    /// Check if destination location is accessible for movement actions.
+    /// ADR-012: Scene-created locations only accessible when active scene's current situation is there.
+    /// Non-movement actions always pass this check.
+    /// </summary>
+    private bool IsDestinationAccessible(LocationAction action)
+    {
+        if (action.ActionType != LocationActionType.IntraVenueMove)
+            return true;
+
+        if (action.DestinationLocation == null)
+            return true;
+
+        return _accessibilityService.IsLocationAccessible(action.DestinationLocation);
     }
 
     /// <summary>

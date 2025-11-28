@@ -209,9 +209,11 @@ public class RewardApplicationService
             if (sceneSpawn.SpawnNextMainStoryScene)
             {
                 // MAINSTORY SEQUENCING - NO ID STRINGS
-                // Get player's current progress
-                int currentSequence = player.CurrentMainStorySequence;
-                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence}");
+                // Use the CURRENT SCENE's sequence (the one being completed), not player's tracked progress
+                // Player.CurrentMainStorySequence is updated AFTER scene completion by SituationCompletionHandler
+                // If we use player's sequence here, we'd spawn the same scene again
+                int currentSequence = currentSituation?.ParentScene?.MainStorySequence ?? player.CurrentMainStorySequence;
+                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence} (from Scene={currentSituation?.ParentScene?.MainStorySequence}, Player={player.CurrentMainStorySequence})");
 
                 // Try to find authored template for next sequence
                 template = _gameWorld.GetNextMainStoryTemplate(currentSequence);

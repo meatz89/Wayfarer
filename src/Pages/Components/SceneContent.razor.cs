@@ -583,8 +583,15 @@ public class SceneContentBase : ComponentBase
         }
 
         // INSTANT PATH: Apply consequences immediately
+        Console.WriteLine($"[HandleChoiceSelected.DEBUG] Choice: {choiceTemplate.Id}");
+        Console.WriteLine($"[HandleChoiceSelected.DEBUG] Consequence null? {choiceTemplate.Consequence == null}");
         if (choiceTemplate.Consequence != null)
         {
+            Console.WriteLine($"[HandleChoiceSelected.DEBUG] ScenesToSpawn.Count = {choiceTemplate.Consequence.ScenesToSpawn.Count}");
+            foreach (SceneSpawnReward spawn in choiceTemplate.Consequence.ScenesToSpawn)
+            {
+                Console.WriteLine($"[HandleChoiceSelected.DEBUG]   SpawnNextMainStoryScene = {spawn.SpawnNextMainStoryScene}");
+            }
             // PROCEDURAL CONTENT TRACING: Push context for instant consequence application
             if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
