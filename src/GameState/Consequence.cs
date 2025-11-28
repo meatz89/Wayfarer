@@ -197,19 +197,23 @@ public class Consequence
     /// <summary>
     /// Check if player can afford all costs in this consequence.
     /// Does NOT check requirements - only resource affordability.
+    ///
+    /// NOTE: Resolve is NOT checked here - it uses the Sir Brante Willpower Pattern.
+    /// Resolve availability is handled by CompoundRequirement.CreateForConsequence()
+    /// which adds ResolveRequired = 0 (gate check), not ResolveRequired = cost.
+    /// See arc42/08 §8.20 for the Sir Brante Willpower Pattern documentation.
     /// </summary>
     public bool IsAffordable(Player player)
     {
         // Extract costs (negative values become positive for comparison)
+        // NOTE: Resolve intentionally NOT checked here - see Sir Brante Willpower Pattern
         int coinCost = Coins < 0 ? -Coins : 0;
-        int resolveCost = Resolve < 0 ? -Resolve : 0;
         int healthCost = Health < 0 ? -Health : 0;
         int staminaCost = Stamina < 0 ? -Stamina : 0;
         int focusCost = Focus < 0 ? -Focus : 0;
         int hungerCost = Hunger > 0 ? Hunger : 0; // Positive hunger is a cost
 
         return player.Coins >= coinCost &&
-               player.Resolve >= resolveCost &&
                player.Health >= healthCost &&
                player.Stamina >= staminaCost &&
                player.Focus >= focusCost &&

@@ -23,14 +23,14 @@ public class SituationChoiceExecutor
         }
 
         // STEP 2: Validate strategic costs (extract from Consequence - costs are NEGATIVE)
+        // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
+        // Resolve uses gate logic (>= 0) via CompoundRequirement.CreateForConsequence(),
+        // not affordability (>= cost). Players CAN go negative on Resolve.
+        // See arc42/08 §8.20 for documentation.
         int resolveCost = template.Consequence.Resolve < 0 ? -template.Consequence.Resolve : 0;
         int coinsCost = template.Consequence.Coins < 0 ? -template.Consequence.Coins : 0;
 
-        if (player.Resolve < resolveCost)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Resolve (need {resolveCost}, have {player.Resolve})");
-        }
-
+        // Resolve intentionally NOT validated - Sir Brante pattern allows going negative
         if (player.Coins < coinsCost)
         {
             return ActionExecutionPlan.Invalid($"Not enough Coins (need {coinsCost}, have {player.Coins})");

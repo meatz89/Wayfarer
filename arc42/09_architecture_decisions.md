@@ -416,6 +416,54 @@ JSON → DTO → Archetype → Parser Enrichment → Template
 
 ---
 
+## ADR-017: Sir Brante Willpower Pattern for Resolve
+
+**Status:** Accepted
+
+**Context:**
+
+Resolve was implemented as a traditional resource pool where choices required `player.Resolve >= cost` (affordability check). This caused:
+
+1. **HIGHLANDER Violation:** 4+ places checked Resolve with duplicated logic
+2. **Wrong Game Design:** Traditional affordability prevents going negative, but Sir Brante's willpower system ALLOWS negative values
+3. **Soft-Lock Risk:** Players with low Resolve were blocked from narrative choices
+
+The Sir Brante game (The Life and Suffering of Sir Brante) uses a dual-nature rule:
+- **Gate:** `Resolve >= 0` determines if you can ATTEMPT
+- **Cost:** `Resolve -= N` depletes willpower (CAN go negative)
+
+**Decision:**
+
+Resolve uses gate logic, not affordability logic. Single source of truth is `CompoundRequirement.CreateForConsequence()`.
+
+| Check Type | Resources | Logic |
+|------------|-----------|-------|
+| **Affordability** | Coins, Health, Stamina, Focus | `player.Resource >= cost` |
+| **Gate** | Resolve | `player.Resolve >= 0` |
+
+**Implementation:**
+
+1. `CompoundRequirement.CreateForConsequence()` adds `ResolveRequired = 0` when consequence has negative Resolve
+2. Removed Resolve from:
+   - `Consequence.IsAffordable()`
+   - `SceneContent.LoadChoices()` manual check
+   - `SceneContent.HandleChoiceSelected()` manual check
+   - `SituationChoiceExecutor.ValidateAndExtract()` manual check
+
+**Consequences:**
+
+- (+) HIGHLANDER: Single source of truth for Resolve gating
+- (+) Correct game design: Players can go negative on Resolve
+- (+) Meaningful choice: Willpower as gate creates strategic tension
+- (+) No soft-locks: Low Resolve blocks costly choices, not all choices
+- (-) Different mental model than other resources (documentation needed)
+
+**Related:**
+- §8.20 Sir Brante Willpower Pattern documents the concept
+- ADR-006 TIER 1 No Soft-Locks aligns with this pattern
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement

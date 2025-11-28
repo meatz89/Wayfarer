@@ -67,20 +67,21 @@ public class SituationChoiceExecutorTests
     }
 
     [Fact]
-    public void ValidateAndExtract_InsufficientResolve_ReturnsInvalid()
+    public void ValidateAndExtract_ResolveNotCheckedForAffordability_SirBrantePattern()
     {
-        // Arrange: Player with 3 resolve, template costs 5 resolve
+        // SIR BRANTE WILLPOWER PATTERN: Resolve uses gate logic (>= 0), NOT affordability (>= cost)
+        // Player with 3 resolve, template costs 5 resolve
+        // This should be VALID because Resolve is not checked for affordability
+        // The gate check (Resolve >= 0) is handled by RequirementFormula, not here
+        // See arc42/08 §8.20 and ADR-017
         Player player = CreateTestPlayer(resolve: 3);
         ChoiceTemplate template = CreateChoiceTemplate(resolveCost: 5);
 
         // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
-        Assert.False(plan.IsValid);
-        Assert.Contains("Not enough Resolve", plan.FailureReason);
-        Assert.Contains("need 5", plan.FailureReason);
-        Assert.Contains("have 3", plan.FailureReason);
+        // Assert: Should be VALID - Resolve is not checked for affordability
+        Assert.True(plan.IsValid);
     }
 
     [Fact]

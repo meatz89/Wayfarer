@@ -102,14 +102,12 @@ public class SceneContentBase : ComponentBase
             int timeSegments = consequence.TimeSegments;
 
             // Validate costs (only if requirements are met)
+            // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
+            // Resolve uses gate logic (>= 0) via CompoundRequirement, not affordability (>= cost).
+            // See arc42/08 §8.20 for documentation.
             if (requirementsMet && consequence != null)
             {
-                if (player.Resolve < resolveCost)
-                {
-                    requirementsMet = false;
-                    lockReason = $"Not enough Resolve (need {resolveCost}, have {player.Resolve})";
-                }
-                else if (player.Coins < coinsCost)
+                if (player.Coins < coinsCost)
                 {
                     requirementsMet = false;
                     lockReason = $"Not enough Coins (need {coinsCost}, have {player.Coins})";
@@ -436,6 +434,10 @@ public class SceneContentBase : ComponentBase
 
         // Validate costs before applying
         // Consequence uses NEGATIVE VALUES for costs: Coins = -5 means pay 5 coins
+        // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
+        // Resolve uses gate logic (>= 0) via CompoundRequirement, not affordability (>= cost).
+        // Players CAN go negative on Resolve - that's the consequence, not a blocker.
+        // See arc42/08 §8.20 for documentation.
         if (choiceTemplate.Consequence != null)
         {
             int resolveCost = choiceTemplate.Consequence.Resolve < 0 ? -choiceTemplate.Consequence.Resolve : 0;
@@ -445,8 +447,8 @@ public class SceneContentBase : ComponentBase
             int focusCost = choiceTemplate.Consequence.Focus < 0 ? -choiceTemplate.Consequence.Focus : 0;
             int hungerCost = choiceTemplate.Consequence.Hunger > 0 ? choiceTemplate.Consequence.Hunger : 0;
 
-            if (player.Resolve < resolveCost ||
-                player.Coins < coinsCost ||
+            // Resolve intentionally NOT checked - Sir Brante pattern allows going negative
+            if (player.Coins < coinsCost ||
                 player.Health < healthCost ||
                 player.Stamina < staminaCost ||
                 player.Focus < focusCost ||
@@ -456,6 +458,7 @@ public class SceneContentBase : ComponentBase
             }
 
             // Apply costs immediately (for both instant and challenge actions)
+            // Resolve CAN go negative - that's the Sir Brante willpower consequence
             player.Coins -= coinsCost;
             player.Resolve -= resolveCost;
             player.Health -= healthCost;

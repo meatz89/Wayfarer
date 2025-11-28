@@ -423,6 +423,57 @@ Replace string routing with explicit strongly-typed properties.
 
 ---
 
+## 8.20 Sir Brante Willpower Pattern
+
+Resolve follows the dual-nature rule from The Life and Suffering of Sir Brante: a gate check determines availability, while the cost depletes the resource. This differs fundamentally from traditional resource pools.
+
+### The Dual-Nature Rule
+
+Every choice that costs Resolve has TWO distinct parts:
+
+| Part | Check | Purpose |
+|------|-------|---------|
+| **Requirement (Gate)** | `Resolve >= 0` | Must have non-negative willpower to attempt |
+| **Consequence (Cost)** | `Resolve -= N` | Action depletes willpower (CAN go negative) |
+
+### Why Resolve Differs From Other Resources
+
+| Resource | Check Type | Minimum | Can Go Negative | Recovery |
+|----------|------------|---------|-----------------|----------|
+| **Coins** | Affordability (`>= cost`) | 0 | No | Earn through jobs |
+| **Health** | Affordability (`>= cost`) | 0 | No (death) | Healing services |
+| **Stamina** | Affordability (`>= cost`) | 0 | No | Rest |
+| **Focus** | Affordability (`>= cost`) | 0 | No | Rest |
+| **Resolve** | Gate (`>= 0`) | -∞ | **Yes** | Positive choices |
+
+### HIGHLANDER Implementation
+
+**Single Source of Truth:** `CompoundRequirement.CreateForConsequence()`
+
+When a Consequence has negative Resolve, this method adds:
+```
+OrPath { ResolveRequired = 0 }  // Gate check: >= 0, NOT >= cost
+```
+
+**Where Resolve is NOT Checked:**
+- `Consequence.IsAffordable()` — Resolve removed (not an affordability resource)
+- `SceneContent.LoadChoices()` — Manual check removed
+- `SceneContent.HandleChoiceSelected()` — Manual check removed
+- `SituationChoiceExecutor.ValidateAndExtract()` — Manual check removed
+
+### Game Design Purpose
+
+The willpower gate creates meaningful choice through scarcity:
+
+1. **Building Phase:** Player earns resolve through positive choices
+2. **Spending Phase:** Player can take costly choices (depletes reserve)
+3. **Locked Phase:** Negative resolve blocks costly choices until rebuilt
+4. **Recovery Phase:** Player finds opportunities to restore willpower
+
+This prevents the "abundance trivializes mechanic" trap of traditional resource pools.
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

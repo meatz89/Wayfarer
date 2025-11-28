@@ -41,7 +41,9 @@ Resolve follows the "Sir Brante Willpower" design pattern—a resource that crea
 - **Requirement:** Resolve >= 0 (must have positive willpower to attempt)
 - **Consequence:** Resolve -5 or -10 (spending willpower depletes reserve)
 
-This creates the "willpower gate": players can only make costly choices when they have built up enough resolve through earlier positive choices. A player at Resolve 0 cannot spend resolve on difficult choices—they must first make choices that build resolve.
+This creates the "willpower gate": players can only make costly choices when they have built up enough resolve through earlier positive choices. A player at Resolve 0 CAN still take a costly choice (because 0 >= 0), but will go negative afterward. A player at Resolve -5 CANNOT take costly choices until they rebuild.
+
+**Key distinction from other resources:** Coins, Health, Stamina, Focus use *affordability* logic (`resource >= cost`). Resolve uses *gate* logic (`Resolve >= 0`). See [arc42/08 §8.20](../arc42/08_crosscutting_concepts.md#820-sir-brante-willpower-pattern) for implementation details.
 
 #### Why This Pattern Creates Depth
 
