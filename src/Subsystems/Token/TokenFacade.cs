@@ -33,7 +33,7 @@ public class TokenFacade
     /// Get all tokens with a specific NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
+    public List<TokenCount> GetTokensWithNPC(NPC npc)
     {
         return _connectionTokenManager.GetTokensWithNPC(npc);
     }

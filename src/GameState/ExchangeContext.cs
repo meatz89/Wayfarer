@@ -18,7 +18,7 @@ public class ExchangeContext
     /// <summary>
     /// Player's current token counts.
     /// </summary>
-    public Dictionary<ConnectionType, int> PlayerTokens { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<TokenCount> PlayerTokens { get; set; } = new List<TokenCount>();
 
     /// <summary>
     /// The player object - contains inventory via Player.Inventory
@@ -85,8 +85,8 @@ public class ExchangeContext
 
         // Check token requirements
         // Convert Dictionary<ConnectionType, int> to List<TokenCount>
-        List<TokenCount> tokenList = PlayerTokens.Select(kvp => new TokenCount { Type = kvp.Key, Count = kvp.Value }).ToList();
-        if (!exchange.Cost.MeetsTokenRequirements(tokenList))
+        // DOMAIN COLLECTION: PlayerTokens is already List<TokenCount>
+        if (!exchange.Cost.MeetsTokenRequirements(PlayerTokens))
             return false;
 
         // Check consumed item requirements (resource costs)
@@ -103,22 +103,16 @@ public class ExchangeContext
     /// <summary>
     /// Gets a categorized view of available exchanges.
     /// Groups by exchange type for better UI organization.
+    /// DOMAIN COLLECTION: Returns List of ExchangeTypeGroup, queried with LINQ
     /// </summary>
-    public Dictionary<ExchangeType, List<ExchangeCard>> GetExchangesByType()
+    public List<ExchangeTypeGroup> GetExchangesByType()
     {
-        Dictionary<ExchangeType, List<ExchangeCard>> result = new Dictionary<ExchangeType, List<ExchangeCard>>();
         List<ExchangeCard> available = GetAvailableExchanges();
 
-        foreach (ExchangeCard exchange in available)
-        {
-            if (!result.ContainsKey(exchange.ExchangeType))
-            {
-                result[exchange.ExchangeType] = new List<ExchangeCard>();
-            }
-            result[exchange.ExchangeType].Add(exchange);
-        }
-
-        return result;
+        return available
+            .GroupBy(e => e.ExchangeType)
+            .Select(g => new ExchangeTypeGroup { Type = g.Key, Exchanges = g.ToList() })
+            .ToList();
     }
 
     /// <summary>
@@ -229,6 +223,15 @@ public class ResourcePreview
     public int Coins { get; set; }
     public int Health { get; set; }
     public int Stamina { get; set; }
+}
+
+/// <summary>
+/// Group of exchanges by type (DOMAIN COLLECTION: replaces Dictionary)
+/// </summary>
+public class ExchangeTypeGroup
+{
+    public ExchangeType Type { get; set; }
+    public List<ExchangeCard> Exchanges { get; set; } = new List<ExchangeCard>();
 }
 
 // ADR-007: NpcInfo and LocationInfo classes DELETED

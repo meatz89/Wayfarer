@@ -631,7 +631,8 @@ public class GameFacade
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
 
         // Get player's tokens with this specific NPC
-        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npc);
+        // DOMAIN COLLECTION: Convert Dictionary to List<TokenCount>
+        List<TokenCount> npcTokens = _tokenFacade.GetTokensWithNPC(npc).Select(kvp => new TokenCount { Type = kvp.Key, Count = kvp.Value }).ToList();
 
         // Get relationship tier with this NPC
         RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npc);

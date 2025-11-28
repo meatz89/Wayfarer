@@ -125,7 +125,7 @@ namespace Wayfarer.Pages.Components
             if (Context.PlayerTokens == null)
                 return 0;
 
-            return Context.PlayerTokens.GetValueOrDefault(ConnectionType.Diplomacy, 0);
+            return Context.PlayerTokens.FirstOrDefault(t => t.Type == ConnectionType.Diplomacy)?.Count ?? 0;
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace Wayfarer.Pages.Components
                     throw new InvalidOperationException("Player resources are required");
                 PlayerResourceState playerResources = Context.PlayerResources;
                 // ADR-007: Use PlayerTokens (already in Context, not NpcInfo.TokenCounts)
-                Dictionary<ConnectionType, int> npcTokens = Context.PlayerTokens ?? new Dictionary<ConnectionType, int>();
+                List<TokenCount> npcTokens = Context.PlayerTokens ?? new List<TokenCount>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
                 LastResult = await ExchangeFacade.ExecuteExchange(Context.Npc, SelectedExchange, playerResources, npcTokens, relationshipTier);
@@ -342,9 +342,9 @@ namespace Wayfarer.Pages.Components
                 (result.ItemsGranted != null && result.ItemsGranted.Any()))
             {
                 IEnumerable<string> rewards = result.RewardsGranted != null
-                    ? result.RewardsGranted.Select(kvp => $"{kvp.Value} {kvp.Key}")
+                    ? result.RewardsGranted.Select(r => $"{r.Amount} {r.Type}")
                     : new List<string>();
-                List<string> items = result.ItemsGranted != null ? result.ItemsGranted : new List<string>();
+                IEnumerable<string> items = result.ItemsGranted != null ? result.ItemsGranted.Select(item => item.Name) : new List<string>();
                 IEnumerable<string> allRewards = rewards.Concat(items);
                 rewardDesc = string.Join(", ", allRewards);
             }
@@ -491,7 +491,7 @@ namespace Wayfarer.Pages.Components
             // Check token requirements
             foreach (TokenCount token in exchange.Cost.TokenRequirements)
             {
-                int playerTokens = Context.PlayerTokens.GetValueOrDefault(token.Type, 0);
+                int playerTokens = Context.PlayerTokens.FirstOrDefault(t => t.Type == token.Type)?.Count ?? 0;
                 if (playerTokens < token.Count)
                 {
                     int needed = token.Count - playerTokens;
