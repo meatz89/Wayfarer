@@ -12,7 +12,7 @@ public class SituationChoiceExecutor
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
     {
-        // STEP 1: Validate CompoundRequirements
+        // STEP 1: Validate authored CompoundRequirements (stats, items, etc.)
         if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
         {
             bool requirementsMet = template.RequirementFormula.IsAnySatisfied(player, gameWorld);
@@ -22,52 +22,38 @@ public class SituationChoiceExecutor
             }
         }
 
-        // STEP 2: Validate strategic costs (extract from Consequence - costs are NEGATIVE)
-        // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
-        // Resolve uses gate logic (>= 0) via CompoundRequirement.CreateForConsequence(),
-        // not affordability (>= cost). Players CAN go negative on Resolve.
-        // See arc42/08 §8.20 for documentation.
-        int resolveCost = template.Consequence.Resolve < 0 ? -template.Consequence.Resolve : 0;
-        int coinsCost = template.Consequence.Coins < 0 ? -template.Consequence.Coins : 0;
-
-        // Resolve intentionally NOT validated - Sir Brante pattern allows going negative
-        if (player.Coins < coinsCost)
+        // STEP 2: HIGHLANDER - Validate ALL resource availability via CompoundRequirement
+        // See arc42/08 §8.20 for unified resource availability pattern
+        Consequence consequence = template.Consequence ?? Consequence.None();
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
+        if (resourceReq.OrPaths.Count > 0)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {coinsCost}, have {player.Coins})");
+            bool resourcesMet = resourceReq.IsAnySatisfied(player, gameWorld);
+            if (!resourcesMet)
+            {
+                RequirementProjection projection = resourceReq.GetProjection(player, gameWorld);
+                List<string> missing = projection.Paths
+                    .SelectMany(p => p.Requirements)
+                    .Where(r => !r.IsSatisfied)
+                    .Select(r => $"{r.Label} (have {r.CurrentValue})")
+                    .ToList();
+                return ActionExecutionPlan.Invalid(string.Join(", ", missing));
+            }
         }
 
-        // Tutorial resource validation (costs are NEGATIVE in Consequence)
-        int healthCost = template.Consequence.Health < 0 ? -template.Consequence.Health : 0;
-        int staminaCost = template.Consequence.Stamina < 0 ? -template.Consequence.Stamina : 0;
-        int focusCost = template.Consequence.Focus < 0 ? -template.Consequence.Focus : 0;
-        int hungerCost = template.Consequence.Hunger > 0 ? template.Consequence.Hunger : 0; // Positive hunger is a cost
-
-        if (healthCost > 0 && player.Health < healthCost)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Health (need {healthCost}, have {player.Health})");
-        }
-
-        if (staminaCost > 0 && player.Stamina < staminaCost)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {staminaCost}, have {player.Stamina})");
-        }
-
-        if (focusCost > 0 && player.Focus < focusCost)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Focus (need {focusCost}, have {player.Focus})");
-        }
-
-        // Hunger validation: Check if adding hunger would exceed max (100)
-        if (hungerCost > 0 && player.Hunger + hungerCost > player.MaxHunger)
-        {
-            return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {hungerCost}, max {player.MaxHunger})");
-        }
+        // Extract costs for execution plan (costs are NEGATIVE in Consequence)
+        int resolveCost = consequence.Resolve < 0 ? -consequence.Resolve : 0;
+        int coinsCost = consequence.Coins < 0 ? -consequence.Coins : 0;
+        int healthCost = consequence.Health < 0 ? -consequence.Health : 0;
+        int staminaCost = consequence.Stamina < 0 ? -consequence.Stamina : 0;
+        int focusCost = consequence.Focus < 0 ? -consequence.Focus : 0;
+        int hungerCost = consequence.Hunger > 0 ? consequence.Hunger : 0;
 
         // STEP 3: Build execution plan
         ActionExecutionPlan plan = ActionExecutionPlan.Valid();
         plan.ResolveCoins = resolveCost;
         plan.CoinsCost = coinsCost;
-        plan.TimeSegments = template.Consequence.TimeSegments;
+        plan.TimeSegments = consequence.TimeSegments;
 
         // Tutorial resource costs
         plan.HealthCost = healthCost;
@@ -75,7 +61,7 @@ public class SituationChoiceExecutor
         plan.FocusCost = focusCost;
         plan.HungerCost = hungerCost;
 
-        plan.Consequence = template.Consequence;
+        plan.Consequence = consequence;
         plan.ActionType = template.ActionType;
         plan.ChallengeType = template.ChallengeType;
         plan.ChallengeId = template.ChallengeId;

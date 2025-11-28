@@ -416,51 +416,58 @@ JSON → DTO → Archetype → Parser Enrichment → Template
 
 ---
 
-## ADR-017: Sir Brante Willpower Pattern for Resolve
+## ADR-017: Unified Resource Availability (HIGHLANDER)
 
 **Status:** Accepted
 
 **Context:**
 
-Resolve was implemented as a traditional resource pool where choices required `player.Resolve >= cost` (affordability check). This caused:
+Resource availability was checked in FOUR different places:
 
-1. **HIGHLANDER Violation:** 4+ places checked Resolve with duplicated logic
-2. **Wrong Game Design:** Traditional affordability prevents going negative, but Sir Brante's willpower system ALLOWS negative values
-3. **Soft-Lock Risk:** Players with low Resolve were blocked from narrative choices
+1. `Consequence.IsAffordable()` - Coins, Health, Stamina, Focus, Hunger
+2. `SceneContent.LoadChoices()` - Manual if/else for same resources
+3. `SceneContent.HandleChoiceSelected()` - Manual if/else for same resources
+4. `SituationChoiceExecutor.ValidateAndExtract()` - Manual if/else for same resources
 
-The Sir Brante game (The Life and Suffering of Sir Brante) uses a dual-nature rule:
-- **Gate:** `Resolve >= 0` determines if you can ATTEMPT
-- **Cost:** `Resolve -= N` depletes willpower (CAN go negative)
+This was a MASSIVE HIGHLANDER violation. Additionally, Resolve used wrong affordability logic instead of the Sir Brante willpower gate pattern.
 
 **Decision:**
 
-Resolve uses gate logic, not affordability logic. Single source of truth is `CompoundRequirement.CreateForConsequence()`.
+ALL resource availability checks happen in ONE place: `CompoundRequirement.CreateForConsequence()` → `OrPath.IsSatisfied()`.
 
-| Check Type | Resources | Logic |
-|------------|-----------|-------|
-| **Affordability** | Coins, Health, Stamina, Focus | `player.Resource >= cost` |
-| **Gate** | Resolve | `player.Resolve >= 0` |
+| Resource | Check Type | Requirement Property | Logic |
+|----------|------------|---------------------|-------|
+| **Resolve** | Gate | `ResolveRequired = 0` | `player.Resolve >= 0` |
+| **Coins** | Affordability | `CoinsRequired = cost` | `player.Coins >= cost` |
+| **Health** | Affordability | `HealthRequired = cost` | `player.Health >= cost` |
+| **Stamina** | Affordability | `StaminaRequired = cost` | `player.Stamina >= cost` |
+| **Focus** | Affordability | `FocusRequired = cost` | `player.Focus >= cost` |
+| **Hunger** | Capacity | `HungerCapacityRequired = cost` | `player.Hunger + cost <= MaxHunger` |
 
-**Implementation:**
+**Key Insight:** Same mechanism (OrPath.IsSatisfied), different VALUES. Resolve uses 0 for gate check. Other resources use cost for affordability check.
 
-1. `CompoundRequirement.CreateForConsequence()` adds `ResolveRequired = 0` when consequence has negative Resolve
-2. Removed Resolve from:
-   - `Consequence.IsAffordable()`
-   - `SceneContent.LoadChoices()` manual check
-   - `SceneContent.HandleChoiceSelected()` manual check
-   - `SituationChoiceExecutor.ValidateAndExtract()` manual check
+**Deleted Code:**
+
+| Deleted | Reason |
+|---------|--------|
+| `Consequence.IsAffordable()` | Redundant - OrPath handles this |
+| Manual checks in `SceneContent.LoadChoices()` | Redundant - RequirementFormula handles this |
+| Manual checks in `SceneContent.HandleChoiceSelected()` | Redundant - RequirementFormula handles this |
+| Manual checks in `SituationChoiceExecutor` | Redundant - RequirementFormula handles this |
+| `ActionCardViewModel.IsAffordable` property | Redundant - `RequirementsMet` covers everything |
 
 **Consequences:**
 
-- (+) HIGHLANDER: Single source of truth for Resolve gating
-- (+) Correct game design: Players can go negative on Resolve
-- (+) Meaningful choice: Willpower as gate creates strategic tension
-- (+) No soft-locks: Low Resolve blocks costly choices, not all choices
-- (-) Different mental model than other resources (documentation needed)
+- (+) HIGHLANDER: Single source of truth for ALL resource availability
+- (+) Resolve uses correct gate logic (Sir Brante pattern)
+- (+) No code duplication across 4 locations
+- (+) Perfect Information UI shows all requirements uniformly
+- (+) New resource types only need OrPath property addition
+- (-) Must understand gate vs affordability distinction
 
 **Related:**
-- §8.20 Sir Brante Willpower Pattern documents the concept
-- ADR-006 TIER 1 No Soft-Locks aligns with this pattern
+- §8.20 Unified Resource Availability documents the architecture
+- ADR-006 TIER 1 No Soft-Locks aligns with Resolve gate pattern
 
 ---
 

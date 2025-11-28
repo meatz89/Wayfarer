@@ -16,26 +16,62 @@ public class CompoundRequirement
     // ============================================
 
     /// <summary>
-    /// Sir Brante Dual-Nature Rule: Create requirement based on consequence costs.
-    /// If consequence costs Resolve (negative value), adds Resolve >= 0 requirement.
-    /// This encapsulates the willpower gate pattern - callers don't need to know the rule.
+    /// HIGHLANDER: Creates ALL resource requirements for a consequence.
+    /// This is the SINGLE source of truth for resource availability checking.
+    /// See arc42/08 §8.20 for unified resource availability pattern.
     ///
-    /// Pattern: Choices that COST Resolve require Resolve >= 0 to attempt.
-    /// This creates meaningful choice through scarcity - players cannot make costly
-    /// choices until they've built positive resolve through earlier choices.
+    /// Resolve uses GATE logic: ResolveRequired = 0 checks player.Resolve >= 0
+    /// Other resources use AFFORDABILITY logic: ResourceRequired = cost checks player.Resource >= cost
+    /// Hunger uses CAPACITY logic: HungerCapacityRequired = cost checks room for increase
     /// </summary>
     public static CompoundRequirement CreateForConsequence(Consequence consequence)
     {
         CompoundRequirement requirement = new CompoundRequirement();
+        OrPath path = new OrPath { Label = "Resource Requirements" };
+        bool hasAnyRequirement = false;
 
-        // Sir Brante dual-nature rule: negative Resolve consequence requires Resolve >= 0
+        // Sir Brante gate pattern: Resolve >= 0 (not >= cost)
         if (consequence.Resolve < 0)
         {
-            requirement.OrPaths.Add(new OrPath
-            {
-                Label = "Resolve 0+",
-                ResolveRequired = 0
-            });
+            path.ResolveRequired = 0;
+            hasAnyRequirement = true;
+        }
+
+        // Affordability checks: player.Resource >= cost
+        if (consequence.Coins < 0)
+        {
+            path.CoinsRequired = -consequence.Coins;
+            hasAnyRequirement = true;
+        }
+
+        if (consequence.Health < 0)
+        {
+            path.HealthRequired = -consequence.Health;
+            hasAnyRequirement = true;
+        }
+
+        if (consequence.Stamina < 0)
+        {
+            path.StaminaRequired = -consequence.Stamina;
+            hasAnyRequirement = true;
+        }
+
+        if (consequence.Focus < 0)
+        {
+            path.FocusRequired = -consequence.Focus;
+            hasAnyRequirement = true;
+        }
+
+        // Capacity check: room for hunger increase
+        if (consequence.Hunger > 0)
+        {
+            path.HungerCapacityRequired = consequence.Hunger;
+            hasAnyRequirement = true;
+        }
+
+        if (hasAnyRequirement)
+        {
+            requirement.OrPaths.Add(path);
         }
 
         return requirement;
@@ -116,10 +152,15 @@ public class OrPath
     public int? CunningRequired { get; set; }
 
     // ============================================
-    // RESOURCE REQUIREMENTS
+    // RESOURCE REQUIREMENTS (HIGHLANDER: ALL availability checks in one place)
+    // See arc42/08 §8.20 for unified resource availability pattern
     // ============================================
-    public int? ResolveRequired { get; set; }
-    public int? CoinsRequired { get; set; }
+    public int? ResolveRequired { get; set; }  // Sir Brante gate: use 0 for >= 0 check
+    public int? CoinsRequired { get; set; }    // Affordability: use cost for >= cost check
+    public int? HealthRequired { get; set; }   // Affordability: use cost for >= cost check
+    public int? StaminaRequired { get; set; }  // Affordability: use cost for >= cost check
+    public int? FocusRequired { get; set; }    // Affordability: use cost for >= cost check
+    public int? HungerCapacityRequired { get; set; }  // Capacity: room for hunger increase
 
     // ============================================
     // PROGRESSION REQUIREMENTS
@@ -158,9 +199,14 @@ public class OrPath
         if (DiplomacyRequired.HasValue && player.Diplomacy < DiplomacyRequired.Value) return false;
         if (CunningRequired.HasValue && player.Cunning < CunningRequired.Value) return false;
 
-        // Check resource requirements
+        // Check resource requirements (HIGHLANDER: ALL availability checks in one place)
+        // See arc42/08 §8.20 for unified resource availability pattern
         if (ResolveRequired.HasValue && player.Resolve < ResolveRequired.Value) return false;
         if (CoinsRequired.HasValue && player.Coins < CoinsRequired.Value) return false;
+        if (HealthRequired.HasValue && player.Health < HealthRequired.Value) return false;
+        if (StaminaRequired.HasValue && player.Stamina < StaminaRequired.Value) return false;
+        if (FocusRequired.HasValue && player.Focus < FocusRequired.Value) return false;
+        if (HungerCapacityRequired.HasValue && player.Hunger + HungerCapacityRequired.Value > player.MaxHunger) return false;
 
         // Check progression
         if (SituationCountRequired.HasValue && player.CompletedSituations.Count < SituationCountRequired.Value) return false;
@@ -289,6 +335,58 @@ public class OrPath
                 IsSatisfied = satisfied,
                 CurrentValue = player.Coins,
                 RequiredValue = CoinsRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (HealthRequired.HasValue)
+        {
+            bool satisfied = player.Health >= HealthRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Health {HealthRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Health,
+                RequiredValue = HealthRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (StaminaRequired.HasValue)
+        {
+            bool satisfied = player.Stamina >= StaminaRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Stamina {StaminaRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Stamina,
+                RequiredValue = StaminaRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (FocusRequired.HasValue)
+        {
+            bool satisfied = player.Focus >= FocusRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Focus {FocusRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Focus,
+                RequiredValue = FocusRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (HungerCapacityRequired.HasValue)
+        {
+            bool satisfied = player.Hunger + HungerCapacityRequired.Value <= player.MaxHunger;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Hunger capacity for +{HungerCapacityRequired.Value}",
+                IsSatisfied = satisfied,
+                CurrentValue = player.MaxHunger - player.Hunger,
+                RequiredValue = HungerCapacityRequired.Value
             });
             if (!satisfied) allSatisfied = false;
         }

@@ -101,36 +101,26 @@ public class SceneContentBase : ComponentBase
             int hungerCost = consequence.Hunger > 0 ? consequence.Hunger : 0;
             int timeSegments = consequence.TimeSegments;
 
-            // Validate costs (only if requirements are met)
-            // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
-            // Resolve uses gate logic (>= 0) via CompoundRequirement, not affordability (>= cost).
-            // See arc42/08 §8.20 for documentation.
-            if (requirementsMet && consequence != null)
+            // HIGHLANDER: Validate resource availability via CompoundRequirement
+            // ALL resource checks (Coins, Health, Stamina, Focus, Hunger, Resolve gate) happen in ONE place
+            // See arc42/08 §8.20 for unified resource availability pattern
+            if (requirementsMet)
             {
-                if (player.Coins < coinsCost)
+                CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
+                if (resourceReq.OrPaths.Count > 0)
                 {
-                    requirementsMet = false;
-                    lockReason = $"Not enough Coins (need {coinsCost}, have {player.Coins})";
-                }
-                else if (player.Health < healthCost)
-                {
-                    requirementsMet = false;
-                    lockReason = $"Not enough Health (need {healthCost}, have {player.Health})";
-                }
-                else if (player.Stamina < staminaCost)
-                {
-                    requirementsMet = false;
-                    lockReason = $"Not enough Stamina (need {staminaCost}, have {player.Stamina})";
-                }
-                else if (player.Focus < focusCost)
-                {
-                    requirementsMet = false;
-                    lockReason = $"Not enough Focus (need {focusCost}, have {player.Focus})";
-                }
-                else if (player.Hunger + hungerCost > player.MaxHunger)
-                {
-                    requirementsMet = false;
-                    lockReason = $"Too hungry to continue (current {player.Hunger}, action adds {hungerCost})";
+                    bool resourcesMet = resourceReq.IsAnySatisfied(player, GameWorld);
+                    if (!resourcesMet)
+                    {
+                        requirementsMet = false;
+                        RequirementProjection projection = resourceReq.GetProjection(player, GameWorld);
+                        List<string> missing = projection.Paths
+                            .SelectMany(p => p.Requirements)
+                            .Where(r => !r.IsSatisfied)
+                            .Select(r => $"{r.Label} (have {r.CurrentValue})")
+                            .ToList();
+                        lockReason = string.Join(", ", missing);
+                    }
                 }
             }
 
@@ -284,10 +274,8 @@ public class SceneContentBase : ComponentBase
                 FinalDiplomacy = player.Diplomacy + diplomacyReward,
                 FinalCunning = player.Cunning + cunningReward,
 
-                // Affordability check - separate from requirements
-                // Requirements = prerequisites (stats, relationships, items)
-                // Affordability = resource availability (coins, resolve, stamina, focus, health)
-                IsAffordable = consequence.IsAffordable(player),
+                // HIGHLANDER: RequirementsMet now covers BOTH stat requirements AND resource affordability
+                // See arc42/08 §8.20 for unified resource availability pattern
                 HasAnyConsequences = consequence.HasAnyEffect(),
 
                 // Current player resources (for Razor display)
@@ -413,7 +401,9 @@ public class SceneContentBase : ComponentBase
     /// </summary>
     protected async Task HandleChoiceSelected(ActionCardViewModel choice)
     {
-        if (choice == null || !choice.RequirementsMet || !choice.IsAffordable)
+        // HIGHLANDER: RequirementsMet now covers BOTH stat requirements AND resource affordability
+        // See arc42/08 §8.20 for unified resource availability pattern
+        if (choice == null || !choice.RequirementsMet)
             return;
 
         // HIGHLANDER: Use direct object reference from ViewModel
@@ -424,7 +414,7 @@ public class SceneContentBase : ComponentBase
 
         Player player = GameFacade.GetPlayer();
 
-        // DEFENSIVE CHECK: Re-validate requirements before execution
+        // DEFENSIVE CHECK: Re-validate authored requirements before execution
         if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
         {
             bool requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
@@ -432,42 +422,24 @@ public class SceneContentBase : ComponentBase
                 return; // Requirements not met - should never happen if UI is correct
         }
 
-        // Validate costs before applying
-        // Consequence uses NEGATIVE VALUES for costs: Coins = -5 means pay 5 coins
-        // NOTE: Resolve is NOT validated here - Sir Brante Willpower Pattern.
-        // Resolve uses gate logic (>= 0) via CompoundRequirement, not affordability (>= cost).
-        // Players CAN go negative on Resolve - that's the consequence, not a blocker.
-        // See arc42/08 §8.20 for documentation.
-        if (choiceTemplate.Consequence != null)
+        // HIGHLANDER: Re-validate resource availability via CompoundRequirement
+        // See arc42/08 §8.20 for unified resource availability pattern
+        Consequence consequence = choiceTemplate.Consequence ?? Consequence.None();
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
+        if (resourceReq.OrPaths.Count > 0 && !resourceReq.IsAnySatisfied(player, GameWorld))
         {
-            int resolveCost = choiceTemplate.Consequence.Resolve < 0 ? -choiceTemplate.Consequence.Resolve : 0;
-            int coinsCost = choiceTemplate.Consequence.Coins < 0 ? -choiceTemplate.Consequence.Coins : 0;
-            int healthCost = choiceTemplate.Consequence.Health < 0 ? -choiceTemplate.Consequence.Health : 0;
-            int staminaCost = choiceTemplate.Consequence.Stamina < 0 ? -choiceTemplate.Consequence.Stamina : 0;
-            int focusCost = choiceTemplate.Consequence.Focus < 0 ? -choiceTemplate.Consequence.Focus : 0;
-            int hungerCost = choiceTemplate.Consequence.Hunger > 0 ? choiceTemplate.Consequence.Hunger : 0;
-
-            // Resolve intentionally NOT checked - Sir Brante pattern allows going negative
-            if (player.Coins < coinsCost ||
-                player.Health < healthCost ||
-                player.Stamina < staminaCost ||
-                player.Focus < focusCost ||
-                player.Hunger + hungerCost > player.MaxHunger)
-            {
-                return; // Cannot afford costs - should never happen if UI is correct
-            }
-
-            // Apply costs immediately (for both instant and challenge actions)
-            // Resolve CAN go negative - that's the Sir Brante willpower consequence
-            player.Coins -= coinsCost;
-            player.Resolve -= resolveCost;
-            player.Health -= healthCost;
-            player.Stamina -= staminaCost;
-            player.Focus -= focusCost;
-            player.Hunger += hungerCost;
-
-            // Note: TimeSegments handled by RewardApplicationService (time advancement)
+            return; // Cannot afford costs - should never happen if UI is correct
         }
+
+        // Apply costs immediately (for both instant and challenge actions)
+        // Consequence uses NEGATIVE VALUES for costs: Coins = -5 means pay 5 coins
+        // Resolve CAN go negative - that's the Sir Brante willpower consequence
+        if (consequence.Coins < 0) player.Coins += consequence.Coins;
+        if (consequence.Resolve < 0) player.Resolve += consequence.Resolve;
+        if (consequence.Health < 0) player.Health += consequence.Health;
+        if (consequence.Stamina < 0) player.Stamina += consequence.Stamina;
+        if (consequence.Focus < 0) player.Focus += consequence.Focus;
+        if (consequence.Hunger > 0) player.Hunger += consequence.Hunger;
 
         // TRANSITION TRACKING: Set LastChoice for OnChoice transitions
         CurrentSituation.LastChoice = choiceTemplate;

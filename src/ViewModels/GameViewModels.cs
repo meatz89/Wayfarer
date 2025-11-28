@@ -340,11 +340,8 @@ public class ActionCardViewModel
     public int FinalDiplomacy { get; set; }
     public int FinalCunning { get; set; }
 
-    // Affordability check - separate from requirements
-    // Requirements = prerequisites (stats, relationships, items)
-    // Affordability = resource availability (coins, resolve, stamina, focus, health)
-    public bool IsAffordable { get; set; }
-
+    // HIGHLANDER: RequirementsMet now covers BOTH stat requirements AND resource affordability
+    // See arc42/08 §8.20 for unified resource availability pattern
     // Computed from Consequence.HasAnyEffect() - simplifies UI conditional
     public bool HasAnyConsequences { get; set; }
 

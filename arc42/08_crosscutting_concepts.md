@@ -423,47 +423,85 @@ Replace string routing with explicit strongly-typed properties.
 
 ---
 
-## 8.20 Sir Brante Willpower Pattern
+## 8.20 Unified Resource Availability (HIGHLANDER)
 
-Resolve follows the dual-nature rule from The Life and Suffering of Sir Brante: a gate check determines availability, while the cost depletes the resource. This differs fundamentally from traditional resource pools.
+ALL resource availability checks happen in ONE place: `CompoundRequirement`. This eliminates duplication and ensures consistent behavior across the codebase.
 
-### The Dual-Nature Rule
+### The HIGHLANDER Principle Applied
 
-Every choice that costs Resolve has TWO distinct parts:
+Resource availability was previously checked in 4 different places. Now it's checked in ONE:
 
-| Part | Check | Purpose |
-|------|-------|---------|
-| **Requirement (Gate)** | `Resolve >= 0` | Must have non-negative willpower to attempt |
-| **Consequence (Cost)** | `Resolve -= N` | Action depletes willpower (CAN go negative) |
+| Check | Single Source of Truth |
+|-------|------------------------|
+| Stats (Insight, Rapport, etc.) | `OrPath.IsSatisfied()` |
+| Resolve (Sir Brante gate) | `OrPath.IsSatisfied()` |
+| Coins, Health, Stamina, Focus | `OrPath.IsSatisfied()` |
+| Hunger capacity | `OrPath.IsSatisfied()` |
 
-### Why Resolve Differs From Other Resources
+### Resource Check Types
 
-| Resource | Check Type | Minimum | Can Go Negative | Recovery |
-|----------|------------|---------|-----------------|----------|
-| **Coins** | Affordability (`>= cost`) | 0 | No | Earn through jobs |
-| **Health** | Affordability (`>= cost`) | 0 | No (death) | Healing services |
-| **Stamina** | Affordability (`>= cost`) | 0 | No | Rest |
-| **Focus** | Affordability (`>= cost`) | 0 | No | Rest |
-| **Resolve** | Gate (`>= 0`) | -∞ | **Yes** | Positive choices |
+The same `OrPath` mechanism handles two patterns via different VALUES:
 
-### HIGHLANDER Implementation
+| Resource | Check Type | OrPath Property | Value | Logic |
+|----------|------------|-----------------|-------|-------|
+| **Resolve** | Gate | `ResolveRequired = 0` | 0 | `player.Resolve >= 0` |
+| **Coins** | Affordability | `CoinsRequired = cost` | cost | `player.Coins >= cost` |
+| **Health** | Affordability | `HealthRequired = cost` | cost | `player.Health >= cost` |
+| **Stamina** | Affordability | `StaminaRequired = cost` | cost | `player.Stamina >= cost` |
+| **Focus** | Affordability | `FocusRequired = cost` | cost | `player.Focus >= cost` |
+| **Hunger** | Capacity | `HungerCapacityRequired = cost` | cost | `player.Hunger + cost <= MaxHunger` |
 
-**Single Source of Truth:** `CompoundRequirement.CreateForConsequence()`
+### Sir Brante Willpower Pattern
 
-When a Consequence has negative Resolve, this method adds:
+Resolve uses **gate logic** (special case):
+- Requirement: `Resolve >= 0` (can you ATTEMPT?)
+- Consequence: `Resolve -= N` (CAN go negative)
+
+Other resources use **affordability logic**:
+- Requirement: `Resource >= cost` (can you AFFORD?)
+- Consequence: `Resource -= cost` (CANNOT go negative)
+
+### Factory Method: CreateForConsequence
+
+`CompoundRequirement.CreateForConsequence(Consequence)` generates ALL resource requirements:
+
+| Consequence Property | Generated Requirement |
+|---------------------|----------------------|
+| `Resolve < 0` | `ResolveRequired = 0` (gate) |
+| `Coins < 0` | `CoinsRequired = -Coins` (affordability) |
+| `Health < 0` | `HealthRequired = -Health` (affordability) |
+| `Stamina < 0` | `StaminaRequired = -Stamina` (affordability) |
+| `Focus < 0` | `FocusRequired = -Focus` (affordability) |
+| `Hunger > 0` | `HungerCapacityRequired = Hunger` (capacity) |
+
+### What Was DELETED (No Longer Exists)
+
+| Deleted | Reason |
+|---------|--------|
+| `Consequence.IsAffordable()` | Redundant - OrPath handles this |
+| Manual checks in `SceneContent.LoadChoices()` | Redundant - RequirementFormula handles this |
+| Manual checks in `SceneContent.HandleChoiceSelected()` | Redundant - RequirementFormula handles this |
+| Manual checks in `SituationChoiceExecutor` | Redundant - RequirementFormula handles this |
+| `ActionCardViewModel.IsAffordable` property | Redundant - `RequirementsMet` covers everything |
+
+### Architecture
+
 ```
-OrPath { ResolveRequired = 0 }  // Gate check: >= 0, NOT >= cost
+SINGLE check path for ALL availability:
+└─ RequirementFormula.IsAnySatisfied(player, gameWorld)
+    └─ OrPath.IsSatisfied()
+        ├─ Stats (Insight >= N, Rapport >= N, ...)
+        ├─ Resolve (Resolve >= 0)  ← Sir Brante gate
+        ├─ Coins (Coins >= cost)
+        ├─ Health (Health >= cost)
+        ├─ Stamina (Stamina >= cost)
+        ├─ Focus (Focus >= cost)
+        └─ Hunger (Hunger + cost <= MaxHunger)
 ```
 
-**Where Resolve is NOT Checked:**
-- `Consequence.IsAffordable()` — Resolve removed (not an affordability resource)
-- `SceneContent.LoadChoices()` — Manual check removed
-- `SceneContent.HandleChoiceSelected()` — Manual check removed
-- `SituationChoiceExecutor.ValidateAndExtract()` — Manual check removed
+### Game Design: Why Resolve Differs
 
-### Game Design Purpose
-
-The willpower gate creates meaningful choice through scarcity:
+Resolve follows the "Sir Brante Willpower" pattern from The Life and Suffering of Sir Brante:
 
 1. **Building Phase:** Player earns resolve through positive choices
 2. **Spending Phase:** Player can take costly choices (depletes reserve)

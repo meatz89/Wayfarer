@@ -35,9 +35,10 @@
             {
                 @foreach (var choice in Choices)
                 {
-                    <div class="scene-choice-card @((!choice.RequirementsMet || !choice.IsAffordable) ? "locked" : "")"
+                    @* HIGHLANDER: RequirementsMet covers BOTH stat requirements AND resource affordability *@
+                    <div class="scene-choice-card @(!choice.RequirementsMet ? "locked" : "")"
                          @onclick="() => HandleChoiceSelected(choice)">
-                        @if (!choice.RequirementsMet || !choice.IsAffordable)
+                        @if (!choice.RequirementsMet)
                         {
                             <div class="scene-locked-indicator">
                                 <div class="lock-header">
@@ -59,10 +60,6 @@
                                             <div class="requirement-or">OR</div>
                                         }
                                     }
-                                }
-                                @if (!choice.IsAffordable)
-                                {
-                                    <div class="requirement-gap">Insufficient resources (see costs below)</div>
                                 }
                             </div>
                         }
