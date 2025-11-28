@@ -298,9 +298,9 @@ public class GameFacade
         // 7. APPLY ALL COSTS
         if (coinCost > 0)
         {
-            _resourceFacade.SpendCoins(coinCost);
+            await _resourceFacade.SpendCoins(coinCost);
         }
-        _resourceFacade.IncreaseHunger(hungerCost, "Travel fatigue");
+        await _resourceFacade.IncreaseHunger(hungerCost, "Travel fatigue");
         // Travel does NOT cost attention - removed incorrect attention spending
 
         // Create travel result for processing
@@ -377,7 +377,7 @@ public class GameFacade
 
     public async Task<WorkResult> PerformWork(ActionRewards rewards)
     {
-        WorkResult result = _resourceFacade.PerformWork(rewards);
+        WorkResult result = await _resourceFacade.PerformWork(rewards);
         if (result.Success)
         {
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -475,7 +475,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(MentalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
+    public async Task<MentalSession> StartMentalSession(MentalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
@@ -489,7 +489,7 @@ public class GameFacade
         MentalDeckBuildResult buildResult = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
+        return await _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
     }
 
     /// <summary>
@@ -927,7 +927,7 @@ public class GameFacade
         // Execute with data from entity
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
-        _resourceFacade.ExecuteRest(action.Rewards); // Resource effects only, no time progression
+        await _resourceFacade.ExecuteRest(action.Rewards); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
         await ProcessTimeAdvancement(new TimeAdvancementResult
@@ -960,27 +960,24 @@ public class GameFacade
         int hungerBefore = player.Hunger;
         int focusBefore = player.Focus;
 
-        // Check if action grants full recovery (data-driven from JSON)
-        if (action.Rewards.FullRecovery)
+        // TWO PILLARS: Build Consequence from ActionRewards
+        Consequence consequence = new Consequence
         {
-            // Full resource recovery
-            player.Health = player.MaxHealth;
-            player.Stamina = player.MaxStamina;
-            player.Hunger = 0; // Full recovery means no hunger
-            player.Focus = player.MaxFocus;
-        }
-        else
-        {
-            // Partial recovery based on rewards
-            player.Health = Math.Min(player.Health + action.Rewards.HealthRecovery, player.MaxHealth);
-            player.Stamina = Math.Min(player.Stamina + action.Rewards.StaminaRecovery, player.MaxStamina);
-            player.Focus = Math.Min(player.Focus + action.Rewards.FocusRecovery, player.MaxFocus);
-        }
+            FullRecovery = action.Rewards.FullRecovery,
+            Health = action.Rewards.FullRecovery ? 0 : action.Rewards.HealthRecovery,
+            Stamina = action.Rewards.FullRecovery ? 0 : action.Rewards.StaminaRecovery,
+            Focus = action.Rewards.FullRecovery ? 0 : action.Rewards.FocusRecovery
+        };
 
-        int healthRecovered = player.Health - healthBefore;
-        int staminaRecovered = player.Stamina - staminaBefore;
-        int hungerRecovered = hungerBefore - player.Hunger;
-        int focusRecovered = player.Focus - focusBefore;
+        // Use projection to calculate change amounts for messaging (before mutation)
+        PlayerStateProjection projected = consequence.GetProjectedState(player);
+        int healthRecovered = projected.Health - healthBefore;
+        int staminaRecovered = projected.Stamina - staminaBefore;
+        int hungerRecovered = hungerBefore - projected.Hunger;
+        int focusRecovered = projected.Focus - focusBefore;
+
+        // TWO PILLARS: Apply via RewardApplicationService (single source of mutation)
+        await _rewardApplicationService.ApplyConsequence(consequence, null);
 
         // Generate recovery message
         string recoveryMessage = "You rest in a secure room through the night.";
@@ -997,7 +994,6 @@ public class GameFacade
         // NOTE: Time-based spawn trigger now fires inside ProcessTimeAdvancement (HIGHLANDER principle)
         // No need to call CheckAndSpawnEligibleScenes here - it's handled automatically
 
-        await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: true);
     }
 
@@ -1156,7 +1152,7 @@ public class GameFacade
         // HUNGER: +5 per segment (universal time cost)
         // This is THE ONLY place hunger increases due to time
         int hungerIncrease = result.SegmentsAdvanced * 5;
-        _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
+        await _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
 
         // DAY TRANSITION: Process dawn effects (NPC decay)
         // Only when crossing into Morning (new day starts)
@@ -1167,7 +1163,7 @@ public class GameFacade
 
         // EMERGENCY CHECKING: Check for active emergencies at sync points
         // Emergencies interrupt normal gameplay and demand immediate response
-        EmergencySituation activeEmergency = CheckForActiveEmergency();
+        EmergencySituation activeEmergency = await CheckForActiveEmergency();
         if (activeEmergency != null)
         {
             _gameWorld.ActiveEmergency = activeEmergency;
@@ -1352,26 +1348,33 @@ public class GameFacade
 
     /// <summary>
     /// Debug: Grant resources (coins, health, etc.)
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    public void DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
+    public async Task DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
     {
         Player player = _gameWorld.GetPlayer();
 
+        // TWO PILLARS: Build Consequence for all resource changes
+        Consequence debugConsequence = new Consequence
+        {
+            Coins = coins,
+            Health = health,
+            Hunger = hunger
+        };
+        await _rewardApplicationService.ApplyConsequence(debugConsequence, null);
+
         if (coins != 0)
         {
-            player.Coins = Math.Max(0, player.Coins + coins);
             _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success);
         }
 
         if (health != 0)
         {
-            player.Health = Math.Clamp(player.Health + health, 0, player.MaxHealth);
             _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
         }
 
         if (hunger != 0)
         {
-            player.Hunger = Math.Clamp(player.Hunger + hunger, 0, 100);
             _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
         }
     }
@@ -1470,9 +1473,9 @@ public class GameFacade
     /// <summary>
     /// Select a dialogue response in conversation tree
     /// </summary>
-    public ConversationTreeResult SelectConversationResponse(ConversationTree tree, DialogueNode node, DialogueResponse response)
+    public async Task<ConversationTreeResult> SelectConversationResponse(ConversationTree tree, DialogueNode node, DialogueResponse response)
     {
-        return _conversationTreeFacade.SelectResponse(tree, node, response);
+        return await _conversationTreeFacade.SelectResponse(tree, node, response);
     }
 
     // ========== OBSERVATION SCENE OPERATIONS ==========
@@ -1489,9 +1492,9 @@ public class GameFacade
     /// Examine a point in an observation scene
     /// ADR-007: Passes objects directly (not IDs)
     /// </summary>
-    public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
+    public async Task<ObservationResult> ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
-        return _observationFacade.ExaminePoint(scene, point);
+        return await _observationFacade.ExaminePoint(scene, point);
     }
 
     // ========== EMERGENCY SITUATION OPERATIONS ==========
@@ -1499,9 +1502,9 @@ public class GameFacade
     /// <summary>
     /// Check for active emergencies (called at sync points)
     /// </summary>
-    public EmergencySituation CheckForActiveEmergency()
+    public async Task<EmergencySituation> CheckForActiveEmergency()
     {
-        return _emergencyFacade.CheckForActiveEmergency();
+        return await _emergencyFacade.CheckForActiveEmergency();
     }
 
     /// <summary>
@@ -1515,17 +1518,17 @@ public class GameFacade
     /// <summary>
     /// Select a response to an emergency situation
     /// </summary>
-    public EmergencyResult SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
+    public async Task<EmergencyResult> SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
     {
-        return _emergencyFacade.SelectResponse(emergency, response);
+        return await _emergencyFacade.SelectResponse(emergency, response);
     }
 
     /// <summary>
     /// Ignore an emergency situation (accept consequences)
     /// </summary>
-    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
+    public async Task<EmergencyResult> IgnoreEmergency(EmergencySituation emergency)
     {
-        return _emergencyFacade.IgnoreEmergency(emergency);
+        return await _emergencyFacade.IgnoreEmergency(emergency);
     }
 
     // ========== LOCATION QUERY METHODS ==========
@@ -1761,25 +1764,18 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // STEP 2: Apply strategic costs
-        if (plan.ResolveCoins > 0)
-            player.Resolve -= plan.ResolveCoins;
-
-        if (plan.CoinsCost > 0)
-            player.Coins -= plan.CoinsCost;
-
-        // Apply new tutorial resource costs
-        if (plan.HealthCost > 0)
-            player.Health = Math.Max(0, player.Health - plan.HealthCost);
-
-        if (plan.StaminaCost > 0)
-            player.Stamina = Math.Max(0, player.Stamina - plan.StaminaCost);
-
-        if (plan.FocusCost > 0)
-            player.Focus = Math.Max(0, player.Focus - plan.FocusCost);
-
-        if (plan.HungerCost > 0)
-            player.Hunger = Math.Min(player.MaxHunger, player.Hunger + plan.HungerCost);
+        // STEP 2: Apply strategic costs (HIGHLANDER: single source of truth via Consequence class)
+        // TWO PILLARS: All cost/reward application uses Consequence class
+        Consequence costs = new Consequence
+        {
+            Coins = -plan.CoinsCost,
+            Health = -plan.HealthCost,
+            Stamina = -plan.StaminaCost,
+            Focus = -plan.FocusCost,
+            Resolve = -plan.ResolveCoins,
+            Hunger = plan.HungerCost  // Hunger increase is positive (adding hunger is bad)
+        };
+        await _rewardApplicationService.ApplyConsequence(costs, situation);
 
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         if (plan.TimeSegments > 0)
@@ -1792,18 +1788,14 @@ public class GameFacade
             // Apply rewards (scene-based Consequence OR atmospheric DirectRewards)
             if (plan.IsAtmosphericAction && plan.DirectRewards != null)
             {
-                // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards
-                if (plan.DirectRewards.CoinReward > 0)
-                    player.Coins += plan.DirectRewards.CoinReward;
-
-                if (plan.DirectRewards.HealthRecovery > 0)
-                    player.Health = Math.Min(player.MaxHealth, player.Health + plan.DirectRewards.HealthRecovery);
-
-                if (plan.DirectRewards.StaminaRecovery > 0)
-                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + plan.DirectRewards.StaminaRecovery);
-
-                if (plan.DirectRewards.FocusRecovery > 0)
-                    player.Focus = Math.Min(player.MaxFocus, player.Focus + plan.DirectRewards.FocusRecovery);
+                // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards via RewardApplicationService
+                await _rewardApplicationService.ApplyChoiceReward(new ChoiceReward
+                {
+                    Coins = plan.DirectRewards.CoinReward,
+                    Health = plan.DirectRewards.HealthRecovery,
+                    Stamina = plan.DirectRewards.StaminaRecovery,
+                    Focus = plan.DirectRewards.FocusRecovery
+                }, situation);
             }
             else if (plan.Consequence != null)
             {
@@ -1889,25 +1881,18 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // STEP 2: Apply strategic costs
-        if (plan.ResolveCoins > 0)
-            player.Resolve -= plan.ResolveCoins;
-
-        if (plan.CoinsCost > 0)
-            player.Coins -= plan.CoinsCost;
-
-        // Apply new tutorial resource costs
-        if (plan.HealthCost > 0)
-            player.Health = Math.Max(0, player.Health - plan.HealthCost);
-
-        if (plan.StaminaCost > 0)
-            player.Stamina = Math.Max(0, player.Stamina - plan.StaminaCost);
-
-        if (plan.FocusCost > 0)
-            player.Focus = Math.Max(0, player.Focus - plan.FocusCost);
-
-        if (plan.HungerCost > 0)
-            player.Hunger = Math.Min(player.MaxHunger, player.Hunger + plan.HungerCost);
+        // STEP 2: Apply strategic costs (HIGHLANDER: single source of truth via Consequence class)
+        // TWO PILLARS: All cost/reward application uses Consequence class
+        Consequence npcCosts = new Consequence
+        {
+            Coins = -plan.CoinsCost,
+            Health = -plan.HealthCost,
+            Stamina = -plan.StaminaCost,
+            Focus = -plan.FocusCost,
+            Resolve = -plan.ResolveCoins,
+            Hunger = plan.HungerCost  // Hunger increase is positive (adding hunger is bad)
+        };
+        await _rewardApplicationService.ApplyConsequence(npcCosts, situation);
 
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         if (plan.TimeSegments > 0)
@@ -2001,9 +1986,18 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // STEP 2: Apply strategic costs
-        if (plan.CoinsCost > 0)
-            player.Coins -= plan.CoinsCost;
+        // STEP 2: Apply strategic costs (HIGHLANDER: single source of truth via Consequence class)
+        // TWO PILLARS: All cost/reward application uses Consequence class
+        Consequence pathCosts = new Consequence
+        {
+            Coins = -plan.CoinsCost,
+            Health = -plan.HealthCost,
+            Stamina = -plan.StaminaCost,
+            Focus = -plan.FocusCost,
+            Resolve = -plan.ResolveCoins,
+            Hunger = plan.HungerCost  // Hunger increase is positive (adding hunger is bad)
+        };
+        await _rewardApplicationService.ApplyConsequence(pathCosts, situation);
 
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         if (plan.TimeSegments > 0)
@@ -2016,23 +2010,20 @@ public class GameFacade
             // Apply rewards (scene-based Consequence OR atmospheric PathCard rewards)
             if (plan.IsAtmosphericAction)
             {
-                // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Apply PathCard-specific rewards
-                if (card.CoinReward > 0)
-                    player.Coins += card.CoinReward;
+                // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Apply PathCard-specific effects via Consequence
+                // TWO PILLARS: All cost/reward application uses Consequence class
+                Consequence pathCardEffects = new Consequence
+                {
+                    Coins = card.CoinReward,
+                    Stamina = card.StaminaRestore,
+                    Health = card.HealthEffect  // Negative = damage, Positive = recovery
+                };
+                await _rewardApplicationService.ApplyConsequence(pathCardEffects, situation);
 
-                if (card.StaminaRestore > 0)
-                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + card.StaminaRestore);
-
-                if (card.HealthEffect > 0)
-                    player.Health = Math.Min(player.MaxHealth, player.Health + card.HealthEffect);
-                else if (card.HealthEffect < 0)
-                    player.Health = Math.Max(0, player.Health + card.HealthEffect);  // Damage
-
-                // Apply token gains
+                // Token gains (future implementation)
                 foreach (KeyValuePair<string, int> tokenGain in card.TokenGains)
                 {
                     // Token system integration (future implementation)
-                    // For now, tokens not implemented
                 }
             }
             else if (plan.Consequence != null)

@@ -10,19 +10,22 @@ public class EmergencyFacade
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly TokenFacade _tokenFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public EmergencyFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         ResourceFacade resourceFacade,
         TimeFacade timeFacade,
-        TokenFacade tokenFacade)
+        TokenFacade tokenFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -30,7 +33,7 @@ public class EmergencyFacade
     /// Called at sync points (time advancement, location entry)
     /// HIGHLANDER: Use Location objects, not string IDs
     /// </summary>
-    public EmergencySituation CheckForActiveEmergency()
+    public async Task<EmergencySituation> CheckForActiveEmergency()
     {
         int currentDay = _gameWorld.CurrentDay;
         int currentSegment = _timeFacade.GetCurrentSegment();
@@ -80,7 +83,7 @@ public class EmergencyFacade
                 else
                 {
                     // Window expired - apply ignore outcome
-                    ApplyOutcome(emergency.IgnoreOutcome, emergency);
+                    await ApplyOutcome(emergency.IgnoreOutcome, emergency);
                     emergency.IsResolved = true;
                     _messageSystem.AddSystemMessage(
                         "Emergency situation expired - " + (emergency.IgnoreOutcome?.NarrativeResult ?? "situation resolved without your involvement"),
@@ -151,8 +154,9 @@ public class EmergencyFacade
 
     /// <summary>
     /// Select a response to an emergency situation
+    /// TWO PILLARS: Uses CompoundRequirement for availability, Consequence for costs
     /// </summary>
-    public EmergencyResult SelectResponse(EmergencySituation emergency, EmergencyResponse response)
+    public async Task<EmergencyResult> SelectResponse(EmergencySituation emergency, EmergencyResponse response)
     {
         if (emergency == null)
             return EmergencyResult.Failed("Emergency situation not found");
@@ -168,31 +172,29 @@ public class EmergencyFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Validate resources
-        if (player.Stamina < response.StaminaCost)
-            return EmergencyResult.Failed($"Not enough Stamina (need {response.StaminaCost}, have {player.Stamina})");
-
-        if (player.Health < response.HealthCost)
-            return EmergencyResult.Failed($"Not enough Health (need {response.HealthCost}, have {player.Health})");
-
-        if (player.Coins < response.CoinCost)
-            return EmergencyResult.Failed($"Not enough Coins (need {response.CoinCost}, have {player.Coins})");
-
-        // Apply costs
-        if (response.StaminaCost > 0)
+        // TWO PILLARS: Validate resources via CompoundRequirement
+        CompoundRequirement costRequirement = new CompoundRequirement();
+        OrPath costPath = new OrPath
         {
-            player.Stamina -= response.StaminaCost;
+            StaminaRequired = response.StaminaCost,
+            HealthRequired = response.HealthCost,
+            CoinsRequired = response.CoinCost
+        };
+        costRequirement.OrPaths.Add(costPath);
+
+        if (!costRequirement.IsAnySatisfied(player, _gameWorld))
+        {
+            return EmergencyResult.Failed("Insufficient resources for this response");
         }
 
-        if (response.HealthCost > 0)
+        // TWO PILLARS: Apply costs via Consequence class
+        Consequence responseCosts = new Consequence
         {
-            _resourceFacade.TakeDamage(response.HealthCost, "Emergency response");
-        }
-
-        if (response.CoinCost > 0)
-        {
-            _resourceFacade.SpendCoins(response.CoinCost, "Emergency response");
-        }
+            Stamina = -response.StaminaCost,
+            Health = -response.HealthCost,
+            Coins = -response.CoinCost
+        };
+        await _rewardApplicationService.ApplyConsequence(responseCosts, null);
 
         if (response.TimeCost > 0)
         {
@@ -200,7 +202,7 @@ public class EmergencyFacade
         }
 
         // Apply outcome
-        ApplyOutcome(response.Outcome, emergency);
+        await ApplyOutcome(response.Outcome, emergency);
 
         // Mark as resolved
         emergency.IsResolved = true;
@@ -211,7 +213,7 @@ public class EmergencyFacade
     /// <summary>
     /// Ignore the emergency (apply ignore outcome)
     /// </summary>
-    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
+    public async Task<EmergencyResult> IgnoreEmergency(EmergencySituation emergency)
     {
         if (emergency == null)
             return EmergencyResult.Failed("Emergency situation not found");
@@ -223,7 +225,7 @@ public class EmergencyFacade
             return EmergencyResult.Failed("Emergency has already been resolved");
 
         // Apply ignore outcome
-        ApplyOutcome(emergency.IgnoreOutcome, emergency);
+        await ApplyOutcome(emergency.IgnoreOutcome, emergency);
 
         // Mark as resolved
         emergency.IsResolved = true;
@@ -231,7 +233,7 @@ public class EmergencyFacade
         return EmergencyResult.Resolved(emergency.IgnoreOutcome?.NarrativeResult ?? "You chose not to respond");
     }
 
-    private void ApplyOutcome(EmergencyOutcome outcome, EmergencySituation emergency)
+    private async Task ApplyOutcome(EmergencyOutcome outcome, EmergencySituation emergency)
     {
         if (outcome == null) return;
 
@@ -298,17 +300,11 @@ public class EmergencyFacade
             _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info);
         }
 
-        // Grant/remove coins
+        // TWO PILLARS: Grant/remove coins via Consequence class
         if (outcome.CoinReward != 0)
         {
-            if (outcome.CoinReward > 0)
-            {
-                _resourceFacade.AddCoins(outcome.CoinReward, "Emergency outcome");
-            }
-            else
-            {
-                _resourceFacade.SpendCoins(-outcome.CoinReward, "Emergency outcome");
-            }
+            Consequence coinReward = new Consequence { Coins = outcome.CoinReward };
+            await _rewardApplicationService.ApplyConsequence(coinReward, null);
         }
 
         foreach (Situation situation in outcome.SpawnedSituations)

@@ -25,7 +25,7 @@ namespace Wayfarer.Pages.Components
             if (Context == null || !Context.IsValid) return;
             if (Context.CurrentNode == null) return;
 
-            ConversationTreeResult result = GameFacade.SelectConversationResponse(
+            ConversationTreeResult result = await GameFacade.SelectConversationResponse(
                 Context.Tree,
                 Context.CurrentNode,
                 response);

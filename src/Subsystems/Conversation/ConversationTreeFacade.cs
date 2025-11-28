@@ -10,19 +10,22 @@ public class ConversationTreeFacade
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly TokenFacade _tokenFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public ConversationTreeFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         ResourceFacade resourceFacade,
         TimeFacade timeFacade,
-        TokenFacade tokenFacade)
+        TokenFacade tokenFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -118,8 +121,9 @@ public class ConversationTreeFacade
     /// <summary>
     /// Select a dialogue response and apply outcomes
     /// PHASE 4: Accept object references instead of IDs
+    /// TWO PILLARS: Uses CompoundRequirement for availability, Consequence for costs
     /// </summary>
-    public ConversationTreeResult SelectResponse(ConversationTree tree, DialogueNode currentNode, DialogueResponse response)
+    public async Task<ConversationTreeResult> SelectResponse(ConversationTree tree, DialogueNode currentNode, DialogueResponse response)
     {
         if (tree == null)
             return ConversationTreeResult.Failed("Conversation tree is null");
@@ -132,33 +136,44 @@ public class ConversationTreeFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Validate resources
-        if (player.Focus < response.FocusCost)
-            return ConversationTreeResult.Failed($"Not enough Focus (need {response.FocusCost}, have {player.Focus})");
+        // TWO PILLARS: Validate resources via CompoundRequirement
+        CompoundRequirement focusRequirement = new CompoundRequirement();
+        OrPath focusPath = new OrPath { FocusRequired = response.FocusCost };
 
-        // Validate stat requirements
+        // Add stat requirement if present
         if (response.RequiredStat.HasValue && response.RequiredStatLevel.HasValue)
         {
-            int statLevel = response.RequiredStat.Value switch
+            switch (response.RequiredStat.Value)
             {
-                PlayerStatType.Insight => player.Insight,
-                PlayerStatType.Rapport => player.Rapport,
-                PlayerStatType.Authority => player.Authority,
-                PlayerStatType.Diplomacy => player.Diplomacy,
-                PlayerStatType.Cunning => player.Cunning,
-                _ => 0
-            };
-            if (statLevel < response.RequiredStatLevel.Value)
-            {
-                return ConversationTreeResult.Failed(
-                    $"Requires {response.RequiredStat} level {response.RequiredStatLevel} (you have {statLevel})");
+                case PlayerStatType.Insight:
+                    focusPath.InsightRequired = response.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Rapport:
+                    focusPath.RapportRequired = response.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Authority:
+                    focusPath.AuthorityRequired = response.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Diplomacy:
+                    focusPath.DiplomacyRequired = response.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Cunning:
+                    focusPath.CunningRequired = response.RequiredStatLevel.Value;
+                    break;
             }
         }
+        focusRequirement.OrPaths.Add(focusPath);
 
-        // Apply costs
+        if (!focusRequirement.IsAnySatisfied(player, _gameWorld))
+        {
+            return ConversationTreeResult.Failed("Requirements not met");
+        }
+
+        // TWO PILLARS: Apply costs via Consequence class
         if (response.FocusCost > 0)
         {
-            player.Focus -= response.FocusCost;
+            Consequence focusCost = new Consequence { Focus = -response.FocusCost };
+            await _rewardApplicationService.ApplyConsequence(focusCost, null);
         }
         if (response.TimeCost > 0)
         {

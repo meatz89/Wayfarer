@@ -278,18 +278,37 @@ public class RewardApplicationService
     }
 
     /// <summary>
-    /// Apply Consequence to player state (unified costs/rewards pattern)
-    /// Wraps ApplyChoiceReward for Consequence parameter type
-    /// Used by ChoiceTemplate.Consequence (new unified pattern)
+    /// HIGHLANDER: Single source of truth for applying ALL costs and rewards.
+    /// Consequence is the unified class: negative values = costs, positive values = rewards.
+    /// Clamping: Health/Stamina/Focus floor at 0, cap at Max. Hunger floor at 0, cap at Max.
+    /// Sir Brante pattern: Resolve CAN go negative (willpower debt).
     /// </summary>
     public async Task ApplyConsequence(Consequence consequence, Situation currentSituation)
     {
-        // Consequence and ChoiceReward are semantically equivalent (costs + rewards)
-        // Consequence uses negative values for costs, ChoiceReward uses separate Cost/Reward objects
-        // This adapter bridges the gap until full refactoring
+        Player player = _gameWorld.GetPlayer();
 
-        // For now, delegate to ApplyChoiceReward by converting Consequence → ChoiceReward
-        // TODO: Refactor all callers to use Consequence directly (HIGHLANDER)
+        // STEP 1: Apply COSTS (negative values) with consistent clamping
+        // Coins: No floor - can technically go negative (debt scenario)
+        if (consequence.Coins < 0)
+            player.Coins += consequence.Coins;  // Negative, so this subtracts
+
+        // Sir Brante Willpower Pattern: Resolve CAN go negative
+        if (consequence.Resolve < 0)
+            player.Resolve += consequence.Resolve;  // Negative, so this subtracts
+
+        // Health/Stamina/Focus: Floor at 0
+        if (consequence.Health < 0)
+            player.Health = Math.Max(0, player.Health + consequence.Health);
+
+        if (consequence.Stamina < 0)
+            player.Stamina = Math.Max(0, player.Stamina + consequence.Stamina);
+
+        if (consequence.Focus < 0)
+            player.Focus = Math.Max(0, player.Focus + consequence.Focus);
+
+        // Hunger increase is a COST (positive hunger = bad), handled in rewards section
+
+        // STEP 2: Apply REWARDS (positive values) via ApplyChoiceReward
         ChoiceReward legacyReward = new ChoiceReward
         {
             Coins = consequence.Coins > 0 ? consequence.Coins : 0,
@@ -297,7 +316,7 @@ public class RewardApplicationService
             Health = consequence.Health > 0 ? consequence.Health : 0,
             Stamina = consequence.Stamina > 0 ? consequence.Stamina : 0,
             Focus = consequence.Focus > 0 ? consequence.Focus : 0,
-            Hunger = consequence.Hunger,
+            Hunger = consequence.Hunger,  // Hunger uses Clamp in ApplyChoiceReward
             FullRecovery = consequence.FullRecovery,
             Insight = consequence.Insight,
             Rapport = consequence.Rapport,

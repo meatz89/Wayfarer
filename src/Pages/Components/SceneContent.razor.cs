@@ -439,15 +439,19 @@ public class SceneContentBase : ComponentBase
             return; // Cannot afford costs - should never happen if UI is correct
         }
 
-        // Apply costs immediately (for both instant and challenge actions)
+        // TWO PILLARS: Apply costs via RewardApplicationService.ApplyConsequence()
         // Consequence uses NEGATIVE VALUES for costs: Coins = -5 means pay 5 coins
         // Resolve CAN go negative - that's the Sir Brante willpower consequence
-        if (consequence.Coins < 0) player.Coins += consequence.Coins;
-        if (consequence.Resolve < 0) player.Resolve += consequence.Resolve;
-        if (consequence.Health < 0) player.Health += consequence.Health;
-        if (consequence.Stamina < 0) player.Stamina += consequence.Stamina;
-        if (consequence.Focus < 0) player.Focus += consequence.Focus;
-        if (consequence.Hunger > 0) player.Hunger += consequence.Hunger;
+        Consequence costConsequence = new Consequence
+        {
+            Coins = consequence.Coins < 0 ? consequence.Coins : 0,
+            Resolve = consequence.Resolve < 0 ? consequence.Resolve : 0,
+            Health = consequence.Health < 0 ? consequence.Health : 0,
+            Stamina = consequence.Stamina < 0 ? consequence.Stamina : 0,
+            Focus = consequence.Focus < 0 ? consequence.Focus : 0,
+            Hunger = consequence.Hunger > 0 ? consequence.Hunger : 0
+        };
+        await RewardApplicationService.ApplyConsequence(costConsequence, CurrentSituation);
 
         // TRANSITION TRACKING: Set LastChoice for OnChoice transitions
         CurrentSituation.LastChoice = choiceTemplate;

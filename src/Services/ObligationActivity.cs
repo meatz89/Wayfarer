@@ -10,6 +10,7 @@ public class ObligationActivity
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly PackageLoader _packageLoader;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     private ObligationDiscoveryResult _pendingDiscoveryResult;
     private ObligationActivationResult _pendingActivationResult;
@@ -21,12 +22,14 @@ public class ObligationActivity
         GameWorld gameWorld,
         MessageSystem messageSystem,
         SceneInstantiator sceneInstantiator,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -228,8 +231,9 @@ public class ObligationActivity
     /// <summary>
     /// Check if obligation is complete - all situations done
     /// Returns ObligationCompleteResult if complete, null otherwise
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for reward mutations
     /// </summary>
-    public ObligationCompleteResult CheckObligationCompletion(Obligation obligation)
+    public async Task<ObligationCompleteResult> CheckObligationCompletion(Obligation obligation)
     {
         if (obligation == null)
             return null;
@@ -254,7 +258,7 @@ public class ObligationActivity
         _gameWorld.ObligationJournal.CompletedObligations.Add(obligation);
 
         // Grant rewards
-        GrantObligationRewards(obligation);
+        await GrantObligationRewards(obligation);
 
         // Build result for UI modal
         ObligationCompleteResult result = new ObligationCompleteResult
@@ -282,22 +286,22 @@ public class ObligationActivity
 
     /// <summary>
     /// Grant obligation completion rewards
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for all mutations
     /// </summary>
-    private void GrantObligationRewards(Obligation obligation)
+    private async Task GrantObligationRewards(Obligation obligation)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // Grant coins
-        if (obligation.CompletionRewardCoins > 0)
+        // TWO PILLARS: Build Consequence with all rewards
+        Consequence rewards = new Consequence
         {
-            player.Coins += obligation.CompletionRewardCoins;
-        }
+            Coins = obligation.CompletionRewardCoins,
+            Items = obligation.CompletionRewardItems
+        };
 
-        // Grant items (equipment) - add equipment objects to player inventory
+        await _rewardApplicationService.ApplyConsequence(rewards, null);
+
+        // Show item messages (messaging is UI concern, not mutation)
         foreach (Item item in obligation.CompletionRewardItems)
         {
-            // HIGHLANDER: CompletionRewardItems already contains Item objects
-            player.Inventory.Add(item);
             _messageSystem.AddSystemMessage(
                 $"Received equipment: {item.Name}",
                 SystemMessageTypes.Success);

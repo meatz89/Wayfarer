@@ -155,7 +155,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleCommitToSituation(Situation situation)
     {
         // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
+        SituationSelectionResult result = await GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
 
         if (!result.Success)
         {

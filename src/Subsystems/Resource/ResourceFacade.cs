@@ -1,6 +1,7 @@
 /// <summary>
 /// Public facade for all resource-related operations.
 /// Manages coins, health, hunger, and attention across the game.
+/// TWO PILLARS: Delegates all mutations to RewardApplicationService
 /// </summary>
 public class ResourceFacade
 {
@@ -10,6 +11,7 @@ public class ResourceFacade
     private readonly TimeManager _timeManager;
     private readonly ItemRepository _itemRepository;
     private readonly StateClearingResolver _stateClearingResolver;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public ResourceFacade(
         GameWorld gameWorld,
@@ -17,7 +19,8 @@ public class ResourceFacade
         MessageSystem messageSystem,
         TimeManager timeManager,
         ItemRepository itemRepository,
-        StateClearingResolver stateClearingResolver)
+        StateClearingResolver stateClearingResolver,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
@@ -25,6 +28,7 @@ public class ResourceFacade
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _stateClearingResolver = stateClearingResolver ?? throw new ArgumentNullException(nameof(stateClearingResolver));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     // ========== COIN OPERATIONS ==========
@@ -39,10 +43,15 @@ public class ResourceFacade
         return _gameWorld.GetPlayer().Coins >= amount;
     }
 
-    public bool SpendCoins(int amount, string reason)
+    public async Task<bool> SpendCoins(int amount, string reason)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.Coins < amount)
+
+        // TWO PILLARS: Validate affordability via CompoundRequirement
+        CompoundRequirement coinRequirement = new CompoundRequirement();
+        OrPath coinPath = new OrPath { CoinsRequired = amount };
+        coinRequirement.OrPaths.Add(coinPath);
+        if (!coinRequirement.IsAnySatisfied(player, _gameWorld))
         {
             _messageSystem.AddSystemMessage(
                 $"Not enough coins! Need {amount}, have {player.Coins}",
@@ -51,7 +60,10 @@ public class ResourceFacade
             return false;
         }
 
-        player.Coins -= amount;
+        // TWO PILLARS: Apply cost via Consequence
+        Consequence coinCost = new Consequence { Coins = -amount };
+        await _rewardApplicationService.ApplyConsequence(coinCost, null);
+
         _messageSystem.AddSystemMessage(
             $"Spent {amount} coins on {reason} ({player.Coins} remaining)",
             SystemMessageTypes.Info,
@@ -59,15 +71,19 @@ public class ResourceFacade
         return true;
     }
 
-    public bool SpendCoins(int amount)
+    public async Task<bool> SpendCoins(int amount)
     {
-        return SpendCoins(amount, "Travel cost");
+        return await SpendCoins(amount, "Travel cost");
     }
 
-    public void AddCoins(int amount, string source)
+    public async Task AddCoins(int amount, string source)
     {
         Player player = _gameWorld.GetPlayer();
-        player.Coins += amount;
+
+        // TWO PILLARS: Apply reward via Consequence
+        Consequence coinReward = new Consequence { Coins = amount };
+        await _rewardApplicationService.ApplyConsequence(coinReward, null);
+
         _messageSystem.AddSystemMessage(
             $"Received {amount} coins from {source} (total: {player.Coins})",
             SystemMessageTypes.Success,
@@ -81,11 +97,15 @@ public class ResourceFacade
         return _gameWorld.GetPlayer().Health;
     }
 
-    public void TakeDamage(int amount, string source)
+    public async Task TakeDamage(int amount, string source)
     {
         Player player = _gameWorld.GetPlayer();
         int oldHealth = player.Health;
-        player.Health = Math.Max(0, player.Health - amount);
+
+        // TWO PILLARS: Apply damage via Consequence + ApplyConsequence
+        Consequence damageConsequence = new Consequence { Health = -amount };
+        await _rewardApplicationService.ApplyConsequence(damageConsequence, null);
+
         int actualDamage = oldHealth - player.Health;
 
         if (actualDamage > 0)
@@ -105,11 +125,15 @@ public class ResourceFacade
         }
     }
 
-    public void Heal(int amount, string source)
+    public async Task Heal(int amount, string source)
     {
         Player player = _gameWorld.GetPlayer();
         int oldHealth = player.Health;
-        player.Health = Math.Min(player.MaxHealth, player.Health + amount);
+
+        // TWO PILLARS: Apply healing via Consequence + ApplyConsequence
+        Consequence healConsequence = new Consequence { Health = amount };
+        await _rewardApplicationService.ApplyConsequence(healConsequence, null);
+
         int actualHealing = player.Health - oldHealth;
 
         if (actualHealing > 0)
@@ -133,11 +157,16 @@ public class ResourceFacade
         return _gameWorld.GetPlayer().Hunger;
     }
 
-    public void IncreaseHunger(int amount, string reason)
+    public async Task IncreaseHunger(int amount, string reason)
     {
         Player player = _gameWorld.GetPlayer();
         int oldHunger = player.Hunger;
-        player.Hunger = Math.Min(player.MaxHunger, player.Hunger + amount);
+
+        // TWO PILLARS: Apply hunger increase via Consequence + ApplyConsequence
+        // Positive hunger value means hunger increases (bad)
+        Consequence hungerConsequence = new Consequence { Hunger = amount };
+        await _rewardApplicationService.ApplyConsequence(hungerConsequence, null);
+
         int actualIncrease = player.Hunger - oldHunger;
 
         if (actualIncrease > 0)
@@ -158,11 +187,16 @@ public class ResourceFacade
         }
     }
 
-    public void DecreaseHunger(int amount, string source)
+    public async Task DecreaseHunger(int amount, string source)
     {
         Player player = _gameWorld.GetPlayer();
         int oldHunger = player.Hunger;
-        player.Hunger = Math.Max(0, player.Hunger - amount);
+
+        // TWO PILLARS: Apply hunger decrease via Consequence + ApplyConsequence
+        // Negative hunger value means hunger decreases (good)
+        Consequence hungerConsequence = new Consequence { Hunger = -amount };
+        await _rewardApplicationService.ApplyConsequence(hungerConsequence, null);
+
         int actualDecrease = oldHunger - player.Hunger;
 
         if (actualDecrease > 0)
@@ -280,8 +314,9 @@ public class ResourceFacade
     /// Hunger increases by +5 automatically via time progression.
     /// Data-driven: rewards from JSON action definition.
     /// Now also clears states that have ClearsOnRest behavior.
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    public void ExecuteRest(ActionRewards rewards)
+    public async Task ExecuteRest(ActionRewards rewards)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -293,8 +328,13 @@ public class ResourceFacade
         int healthBefore = player.Health;
         int staminaBefore = player.Stamina;
 
-        player.Health = Math.Min(player.Health + rewards.HealthRecovery, player.MaxHealth);
-        player.Stamina = Math.Min(player.Stamina + rewards.StaminaRecovery, player.MaxStamina);
+        // TWO PILLARS: Apply resource recovery via Consequence + ApplyConsequence
+        Consequence restConsequence = new Consequence
+        {
+            Health = rewards.HealthRecovery,
+            Stamina = rewards.StaminaRecovery
+        };
+        await _rewardApplicationService.ApplyConsequence(restConsequence, null);
 
         int healthRecovered = player.Health - healthBefore;
         int staminaRecovered = player.Stamina - staminaBefore;
@@ -357,8 +397,9 @@ public class ResourceFacade
     /// <summary>
     /// Perform work to earn coins with hunger-based scaling.
     /// Data-driven: base pay from action rewards JSON.
+    /// TWO PILLARS: Delegates coin mutation to RewardApplicationService
     /// </summary>
-    public WorkResult PerformWork(ActionRewards rewards)
+    public async Task<WorkResult> PerformWork(ActionRewards rewards)
     {
         // Base work payment - data-driven from action rewards
         int baseAmount = rewards.CoinReward;
@@ -369,7 +410,7 @@ public class ResourceFacade
         int coinsEarned = Math.Max(0, baseAmount - hungerPenalty); // Never go below 0
 
         // Add coins
-        AddCoins(coinsEarned, "Work performed");
+        await AddCoins(coinsEarned, "Work performed");
 
         // Generate message about hunger impact if any
         string hungerMessage = hungerPenalty > 0 ? $" (reduced by {hungerPenalty} due to hunger)" : "";

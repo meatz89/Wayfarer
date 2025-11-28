@@ -123,9 +123,9 @@
         MessageSystem.AddSystemMessage(info, SystemMessageTypes.Info);
     }
 
-    private void GiveResources(int coins, int health, int hunger)
+    private async Task GiveResources(int coins, int health, int hunger)
     {
-        GameFacade.DebugGiveResources(coins, health, hunger);
+        await GameFacade.DebugGiveResources(coins, health, hunger);
         StateHasChanged();
     }
 

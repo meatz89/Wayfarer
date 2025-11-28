@@ -6,6 +6,7 @@ public class MentalFacade
     private readonly MentalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
     private readonly SituationCompletionHandler _situationCompletionHandler;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public MentalFacade(
         GameWorld gameWorld,
@@ -13,7 +14,8 @@ public class MentalFacade
         MentalNarrativeService narrativeService,
         MentalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        SituationCompletionHandler situationCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -21,6 +23,7 @@ public class MentalFacade
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     public MentalSession GetCurrentSession()
@@ -53,7 +56,7 @@ public class MentalFacade
         return _gameWorld.CurrentMentalSession.Deck.PlayedCards.Count;
     }
 
-    public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
+    public async Task<MentalSession> StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         string situationId, string obligationId)
     {
         if (IsSessionActive())
@@ -80,13 +83,22 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.GetPlayerCurrentLocation();
 
-        // PROGRESSION SYSTEM: Focus cost from Situation (single source of truth from JSON)
+        // TWO PILLARS: Check affordability via CompoundRequirement
         int focusCost = situation.Costs.Focus;
-        if (player.Focus < focusCost)
+        CompoundRequirement focusRequirement = new CompoundRequirement();
+        OrPath focusPath = new OrPath { FocusRequired = focusCost };
+        focusRequirement.OrPaths.Add(focusPath);
+        if (!focusRequirement.IsAnySatisfied(player, _gameWorld))
         {
             return null;
         }
-        player.Focus -= focusCost;
+
+        // TWO PILLARS: Apply focus cost via Consequence + ApplyConsequence
+        if (focusCost > 0)
+        {
+            Consequence focusCostConsequence = new Consequence { Focus = -focusCost };
+            await _rewardApplicationService.ApplyConsequence(focusCostConsequence, situation);
+        }
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {
@@ -231,7 +243,7 @@ public class MentalFacade
         }
 
         // Apply projection to session state
-        ApplyProjectionToSession(projection, _gameWorld.CurrentMentalSession, player);
+        await ApplyProjectionToSession(projection, _gameWorld.CurrentMentalSession, player);
 
         // Check and unlock situation cards if Progress threshold met
         List<CardInstance> unlockedSituations = _gameWorld.CurrentMentalSession.Deck.CheckSituationThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
@@ -268,7 +280,7 @@ public class MentalFacade
             // Apply consequences if Exposure threshold reached
             if (_gameWorld.CurrentMentalSession.CurrentExposure >= 10)
             {
-                ApplyExposureConsequences(player);
+                await ApplyExposureConsequences(player);
             }
 
             EndSession();
@@ -289,7 +301,7 @@ public class MentalFacade
     /// PROJECTION PRINCIPLE: ONLY place where projections become reality
     /// Parallel to ConversationFacade.ApplyProjectionToSession()
     /// </summary>
-    private void ApplyProjectionToSession(MentalCardEffectResult projection, MentalSession session, Player player)
+    private async Task ApplyProjectionToSession(MentalCardEffectResult projection, MentalSession session, Player player)
     {
         // Builder resource: Attention
         session.CurrentAttention += projection.AttentionChange;
@@ -320,19 +332,15 @@ public class MentalFacade
             session.CurrentUnderstanding += projection.UnderstandingChange;
         }
 
-        // Strategic resource costs
-        if (projection.HealthCost > 0)
+        // Strategic resource costs (HIGHLANDER: single source of truth via Consequence class)
+        // TWO PILLARS: All cost/reward application uses Consequence class
+        Consequence tacticalCosts = new Consequence
         {
-            player.Health -= projection.HealthCost;
-        }
-        if (projection.StaminaCost > 0)
-        {
-            player.Stamina -= projection.StaminaCost;
-        }
-        if (projection.CoinsCost > 0)
-        {
-            player.Coins -= projection.CoinsCost;
-        }
+            Coins = -projection.CoinsCost,
+            Health = -projection.HealthCost,
+            Stamina = -projection.StaminaCost
+        };
+        await _rewardApplicationService.ApplyConsequence(tacticalCosts, _gameWorld.PendingMentalContext?.Situation);
     }
 
     /// <summary>
@@ -364,7 +372,7 @@ public class MentalFacade
     /// Unlike LeaveObligation, this is permanent failure
     /// TRANSITION TRACKING: Calls FailSituation to enable OnFailure transitions
     /// </summary>
-    public MentalOutcome AbandonChallenge()
+    public async Task<MentalOutcome> AbandonChallenge()
     {
         if (!IsSessionActive())
         {
@@ -375,7 +383,7 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
         if (_gameWorld.CurrentMentalSession.CurrentExposure >= 10)
         {
-            ApplyExposureConsequences(player);
+            await ApplyExposureConsequences(player);
         }
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
@@ -457,12 +465,14 @@ public class MentalFacade
     /// <summary>
     /// Apply consequences when Exposure threshold reached
     /// Structure becomes dangerous, obligation discovered
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for all mutations
     /// </summary>
-    private void ApplyExposureConsequences(Player player)
+    private async Task ApplyExposureConsequences(Player player)
     {
         // Health damage from dangerous structure or being caught
         int healthDamage = 5 + (_gameWorld.CurrentMentalSession.CurrentExposure - 10);
-        player.Health -= healthDamage;
+        Consequence damageConsequence = new Consequence { Health = -healthDamage };
+        await _rewardApplicationService.ApplyConsequence(damageConsequence, _gameWorld.PendingMentalContext?.Situation);
     }
 
 }

@@ -24,7 +24,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Context == null || !Context.IsValid) return;
 
-            EmergencyResult result = GameFacade.SelectEmergencyResponse(Context.Emergency, response);
+            EmergencyResult result = await GameFacade.SelectEmergencyResponse(Context.Emergency, response);
 
             if (!result.Success)
             {
@@ -51,7 +51,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Context == null || !Context.IsValid) return;
 
-            EmergencyResult result = GameFacade.IgnoreEmergency(Context.Emergency);
+            EmergencyResult result = await GameFacade.IgnoreEmergency(Context.Emergency);
 
             if (!result.Success)
             {

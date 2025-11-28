@@ -9,18 +9,21 @@ public class ObservationFacade
     private readonly MessageSystem _messageSystem;
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
     private readonly Random _random;
 
     public ObservationFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         ResourceFacade resourceFacade,
-        TimeFacade timeFacade)
+        TimeFacade timeFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
         _random = new Random();
     }
 
@@ -93,8 +96,9 @@ public class ObservationFacade
     /// <summary>
     /// Examine a point within the observation scene
     /// HIGHLANDER: Accepts ExaminationPoint object, not pointId string
+    /// TWO PILLARS: Uses CompoundRequirement for availability, Consequence for costs
     /// </summary>
-    public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
+    public async Task<ObservationResult> ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
         if (scene == null)
             return ObservationResult.Failed("Observation scene not found");
@@ -123,27 +127,37 @@ public class ObservationFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Validate resources
-        if (player.Focus < point.FocusCost)
-            return ObservationResult.Failed($"Not enough Focus (need {point.FocusCost}, have {player.Focus})");
+        // TWO PILLARS: Validate resources via CompoundRequirement
+        CompoundRequirement requirement = new CompoundRequirement();
+        OrPath requirementPath = new OrPath { FocusRequired = point.FocusCost };
 
-        // Validate stat requirements
+        // Add stat requirement if present
         if (point.RequiredStat.HasValue && point.RequiredStatLevel.HasValue)
         {
-            int statLevel = point.RequiredStat.Value switch
+            switch (point.RequiredStat.Value)
             {
-                PlayerStatType.Insight => player.Insight,
-                PlayerStatType.Rapport => player.Rapport,
-                PlayerStatType.Authority => player.Authority,
-                PlayerStatType.Diplomacy => player.Diplomacy,
-                PlayerStatType.Cunning => player.Cunning,
-                _ => 0
-            };
-            if (statLevel < point.RequiredStatLevel.Value)
-            {
-                return ObservationResult.Failed(
-                    $"Requires {point.RequiredStat} level {point.RequiredStatLevel} (you have {statLevel})");
+                case PlayerStatType.Insight:
+                    requirementPath.InsightRequired = point.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Rapport:
+                    requirementPath.RapportRequired = point.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Authority:
+                    requirementPath.AuthorityRequired = point.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Diplomacy:
+                    requirementPath.DiplomacyRequired = point.RequiredStatLevel.Value;
+                    break;
+                case PlayerStatType.Cunning:
+                    requirementPath.CunningRequired = point.RequiredStatLevel.Value;
+                    break;
             }
+        }
+        requirement.OrPaths.Add(requirementPath);
+
+        if (!requirement.IsAnySatisfied(player, _gameWorld))
+        {
+            return ObservationResult.Failed("Requirements not met");
         }
 
         // Validate knowledge requirements
@@ -155,10 +169,11 @@ public class ObservationFacade
             }
         }
 
-        // Apply costs
+        // TWO PILLARS: Apply costs via Consequence class
         if (point.FocusCost > 0)
         {
-            player.Focus -= point.FocusCost;
+            Consequence focusCost = new Consequence { Focus = -point.FocusCost };
+            await _rewardApplicationService.ApplyConsequence(focusCost, null);
         }
         if (point.TimeCost > 0)
         {

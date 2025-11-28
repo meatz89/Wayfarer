@@ -2,6 +2,7 @@
 /// Public facade for all exchange-related operations.
 /// Handles resource trades, exchange validation, and NPC inventory management.
 /// This is the ONLY public interface for the Exchange subsystem.
+/// TWO PILLARS: Delegates all mutations to RewardApplicationService
 /// </summary>
 public class ExchangeFacade
 {
@@ -9,6 +10,7 @@ public class ExchangeFacade
     private readonly ExchangeOrchestrator _orchestrator;
     private readonly ExchangeValidator _validator;
     private readonly ExchangeProcessor _processor;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     // External dependencies
     private readonly TimeManager _timeManager;
@@ -20,7 +22,8 @@ public class ExchangeFacade
         ExchangeValidator validator,
         ExchangeProcessor processor,
         TimeManager timeManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
@@ -28,6 +31,7 @@ public class ExchangeFacade
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -186,7 +190,7 @@ public class ExchangeFacade
         Player player = _gameWorld.GetPlayer();
 
         // Apply costs
-        if (!ApplyExchangeCosts(exchange, player, npc))
+        if (!await ApplyExchangeCosts(exchange, player, npc))
         {
             return new ExchangeResult
             {
@@ -196,7 +200,7 @@ public class ExchangeFacade
         }
 
         // Apply rewards
-        Dictionary<ResourceType, int> rewardsGranted = ApplyExchangeRewards(exchange, player, npc);
+        Dictionary<ResourceType, int> rewardsGranted = await ApplyExchangeRewards(exchange, player, npc);
         List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
 
         // Track exchange history in GameWorld
@@ -387,30 +391,43 @@ public class ExchangeFacade
     /// <summary>
     /// Apply exchange costs to player (resources + items)
     /// </summary>
-    private bool ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<bool> ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
     {
-        // Apply resource costs
+        // TWO PILLARS: Build Consequence from costs and validate via CompoundRequirement
+        int coinCost = 0;
+        int healthCost = 0;
+        int hungerIncrease = 0;
+
         foreach (ResourceAmount cost in exchange.GetCostAsList())
         {
             switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Amount)
-                        return false;
-                    player.Coins -= cost.Amount;
+                    coinCost += cost.Amount;
                     break;
-
                 case ResourceType.Health:
-                    if (player.Health < cost.Amount)
-                        return false;
-                    player.Health -= cost.Amount;
+                    healthCost += cost.Amount;
                     break;
-
                 case ResourceType.Hunger:
-                    player.Hunger = Math.Min(player.MaxHunger, player.Hunger + cost.Amount);
+                    hungerIncrease += cost.Amount;
                     break;
             }
         }
+
+        // Validate affordability
+        if (player.Coins < coinCost || player.Health < healthCost)
+        {
+            return false;
+        }
+
+        // TWO PILLARS: Apply costs via Consequence
+        Consequence costConsequence = new Consequence
+        {
+            Coins = -coinCost,
+            Health = -healthCost,
+            Hunger = hungerIncrease  // Hunger increase is positive
+        };
+        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
 
         // Apply item costs (consume items from inventory)
         // HIGHLANDER: Use Item objects directly, no string resolution needed
@@ -429,33 +446,44 @@ public class ExchangeFacade
 
     /// <summary>
     /// Apply exchange resource rewards to player
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    private Dictionary<ResourceType, int> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<Dictionary<ResourceType, int>> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
     {
         Dictionary<ResourceType, int> rewardsGranted = new Dictionary<ResourceType, int>();
+
+        // TWO PILLARS: Build Consequence from rewards
+        int coinReward = 0;
+        int healthReward = 0;
+        int hungerDecrease = 0;
 
         foreach (ResourceAmount reward in exchange.GetRewardAsList())
         {
             switch (reward.Type)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Amount;
+                    coinReward += reward.Amount;
                     rewardsGranted[ResourceType.Coins] = reward.Amount;
                     break;
-
                 case ResourceType.Health:
-                    int healthBefore = player.Health;
-                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
-                    rewardsGranted[ResourceType.Health] = player.Health - healthBefore;
+                    healthReward += reward.Amount;
+                    rewardsGranted[ResourceType.Health] = reward.Amount;
                     break;
-
                 case ResourceType.Hunger:
-                    int hungerBefore = player.Hunger;
-                    player.Hunger = Math.Max(0, player.Hunger - reward.Amount);
-                    rewardsGranted[ResourceType.Hunger] = hungerBefore - player.Hunger;
+                    hungerDecrease += reward.Amount;
+                    rewardsGranted[ResourceType.Hunger] = reward.Amount;
                     break;
             }
         }
+
+        // TWO PILLARS: Apply rewards via Consequence
+        Consequence rewardConsequence = new Consequence
+        {
+            Coins = coinReward,
+            Health = healthReward,
+            Hunger = -hungerDecrease  // Hunger decrease is negative (good for player)
+        };
+        await _rewardApplicationService.ApplyConsequence(rewardConsequence, null);
 
         return rewardsGranted;
     }

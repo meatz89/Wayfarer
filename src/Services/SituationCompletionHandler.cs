@@ -138,7 +138,7 @@ public class SituationCompletionHandler
         // Log progress for UI modal display (UI will handle modal)
 
         // Check if obligation is now complete
-        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation);
+        ObligationCompleteResult completeResult = await _obligationActivity.CheckObligationCompletion(obligation);
         if (completeResult != null)
         {
             // Obligation complete - UI will display completion modal

@@ -10,6 +10,7 @@ public class TimeFacade
     private readonly TimeDisplayFormatter _timeDisplayFormatter;
     private readonly GameWorld _gameWorld;
     private readonly StateClearingResolver _stateClearingResolver;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public TimeFacade(
         TimeManager timeManager,
@@ -17,7 +18,8 @@ public class TimeFacade
         TimeProgressionManager timeProgressionManager,
         TimeDisplayFormatter timeDisplayFormatter,
         GameWorld gameWorld,
-        StateClearingResolver stateClearingResolver)
+        StateClearingResolver stateClearingResolver,
+        RewardApplicationService rewardApplicationService)
     {
         _timeManager = timeManager;
         _timeBlockCalculator = timeBlockCalculator;
@@ -25,6 +27,7 @@ public class TimeFacade
         _timeDisplayFormatter = timeDisplayFormatter;
         _gameWorld = gameWorld;
         _stateClearingResolver = stateClearingResolver;
+        _rewardApplicationService = rewardApplicationService;
     }
 
     // ========== TIME STATE ==========
@@ -272,8 +275,9 @@ public class TimeFacade
     /// <summary>
     /// End the current day - process deadlines, restore resources, generate summary
     /// Called explicitly when player chooses to rest/sleep
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for resource recovery
     /// </summary>
-    public DayEndReport EndDay()
+    public async Task<DayEndReport> EndDay()
     {
         Player player = _gameWorld.GetPlayer();
         int currentSegment = GetCurrentSegment();
@@ -307,9 +311,14 @@ public class TimeFacade
             });
         }
 
-        // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
-        player.Focus = 6; // Hardcoded max per design
-        player.Stamina = player.MaxStamina;
+        // 3. TWO PILLARS: Restore resources via Consequence (Focus and Stamina only - Health does NOT auto-recover)
+        int targetFocus = 6; // Hardcoded max per design
+        Consequence dayEndRecovery = new Consequence
+        {
+            Focus = targetFocus - player.Focus,  // Delta to restore Focus to 6
+            Stamina = player.MaxStamina - player.Stamina  // Delta to restore Stamina to max
+        };
+        await _rewardApplicationService.ApplyConsequence(dayEndRecovery, null);
 
         // 4. Build current resource snapshot
         report.CurrentResources = new ResourceSnapshot
