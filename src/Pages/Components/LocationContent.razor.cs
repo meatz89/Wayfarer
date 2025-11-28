@@ -384,9 +384,10 @@ public class LocationContentBase : ComponentBase
             SystemType = SelectedSituation.SystemType,
             SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
             Difficulty = difficulty.ToString(),
-            HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
-            FocusCost = SelectedSituation.Costs.Focus,
-            StaminaCost = SelectedSituation.Costs.Stamina
+            // HIGHLANDER: EntryCost uses negative values for costs
+            HasCosts = SelectedSituation.EntryCost.Focus < 0 || SelectedSituation.EntryCost.Stamina < 0,
+            FocusCost = SelectedSituation.EntryCost.Focus < 0 ? -SelectedSituation.EntryCost.Focus : 0,
+            StaminaCost = SelectedSituation.EntryCost.Stamina < 0 ? -SelectedSituation.EntryCost.Stamina : 0
         };
     }
 

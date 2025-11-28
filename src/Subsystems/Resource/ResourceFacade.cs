@@ -310,13 +310,14 @@ public class ResourceFacade
     // ========== WORK AND REST OPERATIONS ==========
 
     /// <summary>
-    /// Execute Rest action: Advance 1 time segment and restore resources based on action rewards.
+    /// Execute Rest action: Advance 1 time segment and restore resources based on Consequence.
     /// Hunger increases by +5 automatically via time progression.
-    /// Data-driven: rewards from JSON action definition.
+    /// Data-driven: consequence from action definition.
     /// Now also clears states that have ClearsOnRest behavior.
     /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
     /// </summary>
-    public async Task ExecuteRest(ActionRewards rewards)
+    public async Task ExecuteRest(Consequence consequence)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -324,17 +325,12 @@ public class ResourceFacade
         // Hunger increases by +5 per segment (automatic via time progression)
         // No need to manually modify hunger here
 
-        // Resource recovery - data-driven from action rewards
+        // Resource recovery - data-driven from action consequence
         int healthBefore = player.Health;
         int staminaBefore = player.Stamina;
 
         // TWO PILLARS: Apply resource recovery via Consequence + ApplyConsequence
-        Consequence restConsequence = new Consequence
-        {
-            Health = rewards.HealthRecovery,
-            Stamina = rewards.StaminaRecovery
-        };
-        await _rewardApplicationService.ApplyConsequence(restConsequence, null);
+        await _rewardApplicationService.ApplyConsequence(consequence, null);
 
         int healthRecovered = player.Health - healthBefore;
         int staminaRecovered = player.Stamina - staminaBefore;
@@ -396,13 +392,15 @@ public class ResourceFacade
 
     /// <summary>
     /// Perform work to earn coins with hunger-based scaling.
-    /// Data-driven: base pay from action rewards JSON.
+    /// Data-driven: base pay from action consequence.
     /// TWO PILLARS: Delegates coin mutation to RewardApplicationService
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
     /// </summary>
-    public async Task<WorkResult> PerformWork(ActionRewards rewards)
+    public async Task<WorkResult> PerformWork(Consequence consequence)
     {
-        // Base work payment - data-driven from action rewards
-        int baseAmount = rewards.CoinReward;
+        // Base work payment - data-driven from action consequence
+        // HIGHLANDER: Coins > 0 means reward (gain coins)
+        int baseAmount = consequence.Coins > 0 ? consequence.Coins : 0;
 
         // Apply hunger penalty: coins = base_amount - floor(hunger/25)
         int currentHunger = GetHunger();

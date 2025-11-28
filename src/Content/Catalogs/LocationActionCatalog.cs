@@ -48,8 +48,7 @@ public static class LocationActionCatalog
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",
                 ActionType = LocationActionType.Travel,
-                Costs = new ActionCosts(),  // Free action (no costs)
-                Rewards = new ActionRewards(),  // No rewards (opens travel screen)
+                Consequence = new Consequence(),  // Free action (no costs/rewards)
                 TimeRequired = 0,  // No time cost for initiating travel
                 Availability = new List<TimeBlocks>(),  // Available at all times
                 Priority = 100  // High priority - always shown first
@@ -66,11 +65,7 @@ public static class LocationActionCatalog
                 Name = "Work",
                 Description = "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
                 ActionType = LocationActionType.Work,
-                Costs = new ActionCosts(),
-                Rewards = new ActionRewards
-                {
-                    CoinReward = 8
-                },
+                Consequence = new Consequence { Coins = 8 },  // HIGHLANDER: Reward as positive value
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon },
                 Priority = 150  // Match JSON priority
             });
@@ -83,8 +78,7 @@ public static class LocationActionCatalog
                 Name = "View Job Board",
                 Description = "Check available delivery jobs. Accept one job at a time to earn coins through deliveries.",
                 ActionType = LocationActionType.ViewJobBoard,
-                Costs = ActionCosts.None(),  // Viewing is free
-                Rewards = ActionRewards.None(),  // No direct reward (opens modal)
+                Consequence = new Consequence(),  // Free action (opens modal)
                 Availability = new List<TimeBlocks>(),  // Available at all times (job board always accessible)
                 Priority = 140  // Just below Work action
             });
@@ -100,12 +94,7 @@ public static class LocationActionCatalog
                 Name = "Rest",
                 Description = "Rest in the safety of this sleeping space. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
                 ActionType = LocationActionType.Rest,
-                Costs = new ActionCosts(),
-                Rewards = new ActionRewards
-                {
-                    HealthRecovery = 1,
-                    StaminaRecovery = 1
-                },
+                Consequence = new Consequence { Health = 1, Stamina = 1 },  // HIGHLANDER: Rewards as positive values
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
                 Priority = 130  // High priority - safe recovery
             });
@@ -159,10 +148,9 @@ public static class LocationActionCatalog
                 SourceLocation = location,
                 DestinationLocation = destination,
                 Name = $"Move to {destination.Name}",
-                Description = $"Walk to {destination.Name} within the same venue (instant, free)",
+                Description = $"Walk to {destination.Name} within the same venue",
                 ActionType = LocationActionType.IntraVenueMove,  // Strongly typed: intra-venue movement (distinct from cross-venue Travel)
-                Costs = ActionCosts.None(),  // Intra-venue movement is FREE because hexes are adjacent
-                Rewards = ActionRewards.None(),
+                Consequence = new Consequence(),  // Free action (adjacent hex movement)
                 Availability = new List<TimeBlocks>(),  // Always available at all times
                 Priority = 90  // High priority, but below cross-venue Travel button
             });
@@ -220,10 +208,9 @@ public static class LocationActionCatalog
                 SourceLocation = neighbor,
                 DestinationLocation = newLocation,
                 Name = $"Move to {newLocation.Name}",
-                Description = $"Walk to {newLocation.Name} within the same venue (instant, free)",
+                Description = $"Walk to {newLocation.Name} within the same venue",
                 ActionType = LocationActionType.IntraVenueMove,
-                Costs = ActionCosts.None(),
-                Rewards = ActionRewards.None(),
+                Consequence = new Consequence(),  // Free action (adjacent hex movement)
                 Availability = new List<TimeBlocks>(),
                 Priority = 90
             };

@@ -333,27 +333,6 @@ public class ExchangeFacade
     }
 
     // Helper methods
-
-    private string FormatExchangeDescription(ExchangeCard exchange)
-    {
-        List<string> parts = new List<string>();
-
-        List<ResourceAmount> costs = exchange.GetCostAsList();
-        List<ResourceAmount> rewards = exchange.GetRewardAsList();
-
-        if (costs.Any())
-        {
-            parts.Add($"Pay: {FormatCost(costs)}");
-        }
-
-        if (rewards.Any())
-        {
-            parts.Add($"Receive: {FormatReward(rewards)}");
-        }
-
-        return string.Join(" → ", parts);
-    }
-
     private string FormatCost(List<ResourceAmount> costs)
     {
         if (!costs.Any()) return "Free";

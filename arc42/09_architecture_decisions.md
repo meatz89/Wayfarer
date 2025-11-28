@@ -357,16 +357,16 @@ Scene-based choices have complex cost/reward structures with 30+ properties scat
 **Decision:**
 1. Create unified `Consequence` ValueObject with signed values (negative = cost, positive = reward)
 2. Implement Hybrid Responsibility Pattern:
-   - Query methods on ValueObject: `HasAnyEffect()`, `IsAffordable()`, `GetProjectedState()`
+   - Query methods on ValueObject: `HasAnyEffect()`, `GetProjectedState()`
    - Mutation delegated to `RewardApplicationService`
-3. Keep separate `ActionCosts`/`ActionRewards` for atmospheric actions (Dual-Tier Architecture)
 
 **Consequences:**
 - (+) Single "no consequences" check: `consequence.HasAnyEffect()`
-- (+) Centralized affordability: `consequence.IsAffordable(player)`
 - (+) Perfect Information via `GetProjectedState()`
 - (+) UI simplified from 15+ field checks to single method call
 - (-) Breaking change requiring test updates
+
+**Update:** See ADR-018 for consolidation of ALL resource classes (including ActionCosts/ActionRewards) to Consequence.
 
 ---
 
@@ -468,6 +468,73 @@ ALL resource availability checks happen in ONE place: `CompoundRequirement.Creat
 **Related:**
 - §8.20 Unified Resource Availability documents the architecture
 - ADR-006 TIER 1 No Soft-Locks aligns with Resolve gate pattern
+
+---
+
+## ADR-018: HIGHLANDER Resource Value Classes
+
+**Status:** Accepted
+
+**Context:**
+
+The codebase had SIX classes handling resource values:
+
+| Class | Purpose |
+|-------|---------|
+| `Consequence` | Unified costs/rewards (negative=cost, positive=reward) |
+| `ChoiceReward` | Choice outcomes (structurally identical to Consequence) |
+| `ChoiceCost` | Visible costs before selection |
+| `ActionCosts` | Atmospheric action costs (4 properties) |
+| `ActionRewards` | Atmospheric action rewards (5 properties) |
+| `SituationCosts` | Situation entry costs (5 properties) |
+
+This was a MASSIVE HIGHLANDER violation. Five classes duplicated what Consequence and CompoundRequirement should handle exclusively.
+
+ADR-015 previously stated "Keep separate ActionCosts/ActionRewards for atmospheric actions" but this created unnecessary complexity—the Dual-Tier Architecture distinguishes WHEN consequences are created (parse-time vs query-time), not WHAT class represents them.
+
+**Decision:**
+
+Only TWO classes handle resource values:
+
+| Class | Responsibility | Single Method |
+|-------|----------------|---------------|
+| **Consequence** | ALL resource outcomes (costs + rewards) | `ApplyConsequence()` |
+| **CompoundRequirement** | ALL resource prerequisites | `IsAnySatisfied()` |
+
+**Classes DELETED:**
+- `ChoiceReward` → Use `Consequence` directly
+- `ChoiceCost` → Use `CompoundRequirement` for checks, `Consequence` for application
+- `ActionCosts` → Use `Consequence` with negative values
+- `ActionRewards` → Use `Consequence` with positive values
+- `SituationCosts` → Use `CompoundRequirement` + `Consequence`
+
+**Dual-Tier Timing Preserved:**
+
+The Dual-Tier Action Architecture (ADR-009) is preserved—both patterns use Consequence, differing only in WHEN it's created:
+
+| Pattern | Creation Timing | Source |
+|---------|-----------------|--------|
+| **Atmospheric** | Parse-time | LocationActionCatalog creates Consequence |
+| **Scene-Based** | Query-time | ChoiceTemplate references Consequence |
+
+**Consequences:**
+
+- (+) TRUE HIGHLANDER: Resource values handled by exactly two classes
+- (+) Simpler mental model (costs = negative, rewards = positive)
+- (+) No conversion code between redundant classes
+- (+) Single codebase location for each resource concern
+- (+) Dual-Tier timing semantics preserved without class duplication
+- (-) Breaking change requiring coordinated refactoring
+
+**Updates to Previous Decisions:**
+
+This ADR **SUPERSEDES** the clause in ADR-015 stating "Keep separate ActionCosts/ActionRewards for atmospheric actions." That clause is now deleted.
+
+**Related:**
+- §8.17 Consequence ValueObject Pattern
+- §8.20 Unified Resource Availability
+- §8.22 Unified Cost/Reward Application
+- ADR-009 Dual-Tier Action Architecture (timing distinction preserved)
 
 ---
 

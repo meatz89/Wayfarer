@@ -2,6 +2,7 @@
 /// Parser for PlayerAction entities with strong typing and enum validation.
 /// Validates actionType against PlayerActionType enum - throws on unknown types.
 /// PlayerActions are global actions available everywhere regardless of location.
+/// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
 /// </summary>
 public static class PlayerActionParser
 {
@@ -23,8 +24,7 @@ public static class PlayerActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Costs = ParseCosts(dto.Cost),
-            Rewards = ParseRewards(dto.Reward),
+            Consequence = ParseConsequence(dto.Consequence),
             TimeRequired = dto.TimeRequired,
             Priority = dto.Priority
         };
@@ -32,31 +32,22 @@ public static class PlayerActionParser
         return action;
     }
 
-    private static ActionCosts ParseCosts(ActionCostsDTO dto)
+    /// <summary>
+    /// HIGHLANDER: Parse unified Consequence (negative = cost, positive = reward)
+    /// </summary>
+    private static Consequence ParseConsequence(ConsequenceDTO dto)
     {
         if (dto == null)
-            return ActionCosts.None();
+            return Consequence.None();
 
-        return new ActionCosts
+        return new Consequence
         {
             Coins = dto.Coins,
-            Focus = dto.Focus,
+            Health = dto.Health,
             Stamina = dto.Stamina,
-            Health = dto.Health
-        };
-    }
-
-    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
-    {
-        if (dto == null)
-            return ActionRewards.None();
-
-        return new ActionRewards
-        {
-            CoinReward = dto.Coins,
-            HealthRecovery = dto.Health,
-            FocusRecovery = dto.Focus,
-            StaminaRecovery = dto.Stamina,
+            Focus = dto.Focus,
+            Hunger = dto.Hunger,
+            Resolve = dto.Resolve,
             FullRecovery = dto.FullRecovery
         };
     }

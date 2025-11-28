@@ -90,9 +90,9 @@ public class SceneFacade
                     ChoiceTemplate = choiceTemplate,
                     Situation = situation,
 
-                    // ChoiceTemplate holds all action metadata now
-                    Costs = new ActionCosts(),
-                    Rewards = new ActionRewards(),
+                    // HIGHLANDER: Scene-based actions get Consequence from ChoiceTemplate at execution time
+                    // Empty Consequence here - actual costs/rewards derived from ChoiceTemplate
+                    Consequence = Consequence.None(),
                     TimeRequired = 0,
                     Availability = new List<TimeBlocks>(),
                     Priority = 100

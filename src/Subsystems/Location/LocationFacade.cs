@@ -819,7 +819,7 @@ public class LocationFacade
                 Title = action.Name,
                 Detail = action.Description,
                 ActionType = action.ActionType.ToString().ToLower(),
-                Cost = GetCostDisplay(action.Costs),
+                Cost = GetCostDisplayFromConsequence(action.Consequence),
                 IsAvailable = true
             });
         }
@@ -828,23 +828,29 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get display string for action costs (shared between LocationActions and PlayerActions)
+    /// Get display string for costs extracted from Consequence.
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
+    /// Negative values = costs (displayed as positive amounts)
     /// </summary>
-    private string GetCostDisplay(ActionCosts costs)
+    private string GetCostDisplayFromConsequence(Consequence consequence)
     {
+        if (consequence == null)
+            return "Free!";
+
         List<string> costParts = new List<string>();
 
-        if (costs.Coins > 0)
-            costParts.Add($"{costs.Coins} coins");
+        // HIGHLANDER: Negative values in Consequence = costs
+        if (consequence.Coins < 0)
+            costParts.Add($"{-consequence.Coins} coins");
 
-        if (costs.Focus > 0)
-            costParts.Add($"{costs.Focus} focus");
+        if (consequence.Focus < 0)
+            costParts.Add($"{-consequence.Focus} focus");
 
-        if (costs.Stamina > 0)
-            costParts.Add($"{costs.Stamina} stamina");
+        if (consequence.Stamina < 0)
+            costParts.Add($"{-consequence.Stamina} stamina");
 
-        if (costs.Health > 0)
-            costParts.Add($"{costs.Health} health");
+        if (consequence.Health < 0)
+            costParts.Add($"{-consequence.Health} health");
 
         if (costParts.Count == 0)
             return "Free!";
@@ -1180,8 +1186,9 @@ public class LocationFacade
             DifficultyLabel = difficultyLabel,
             Obligation = situation.Obligation,
             IsIntroAction = situation.Obligation != null,
-            FocusCost = situation.Costs.Focus,
-            StaminaCost = situation.Costs.Stamina
+            // HIGHLANDER: EntryCost uses negative values for costs
+            FocusCost = situation.EntryCost.Focus < 0 ? -situation.EntryCost.Focus : 0,
+            StaminaCost = situation.EntryCost.Stamina < 0 ? -situation.EntryCost.Stamina : 0
         };
     }
 

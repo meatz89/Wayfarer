@@ -167,7 +167,7 @@ public class SpawnFacade
             IsIntroAction = template.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no assignment needed)
             DeleteOnSuccess = template.DeleteOnSuccess,
-            Costs = CloneCosts(template.Costs),
+            EntryCost = CloneEntryCost(template.EntryCost),
             DifficultyModifiers = template.DifficultyModifiers.ToList(),
             SituationCards = template.SituationCards.ToList(),
             ConsequenceType = template.ConsequenceType,
@@ -212,20 +212,22 @@ public class SpawnFacade
     }
 
     /// <summary>
-    /// Clone situation costs
+    /// HIGHLANDER: Clone entry cost (Consequence with negative values)
     /// </summary>
-    private SituationCosts CloneCosts(SituationCosts original)
+    private Consequence CloneEntryCost(Consequence original)
     {
         if (original == null)
-            return new SituationCosts();
+            return Consequence.None();
 
-        return new SituationCosts
+        return new Consequence
         {
             Resolve = original.Resolve,
-            Time = original.Time,
+            TimeSegments = original.TimeSegments,
             Focus = original.Focus,
             Stamina = original.Stamina,
-            Coins = original.Coins
+            Coins = original.Coins,
+            Health = original.Health,
+            Hunger = original.Hunger
         };
     }
 

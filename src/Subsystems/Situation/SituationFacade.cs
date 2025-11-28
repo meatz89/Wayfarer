@@ -74,14 +74,20 @@ public class SituationFacade
             }
         }
 
+        // HIGHLANDER: EntryCost uses negative values for costs
+        // Extract positive cost amounts for validation
+        int resolveCost = situation.EntryCost.Resolve < 0 ? -situation.EntryCost.Resolve : 0;
+        int coinsCost = situation.EntryCost.Coins < 0 ? -situation.EntryCost.Coins : 0;
+        int timeCost = situation.EntryCost.TimeSegments;
+
         // TWO PILLARS: Validate strategic costs via CompoundRequirement
-        if (situation.Costs.Resolve > 0 || situation.Costs.Coins > 0)
+        if (resolveCost > 0 || coinsCost > 0)
         {
             CompoundRequirement costRequirement = new CompoundRequirement();
             OrPath costPath = new OrPath
             {
-                ResolveRequired = situation.Costs.Resolve,
-                CoinsRequired = situation.Costs.Coins
+                ResolveRequired = resolveCost,
+                CoinsRequired = coinsCost
             };
             costRequirement.OrPaths.Add(costPath);
             if (!costRequirement.IsAnySatisfied(player, _gameWorld))
@@ -90,27 +96,27 @@ public class SituationFacade
             }
         }
 
-        // TWO PILLARS: Consume strategic costs via Consequence + ApplyConsequence
+        // HIGHLANDER: Apply EntryCost directly (already negative values)
         // NOTE: Focus/Stamina are TACTICAL costs consumed by challenge facades
-        if (situation.Costs.Resolve > 0 || situation.Costs.Coins > 0)
+        if (resolveCost > 0 || coinsCost > 0)
         {
             Consequence strategicCosts = new Consequence
             {
-                Resolve = -situation.Costs.Resolve,
-                Coins = -situation.Costs.Coins
+                Resolve = situation.EntryCost.Resolve,
+                Coins = situation.EntryCost.Coins
             };
             await _rewardApplicationService.ApplyConsequence(strategicCosts, situation);
 
-            if (situation.Costs.Resolve > 0)
-                _messageSystem.AddSystemMessage($"Resolve consumed: {situation.Costs.Resolve} (now {player.Resolve})", SystemMessageTypes.Warning);
-            if (situation.Costs.Coins > 0)
-                _messageSystem.AddSystemMessage($"Coins spent: {situation.Costs.Coins}", SystemMessageTypes.Info);
+            if (resolveCost > 0)
+                _messageSystem.AddSystemMessage($"Resolve consumed: {resolveCost} (now {player.Resolve})", SystemMessageTypes.Warning);
+            if (coinsCost > 0)
+                _messageSystem.AddSystemMessage($"Coins spent: {coinsCost}", SystemMessageTypes.Info);
         }
 
-        if (situation.Costs.Time > 0)
+        if (timeCost > 0)
         {
-            _timeFacade.AdvanceSegments(situation.Costs.Time);
-            _messageSystem.AddSystemMessage($"Time passed: {situation.Costs.Time} segments", SystemMessageTypes.Info);
+            _timeFacade.AdvanceSegments(timeCost);
+            _messageSystem.AddSystemMessage($"Time passed: {timeCost} segments", SystemMessageTypes.Info);
         }
 
         // Mark situation as in progress

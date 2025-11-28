@@ -83,8 +83,8 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.GetPlayerCurrentLocation();
 
-        // TWO PILLARS: Check affordability via CompoundRequirement
-        int focusCost = situation.Costs.Focus;
+        // HIGHLANDER: Extract focus cost from EntryCost (negative values = costs)
+        int focusCost = situation.EntryCost.Focus < 0 ? -situation.EntryCost.Focus : 0;
         CompoundRequirement focusRequirement = new CompoundRequirement();
         OrPath focusPath = new OrPath { FocusRequired = focusCost };
         focusRequirement.OrPaths.Add(focusPath);
@@ -93,10 +93,10 @@ public class MentalFacade
             return null;
         }
 
-        // TWO PILLARS: Apply focus cost via Consequence + ApplyConsequence
+        // HIGHLANDER: Apply focus cost via EntryCost directly (already negative)
         if (focusCost > 0)
         {
-            Consequence focusCostConsequence = new Consequence { Focus = -focusCost };
+            Consequence focusCostConsequence = new Consequence { Focus = situation.EntryCost.Focus };
             await _rewardApplicationService.ApplyConsequence(focusCostConsequence, situation);
         }
 

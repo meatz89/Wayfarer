@@ -375,9 +375,9 @@ public class GameFacade
         return _resourceFacade.GetInventoryViewModel();
     }
 
-    public async Task<WorkResult> PerformWork(ActionRewards rewards)
+    public async Task<WorkResult> PerformWork(Consequence consequence)
     {
-        WorkResult result = await _resourceFacade.PerformWork(rewards);
+        WorkResult result = await _resourceFacade.PerformWork(consequence);
         if (result.Success)
         {
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -887,10 +887,10 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // TWO PILLARS: Apply health cost via Consequence + ApplyConsequence
-        int healthCost = action.Costs.Health;
-        Consequence sleepCost = new Consequence { Health = -healthCost };
-        await _rewardApplicationService.ApplyConsequence(sleepCost, null);
+        // HIGHLANDER: Apply health cost via Consequence
+        // Negative Health in Consequence = cost, so extract the cost amount for message
+        int healthCost = action.Consequence.Health < 0 ? -action.Consequence.Health : 0;
+        await _rewardApplicationService.ApplyConsequence(action.Consequence, null);
 
         _messageSystem.AddSystemMessage(
             $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
@@ -925,10 +925,10 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Execute with data from entity
+        // Execute with data from entity - HIGHLANDER: Consequence is unified
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
-        await _resourceFacade.ExecuteRest(action.Rewards); // Resource effects only, no time progression
+        await _resourceFacade.ExecuteRest(action.Consequence); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
         await ProcessTimeAdvancement(new TimeAdvancementResult
@@ -961,14 +961,8 @@ public class GameFacade
         int hungerBefore = player.Hunger;
         int focusBefore = player.Focus;
 
-        // TWO PILLARS: Build Consequence from ActionRewards
-        Consequence consequence = new Consequence
-        {
-            FullRecovery = action.Rewards.FullRecovery,
-            Health = action.Rewards.FullRecovery ? 0 : action.Rewards.HealthRecovery,
-            Stamina = action.Rewards.FullRecovery ? 0 : action.Rewards.StaminaRecovery,
-            Focus = action.Rewards.FullRecovery ? 0 : action.Rewards.FocusRecovery
-        };
+        // HIGHLANDER: Use action.Consequence directly (unified costs/rewards)
+        Consequence consequence = action.Consequence;
 
         // Use projection to calculate change amounts for messaging (before mutation)
         PlayerStateProjection projected = consequence.GetProjectedState(player);
@@ -986,7 +980,7 @@ public class GameFacade
         if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
         if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
         if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
-        if (action.Rewards.FullRecovery) recoveryMessage += " (Fully recovered)";
+        if (consequence.FullRecovery) recoveryMessage += " (Fully recovered)";
         _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
 
         // Advance to next day morning
@@ -1000,7 +994,7 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessWorkIntent()
     {
-        // Fetch entity for data-driven rewards
+        // Fetch entity for data-driven consequence
         LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.Work);
         if (action == null)
         {
@@ -1008,8 +1002,8 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Execute with data from entity
-        await PerformWork(action.Rewards);
+        // Execute with data from entity - HIGHLANDER: Consequence is unified
+        await PerformWork(action.Consequence);
         return IntentResult.Executed(requiresRefresh: true);
     }
 
@@ -1800,21 +1794,9 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards (scene-based Consequence OR atmospheric DirectRewards)
-            if (plan.IsAtmosphericAction && plan.DirectRewards != null)
+            // HIGHLANDER: Apply Consequence (used by BOTH atmospheric and scene-based actions)
+            if (plan.Consequence != null)
             {
-                // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards via RewardApplicationService
-                await _rewardApplicationService.ApplyChoiceReward(new ChoiceReward
-                {
-                    Coins = plan.DirectRewards.CoinReward,
-                    Health = plan.DirectRewards.HealthRecovery,
-                    Stamina = plan.DirectRewards.StaminaRecovery,
-                    Focus = plan.DirectRewards.FocusRecovery
-                }, situation);
-            }
-            else if (plan.Consequence != null)
-            {
-                // SCENE-BASED ACTION: Apply unified Consequence
                 await _rewardApplicationService.ApplyConsequence(plan.Consequence, situation);
             }
 

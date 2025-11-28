@@ -7,14 +7,15 @@ namespace Wayfarer.Tests.UI;
 /// Tests the calculation, mapping, and null-handling added to SceneContent component.
 ///
 /// WHAT'S BEING TESTED:
-/// - Null-safe extraction from ChoiceReward.Insight/Rapport/etc
-/// - Final value calculation (player.Stat + reward)
+/// - Null-safe extraction from Consequence.Insight/Rapport/etc
+/// - Final value calculation (player.Stat + consequence)
 /// - Mapping to ActionCardViewModel properties
-/// - Edge cases: null rewards, zero values, positive values
+/// - Edge cases: null consequences, zero values, positive values
 ///
 /// ARCHITECTURE CONTEXT:
 /// These tests verify UI display calculations, not stat application.
 /// Stat application logic (RewardApplicationService) is separate.
+/// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
 /// </summary>
 public class StatRewardDisplayTests
 {
@@ -45,16 +46,17 @@ public class StatRewardDisplayTests
     }
 
     /// <summary>
-    /// Test helper: Create choice reward with stat grants
+    /// Test helper: Create consequence with stat grants
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes
     /// </summary>
-    private ChoiceReward CreateStatReward(
+    private Consequence CreateStatConsequence(
         int insight = 0,
         int rapport = 0,
         int authority = 0,
         int diplomacy = 0,
         int cunning = 0)
     {
-        return new ChoiceReward
+        return new Consequence
         {
             Insight = insight,
             Rapport = rapport,
@@ -68,7 +70,7 @@ public class StatRewardDisplayTests
     public void NullReward_ExtractsZeroForAllStats()
     {
         // ARRANGE: Null reward (choice grants no stats)
-        ChoiceReward reward = null;
+        Consequence reward = null;
 
         // ACT: Null-safe extraction (SceneContent.razor.cs pattern)
         int insightReward = reward?.Insight ?? 0;
@@ -89,7 +91,7 @@ public class StatRewardDisplayTests
     public void ZeroStatRewards_ExtractsCorrectly()
     {
         // ARRANGE: Reward exists but grants no stats (all zeros)
-        ChoiceReward reward = CreateStatReward(0, 0, 0, 0, 0);
+        Consequence reward = CreateStatConsequence(0, 0, 0, 0, 0);
 
         // ACT: Extract values
         int insightReward = reward?.Insight ?? 0;
@@ -110,7 +112,7 @@ public class StatRewardDisplayTests
     public void PositiveStatRewards_ExtractsCorrectly()
     {
         // ARRANGE: Reward grants specific stat values
-        ChoiceReward reward = CreateStatReward(
+        Consequence reward = CreateStatConsequence(
             insight: 2,
             rapport: 1,
             authority: 3,
@@ -137,7 +139,7 @@ public class StatRewardDisplayTests
     {
         // ARRANGE: Player with no stats + reward granting stats
         Player player = CreateTestPlayer(0, 0, 0, 0, 0);
-        ChoiceReward reward = CreateStatReward(2, 1, 3, 1, 2);
+        Consequence reward = CreateStatConsequence(2, 1, 3, 1, 2);
 
         int insightReward = reward.Insight;
         int rapportReward = reward.Rapport;
@@ -170,7 +172,7 @@ public class StatRewardDisplayTests
             authority: 2,
             diplomacy: 4,
             cunning: 1);
-        ChoiceReward reward = CreateStatReward(
+        Consequence reward = CreateStatConsequence(
             insight: 2,
             rapport: 1,
             authority: 3,
@@ -203,7 +205,7 @@ public class StatRewardDisplayTests
     {
         // ARRANGE: Player with stats + no reward
         Player player = CreateTestPlayer(5, 3, 2, 4, 1);
-        ChoiceReward reward = null;
+        Consequence reward = null;
 
         int insightReward = reward?.Insight ?? 0;
         int rapportReward = reward?.Rapport ?? 0;
@@ -262,7 +264,7 @@ public class StatRewardDisplayTests
             authority: 2,
             diplomacy: 5,
             cunning: 3);
-        ChoiceReward reward = CreateStatReward(
+        Consequence reward = CreateStatConsequence(
             insight: 1,
             rapport: 2,
             authority: 0,
@@ -316,7 +318,7 @@ public class StatRewardDisplayTests
     {
         // ARRANGE: Tutorial scenario - new player (stats 0) choosing Rapport path
         Player player = CreateTestPlayer(0, 0, 0, 0, 0);
-        ChoiceReward reward = CreateStatReward(rapport: 1); // Elena grants Rapport +1
+        Consequence reward = CreateStatConsequence(rapport: 1); // Elena grants Rapport +1
 
         // ACT: Calculate display values
         int rapportReward = reward?.Rapport ?? 0;
@@ -339,7 +341,7 @@ public class StatRewardDisplayTests
             authority: 1, // Minimal
             diplomacy: 3, // Minor
             cunning: 6);  // Specialized
-        ChoiceReward reward = CreateStatReward(
+        Consequence reward = CreateStatConsequence(
             insight: 2,   // Reinforces specialization
             cunning: 1);  // Reinforces specialization
 

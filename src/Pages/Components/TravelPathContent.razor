@@ -392,13 +392,13 @@
                 {
                     var card = pathCardData.Card;
                     var isAvailable = pathCardData.CanPlay;
-                    <div class="response-card @(isAvailable ? "" : "unavailable") @(card.StaminaCost == 0 ? "free" : "")"
+                    <div class="response-card @(isAvailable ? "" : "unavailable")"
                          @onclick="async () => { if (isAvailable) await SelectPathCard(card); }">
                         <div class="response-header">
                             <div class="response-name">@card.Name</div>
                             @if (card.StaminaCost == 0)
                             {
-                                <div class="response-cost free">FREE</div>
+                                <div class="response-cost">0 stamina</div>
                             }
                             else
                             {

@@ -133,23 +133,25 @@ LocationAction is a **union type** supporting two intentional patterns via patte
 flowchart TB
     subgraph "Action Resolution"
         Check{"Pattern\nDiscriminator"}
-        Atmospheric["Atmospheric Action"]
-        SceneBased["Scene-Based Action"]
+        Atmospheric["Atmospheric Action\n(Parse-time Consequence)"]
+        SceneBased["Scene-Based Action\n(Query-time Consequence)"]
     end
 
     Check -->|"Simple"| Atmospheric
     Check -->|"Complex"| SceneBased
 ```
 
-| Tier | Pattern | Characteristics |
-|------|---------|-----------------|
-| **Atmospheric** | Simple, permanent | Always available, constant costs/rewards, soft-lock prevention |
-| **Scene-Based** | Complex, dynamic | Context-dependent, narrative-driven, OR-path requirements |
+| Tier | Pattern | Consequence Creation | Characteristics |
+|------|---------|---------------------|-----------------|
+| **Atmospheric** | Simple, permanent | Parse-time (LocationActionCatalog) | Always available, constant costs/rewards, soft-lock prevention |
+| **Scene-Based** | Complex, dynamic | Query-time (ChoiceTemplate reference) | Context-dependent, narrative-driven, OR-path requirements |
+
+**HIGHLANDER Compliance:** Both patterns use `Consequence` for costs/rewards. The distinction is WHEN the Consequence is created, not WHAT class represents it.
 
 **Why Both Patterns Exist:**
 
-- **Atmospheric:** Baseline actions (work, rest, travel) that prevent soft-locks. Simple enough that complexity is unjustified.
-- **Scene-based:** Dynamic actions with contextual variation and complex requirements. Simplicity would be insufficient.
+- **Atmospheric:** Baseline actions (work, rest, travel) that prevent soft-locks. Consequence created once at parse-time.
+- **Scene-based:** Dynamic actions with contextual variation. Consequence retrieved from ChoiceTemplate at query-time.
 
 **Critical:** Neither pattern replaces the other. Both are intentional architecture supporting different gameplay needs.
 
@@ -565,7 +567,7 @@ None of these are regressions. The behavior (invalid when insufficient, valid wh
 
 ALL player resource mutations (costs AND rewards) flow through a single method: `RewardApplicationService.ApplyConsequence()`. No direct player mutations anywhere else in the codebase.
 
-### The TWO PILLARS
+### The TWO PILLARS (HIGHLANDER Resource Classes)
 
 Together with §8.20, these form the TWO PILLARS of resource management:
 
@@ -573,6 +575,14 @@ Together with §8.20, these form the TWO PILLARS of resource management:
 |--------|-------|---------|-------------------|
 | **Availability** | `CompoundRequirement` | Check if player CAN do something | `IsAnySatisfied(player, gameWorld)` |
 | **Application** | `Consequence` | Apply costs/rewards | `ApplyConsequence(consequence, situation)` |
+
+**HIGHLANDER ENFORCEMENT:** These are the ONLY classes that handle resource values. No other classes may contain resource properties (Coins, Health, Stamina, Focus, Resolve, Hunger).
+
+| Class | Status |
+|-------|--------|
+| `Consequence` | ALLOWED (unified costs/rewards) |
+| `CompoundRequirement.OrPath` | ALLOWED (unified prerequisites) |
+| Any other class with resource properties | FORBIDDEN |
 
 **NO EXCEPTIONS.** No individual property checks. No direct mutations. No optional parameters.
 

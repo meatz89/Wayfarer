@@ -95,7 +95,7 @@ public class LocationActionManager
                 ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
-                Cost = GetCostDisplay(action.Costs),
+                Cost = GetCostDisplayFromConsequence(action.Consequence),
                 IsAvailable = isAvailable,
                 LockReason = lockReason,
                 EngagementType = action.EngagementType,
@@ -134,23 +134,29 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Get display string for action costs.
+    /// Get display string for costs extracted from Consequence.
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
+    /// Negative values = costs (displayed as positive amounts)
     /// </summary>
-    private string GetCostDisplay(ActionCosts costs)
+    private string GetCostDisplayFromConsequence(Consequence consequence)
     {
+        if (consequence == null)
+            return "Free!";
+
         List<string> costParts = new List<string>();
 
-        if (costs.Coins > 0)
-            costParts.Add($"{costs.Coins} coins");
+        // HIGHLANDER: Negative values in Consequence = costs
+        if (consequence.Coins < 0)
+            costParts.Add($"{-consequence.Coins} coins");
 
-        if (costs.Focus > 0)
-            costParts.Add($"{costs.Focus} focus");
+        if (consequence.Focus < 0)
+            costParts.Add($"{-consequence.Focus} focus");
 
-        if (costs.Stamina > 0)
-            costParts.Add($"{costs.Stamina} stamina");
+        if (consequence.Stamina < 0)
+            costParts.Add($"{-consequence.Stamina} stamina");
 
-        if (costs.Health > 0)
-            costParts.Add($"{costs.Health} health");
+        if (consequence.Health < 0)
+            costParts.Add($"{-consequence.Health} health");
 
         if (costParts.Count == 0)
             return "Free!";
@@ -160,15 +166,16 @@ public class LocationActionManager
 
     /// <summary>
     /// Check if the player can perform this action.
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
     /// </summary>
     private bool CanPerformAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Check coin cost
-        if (action.Costs.Coins > 0)
+        // Check coin cost (negative Coins = cost)
+        if (action.Consequence.Coins < 0)
         {
-            return player.Coins >= action.Costs.Coins;
+            return player.Coins >= -action.Consequence.Coins;
         }
 
         return true;
