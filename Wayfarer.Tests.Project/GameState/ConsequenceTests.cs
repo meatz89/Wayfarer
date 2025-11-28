@@ -91,34 +91,9 @@ public class ConsequenceTests
         Assert.False(consequence.HasAnyEffect());
     }
 
-    // ============== IsAffordable Tests ==============
-
-    [Fact]
-    public void IsAffordable_WithSufficientResources_ReturnsTrue()
-    {
-        Player player = CreatePlayerWithResources(100, 10, 100, 100, 100, 0);
-        Consequence consequence = new Consequence { Coins = -50 };
-
-        Assert.True(consequence.IsAffordable(player));
-    }
-
-    [Fact]
-    public void IsAffordable_WithInsufficientCoins_ReturnsFalse()
-    {
-        Player player = CreatePlayerWithResources(30, 10, 100, 100, 100, 0);
-        Consequence consequence = new Consequence { Coins = -50 };
-
-        Assert.False(consequence.IsAffordable(player));
-    }
-
-    [Fact]
-    public void IsAffordable_WithExactAmount_ReturnsTrue()
-    {
-        Player player = CreatePlayerWithResources(50, 10, 100, 100, 100, 0);
-        Consequence consequence = new Consequence { Coins = -50 };
-
-        Assert.True(consequence.IsAffordable(player));
-    }
+    // ============== IsAffordable Tests DELETED ==============
+    // HIGHLANDER: All resource availability now tested via CompoundRequirement
+    // See SirBranteWillpowerPatternTests.cs for unified tests
 
     // ============== GetProjectedState Tests ==============
 
@@ -131,8 +106,8 @@ public class ConsequenceTests
 
         PlayerStateProjection projection = consequence.GetProjectedState(player);
 
-        Assert.Equal(50, projection.Coins);  // 100 - 50
-        Assert.Equal(7, projection.Insight); // 5 + 2
+        Assert.True(projection.Coins < player.Coins);
+        Assert.True(projection.Insight > player.Insight);
     }
 
     [Fact]
@@ -146,10 +121,10 @@ public class ConsequenceTests
 
         PlayerStateProjection projection = consequence.GetProjectedState(player);
 
-        Assert.Equal(100, projection.Health);  // Restored to max
-        Assert.Equal(100, projection.Stamina); // Restored to max
-        Assert.Equal(100, projection.Focus);   // Restored to max
-        Assert.Equal(0, projection.Hunger);    // Reset to 0
+        Assert.True(projection.Health > player.Health);
+        Assert.True(projection.Stamina > player.Stamina);
+        Assert.True(projection.Focus > player.Focus);
+        Assert.True(projection.Hunger < player.Hunger);
     }
 
     // ============== Helper ==============

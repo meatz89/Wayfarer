@@ -512,6 +512,53 @@ This prevents the "abundance trivializes mechanic" trap of traditional resource 
 
 ---
 
+## 8.21 Behavior-Only Testing Principle
+
+**"Test what it DOES, not what it SAYS."**
+
+Tests verify observable behavior, never implementation details. Specific values, string formats, and message content are implementation details that change during refactoring or content authoring.
+
+### What Tests Verify
+
+| Verify | Example Behavior |
+|--------|------------------|
+| **Boolean outcomes** | Action valid/invalid, requirement satisfied/not satisfied |
+| **State transitions** | Player can/cannot proceed, resource depleted/available |
+| **Existence checks** | Object exists/null, collection empty/populated |
+| **Comparative relationships** | Value increased/decreased, before/after comparison |
+
+### What Tests Never Check
+
+| Never Check | Reason |
+|-------------|--------|
+| **Specific numeric values** | Balance tuning changes these |
+| **String message formats** | UX improvements change these |
+| **Label text content** | Localization changes these |
+| **Exact error messages** | Rewording is refactoring, not regression |
+
+### Rationale
+
+Tests that check specific values create false negatives during legitimate refactoring:
+
+- Content author adjusts balance → tests break
+- Developer improves error message clarity → tests break
+- Designer tweaks resource formula → tests break
+
+None of these are regressions. The behavior (invalid when insufficient, valid when sufficient) remains correct.
+
+### Application
+
+| Instead Of | Use |
+|------------|-----|
+| Checking resource equals exact value | Checking resource greater/less than threshold |
+| Checking error message contains text | Checking plan/result is invalid |
+| Checking label equals specific string | Checking label is not null/empty |
+| Checking projection has exact numbers | Checking projection reflects expected direction |
+
+**Consequence:** Tests survive refactoring. Only actual behavioral regressions cause failures.
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

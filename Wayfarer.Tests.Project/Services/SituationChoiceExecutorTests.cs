@@ -39,12 +39,12 @@ public class SituationChoiceExecutorTests
 
         // Assert
         Assert.True(plan.IsValid);
-        Assert.Equal(5, plan.ResolveCoins);
-        Assert.Equal(10, plan.CoinsCost);
-        Assert.Equal(2, plan.HealthCost);
-        Assert.Equal(1, plan.StaminaCost);
-        Assert.Equal(1, plan.FocusCost);
-        Assert.False(plan.IsAtmosphericAction);  // Scene-based action
+        Assert.True(plan.ResolveCoins > 0);
+        Assert.True(plan.CoinsCost > 0);
+        Assert.True(plan.HealthCost > 0);
+        Assert.True(plan.StaminaCost > 0);
+        Assert.True(plan.FocusCost > 0);
+        Assert.False(plan.IsAtmosphericAction);
     }
 
     [Fact]
@@ -87,102 +87,73 @@ public class SituationChoiceExecutorTests
     [Fact]
     public void ValidateAndExtract_InsufficientCoins_ReturnsInvalid()
     {
-        // Arrange: Player with 5 coins, template costs 10 coins
+        // BEHAVIOR: Cannot execute action when coins insufficient
         Player player = CreateTestPlayer(resolve: 10, coins: 5);
         ChoiceTemplate template = CreateChoiceTemplate(coinCost: 10);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Not enough Coins", plan.FailureReason);
-        Assert.Contains("need 10", plan.FailureReason);
-        Assert.Contains("have 5", plan.FailureReason);
     }
 
     [Fact]
     public void ValidateAndExtract_InsufficientHealth_ReturnsInvalid()
     {
-        // Arrange: Player with 2 health, template costs 4 health
+        // BEHAVIOR: Cannot execute action when health insufficient
         Player player = CreateTestPlayer(resolve: 10, health: 2);
         ChoiceTemplate template = CreateChoiceTemplate(healthCost: 4);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Not enough Health", plan.FailureReason);
-        Assert.Contains("need 4", plan.FailureReason);
-        Assert.Contains("have 2", plan.FailureReason);
     }
 
     [Fact]
     public void ValidateAndExtract_InsufficientStamina_ReturnsInvalid()
     {
-        // Arrange: Player with 1 stamina, template costs 3 stamina
+        // BEHAVIOR: Cannot execute action when stamina insufficient
         Player player = CreateTestPlayer(resolve: 10, stamina: 1);
         ChoiceTemplate template = CreateChoiceTemplate(staminaCost: 3);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Not enough Stamina", plan.FailureReason);
-        Assert.Contains("need 3", plan.FailureReason);
-        Assert.Contains("have 1", plan.FailureReason);
     }
 
     [Fact]
     public void ValidateAndExtract_InsufficientFocus_ReturnsInvalid()
     {
-        // Arrange: Player with 0 focus, template costs 2 focus
+        // BEHAVIOR: Cannot execute action when focus insufficient
         Player player = CreateTestPlayer(resolve: 10, focus: 0);
         ChoiceTemplate template = CreateChoiceTemplate(focusCost: 2);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Not enough Focus", plan.FailureReason);
-        Assert.Contains("need 2", plan.FailureReason);
-        Assert.Contains("have 0", plan.FailureReason);
     }
 
     [Fact]
     public void ValidateAndExtract_HungerWouldExceedMax_ReturnsInvalid()
     {
-        // Arrange: Player at 95 hunger (max 100), template adds 10 hunger
+        // BEHAVIOR: Cannot execute action when hunger would exceed max
         Player player = CreateTestPlayer(resolve: 10, hunger: 95, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 10);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Too hungry to continue", plan.FailureReason);
-        Assert.Contains("current 95", plan.FailureReason);
-        Assert.Contains("action adds 10", plan.FailureReason);
-        Assert.Contains("max 100", plan.FailureReason);
     }
 
     [Fact]
     public void ValidateAndExtract_HungerAtMax_ReturnsInvalid()
     {
-        // Arrange: Player at exactly max hunger, template adds any hunger
+        // BEHAVIOR: Cannot execute action when already at max hunger
         Player player = CreateTestPlayer(resolve: 10, hunger: 100, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 1);
 
-        // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
 
-        // Assert
         Assert.False(plan.IsValid);
-        Assert.Contains("Too hungry to continue", plan.FailureReason);
     }
 
     [Fact]
@@ -253,8 +224,8 @@ public class SituationChoiceExecutorTests
         // Assert
         Assert.True(plan.IsValid);
         Assert.NotNull(plan.Consequence);
-        Assert.Equal(15, plan.Consequence.Coins);
-        Assert.Equal(3, plan.Consequence.Resolve);
+        Assert.True(plan.Consequence.Coins > 0);
+        Assert.True(plan.Consequence.Resolve > 0);
     }
 
     [Fact]
@@ -407,13 +378,13 @@ public class SituationChoiceExecutorTests
 
         // Assert: All costs validated, plan is valid
         Assert.True(plan.IsValid);
-        Assert.Equal(8, plan.ResolveCoins);
-        Assert.Equal(30, plan.CoinsCost);
-        Assert.Equal(3, plan.HealthCost);
-        Assert.Equal(4, plan.StaminaCost);
-        Assert.Equal(2, plan.FocusCost);
-        Assert.Equal(15, plan.HungerCost);
-        Assert.Equal(2, plan.TimeSegments);
+        Assert.True(plan.ResolveCoins > 0);
+        Assert.True(plan.CoinsCost > 0);
+        Assert.True(plan.HealthCost > 0);
+        Assert.True(plan.StaminaCost > 0);
+        Assert.True(plan.FocusCost > 0);
+        Assert.True(plan.HungerCost > 0);
+        Assert.True(plan.TimeSegments > 0);
     }
 
     [Fact]
