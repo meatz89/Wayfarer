@@ -99,21 +99,21 @@
         NavigationManager.NavigateTo("/spawngraph");
     }
 
-    private void SetStatLevel(PlayerStatType statType, int level)
+    private async Task SetStatLevel(PlayerStatType statType, int level)
     {
-        GameFacade.DebugSetStatLevel(statType, level);
+        await GameFacade.DebugSetStatLevel(statType, level);
         StateHasChanged();
     }
 
-    private void AddStatXP(PlayerStatType statType, int xp)
+    private async Task AddStatXP(PlayerStatType statType, int xp)
     {
-        GameFacade.DebugAddStatXP(statType, xp);
+        await GameFacade.DebugAddStatXP(statType, xp);
         StateHasChanged();
     }
 
-    private void SetAllStats(int level)
+    private async Task SetAllStats(int level)
     {
-        GameFacade.DebugSetAllStats(level);
+        await GameFacade.DebugSetAllStats(level);
         StateHasChanged();
     }
 

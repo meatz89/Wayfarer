@@ -20,6 +20,9 @@ public class PlayerStateProjection
     public int Diplomacy { get; init; }
     public int Cunning { get; init; }
 
+    // Mental Progression
+    public int Understanding { get; init; }
+
     /// <summary>
     /// Create a projection matching current player state (no changes)
     /// </summary>
@@ -37,7 +40,8 @@ public class PlayerStateProjection
             Rapport = player.Rapport,
             Authority = player.Authority,
             Diplomacy = player.Diplomacy,
-            Cunning = player.Cunning
+            Cunning = player.Cunning,
+            Understanding = player.Understanding
         };
     }
 }

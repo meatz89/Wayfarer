@@ -92,6 +92,10 @@ public class RewardApplicationService
 
             if (reward.Cunning != 0)
                 player.Cunning += reward.Cunning;
+
+            // Mental progression: Understanding (0-10 scale, cumulative expertise)
+            if (reward.Understanding != 0)
+                player.Understanding = Math.Min(10, player.Understanding + reward.Understanding);
         }
 
         // Apply consequences (bonds, scales, states)

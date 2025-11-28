@@ -200,8 +200,7 @@ public class ExchangeFacade
         }
 
         // Apply rewards
-        Dictionary<ResourceType, int> rewardsGranted = await ApplyExchangeRewards(exchange, player, npc);
-        List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
+        (Dictionary<ResourceType, int> rewardsGranted, List<string> itemsGranted) = await ApplyExchangeRewards(exchange, player, npc);
 
         // Track exchange history in GameWorld
         ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
@@ -420,17 +419,7 @@ public class ExchangeFacade
             return false;
         }
 
-        // TWO PILLARS: Apply costs via Consequence
-        Consequence costConsequence = new Consequence
-        {
-            Coins = -coinCost,
-            Health = -healthCost,
-            Hunger = hungerIncrease  // Hunger increase is positive
-        };
-        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
-
-        // Apply item costs (consume items from inventory)
-        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        // Validate item availability BEFORE applying any costs
         foreach (Item item in exchange.Cost.ConsumedItems)
         {
             if (!player.Inventory.Contains(item))
@@ -438,24 +427,35 @@ public class ExchangeFacade
                 _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.Remove(item);
         }
+
+        // TWO PILLARS: Apply ALL costs via single Consequence (resources + item removal)
+        Consequence costConsequence = new Consequence
+        {
+            Coins = -coinCost,
+            Health = -healthCost,
+            Hunger = hungerIncrease,  // Hunger increase is positive
+            ItemsToRemove = exchange.Cost.ConsumedItems.ToList()
+        };
+        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
 
         return true;
     }
 
     /// <summary>
-    /// Apply exchange resource rewards to player
-    /// TWO PILLARS: Delegates mutations to RewardApplicationService
+    /// Apply exchange resource and item rewards to player
+    /// TWO PILLARS: Delegates ALL mutations to RewardApplicationService via single Consequence
     /// </summary>
-    private async Task<Dictionary<ResourceType, int>> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<(Dictionary<ResourceType, int> rewardsGranted, List<string> itemsGranted)> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
     {
         Dictionary<ResourceType, int> rewardsGranted = new Dictionary<ResourceType, int>();
+        List<string> itemsGranted = new List<string>();
 
         // TWO PILLARS: Build Consequence from rewards
         int coinReward = 0;
         int healthReward = 0;
         int hungerDecrease = 0;
+        List<Item> itemRewards = new List<Item>();
 
         foreach (ResourceAmount reward in exchange.GetRewardAsList())
         {
@@ -476,33 +476,24 @@ public class ExchangeFacade
             }
         }
 
-        // TWO PILLARS: Apply rewards via Consequence
+        // Collect item rewards
+        foreach (Item item in exchange.GetItemRewards())
+        {
+            itemRewards.Add(item);
+            itemsGranted.Add(item.Name);
+        }
+
+        // TWO PILLARS: Apply ALL rewards via single Consequence (resources + items)
         Consequence rewardConsequence = new Consequence
         {
             Coins = coinReward,
             Health = healthReward,
-            Hunger = -hungerDecrease  // Hunger decrease is negative (good for player)
+            Hunger = -hungerDecrease,  // Hunger decrease is negative (good for player)
+            Items = itemRewards
         };
         await _rewardApplicationService.ApplyConsequence(rewardConsequence, null);
 
-        return rewardsGranted;
-    }
-
-    /// <summary>
-    /// Apply exchange item rewards to player
-    /// HIGHLANDER: Use Item objects, not string IDs
-    /// </summary>
-    private List<string> ApplyExchangeItemRewards(ExchangeCard exchange, Player player)
-    {
-        List<string> itemsGranted = new List<string>();
-
-        foreach (Item item in exchange.GetItemRewards())
-        {
-            player.Inventory.Add(item);
-            itemsGranted.Add(item.Name);
-        }
-
-        return itemsGranted;
+        return (rewardsGranted, itemsGranted);
     }
 }
 

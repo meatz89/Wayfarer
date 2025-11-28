@@ -167,19 +167,7 @@ public class ExchangeHandler
         if (player.Coins < coinCost || player.Health < healthCost)
             return false;
 
-        // TWO PILLARS: Apply resource costs via Consequence + ApplyConsequence
-        if (coinCost > 0 || healthCost > 0)
-        {
-            Consequence costConsequence = new Consequence
-            {
-                Coins = -coinCost,
-                Health = -healthCost
-            };
-            await _rewardApplicationService.ApplyConsequence(costConsequence, null);
-        }
-
-        // Apply item costs (consume items from inventory)
-        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        // Validate item availability BEFORE applying any costs
         foreach (Item item in exchange.Cost.ConsumedItems)
         {
             if (!player.Inventory.Contains(item))
@@ -187,8 +175,16 @@ public class ExchangeHandler
                 _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.Remove(item);
         }
+
+        // TWO PILLARS: Apply ALL costs via single Consequence (resources + item removal)
+        Consequence costConsequence = new Consequence
+        {
+            Coins = -coinCost,
+            Health = -healthCost,
+            ItemsToRemove = exchange.Cost.ConsumedItems.ToList()
+        };
+        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
 
         return true;
     }

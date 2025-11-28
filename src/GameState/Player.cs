@@ -393,35 +393,11 @@ public class Player
         // NO hardcoded defaults - values come from package starting conditions
     }
 
-    public bool ModifyHealth(int count)
-    {
-        int newHealth = Math.Clamp(Health + count, 0, MaxHealth);
-        if (newHealth != Health)
-        {
-            Health = newHealth;
-            return true;
-        }
-        return false;
-    }
+    // HIGHLANDER: Resource mutations DELETED
+    // TWO PILLARS: All mutations go through RewardApplicationService.ApplyConsequence()
+    // ModifyHealth, ModifyHunger, ReduceHunger REMOVED
 
-    public bool ModifyHunger(int amount)
-    {
-        int newHunger = Math.Clamp(Hunger + amount, 0, MaxHunger);
-        if (newHunger != Hunger)
-        {
-            Hunger = newHunger;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ReduceHunger(int amount)
-    {
-        // Eating reduces hunger
-        return ModifyHunger(-amount);
-    }
-
-    // Hunger helper methods (moved from HungerManager)
+    // Hunger helper methods (read-only query methods)
     public bool IsStarving()
     {
         return Hunger >= 80;
@@ -449,23 +425,6 @@ public class Player
         }
     }
 
-    public void AddCoins(int count)
-    {
-        int newCoins = Math.Max(0, Coins + count);
-        if (newCoins != Coins)
-        {
-            Coins = newCoins;
-        }
-    }
-
-    public void ModifyCoins(int amount)
-    {
-        Coins += amount;
-        if (Coins < 0)
-        {
-            Coins = 0;
-        }
-    }
 
     internal void SetCoins(int value)
     {

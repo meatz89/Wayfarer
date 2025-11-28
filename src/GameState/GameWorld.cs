@@ -587,22 +587,17 @@ public class GameWorld
     /// <summary>
     /// Complete an obligation - apply rewards, chain spawned obligations, clear deadline
     /// Applies coins, items, XP, and increases relationship with patron (NPCCommissioned only)
-    /// Chains spawned obligations by activating each spawned obligation
+    /// Chains spawned obligations by activating each spawned obligation.
+    /// TWO PILLARS: Mutations (coins, items) now handled by caller via RewardApplicationService.
+    /// This method only handles state management (obligation activation, NPC relationship).
     /// </summary>
     public void CompleteObligation(string obligationName, TimeManager timeManager)
     {
         Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
-        Player.ModifyCoins(obligation.CompletionRewardCoins);
-
-        foreach (Item item in obligation.CompletionRewardItems)
-        {
-            Player.Inventory.Add(item);
-        }
-
-        // Stats are now simple integers - no XP system
-        // CompletionRewardXP deleted as part of XP system removal
+        // TWO PILLARS: Coin and item rewards now applied by caller via RewardApplicationService
+        // Only state management happens here
 
         foreach (Obligation spawnedObligation in obligation.SpawnedObligations)
         {
@@ -620,6 +615,14 @@ public class GameWorld
             NPC patron = obligation.PatronNpc;
             patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
         }
+    }
+
+    /// <summary>
+    /// Get the obligation by name (for callers that need to apply rewards before completing)
+    /// </summary>
+    public Obligation GetObligationByName(string obligationName)
+    {
+        return Obligations.FirstOrDefault(i => i.Name == obligationName);
     }
 
     // ============================================

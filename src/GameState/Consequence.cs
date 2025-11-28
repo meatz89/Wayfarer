@@ -70,6 +70,17 @@ public class Consequence
     public int Cunning { get; init; } = 0;
 
     // ============================================
+    // MENTAL PROGRESSION (Obligation system)
+    // ============================================
+
+    /// <summary>
+    /// Understanding change - cumulative Mental expertise (0-10 scale)
+    /// Granted by Mental challenges (+1 to +3 based on difficulty)
+    /// Used to reduce Exposure baseline in obligations
+    /// </summary>
+    public int Understanding { get; init; } = 0;
+
+    // ============================================
     // TIME ADVANCEMENT (overrides TimeSegments)
     // ============================================
 
@@ -215,7 +226,8 @@ public class Consequence
                 Rapport = player.Rapport + Rapport,
                 Authority = player.Authority + Authority,
                 Diplomacy = player.Diplomacy + Diplomacy,
-                Cunning = player.Cunning + Cunning
+                Cunning = player.Cunning + Cunning,
+                Understanding = Math.Min(10, player.Understanding + Understanding)
             };
         }
 
@@ -231,7 +243,8 @@ public class Consequence
             Rapport = player.Rapport + Rapport,
             Authority = player.Authority + Authority,
             Diplomacy = player.Diplomacy + Diplomacy,
-            Cunning = player.Cunning + Cunning
+            Cunning = player.Cunning + Cunning,
+            Understanding = Math.Min(10, player.Understanding + Understanding)
         };
     }
 

@@ -791,7 +791,7 @@ public class GameFacade
 
             // Player action intents
             WaitIntent => await ProcessWaitIntent(),
-            SleepOutsideIntent => ProcessSleepOutsideIntent(),
+            SleepOutsideIntent => await ProcessSleepOutsideIntent(),
             LookAroundIntent => ProcessLookAroundIntent(),
             CheckBelongingsIntent => ProcessCheckBelongingsIntent(),
 
@@ -876,7 +876,7 @@ public class GameFacade
         return IntentResult.Executed(requiresRefresh: true);
     }
 
-    private IntentResult ProcessSleepOutsideIntent()
+    private async Task<IntentResult> ProcessSleepOutsideIntent()
     {
         // Fetch entity for data-driven costs
         PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.SleepOutside);
@@ -886,10 +886,10 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Apply costs from entity (data-driven)
-        Player player = _gameWorld.GetPlayer();
+        // TWO PILLARS: Apply health cost via Consequence + ApplyConsequence
         int healthCost = action.Costs.Health;
-        player.ModifyHealth(-healthCost);
+        Consequence sleepCost = new Consequence { Health = -healthCost };
+        await _rewardApplicationService.ApplyConsequence(sleepCost, null);
 
         _messageSystem.AddSystemMessage(
             $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
@@ -1080,8 +1080,9 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Pay player
-        player.ModifyCoins(job.Payment);
+        // TWO PILLARS: Pay player via Consequence + ApplyConsequence
+        Consequence deliveryReward = new Consequence { Coins = job.Payment };
+        await _rewardApplicationService.ApplyConsequence(deliveryReward, null);
 
         // Clear active job
         player.ActiveDeliveryJob = null;
@@ -1233,8 +1234,9 @@ public class GameFacade
 
     /// <summary>
     /// Debug: Set player stat to specific level
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
     /// </summary>
-    public bool DebugSetStatLevel(PlayerStatType statType, int level)
+    public async Task<bool> DebugSetStatLevel(PlayerStatType statType, int level)
     {
         if (level < 0 || level > 10)
         {
@@ -1244,25 +1246,37 @@ public class GameFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Direct stat assignment - no XP system anymore
+        // TWO PILLARS: Calculate delta and apply via Consequence
+        int delta = 0;
         switch (statType)
         {
             case PlayerStatType.Insight:
-                player.Insight = level;
+                delta = level - player.Insight;
                 break;
             case PlayerStatType.Rapport:
-                player.Rapport = level;
+                delta = level - player.Rapport;
                 break;
             case PlayerStatType.Authority:
-                player.Authority = level;
+                delta = level - player.Authority;
                 break;
             case PlayerStatType.Diplomacy:
-                player.Diplomacy = level;
+                delta = level - player.Diplomacy;
                 break;
             case PlayerStatType.Cunning:
-                player.Cunning = level;
+                delta = level - player.Cunning;
                 break;
         }
+
+        Consequence statChange = statType switch
+        {
+            PlayerStatType.Insight => new Consequence { Insight = delta },
+            PlayerStatType.Rapport => new Consequence { Rapport = delta },
+            PlayerStatType.Authority => new Consequence { Authority = delta },
+            PlayerStatType.Diplomacy => new Consequence { Diplomacy = delta },
+            PlayerStatType.Cunning => new Consequence { Cunning = delta },
+            _ => new Consequence()
+        };
+        await _rewardApplicationService.ApplyConsequence(statChange, null);
 
         _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success);
         return true;
@@ -1270,8 +1284,9 @@ public class GameFacade
 
     /// <summary>
     /// Debug: Add points to a specific stat
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
     /// </summary>
-    public bool DebugAddStatXP(PlayerStatType statType, int points)
+    public async Task<bool> DebugAddStatXP(PlayerStatType statType, int points)
     {
         if (points <= 0)
         {
@@ -1281,38 +1296,37 @@ public class GameFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Direct stat modification - no XP system anymore
-        switch (statType)
+        // TWO PILLARS: Apply stat change via Consequence
+        Consequence statChange = statType switch
         {
-            case PlayerStatType.Insight:
-                player.Insight = Math.Min(10, player.Insight + points);
-                _messageSystem.AddSystemMessage($"Added {points} to Insight. Now {player.Insight}", SystemMessageTypes.Success);
-                break;
-            case PlayerStatType.Rapport:
-                player.Rapport = Math.Min(10, player.Rapport + points);
-                _messageSystem.AddSystemMessage($"Added {points} to Rapport. Now {player.Rapport}", SystemMessageTypes.Success);
-                break;
-            case PlayerStatType.Authority:
-                player.Authority = Math.Min(10, player.Authority + points);
-                _messageSystem.AddSystemMessage($"Added {points} to Authority. Now {player.Authority}", SystemMessageTypes.Success);
-                break;
-            case PlayerStatType.Diplomacy:
-                player.Diplomacy = Math.Min(10, player.Diplomacy + points);
-                _messageSystem.AddSystemMessage($"Added {points} to Diplomacy. Now {player.Diplomacy}", SystemMessageTypes.Success);
-                break;
-            case PlayerStatType.Cunning:
-                player.Cunning = Math.Min(10, player.Cunning + points);
-                _messageSystem.AddSystemMessage($"Added {points} to Cunning. Now {player.Cunning}", SystemMessageTypes.Success);
-                break;
-        }
+            PlayerStatType.Insight => new Consequence { Insight = points },
+            PlayerStatType.Rapport => new Consequence { Rapport = points },
+            PlayerStatType.Authority => new Consequence { Authority = points },
+            PlayerStatType.Diplomacy => new Consequence { Diplomacy = points },
+            PlayerStatType.Cunning => new Consequence { Cunning = points },
+            _ => new Consequence()
+        };
+        await _rewardApplicationService.ApplyConsequence(statChange, null);
+
+        int newValue = statType switch
+        {
+            PlayerStatType.Insight => player.Insight,
+            PlayerStatType.Rapport => player.Rapport,
+            PlayerStatType.Authority => player.Authority,
+            PlayerStatType.Diplomacy => player.Diplomacy,
+            PlayerStatType.Cunning => player.Cunning,
+            _ => 0
+        };
+        _messageSystem.AddSystemMessage($"Added {points} to {statType}. Now {newValue}", SystemMessageTypes.Success);
 
         return true;
     }
 
     /// <summary>
     /// Debug: Set all stats to a specific level
+    /// TWO PILLARS: Uses async DebugSetStatLevel
     /// </summary>
-    public void DebugSetAllStats(int level)
+    public async Task DebugSetAllStats(int level)
     {
         if (level < 0 || level > 10)
         {
@@ -1322,7 +1336,7 @@ public class GameFacade
 
         foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
         {
-            DebugSetStatLevel(statType, level);
+            await DebugSetStatLevel(statType, level);
         }
 
         _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success);

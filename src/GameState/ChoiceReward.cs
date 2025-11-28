@@ -67,6 +67,12 @@ public class ChoiceReward
     public int Cunning { get; set; } = 0;
 
     /// <summary>
+    /// Mental progression: Understanding (0-10 scale)
+    /// Cumulative expertise from Mental challenges
+    /// </summary>
+    public int Understanding { get; set; } = 0;
+
+    /// <summary>
     /// Full recovery of all resources to maximum
     /// Used for securing room at inn - restores Health/Stamina/Focus to max, Hunger to 0
     /// Tutorial: Paying for lodging grants full recovery

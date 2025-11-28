@@ -1,6 +1,7 @@
 
 /// <summary>
 /// Handles situation completion lifecycle - marking complete, removing from ActiveSituations if DeleteOnSuccess, and obligation progress
+/// TWO PILLARS: Delegates resource mutations to RewardApplicationService
 /// </summary>
 public class SituationCompletionHandler
 {
@@ -9,19 +10,22 @@ public class SituationCompletionHandler
     private readonly TimeManager _timeManager;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly SpawnFacade _spawnFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public SituationCompletionHandler(
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
         ConsequenceFacade consequenceFacade,
-        SpawnFacade spawnFacade)
+        SpawnFacade spawnFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -61,14 +65,14 @@ public class SituationCompletionHandler
         // NEW ARCHITECTURE: Consequences applied from Consequence when choice executed, not from Situation
 
         // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
-        ApplySituationCardRewards(situation);
+        await ApplySituationCardRewards(situation);
 
         // NOTE: ActiveSituationIds DELETED from NPC/Location - situations embedded in scenes
         // DeleteOnSuccess behavior: Situation marked complete, query filters it out
         // No need to remove from separate collections - situations queried from scenes by lifecycle status
 
         // Check for simple obligation completion (Player.ActiveObligationIds system)
-        CheckSimpleObligationCompletion(situation);
+        await CheckSimpleObligationCompletion(situation);
 
         // Check for obligation progress (phase-based ObligationJournal system)
         if (situation.Obligation != null)
@@ -209,11 +213,10 @@ public class SituationCompletionHandler
 
     /// <summary>
     /// Apply rewards from all achieved situation cards (idempotent - only applies rewards once per card)
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    private void ApplySituationCardRewards(Situation situation)
+    private async Task ApplySituationCardRewards(Situation situation)
     {
-        Player player = _gameWorld.GetPlayer();
-
         foreach (SituationCard situationCard in situation.SituationCards)
         {
             // Only apply rewards if card is achieved and not already rewarded (idempotent)
@@ -224,17 +227,18 @@ public class SituationCompletionHandler
 
             SituationCardRewards rewards = situationCard.Rewards;
 
-            // COINS - direct player currency
-            if (rewards.Coins.HasValue && rewards.Coins.Value > 0)
-            {
-                player.AddCoins(rewards.Coins.Value);
-            }
+            // TWO PILLARS: Build Consequence for coins and items
+            int coinReward = rewards.Coins.HasValue ? rewards.Coins.Value : 0;
+            List<Item> itemRewards = rewards.Item != null ? new List<Item> { rewards.Item } : new List<Item>();
 
-            // ITEM REWARD - add to player inventory by Item object
-            // HIGHLANDER: Add object reference, not ID string
-            if (rewards.Item != null)
+            if (coinReward > 0 || itemRewards.Count > 0)
             {
-                player.Inventory.Add(rewards.Item); // Object reference ONLY
+                Consequence cardRewards = new Consequence
+                {
+                    Coins = coinReward,
+                    Items = itemRewards
+                };
+                await _rewardApplicationService.ApplyConsequence(cardRewards, situation);
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
@@ -345,8 +349,9 @@ public class SituationCompletionHandler
     /// <summary>
     /// Check if completing this situation completes an active obligation (simple Player.ActiveObligationIds system)
     /// Query all situations with matching ObligationId to determine completion
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    private void CheckSimpleObligationCompletion(Situation completedSituation)
+    private async Task CheckSimpleObligationCompletion(Situation completedSituation)
     {
         // Only check if situation is part of an obligation
         if (completedSituation.Obligation == null)
@@ -368,7 +373,19 @@ public class SituationCompletionHandler
 
         if (allSituationsComplete)
         {
-            // Complete the obligation (grants rewards, removes from ActiveObligationIds)
+            // TWO PILLARS: Get obligation and apply rewards via RewardApplicationService
+            Obligation obligation = _gameWorld.GetObligationByName(completedSituation.Obligation?.Id);
+            if (obligation != null)
+            {
+                Consequence obligationRewards = new Consequence
+                {
+                    Coins = obligation.CompletionRewardCoins,
+                    Items = obligation.CompletionRewardItems
+                };
+                await _rewardApplicationService.ApplyConsequence(obligationRewards, null);
+            }
+
+            // Complete the obligation state management (activation, NPC relationships)
             _gameWorld.CompleteObligation(completedSituation.Obligation?.Id, _timeManager);
         }
     }
