@@ -647,7 +647,7 @@ public class SceneTemplateParser
             Id = dto.Id,
             PathType = pathType,
             ActionTextTemplate = dto.ActionTextTemplate,
-            RequirementFormula = RequirementParser.ConvertDTOToCompoundRequirement(dto.RequirementFormula),
+            RequirementFormula = RequirementParser.ConvertDTOToCompoundRequirement(dto.RequirementFormula, _gameWorld),
             Consequence = ParseConsequence(dto.Consequence),
             OnSuccessConsequence = ParseConsequence(dto.OnSuccessConsequence),
             OnFailureConsequence = ParseConsequence(dto.OnFailureConsequence),

@@ -393,12 +393,12 @@ public class OrPath
     {
         return scaleType switch
         {
-            GameState.ScaleType.Morality => player.Scales.Morality,
-            GameState.ScaleType.Lawfulness => player.Scales.Lawfulness,
-            GameState.ScaleType.Method => player.Scales.Method,
-            GameState.ScaleType.Caution => player.Scales.Caution,
-            GameState.ScaleType.Transparency => player.Scales.Transparency,
-            GameState.ScaleType.Fame => player.Scales.Fame,
+            ScaleType.Morality => player.Scales.Morality,
+            ScaleType.Lawfulness => player.Scales.Lawfulness,
+            ScaleType.Method => player.Scales.Method,
+            ScaleType.Caution => player.Scales.Caution,
+            ScaleType.Transparency => player.Scales.Transparency,
+            ScaleType.Fame => player.Scales.Fame,
             _ => 0
         };
     }

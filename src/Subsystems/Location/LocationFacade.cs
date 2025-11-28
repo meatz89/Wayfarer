@@ -972,19 +972,9 @@ public class LocationFacade
         {
             if (!path.IsSatisfied(player, _gameWorld))
             {
-                // Use path label if available, otherwise generate from requirements
                 if (!string.IsNullOrEmpty(path.Label))
                 {
                     pathLabels.Add(path.Label);
-                }
-                else if (path.NumericRequirements != null && path.NumericRequirements.Count > 0)
-                {
-                    // Use first requirement's label as fallback
-                    NumericRequirement firstReq = path.NumericRequirements.First();
-                    if (!string.IsNullOrEmpty(firstReq.Label))
-                    {
-                        pathLabels.Add(firstReq.Label);
-                    }
                 }
             }
         }

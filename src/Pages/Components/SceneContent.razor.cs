@@ -384,33 +384,6 @@ public class SceneContentBase : ComponentBase
         return $"{statName} {threshold}+ (now {current})";
     }
 
-    private string FormatRequirementGap(NumericRequirement req, Player player)
-    {
-        return req.Type switch
-        {
-            "BondStrength" => FormatBondGapFromId(req.Context, req.Threshold, player),
-            "Scale" => FormatScaleGap(req.Context, req.Threshold, player),
-            "PlayerStat" => FormatPlayerStatGap(req.Context, req.Threshold, player),
-            "Resolve" => $"Resolve {req.Threshold}+ (now {player.Resolve})",
-            "Coins" => $"Coins {req.Threshold}+ (now {player.Coins})",
-            "CompletedSituations" => $"{req.Threshold}+ Completed Situations (now {player.CompletedSituations.Count})",
-            "Achievement" => req.Threshold > 0 ? $"Need Achievement: {req.Context}" : $"Must NOT have Achievement: {req.Context}",
-            "State" => req.Threshold > 0 ? $"Need State: {req.Context}" : $"Must NOT have State: {req.Context}",
-            "HasItem" => req.Threshold > 0 ? $"Need Item: {req.Context}" : $"Must NOT have Item: {req.Context}",
-            _ => "Unknown requirement"
-        };
-    }
-
-    private string FormatBondGapFromId(string npcId, int threshold, Player player)
-    {
-        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.Name == npcId);
-        if (npc == null)
-        {
-            return $"Bond {threshold}+ with {npcId} (NPC not found)";
-        }
-        return FormatBondGap(npc, threshold, player);
-    }
-
     private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player)
     {
         List<RequirementPathVM> paths = new List<RequirementPathVM>();
@@ -420,26 +393,15 @@ public class SceneContentBase : ComponentBase
 
         foreach (OrPath orPath in compoundReq.OrPaths)
         {
-            List<string> requirements = new List<string>();
-            List<string> missingRequirements = new List<string>();
-            bool pathSatisfied = true;
+            PathProjection projection = orPath.GetProjection(player, GameWorld);
 
-            foreach (NumericRequirement req in orPath.NumericRequirements)
-            {
-                string formattedReq = FormatRequirementGap(req, player);
-                requirements.Add(formattedReq);
-
-                if (!req.IsSatisfied(player, GameWorld))
-                {
-                    missingRequirements.Add(formattedReq);
-                    pathSatisfied = false;
-                }
-            }
+            List<string> requirements = projection.Requirements.Select(r => r.Label).ToList();
+            List<string> missingRequirements = projection.MissingRequirements.Select(r => r.Label).ToList();
 
             paths.Add(new RequirementPathVM
             {
                 Requirements = requirements,
-                PathSatisfied = pathSatisfied,
+                PathSatisfied = projection.IsSatisfied,
                 MissingRequirements = missingRequirements
             });
         }

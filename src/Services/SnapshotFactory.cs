@@ -89,44 +89,31 @@ public static class SnapshotFactory
     /// <summary>
     /// Create immutable snapshot of CompoundRequirement
     /// Captures stat and resource requirements at execution time
+    /// Uses explicit OrPath properties (Explicit Property Principle)
     /// </summary>
     public static RequirementSnapshot CreateRequirementSnapshot(CompoundRequirement requirement)
     {
         if (requirement == null || requirement.OrPaths == null || requirement.OrPaths.Count == 0)
             return null;
 
-        // For simplicity, capture first OR path's requirements
-        // Full implementation would need to capture all paths
         OrPath firstPath = requirement.OrPaths.FirstOrDefault();
-        if (firstPath == null || firstPath.NumericRequirements == null)
+        if (firstPath == null)
             return null;
 
         RequirementSnapshot snapshot = new RequirementSnapshot
         {
-            RequiredStates = new List<string>()
+            RequiredStates = new List<string>(),
+            RequiredRapport = firstPath.RapportRequired,
+            RequiredInsight = firstPath.InsightRequired,
+            RequiredAuthority = firstPath.AuthorityRequired,
+            RequiredDiplomacy = firstPath.DiplomacyRequired,
+            RequiredCunning = firstPath.CunningRequired,
+            RequiredCoins = firstPath.CoinsRequired
         };
 
-        // Extract stat requirements from numeric requirements
-        foreach (NumericRequirement numReq in firstPath.NumericRequirements)
+        if (firstPath.RequiredState.HasValue)
         {
-            // NumericRequirement uses Type and Context pattern for player stats
-            if (numReq.Type == "PlayerStat" && !string.IsNullOrEmpty(numReq.Context))
-            {
-                if (numReq.Context.Equals("Rapport", StringComparison.OrdinalIgnoreCase))
-                    snapshot.RequiredRapport = numReq.Threshold;
-                else if (numReq.Context.Equals("Insight", StringComparison.OrdinalIgnoreCase))
-                    snapshot.RequiredInsight = numReq.Threshold;
-                else if (numReq.Context.Equals("Authority", StringComparison.OrdinalIgnoreCase))
-                    snapshot.RequiredAuthority = numReq.Threshold;
-                else if (numReq.Context.Equals("Diplomacy", StringComparison.OrdinalIgnoreCase))
-                    snapshot.RequiredDiplomacy = numReq.Threshold;
-                else if (numReq.Context.Equals("Cunning", StringComparison.OrdinalIgnoreCase))
-                    snapshot.RequiredCunning = numReq.Threshold;
-            }
-            else if (numReq.Type == "Coins")
-            {
-                snapshot.RequiredCoins = numReq.Threshold;
-            }
+            snapshot.RequiredStates.Add(firstPath.RequiredState.Value.ToString());
         }
 
         return snapshot;

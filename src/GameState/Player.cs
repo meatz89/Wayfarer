@@ -592,5 +592,14 @@ public class Player
         return Inventory.GetAllItems().Any(item => item.Name == itemName);
     }
 
+    /// <summary>
+    /// Check if player possesses specific item by object reference
+    /// HIGHLANDER: Direct object comparison, no string-based lookup
+    /// </summary>
+    public bool HasItem(Item item)
+    {
+        return Inventory.GetAllItems().Contains(item);
+    }
+
 }
 
