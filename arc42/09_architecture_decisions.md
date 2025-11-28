@@ -370,6 +370,52 @@ Scene-based choices have complex cost/reward structures with 30+ properties scat
 
 ---
 
+## ADR-016: Centralized Invariant Enforcement
+
+**Status:** Accepted
+
+**Context:**
+A-Story scenes have guarantees (fallback required, progression assured, world expansion). Initially, enforcement was scattered across scene archetypes—each archetype method (`BuildInnLodgingScene`, `BuildDeliveryContractScene`, etc.) contained conditional logic to add scene spawn rewards to final choices.
+
+This scattered approach caused a production bug: A2 scene wasn't spawning after A1 completion. The archetype method forgot to enrich the final choices. Finding and fixing the bug required searching 10+ archetype methods.
+
+**Decision:**
+Category-wide invariants are enforced at parse-time in the parser, not in individual archetype implementations. When the parser detects a scene belongs to a category with invariants (e.g., MainStory), it applies enrichment unconditionally AFTER archetype processing completes.
+
+```
+JSON → DTO → Archetype → Parser Enrichment → Template
+                              ↑
+                    "ALL MainStory final choices
+                     spawn next A-scene" (enforced HERE)
+```
+
+**Consequences:**
+- (+) Single location for invariant enforcement (HIGHLANDER)
+- (+) Cannot forget to apply invariant when adding new archetype
+- (+) No context checks needed—parser knows category from template
+- (+) Easy to audit all invariants in one place
+- (-) Parser slightly larger (owns enrichment responsibility)
+
+**Invariant Placement Guide:**
+
+| Characteristic | Location |
+|----------------|----------|
+| Must hold for ALL scenes in category | Parser enrichment |
+| Specific to archetype's mechanics | Archetype method |
+| Depends on situation index | Parser (has full template) |
+| Depends on choice type | Archetype (defines choice types) |
+
+**Alternatives Rejected:**
+- Per-archetype enforcement: Easy to forget, 10+ locations to maintain
+- Validation-only: Detects violation but doesn't fix it
+- Runtime enforcement: Too late, templates already immutable
+
+**Related Decisions:**
+- ADR-006: TIER 1 No Soft-Locks drives the "progression assured" invariant
+- §8.18 Centralized Invariant Enforcement documents the pattern in detail
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement

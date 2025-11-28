@@ -156,7 +156,9 @@ A-Story scenes have strict requirements to prevent soft-locks:
 | **Progression assured** | ALL final situation choices spawn next A-scene |
 | **World expansion** | Scenes create new venues/districts/regions/routes/NPCs |
 
-These guarantees are enforced at parse-time. A-Story scenes that violate them fail validation.
+These guarantees are enforced at parse-time via **Centralized Invariant Enforcement**. The parser—not individual archetypes—applies category-wide rules. This ensures no archetype can accidentally omit an invariant.
+
+See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts.md) and [ADR-016](../arc42/09_architecture_decisions.md) for technical details.
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
 

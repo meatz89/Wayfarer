@@ -159,6 +159,14 @@ public class SceneTemplateParser
             IsStarter = dto.IsStarter
         };
 
+        // A-STORY ENRICHMENT: Per CONTENT_ARCHITECTURE.md §8
+        // "ALL final situation choices receive spawn reward for next A-scene"
+        // HIGHLANDER: ONE enrichment path for ALL MainStory scenes
+        if (template.Category == StoryCategory.MainStory)
+        {
+            EnrichMainStoryFinalChoices(template);
+        }
+
         return template;
     }
 
@@ -1134,6 +1142,30 @@ public class SceneTemplateParser
             SituationArchetypeType.Crisis => "Flee the situation",
             _ => "Accept poor outcome"
         };
+    }
+
+    /// <summary>
+    /// Enrich MainStory final situation choices with SpawnNextMainStoryScene
+    /// Per CONTENT_ARCHITECTURE.md §8: "ALL final situation choices receive spawn reward"
+    /// HIGHLANDER: ONE enrichment path for ALL MainStory scenes
+    /// </summary>
+    private static void EnrichMainStoryFinalChoices(SceneTemplate template)
+    {
+        if (template.SituationTemplates.Count == 0)
+            return;
+
+        SituationTemplate finalSituation = template.SituationTemplates[template.SituationTemplates.Count - 1];
+
+        foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
+        {
+            bool alreadyHasMainStorySpawn = choice.Consequence.ScenesToSpawn.Any(s => s.SpawnNextMainStoryScene);
+            if (!alreadyHasMainStorySpawn)
+            {
+                choice.Consequence.ScenesToSpawn.Add(new SceneSpawnReward { SpawnNextMainStoryScene = true });
+            }
+        }
+
+        Console.WriteLine($"[MainStory Enrichment] Enriched {finalSituation.ChoiceTemplates.Count} choices in final situation '{finalSituation.Id}' for scene '{template.Id}'");
     }
 
     /// <summary>

@@ -423,37 +423,9 @@ public static class SceneArchetypeCatalog
         // Two approaches to leaving, each building different stat
         List<ChoiceTemplate> departChoices = new List<ChoiceTemplate>();
 
-        // Determine rewards based on tutorial context
-        bool isA1Tutorial = context.AStorySequence.HasValue && context.AStorySequence.Value == 1;
-
-        // Create consequences with conditional scene spawning
-        Consequence earlyDepartureReward = isA1Tutorial
-            ? new Consequence
-            {
-                Cunning = 1,  // Early planning shows cunning
-                ScenesToSpawn = new List<SceneSpawnReward>
-                {
-                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
-                }
-            }
-            : new Consequence
-            {
-                Cunning = 1
-            };
-
-        Consequence socializeReward = isA1Tutorial
-            ? new Consequence
-            {
-                Rapport = 1,
-                ScenesToSpawn = new List<SceneSpawnReward>
-                {
-                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
-                }
-            }
-            : new Consequence
-            {
-                Rapport = 1
-            };
+        // Base consequences only - parser handles MainStory enrichment via EnrichMainStoryFinalChoices
+        Consequence earlyDepartureReward = new Consequence { Cunning = 1 };
+        Consequence socializeReward = new Consequence { Rapport = 1 };
 
         departChoices.Add(new ChoiceTemplate
         {
@@ -1502,9 +1474,6 @@ public static class SceneArchetypeCatalog
         audienceSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
@@ -1640,12 +1609,6 @@ public static class SceneArchetypeCatalog
         concludeSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
-        // If next template exists (authored) → uses it
-        // If next template doesn't exist → RewardApplicationService generates procedurally
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
@@ -1737,9 +1700,6 @@ public static class SceneArchetypeCatalog
         interviewSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
@@ -1830,9 +1790,6 @@ public static class SceneArchetypeCatalog
         accuseSituation,
         resolveSituation
     };
-
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -1957,9 +1914,6 @@ public static class SceneArchetypeCatalog
         revelationSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
@@ -2060,9 +2014,6 @@ public static class SceneArchetypeCatalog
         locateSituation,
         acquireSituation
     };
-
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -2219,9 +2170,6 @@ public static class SceneArchetypeCatalog
         consequenceSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
@@ -2312,9 +2260,6 @@ public static class SceneArchetypeCatalog
         crisisSituation,
         decisionSituation
     };
-
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -2439,101 +2384,10 @@ public static class SceneArchetypeCatalog
         consequenceSituation
     };
 
-        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
-
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
             SpawnRules = spawnRules
         };
-    }
-
-    // ===================================================================
-    // INFINITE A-STORY PROGRESSION: Final Situation Enrichment
-    // ===================================================================
-
-    /// <summary>
-    /// Enrich final situation to spawn next A-scene (CRITICAL for infinite progression)
-    ///
-    /// GUARANTEED PROGRESSION PATTERN:
-    /// - Final situation ALL choices spawn next A-scene
-    /// - Ensures forward progress regardless of player choices
-    /// - Infinite A-story loop: A11 → A12 → A13 → ... → infinity
-    ///
-    /// Called after generating situation templates, before returning definition
-    /// Modifies final situation's choice templates in-place
-    ///
-    /// Generic logic - works for ANY sequence number.
-    /// If next template exists (authored) → uses it.
-    /// If next template doesn't exist → RewardApplicationService generates procedurally.
-    /// NO HARDCODED SPECIAL CASES.
-    /// </summary>
-    private static void EnrichFinalSituationWithNextASceneSpawn(
-        List<SituationTemplate> situations,
-        GenerationContext context)
-    {
-        if (!context.AStorySequence.HasValue)
-        {
-            return; // Not an A-story scene, no enrichment needed
-        }
-
-        if (situations.Count == 0)
-        {
-            return; // No situations to enrich
-        }
-
-        // Final situation = last situation in list
-        SituationTemplate finalSituation = situations[situations.Count - 1];
-
-        // Next A-scene ID (generic - no special cases)
-        string nextASceneId = $"a_story_{context.AStorySequence.Value + 1}";
-
-        // Enrich ALL choices with SceneSpawnReward
-        List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
-        foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
-        {
-            // Create NEW Consequence with scene spawn (init-only properties)
-            // Copy existing properties from original consequence and add spawn
-            Consequence originalConsequence = choice.Consequence ?? new Consequence();
-
-            Consequence enrichedConsequence = new Consequence
-            {
-                // Copy all stat/resource changes from original
-                Insight = originalConsequence.Insight,
-                Rapport = originalConsequence.Rapport,
-                Authority = originalConsequence.Authority,
-                Diplomacy = originalConsequence.Diplomacy,
-                Cunning = originalConsequence.Cunning,
-                Health = originalConsequence.Health,
-                Stamina = originalConsequence.Stamina,
-                Focus = originalConsequence.Focus,
-                Resolve = originalConsequence.Resolve,
-                Coins = originalConsequence.Coins,
-                TimeSegments = originalConsequence.TimeSegments,
-
-                // Add next A-scene spawn reward - NO ID STRINGS
-                // Uses SpawnNextMainStoryScene to pick next from sequence
-                ScenesToSpawn = new List<SceneSpawnReward>
-                {
-                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
-                }
-            };
-
-            enrichedChoices.Add(new ChoiceTemplate
-            {
-                Id = choice.Id,
-                PathType = choice.PathType,
-                ActionTextTemplate = choice.ActionTextTemplate,
-                RequirementFormula = choice.RequirementFormula,
-                Consequence = enrichedConsequence,
-                ActionType = choice.ActionType,
-                ChallengeType = choice.ChallengeType
-            });
-        }
-
-        // Replace final situation's choices with enriched versions
-        finalSituation.ChoiceTemplates.Clear();
-        finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
     }
 }

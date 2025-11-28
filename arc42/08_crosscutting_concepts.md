@@ -699,6 +699,99 @@ Atmospheric actions retain separate cost/reward types because their simplicity d
 
 ---
 
+## 8.18 Centralized Invariant Enforcement
+
+**"Scene invariants belong in the parser, not the archetypes."**
+
+Guarantees that must hold for ALL scenes of a category (MainStory, B-story, etc.) must be enforced at the system level—in the parser or validation layer—not in individual scene definitions or archetype methods.
+
+### The Problem
+
+Scattering invariant enforcement across scene definitions creates multiple failure modes:
+
+1. **Omission risk:** Adding new archetype → forget to add invariant → silent bug
+2. **Inconsistency:** Different archetypes implement invariant differently
+3. **Conditional fragility:** Archetype checks context incorrectly → invariant fails
+4. **Maintenance burden:** Changing invariant requires updating 10+ locations
+
+### The Solution
+
+Centralize invariant enforcement at parse-time:
+
+```mermaid
+flowchart LR
+    JSON["Scene JSON"] --> Parser["SceneTemplateParser"]
+    Parser --> Archetype["Archetype generates\nbase situations"]
+    Archetype --> Enrichment["Parser enforces\ninvariants"]
+    Enrichment --> Template["Complete Template"]
+```
+
+| Layer | Responsibility | Does NOT Handle |
+|-------|----------------|-----------------|
+| **JSON** | Content identity, categorical properties | Invariants |
+| **Archetype** | Base situation structure, choice patterns | Category-specific guarantees |
+| **Parser** | Category invariant enforcement | Content generation |
+
+### Example: A-Story Scene Enrichment
+
+**Invariant:** "ALL final situation choices in MainStory scenes spawn next A-scene"
+
+**Wrong (scattered):**
+```csharp
+// In InnLodging archetype
+if (context.IsMainStory)
+    AddSceneSpawnToFinalChoices(situations);
+
+// In DeliveryContract archetype
+if (context.Category == StoryCategory.MainStory)
+    EnrichFinalSituation(situations);
+
+// In 8 more archetypes...
+// Easy to forget, implement differently, or get wrong
+```
+
+**Correct (centralized):**
+```csharp
+// In SceneTemplateParser.ParseSceneTemplate()
+if (template.Category == StoryCategory.MainStory)
+{
+    EnrichMainStoryFinalChoices(template);  // ONE function, ONE location
+}
+```
+
+### When to Centralize
+
+Centralize enforcement when:
+- Guarantee applies to ALL scenes in a category
+- Violation would cause TIER 1 failure (soft-lock, no forward progress)
+- Enforcement logic is identical across archetypes
+- Forgetting to enforce would be silent
+
+Keep in archetype when:
+- Logic is archetype-specific (how Negotiation differs from Travel)
+- Variation is intentional (different choice structures)
+- Not a category-wide invariant
+
+### Related Patterns
+
+This principle is the **meta-pattern** explaining why other patterns exist:
+
+| Pattern | Invariant Enforced | Enforcement Location |
+|---------|-------------------|---------------------|
+| §8.16 Fallback Context Rules | "Every situation has Fallback" | Archetype structure |
+| §8.8 Dual-Tier Actions | "Player always has options" | LocationActionCatalog |
+| §8.2 Catalogue Pattern | "Properties translate consistently" | Catalog formulas |
+| **This principle** | Category-wide guarantees | SceneTemplateParser |
+
+### Key Files
+
+- `src/Content/Parsers/SceneTemplateParser.cs:162-168` — MainStory enrichment call
+- `src/Content/Parsers/SceneTemplateParser.cs:1147-1169` — `EnrichMainStoryFinalChoices()` implementation
+
+See [ADR-016](09_architecture_decisions.md#adr-016-centralized-invariant-enforcement) for decision rationale.
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
