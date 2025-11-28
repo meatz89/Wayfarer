@@ -18,8 +18,71 @@ Resources that compete across all systems, forcing strategic prioritization:
 | **Coins** | Unlimited | Purchases, services, bribes | Delivery jobs | Universal exchange medium |
 | **Focus** | 0-10 | Mental challenge entry | Rest (costs time) | Mental capability pool |
 | **Stamina** | 0-10 | Physical challenge entry, travel | Rest (costs time) | Physical capability pool |
-| **Resolve** | 0-10 | Social challenge entry | Pleasant activities | Emotional resilience |
+| **Resolve** | -10 to ∞ | Meaningful story choices | Earned through choices | Willpower gate (Sir Brante pattern) |
 | **Health** | 0-10 | Injury, disease | Healing services (coins + time) | Survival threshold |
+
+### Resolve: The Willpower Gate (Sir Brante Pattern)
+
+Resolve follows the "Sir Brante Willpower" design pattern—a resource that creates **meaningful choice through scarcity and consequence**, not through abundance.
+
+#### Core Design Principles
+
+| Principle | Implementation | Why It Matters |
+|-----------|---------------|----------------|
+| **Starts Empty** | Resolve begins at 0 | Players must EARN before they can SPEND |
+| **Can Go Negative** | Minimum -10 | Consequences for overcommitting |
+| **Large Gains** | +5, +10 per choice | Meaningful rewards feel significant |
+| **Large Costs** | -5, -10 per choice | Choices feel weighty, not trivial |
+| **Dual Nature** | Always condition AND consequence | Creates true "willpower" fantasy |
+
+#### The Dual-Nature Rule
+
+**Every choice that costs Resolve has the structure:**
+- **Requirement:** Resolve >= 0 (must have positive willpower to attempt)
+- **Consequence:** Resolve -5 or -10 (spending willpower depletes reserve)
+
+This creates the "willpower gate": players can only make costly choices when they have built up enough resolve through earlier positive choices. A player at Resolve 0 cannot spend resolve on difficult choices—they must first make choices that build resolve.
+
+#### Why This Pattern Creates Depth
+
+**Traditional resource design (WRONG):**
+```
+Resolve starts at 30
+Choice costs -1 Resolve
+Player has 29 Resolve remaining
+Result: Meaningless—player can make 30 choices before any constraint
+```
+
+**Sir Brante pattern (CORRECT):**
+```
+Resolve starts at 0
+First opportunity: Choice gives +10 Resolve (from 0 to 10)
+Later opportunity: Choice requires Resolve >= 0, costs -5 Resolve (from 10 to 5)
+Difficult opportunity: Choice requires Resolve >= 0, costs -10 Resolve (from 5 to -5)
+Result: Player went negative—they CANNOT make any more costly choices until they rebuild
+```
+
+**The meaningful tension:** Players must decide whether to spend their hard-earned resolve on the current opportunity, knowing they may need it later. Going negative means losing access to costly choices until resolve is rebuilt through positive actions.
+
+#### Example Progression
+
+| Scene | Choice Made | Resolve Before | Change | Resolve After | Strategic State |
+|-------|-------------|----------------|--------|---------------|-----------------|
+| A1 | Stay true to principles | 0 | +10 | 10 | Can now make costly choices |
+| A2 | Negotiate hard (requires ≥0) | 10 | -5 | 5 | Still above threshold |
+| A3 | Stand firm despite pressure (requires ≥0) | 5 | -10 | -5 | **Below threshold—locked out** |
+| A4 | Cannot select costly choice | -5 | — | -5 | Must find +Resolve opportunity |
+| A5 | Accept help despite pride | -5 | +5 | 0 | Back at threshold—options open |
+
+#### Integration with Four-Choice Archetype
+
+Resolve costs appear primarily in:
+- **Stat-Gated choices:** High stat + costly Resolve creates "this is who I am" moments
+- **Challenge choices:** Tactical success + Resolve cost rewards skillful play with narrative weight
+
+Resolve costs do NOT appear in:
+- **Fallback choices:** These must remain always-available (no soft-locks)
+- **Pure resource choices:** Coins/consumables are separate cost axis
 
 ### Why Shared Resources Create Depth
 

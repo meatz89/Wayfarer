@@ -173,11 +173,13 @@ public class Player
     public int CurrentMainStorySequence { get; set; } = 0;
 
     /// <summary>
-    /// Resolve - universal consumable resource (0-30, similar to Willpower in Sir Brante)
-    /// Used to unlock situations and make difficult choices
-    /// More restrictive than Focus - creates genuine strategic choices
+    /// Resolve - willpower gate resource (Sir Brante pattern)
+    /// Starts at 0 (must earn before spending), can go negative (min -10)
+    /// Large swings: +5/+10 gains, -5/-10 costs
+    /// Dual nature: costly choices require Resolve >= 0 AND cost Resolve
+    /// Creates meaningful choice through scarcity, not abundance
     /// </summary>
-    public int Resolve { get; set; } = 30; // Start at max
+    public int Resolve { get; set; } = 0; // Start empty - must earn before spending
 
     /// <summary>
     /// Player Scales - 6 moral/behavioral axes (-10 to +10 each)

@@ -11,6 +11,45 @@ public class CompoundRequirement
     /// </summary>
     public List<OrPath> OrPaths { get; set; } = new List<OrPath>();
 
+    // ============================================
+    // FACTORY METHODS
+    // ============================================
+
+    /// <summary>
+    /// Sir Brante Dual-Nature Rule: Create requirement based on consequence costs.
+    /// If consequence costs Resolve (negative value), adds Resolve >= 0 requirement.
+    /// This encapsulates the willpower gate pattern - callers don't need to know the rule.
+    ///
+    /// Pattern: Choices that COST Resolve require Resolve >= 0 to attempt.
+    /// This creates meaningful choice through scarcity - players cannot make costly
+    /// choices until they've built positive resolve through earlier choices.
+    /// </summary>
+    public static CompoundRequirement CreateForConsequence(Consequence consequence)
+    {
+        CompoundRequirement requirement = new CompoundRequirement();
+
+        // Sir Brante dual-nature rule: negative Resolve consequence requires Resolve >= 0
+        if (consequence.Resolve < 0)
+        {
+            requirement.OrPaths.Add(new OrPath
+            {
+                Label = "Resolve 0+",
+                NumericRequirements = new List<NumericRequirement>
+                {
+                    new NumericRequirement
+                    {
+                        Type = "PlayerResource",
+                        Context = "Resolve",
+                        Threshold = 0,
+                        Label = "Resolve 0+"
+                    }
+                }
+            });
+        }
+
+        return requirement;
+    }
+
     /// <summary>
     /// Check if any path is satisfied by current game state
     /// Returns true if at least one complete path's requirements are all met

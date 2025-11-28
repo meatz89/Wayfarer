@@ -50,7 +50,16 @@ The HOW layer. Card-based challenges. Hidden complexity (draw order). Tests exec
 ## Resources
 
 ### Universal Resources
-Resources competing across all systems: Time (blocks per day), Coins (currency), Focus (Mental pool), Stamina (Physical pool), Resolve (Social pool), Health (survival threshold).
+Resources competing across all systems: Time (blocks per day), Coins (currency), Focus (Mental pool), Stamina (Physical pool), Resolve (Willpower gate—see below), Health (survival threshold).
+
+### Resolve (Sir Brante Willpower Pattern)
+The willpower resource governing meaningful story choices. Unlike other resources:
+- **Starts at 0** (must earn before spending)
+- **Can go negative** (minimum -10, locks out costly choices)
+- **Large swings** (+5/+10 gains, -5/-10 costs)
+- **Dual nature** every costly choice requires Resolve >= 0 AND costs Resolve
+
+This creates the "willpower gate"—players cannot make difficult choices until they've built resolve through earlier positive choices. See [04_systems.md §4.1](04_systems.md#resolve-the-willpower-gate-sir-brante-pattern) for full design rationale.
 
 ### Tactical Resources
 Resources existing only within challenge sessions: Builder resources (Momentum/Progress/Breakthrough), Session resources (Initiative/Attention/Exertion), Threshold resources (Doubt/Exposure/Danger).

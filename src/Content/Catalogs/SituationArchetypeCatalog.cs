@@ -93,7 +93,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -124,7 +124,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -155,7 +155,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -186,7 +186,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -217,7 +217,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 25, // Very expensive
             ChallengeType = TacticalSystemType.Physical, // Often physical danger
             DeckId = "physical_challenge",
-            ResolveCost = 3, // Higher resolve cost
+            ResolveCost = 10,  // Sir Brante pattern: -10 for high-impact Crisis
             FallbackTimeCost = 2 // Worse penalty
         };
     }
@@ -248,7 +248,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -279,7 +279,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -310,7 +310,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -341,7 +341,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -372,7 +372,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -403,7 +403,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 20,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -434,7 +434,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 2
         };
     }
@@ -465,7 +465,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -496,7 +496,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "desperate_request",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -527,7 +527,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "desperate_request",
-            ResolveCost = 2,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -558,7 +558,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -590,7 +590,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 1
         };
     }
@@ -614,7 +614,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 2
         };
     }
@@ -651,7 +651,7 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 1,
+            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
             FallbackTimeCost = 0
         };
     }
@@ -841,13 +841,18 @@ public static class SituationArchetypeCatalog
         };
         choices.Add(moneyChoice);
 
+        // Create consequence first, then derive requirement from it (Sir Brante dual-nature encapsulated)
+        Consequence challengeConsequence = archetype.ResolveCost > 0
+            ? new Consequence { Resolve = -archetype.ResolveCost }
+            : new Consequence();
+
         ChoiceTemplate challengeChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
             PathType = ChoicePathType.Challenge,
             ActionTextTemplate = GenerateChallengeActionText(archetype),
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence { Resolve = -archetype.ResolveCost },
+            RequirementFormula = CompoundRequirement.CreateForConsequence(challengeConsequence),
+            Consequence = challengeConsequence,
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
             ChallengeType = archetype.ChallengeType,
@@ -1089,13 +1094,18 @@ public static class SituationArchetypeCatalog
         });
 
         // Choice 3: Challenge (negotiate better terms)
+        // Create consequence first, then derive requirement from it (Sir Brante dual-nature encapsulated)
+        Consequence negotiationChallengeConsequence = archetype.ResolveCost > 0
+            ? new Consequence { Resolve = -archetype.ResolveCost }
+            : new Consequence();
+
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
-            PathType = ChoicePathType.Challenge,  // Challenge path
+            PathType = ChoicePathType.Challenge,
             ActionTextTemplate = "Attempt to negotiate better terms",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence { Resolve = -archetype.ResolveCost },  // Empty
+            RequirementFormula = CompoundRequirement.CreateForConsequence(negotiationChallengeConsequence),
+            Consequence = negotiationChallengeConsequence,
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeType = archetype.ChallengeType,
             DeckId = archetype.DeckId
