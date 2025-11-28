@@ -101,26 +101,28 @@ public class SceneContentBase : ComponentBase
             int hungerCost = consequence.Hunger > 0 ? consequence.Hunger : 0;
             int timeSegments = consequence.TimeSegments;
 
-            // HIGHLANDER: Validate resource availability via CompoundRequirement
-            // ALL resource checks (Coins, Health, Stamina, Focus, Hunger, Resolve gate) happen in ONE place
-            // See arc42/08 §8.20 for unified resource availability pattern
+            // HIGHLANDER: Validate resource availability via OrPath
+            // Caller builds OrPath directly - CompoundRequirement stays domain-agnostic
+            // Sir Brante pattern: Resolve uses GATE (>= 0), others use AFFORDABILITY (>= cost)
             if (requirementsMet)
             {
-                CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
-                if (resourceReq.OrPaths.Count > 0)
+                OrPath resourcePath = new OrPath { Label = "Resource Requirements" };
+                if (consequence.Resolve < 0) resourcePath.ResolveRequired = 0;  // Gate pattern
+                if (consequence.Coins < 0) resourcePath.CoinsRequired = -consequence.Coins;
+                if (consequence.Health < 0) resourcePath.HealthRequired = -consequence.Health;
+                if (consequence.Stamina < 0) resourcePath.StaminaRequired = -consequence.Stamina;
+                if (consequence.Focus < 0) resourcePath.FocusRequired = -consequence.Focus;
+                if (consequence.Hunger > 0) resourcePath.HungerCapacityRequired = consequence.Hunger;
+
+                if (!resourcePath.IsSatisfied(player, GameWorld))
                 {
-                    bool resourcesMet = resourceReq.IsAnySatisfied(player, GameWorld);
-                    if (!resourcesMet)
-                    {
-                        requirementsMet = false;
-                        RequirementProjection projection = resourceReq.GetProjection(player, GameWorld);
-                        List<string> missing = projection.Paths
-                            .SelectMany(p => p.Requirements)
-                            .Where(r => !r.IsSatisfied)
-                            .Select(r => $"{r.Label} (have {r.CurrentValue})")
-                            .ToList();
-                        lockReason = string.Join(", ", missing);
-                    }
+                    requirementsMet = false;
+                    PathProjection projection = resourcePath.GetProjection(player, GameWorld);
+                    List<string> missing = projection.Requirements
+                        .Where(r => !r.IsSatisfied)
+                        .Select(r => $"{r.Label} (have {r.CurrentValue})")
+                        .ToList();
+                    lockReason = string.Join(", ", missing);
                 }
             }
 
@@ -422,11 +424,17 @@ public class SceneContentBase : ComponentBase
                 return; // Requirements not met - should never happen if UI is correct
         }
 
-        // HIGHLANDER: Re-validate resource availability via CompoundRequirement
-        // See arc42/08 §8.20 for unified resource availability pattern
+        // HIGHLANDER: Re-validate resource availability via OrPath
+        // Caller builds OrPath directly - CompoundRequirement stays domain-agnostic
         Consequence consequence = choiceTemplate.Consequence ?? Consequence.None();
-        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
-        if (resourceReq.OrPaths.Count > 0 && !resourceReq.IsAnySatisfied(player, GameWorld))
+        OrPath resourcePath = new OrPath { Label = "Resource Requirements" };
+        if (consequence.Resolve < 0) resourcePath.ResolveRequired = 0;  // Gate pattern
+        if (consequence.Coins < 0) resourcePath.CoinsRequired = -consequence.Coins;
+        if (consequence.Health < 0) resourcePath.HealthRequired = -consequence.Health;
+        if (consequence.Stamina < 0) resourcePath.StaminaRequired = -consequence.Stamina;
+        if (consequence.Focus < 0) resourcePath.FocusRequired = -consequence.Focus;
+        if (consequence.Hunger > 0) resourcePath.HungerCapacityRequired = consequence.Hunger;
+        if (!resourcePath.IsSatisfied(player, GameWorld))
         {
             return; // Cannot afford costs - should never happen if UI is correct
         }
