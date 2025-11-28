@@ -232,6 +232,7 @@ public class SpawnFacade
     /// <summary>
     /// Apply requirement offsets to CompoundRequirement
     /// Makes spawned situation easier/harder based on parent situation outcome
+    /// Uses Explicit Property Principle - directly modifies typed properties instead of string-based routing
     /// </summary>
     private CompoundRequirement ApplyRequirementOffsets(CompoundRequirement original, RequirementOffsets offsets)
     {
@@ -252,41 +253,53 @@ public class SpawnFacade
             OrPath modifiedPath = new OrPath
             {
                 Label = originalPath.Label,
-                NumericRequirements = new List<NumericRequirement>()
+                // Clone explicit stat properties with NumericOffset applied
+                InsightRequired = ApplyOffset(originalPath.InsightRequired, offsets.NumericOffset),
+                RapportRequired = ApplyOffset(originalPath.RapportRequired, offsets.NumericOffset),
+                AuthorityRequired = ApplyOffset(originalPath.AuthorityRequired, offsets.NumericOffset),
+                DiplomacyRequired = ApplyOffset(originalPath.DiplomacyRequired, offsets.NumericOffset),
+                CunningRequired = ApplyOffset(originalPath.CunningRequired, offsets.NumericOffset),
+                // Clone resource properties with NumericOffset applied
+                ResolveRequired = ApplyOffset(originalPath.ResolveRequired, offsets.NumericOffset),
+                CoinsRequired = ApplyOffset(originalPath.CoinsRequired, offsets.NumericOffset),
+                // Clone progression property
+                SituationCountRequired = ApplyOffset(originalPath.SituationCountRequired, offsets.NumericOffset),
+                // Clone relationship properties with BondStrengthOffset
+                BondNpc = originalPath.BondNpc,
+                BondStrengthRequired = ApplyOffset(originalPath.BondStrengthRequired, offsets.BondStrengthOffset),
+                // Clone scale properties with ScaleOffset
+                ScaleType = originalPath.ScaleType,
+                ScaleValueRequired = ApplyScaleOffset(originalPath.ScaleValueRequired, offsets.ScaleOffset),
+                // Clone boolean requirement references
+                RequiredAchievement = originalPath.RequiredAchievement,
+                RequiredState = originalPath.RequiredState,
+                RequiredItem = originalPath.RequiredItem
             };
-
-            foreach (NumericRequirement originalReq in originalPath.NumericRequirements)
-            {
-                NumericRequirement modifiedReq = new NumericRequirement
-                {
-                    Type = originalReq.Type,
-                    Context = originalReq.Context,
-                    Threshold = originalReq.Threshold,
-                    Label = originalReq.Label
-                };
-
-                // Apply offsets based on requirement type
-                if (originalReq.Type == "BondStrength" && offsets.BondStrengthOffset.HasValue)
-                {
-                    modifiedReq.Threshold = Math.Max(0, modifiedReq.Threshold + offsets.BondStrengthOffset.Value);
-                }
-                else if (originalReq.Type == "Scale" && offsets.ScaleOffset.HasValue)
-                {
-                    modifiedReq.Threshold = Math.Clamp(modifiedReq.Threshold + offsets.ScaleOffset.Value, -10, 10);
-                }
-                else if (offsets.NumericOffset.HasValue)
-                {
-                    // Apply numeric offset to other requirement types (Resolve, Coins, etc.)
-                    modifiedReq.Threshold = Math.Max(0, modifiedReq.Threshold + offsets.NumericOffset.Value);
-                }
-
-                modifiedPath.NumericRequirements.Add(modifiedReq);
-            }
 
             modified.OrPaths.Add(modifiedPath);
         }
 
         return modified;
+    }
+
+    /// <summary>
+    /// Apply offset to nullable int, clamping to minimum 0
+    /// </summary>
+    private int? ApplyOffset(int? original, int? offset)
+    {
+        if (!original.HasValue) return null;
+        if (!offset.HasValue) return original;
+        return Math.Max(0, original.Value + offset.Value);
+    }
+
+    /// <summary>
+    /// Apply offset to scale value, clamping to -10 to +10 range
+    /// </summary>
+    private int? ApplyScaleOffset(int? original, int? offset)
+    {
+        if (!original.HasValue) return null;
+        if (!offset.HasValue) return original;
+        return Math.Clamp(original.Value + offset.Value, -10, 10);
     }
 
     /// <summary>

@@ -1,3 +1,23 @@
+# ARC42 DOCUMENTATION STYLE - ABSOLUTE RULE
+
+**NO CODE EXAMPLES, CONCRETE NUMBERS, OR CALCULATIONS IN ARC42 DOCUMENTS - EVER.**
+
+Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementation details.
+
+| FORBIDDEN in arc42 | REQUIRED in arc42 |
+|-------------------|-------------------|
+| Code blocks (C#, JSON, etc.) | Conceptual descriptions |
+| Specific file paths or line numbers | Pattern names and relationships |
+| Concrete numbers (1.1x, 50 coins) | Trade-off explanations |
+| Enum value lists | Categorical thinking |
+| Implementation switch statements | Decision rationale |
+
+**Philosophy:** Arc42 answers WHY and WHAT, never HOW. Implementation details belong in code with self-documenting names. Documentation describes approaches, rules, principles, tactics, and strategies.
+
+**"Dare to leave gaps"** - Don't cover everything. Travel light. Focus on decisions that matter.
+
+---
+
 # REQUIRED READING - START HERE
 
 **Before ANY task, achieve 100% certainty. Read documentation first, never assume.**
@@ -144,6 +164,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 **Correct:** `LocationsToUnlock`, `LocationsToLock` as explicit properties.
 **Forbidden:** Generic `ModifyProperty(string name, object value)` patterns.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.19
 
 ---
 

@@ -44,11 +44,12 @@ public class PathProjection
 /// <summary>
 /// Status of a single requirement check.
 /// Includes current value, required value, and gap for UI display.
+/// Uses explicit Label instead of NumericRequirement reference.
 /// </summary>
 public class RequirementStatus
 {
-    /// <summary>The requirement being checked</summary>
-    public NumericRequirement Requirement { get; init; }
+    /// <summary>Display label for this requirement (e.g., "Insight 3+", "Resolve 0+")</summary>
+    public string Label { get; init; }
 
     /// <summary>Whether this requirement is satisfied</summary>
     public bool IsSatisfied { get; init; }

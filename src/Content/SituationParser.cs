@@ -79,7 +79,7 @@ public static class SituationParser
             // Scene-Situation Architecture (interaction/requirements/consequences/spawns)
             InteractionType = ParseInteractionType(dto.InteractionType),
             NavigationPayload = ParseNavigationPayload(dto.NavigationPayload, gameWorld),
-            CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
+            CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement, gameWorld),
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
             SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name, gameWorld),
             FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name, gameWorld),

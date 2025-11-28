@@ -14,6 +14,9 @@ public class CompoundRequirementDTO
 
 /// <summary>
 /// Single OR path - all requirements in this path must be met (AND logic within path)
+/// Uses Explicit Property Principle: each requirement type has its own named property
+/// instead of generic string-based Type/Context routing.
+/// See arc42/08_crosscutting_concepts.md §8.19
 /// </summary>
 public class OrPathDTO
 {
@@ -23,9 +26,42 @@ public class OrPathDTO
     /// </summary>
     public string Label { get; set; }
 
-    /// <summary>
-    /// All numeric requirements for this path
-    /// ALL must be satisfied for this path to be valid
-    /// </summary>
-    public List<NumericRequirementDTO> NumericRequirements { get; set; } = new List<NumericRequirementDTO>();
+    // ============================================
+    // STAT REQUIREMENTS - explicit property per stat
+    // ============================================
+    public int? InsightRequired { get; set; }
+    public int? RapportRequired { get; set; }
+    public int? AuthorityRequired { get; set; }
+    public int? DiplomacyRequired { get; set; }
+    public int? CunningRequired { get; set; }
+
+    // ============================================
+    // RESOURCE REQUIREMENTS
+    // ============================================
+    public int? ResolveRequired { get; set; }
+    public int? CoinsRequired { get; set; }
+
+    // ============================================
+    // PROGRESSION REQUIREMENTS
+    // ============================================
+    public int? SituationCountRequired { get; set; }
+
+    // ============================================
+    // RELATIONSHIP REQUIREMENTS (NPC name for lookup)
+    // ============================================
+    public string BondNpcName { get; set; }
+    public int? BondStrengthRequired { get; set; }
+
+    // ============================================
+    // SCALE REQUIREMENTS (ScaleType string for parsing)
+    // ============================================
+    public string ScaleTypeName { get; set; }
+    public int? ScaleValueRequired { get; set; }
+
+    // ============================================
+    // BOOLEAN REQUIREMENTS (names for lookup)
+    // ============================================
+    public string RequiredAchievementName { get; set; }
+    public string RequiredStateName { get; set; }
+    public string RequiredItemName { get; set; }
 }

@@ -34,16 +34,7 @@ public class CompoundRequirement
             requirement.OrPaths.Add(new OrPath
             {
                 Label = "Resolve 0+",
-                NumericRequirements = new List<NumericRequirement>
-                {
-                    new NumericRequirement
-                    {
-                        Type = "PlayerResource",
-                        Context = "Resolve",
-                        Threshold = 0,
-                        Label = "Resolve 0+"
-                    }
-                }
+                ResolveRequired = 0
             });
         }
 
@@ -103,6 +94,9 @@ public class CompoundRequirement
 
 /// <summary>
 /// Single OR path - all requirements in this path must be met (AND logic within path)
+/// Uses Explicit Property Principle: each requirement type has its own named property
+/// instead of generic string-based Type/Context routing.
+/// See arc42/08_crosscutting_concepts.md §8.19
 /// </summary>
 public class OrPath
 {
@@ -112,11 +106,44 @@ public class OrPath
     /// </summary>
     public string Label { get; set; }
 
-    /// <summary>
-    /// All numeric requirements for this path
-    /// ALL must be satisfied for this path to be valid
-    /// </summary>
-    public List<NumericRequirement> NumericRequirements { get; set; } = new List<NumericRequirement>();
+    // ============================================
+    // STAT REQUIREMENTS - explicit property per stat
+    // ============================================
+    public int? InsightRequired { get; set; }
+    public int? RapportRequired { get; set; }
+    public int? AuthorityRequired { get; set; }
+    public int? DiplomacyRequired { get; set; }
+    public int? CunningRequired { get; set; }
+
+    // ============================================
+    // RESOURCE REQUIREMENTS
+    // ============================================
+    public int? ResolveRequired { get; set; }
+    public int? CoinsRequired { get; set; }
+
+    // ============================================
+    // PROGRESSION REQUIREMENTS
+    // ============================================
+    public int? SituationCountRequired { get; set; }
+
+    // ============================================
+    // RELATIONSHIP REQUIREMENTS (NPC object reference, not string)
+    // ============================================
+    public NPC BondNpc { get; set; }
+    public int? BondStrengthRequired { get; set; }
+
+    // ============================================
+    // SCALE REQUIREMENTS (ScaleType enum, not string)
+    // ============================================
+    public ScaleType? ScaleType { get; set; }
+    public int? ScaleValueRequired { get; set; }
+
+    // ============================================
+    // BOOLEAN REQUIREMENTS (object references, not string IDs)
+    // ============================================
+    public Achievement RequiredAchievement { get; set; }
+    public StateType? RequiredState { get; set; }
+    public Item RequiredItem { get; set; }
 
     /// <summary>
     /// Check if this path is satisfied by current game state
@@ -124,16 +151,44 @@ public class OrPath
     /// </summary>
     public bool IsSatisfied(Player player, GameWorld gameWorld)
     {
-        if (NumericRequirements == null || NumericRequirements.Count == 0)
-            return true; // No requirements means path is satisfied
+        // Check stat requirements
+        if (InsightRequired.HasValue && player.Insight < InsightRequired.Value) return false;
+        if (RapportRequired.HasValue && player.Rapport < RapportRequired.Value) return false;
+        if (AuthorityRequired.HasValue && player.Authority < AuthorityRequired.Value) return false;
+        if (DiplomacyRequired.HasValue && player.Diplomacy < DiplomacyRequired.Value) return false;
+        if (CunningRequired.HasValue && player.Cunning < CunningRequired.Value) return false;
 
-        foreach (NumericRequirement req in NumericRequirements)
+        // Check resource requirements
+        if (ResolveRequired.HasValue && player.Resolve < ResolveRequired.Value) return false;
+        if (CoinsRequired.HasValue && player.Coins < CoinsRequired.Value) return false;
+
+        // Check progression
+        if (SituationCountRequired.HasValue && player.CompletedSituations.Count < SituationCountRequired.Value) return false;
+
+        // Check relationship (uses object reference, not string ID)
+        if (BondNpc != null && BondStrengthRequired.HasValue)
         {
-            if (!req.IsSatisfied(player, gameWorld))
-                return false; // Found an unsatisfied requirement
+            NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == BondNpc);
+            int totalBond = entry != null ? entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow : 0;
+            if (totalBond < BondStrengthRequired.Value) return false;
         }
 
-        return true; // All requirements satisfied
+        // Check scale (uses ScaleType enum, not string)
+        if (ScaleType.HasValue && ScaleValueRequired.HasValue)
+        {
+            int scaleValue = GetScaleValue(player, ScaleType.Value);
+            // Positive threshold: scale >= threshold
+            // Negative threshold: scale <= threshold
+            if (ScaleValueRequired.Value >= 0 && scaleValue < ScaleValueRequired.Value) return false;
+            if (ScaleValueRequired.Value < 0 && scaleValue > ScaleValueRequired.Value) return false;
+        }
+
+        // Check boolean requirements (uses object references, not string IDs)
+        if (RequiredAchievement != null && !player.EarnedAchievements.Any(a => a.Achievement == RequiredAchievement)) return false;
+        if (RequiredState.HasValue && !player.ActiveStates.Any(s => s.Type == RequiredState.Value)) return false;
+        if (RequiredItem != null && !player.HasItem(RequiredItem)) return false;
+
+        return true;
     }
 
     /// <summary>
@@ -145,26 +200,185 @@ public class OrPath
         List<RequirementStatus> requirements = new List<RequirementStatus>();
         bool allSatisfied = true;
 
-        if (NumericRequirements != null)
+        // Project stat requirements
+        if (InsightRequired.HasValue)
         {
-            foreach (NumericRequirement req in NumericRequirements)
+            bool satisfied = player.Insight >= InsightRequired.Value;
+            requirements.Add(new RequirementStatus
             {
-                bool satisfied = req.IsSatisfied(player, gameWorld);
-                int currentValue = req.GetCurrentValue(player, gameWorld);
+                Label = $"Insight {InsightRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Insight,
+                RequiredValue = InsightRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
 
-                requirements.Add(new RequirementStatus
-                {
-                    Requirement = req,
-                    IsSatisfied = satisfied,
-                    CurrentValue = currentValue,
-                    RequiredValue = req.Threshold
-                });
+        if (RapportRequired.HasValue)
+        {
+            bool satisfied = player.Rapport >= RapportRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Rapport {RapportRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Rapport,
+                RequiredValue = RapportRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
 
-                if (!satisfied)
-                {
-                    allSatisfied = false;
-                }
-            }
+        if (AuthorityRequired.HasValue)
+        {
+            bool satisfied = player.Authority >= AuthorityRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Authority {AuthorityRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Authority,
+                RequiredValue = AuthorityRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (DiplomacyRequired.HasValue)
+        {
+            bool satisfied = player.Diplomacy >= DiplomacyRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Diplomacy {DiplomacyRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Diplomacy,
+                RequiredValue = DiplomacyRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (CunningRequired.HasValue)
+        {
+            bool satisfied = player.Cunning >= CunningRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Cunning {CunningRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Cunning,
+                RequiredValue = CunningRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        // Project resource requirements
+        if (ResolveRequired.HasValue)
+        {
+            bool satisfied = player.Resolve >= ResolveRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Resolve {ResolveRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Resolve,
+                RequiredValue = ResolveRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (CoinsRequired.HasValue)
+        {
+            bool satisfied = player.Coins >= CoinsRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Coins {CoinsRequired.Value}+",
+                IsSatisfied = satisfied,
+                CurrentValue = player.Coins,
+                RequiredValue = CoinsRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        // Project progression requirements
+        if (SituationCountRequired.HasValue)
+        {
+            bool satisfied = player.CompletedSituations.Count >= SituationCountRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Complete {SituationCountRequired.Value} situations",
+                IsSatisfied = satisfied,
+                CurrentValue = player.CompletedSituations.Count,
+                RequiredValue = SituationCountRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        // Project relationship requirements
+        if (BondNpc != null && BondStrengthRequired.HasValue)
+        {
+            NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == BondNpc);
+            int totalBond = entry != null ? entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow : 0;
+            bool satisfied = totalBond >= BondStrengthRequired.Value;
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Bond {BondStrengthRequired.Value}+ with {BondNpc.Name}",
+                IsSatisfied = satisfied,
+                CurrentValue = totalBond,
+                RequiredValue = BondStrengthRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        // Project scale requirements
+        if (ScaleType.HasValue && ScaleValueRequired.HasValue)
+        {
+            int scaleValue = GetScaleValue(player, ScaleType.Value);
+            bool satisfied = ScaleValueRequired.Value >= 0
+                ? scaleValue >= ScaleValueRequired.Value
+                : scaleValue <= ScaleValueRequired.Value;
+            string direction = ScaleValueRequired.Value >= 0 ? "+" : "";
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"{ScaleType.Value} {direction}{ScaleValueRequired.Value}",
+                IsSatisfied = satisfied,
+                CurrentValue = scaleValue,
+                RequiredValue = ScaleValueRequired.Value
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        // Project boolean requirements
+        if (RequiredAchievement != null)
+        {
+            bool satisfied = player.EarnedAchievements.Any(a => a.Achievement == RequiredAchievement);
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Achievement: {RequiredAchievement.Name}",
+                IsSatisfied = satisfied,
+                CurrentValue = satisfied ? 1 : 0,
+                RequiredValue = 1
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (RequiredState.HasValue)
+        {
+            bool satisfied = player.ActiveStates.Any(s => s.Type == RequiredState.Value);
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"State: {RequiredState.Value}",
+                IsSatisfied = satisfied,
+                CurrentValue = satisfied ? 1 : 0,
+                RequiredValue = 1
+            });
+            if (!satisfied) allSatisfied = false;
+        }
+
+        if (RequiredItem != null)
+        {
+            bool satisfied = player.HasItem(RequiredItem);
+            requirements.Add(new RequirementStatus
+            {
+                Label = $"Item: {RequiredItem.Name}",
+                IsSatisfied = satisfied,
+                CurrentValue = satisfied ? 1 : 0,
+                RequiredValue = 1
+            });
+            if (!satisfied) allSatisfied = false;
         }
 
         return new PathProjection
@@ -172,6 +386,20 @@ public class OrPath
             Label = Label,
             IsSatisfied = allSatisfied,
             Requirements = requirements
+        };
+    }
+
+    private int GetScaleValue(Player player, ScaleType scaleType)
+    {
+        return scaleType switch
+        {
+            GameState.ScaleType.Morality => player.Scales.Morality,
+            GameState.ScaleType.Lawfulness => player.Scales.Lawfulness,
+            GameState.ScaleType.Method => player.Scales.Method,
+            GameState.ScaleType.Caution => player.Scales.Caution,
+            GameState.ScaleType.Transparency => player.Scales.Transparency,
+            GameState.ScaleType.Fame => player.Scales.Fame,
+            _ => 0
         };
     }
 }

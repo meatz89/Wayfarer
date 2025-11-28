@@ -677,25 +677,36 @@ public static class SceneArchetypeCatalog
             if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
             {
                 // Lower stat requirements from 3 to 2 (achievable with A1 stats)
+                // Uses explicit property lowering instead of NumericRequirement string matching
                 if (modifiedRequirement != null && modifiedRequirement.OrPaths != null)
                 {
                     foreach (OrPath path in modifiedRequirement.OrPaths)
                     {
-                        if (path.NumericRequirements != null)
+                        // Lower each explicit stat property from 3 to 2
+                        if (path.InsightRequired.HasValue && path.InsightRequired.Value == 3)
                         {
-                            foreach (NumericRequirement req in path.NumericRequirements)
-                            {
-                                if (req.Type == "PlayerStat" && req.Threshold == 3)
-                                {
-                                    req.Threshold = 2;  // Lower to 2 for tutorial A2
-                                    req.Label = req.Label.Replace("3+", "2+");
-                                }
-                            }
+                            path.InsightRequired = 2;
+                            path.Label = path.Label?.Replace("3+", "2+");
                         }
-                        // Update path label
-                        if (path.Label != null && path.Label.Contains("3+"))
+                        if (path.RapportRequired.HasValue && path.RapportRequired.Value == 3)
                         {
-                            path.Label = path.Label.Replace("3+", "2+");
+                            path.RapportRequired = 2;
+                            path.Label = path.Label?.Replace("3+", "2+");
+                        }
+                        if (path.AuthorityRequired.HasValue && path.AuthorityRequired.Value == 3)
+                        {
+                            path.AuthorityRequired = 2;
+                            path.Label = path.Label?.Replace("3+", "2+");
+                        }
+                        if (path.DiplomacyRequired.HasValue && path.DiplomacyRequired.Value == 3)
+                        {
+                            path.DiplomacyRequired = 2;
+                            path.Label = path.Label?.Replace("3+", "2+");
+                        }
+                        if (path.CunningRequired.HasValue && path.CunningRequired.Value == 3)
+                        {
+                            path.CunningRequired = 2;
+                            path.Label = path.Label?.Replace("3+", "2+");
                         }
                     }
                 }
@@ -896,22 +907,10 @@ public static class SceneArchetypeCatalog
         if (isA3Tutorial)
         {
             // A3 CRISIS: Authority 3 required, fallback causes damage
+            // Uses Explicit Property Principle - AuthorityRequired instead of string-based routing
             obstacle1AuthorityReq.OrPaths = new List<OrPath>
             {
-                new OrPath
-                {
-                    Label = "Authority 3+",
-                    NumericRequirements = new List<NumericRequirement>
-                    {
-                        new NumericRequirement
-                        {
-                            Type = "PlayerStat",
-                            Context = "Authority",
-                            Threshold = 3,
-                            Label = "Authority 3+"
-                        }
-                    }
-                }
+                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Authority, 3)
             };
             obstacle1FallbackReward = new Consequence { Health = -10 };  // Crisis: Damage control choice
         }
@@ -996,22 +995,10 @@ public static class SceneArchetypeCatalog
         if (isA3Tutorial)
         {
             // A3 CRISIS: Insight 3 required, fallback causes stamina loss
+            // Uses Explicit Property Principle - InsightRequired instead of string-based routing
             obstacle2InsightReq.OrPaths = new List<OrPath>
             {
-                new OrPath
-                {
-                    Label = "Insight 3+",
-                    NumericRequirements = new List<NumericRequirement>
-                    {
-                        new NumericRequirement
-                        {
-                            Type = "PlayerStat",
-                            Context = "Insight",
-                            Threshold = 3,
-                            Label = "Insight 3+"
-                        }
-                    }
-                }
+                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Insight, 3)
             };
             obstacle2FallbackReward = new Consequence { Stamina = -10 };  // Crisis: Exhausting failed attempt
         }
@@ -1096,22 +1083,10 @@ public static class SceneArchetypeCatalog
         if (isA3Tutorial)
         {
             // A3 CRISIS: Rapport 3 required, fallback costs coins
+            // Uses Explicit Property Principle - RapportRequired instead of string-based routing
             obstacle3RapportReq.OrPaths = new List<OrPath>
             {
-                new OrPath
-                {
-                    Label = "Rapport 3+",
-                    NumericRequirements = new List<NumericRequirement>
-                    {
-                        new NumericRequirement
-                        {
-                            Type = "PlayerStat",
-                            Context = "Rapport",
-                            Threshold = 3,
-                            Label = "Rapport 3+"
-                        }
-                    }
-                }
+                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Rapport, 3)
             };
             obstacle3FallbackReward = new Consequence { Coins = -5 };  // Crisis: Forced to pay penalty
         }

@@ -882,42 +882,46 @@ public static class SituationArchetypeCatalog
     {
         CompoundRequirement requirement = new CompoundRequirement();
 
-        OrPath primaryPath = new OrPath
-        {
-            Label = $"{archetype.PrimaryStat} {scaledThreshold}+",
-            NumericRequirements = new List<NumericRequirement>
-        {
-            new NumericRequirement
-            {
-                Type = "PlayerStat",
-                Context = archetype.PrimaryStat.ToString(),
-                Threshold = scaledThreshold,
-                Label = $"{archetype.PrimaryStat} {scaledThreshold}+"
-            }
-        }
-        };
+        OrPath primaryPath = CreateOrPathForStat(archetype.PrimaryStat, scaledThreshold);
         requirement.OrPaths.Add(primaryPath);
 
         if (archetype.SecondaryStat != archetype.PrimaryStat)
         {
-            OrPath secondaryPath = new OrPath
-            {
-                Label = $"{archetype.SecondaryStat} {scaledThreshold}+",
-                NumericRequirements = new List<NumericRequirement>
-            {
-                new NumericRequirement
-                {
-                    Type = "PlayerStat",
-                    Context = archetype.SecondaryStat.ToString(),
-                    Threshold = scaledThreshold,
-                    Label = $"{archetype.SecondaryStat} {scaledThreshold}+"
-                }
-            }
-            };
+            OrPath secondaryPath = CreateOrPathForStat(archetype.SecondaryStat, scaledThreshold);
             requirement.OrPaths.Add(secondaryPath);
         }
 
         return requirement;
+    }
+
+    /// <summary>
+    /// Create an OrPath with the appropriate explicit stat property set.
+    /// Uses Explicit Property Principle - each stat has its own named property.
+    /// </summary>
+    public static OrPath CreateOrPathForStat(PlayerStatType stat, int threshold)
+    {
+        OrPath path = new OrPath { Label = $"{stat} {threshold}+" };
+
+        switch (stat)
+        {
+            case PlayerStatType.Insight:
+                path.InsightRequired = threshold;
+                break;
+            case PlayerStatType.Rapport:
+                path.RapportRequired = threshold;
+                break;
+            case PlayerStatType.Authority:
+                path.AuthorityRequired = threshold;
+                break;
+            case PlayerStatType.Diplomacy:
+                path.DiplomacyRequired = threshold;
+                break;
+            case PlayerStatType.Cunning:
+                path.CunningRequired = threshold;
+                break;
+        }
+
+        return path;
     }
 
     private static string GenerateStatGatedActionText(SituationArchetype archetype)
@@ -1057,20 +1061,7 @@ public static class SituationArchetypeCatalog
 
         // Choice 1: Rapport-gated (free if you have relationship)
         CompoundRequirement rapportReq = new CompoundRequirement();
-        rapportReq.OrPaths.Add(new OrPath
-        {
-            Label = $"Rapport {scaledStatThreshold}+",
-            NumericRequirements = new List<NumericRequirement>
-        {
-            new NumericRequirement
-            {
-                Type = "PlayerStat",
-                Context = "Rapport",
-                Threshold = scaledStatThreshold,
-                Label = $"Rapport {scaledStatThreshold}+"
-            }
-        }
-        });
+        rapportReq.OrPaths.Add(CreateOrPathForStat(PlayerStatType.Rapport, scaledStatThreshold));
 
         choices.Add(new ChoiceTemplate
         {

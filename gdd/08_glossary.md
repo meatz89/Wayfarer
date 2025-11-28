@@ -106,6 +106,9 @@ Strongly-typed entity attribute with intentional domain meaning. Two types exist
 
 All categorical properties are enums with specific game effects—never generic strings.
 
+### Explicit Property Principle
+Architecture pattern requiring explicit strongly-typed properties instead of string-based generic routing. `InsightRequired` (explicit int property) catches typos at compile-time; `Type="Insight"` (string routing) fails silently at runtime. Applies to requirements, state modifications, and entity relationships. See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) §8.19 for technical details.
+
 ### Frieren Principle
 Design philosophy: The game never ends. The journey is the point, not arrival. Success measured by journey quality, not reaching destination.
 
