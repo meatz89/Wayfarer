@@ -685,14 +685,15 @@ Any errors before 18:45:28 are stale. Only errors AFTER 18:45:28 are relevant.
 
 ---
 
-**Last Updated:** 2025-11-27 18:45 UTC
-**Current Phase:** A2 scene testing - critical bug found
+**Last Updated:** 2025-11-28 10:00 UTC
+**Current Phase:** A2 scene testing - continuing after bug fix
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
 - CRITICAL: RouteSegmentTravel arrival location resolution (PlacementProximity.RouteDestination)
 - CRITICAL: Scene auto-cascade bug - SpawnStarterScenes() now filters by IsStarter (not Category)
 - **CRITICAL: A2/A3 locationActivationFilter JSON fix** - A2 changed from "Public" to "SemiPublic", A3 changed to same filter as A2 (so it activates immediately at Common Room)
+- **CRITICAL: ExchangeFacade NullReferenceException** - See Bug #17 below
 
 **Open Issues:**
 - RECOMMENDED: Add validation to ensure at least one scene has IsStarter=true
@@ -844,6 +845,31 @@ choice.DiplomacyReward == 0 && choice.CunningReward == 0 &&
 ---
 
 ## Debugging Tools Reference
+
+### 17. ExchangeFacade NullReferenceException (FIXED - 2025-11-28)
+**Issue:** Clicking "EXCHANGE" button on any NPC throws NullReferenceException:
+```
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at ExchangeFacade.GetAvailableExchanges(NPC npc, PlayerResourceState playerResources, Dictionary`2 npcTokens, RelationshipTier relationshipTier) in ExchangeFacade.cs:line 72
+```
+
+**Root Cause:** `GetAvailableExchanges()` used `FirstOrDefault()` to find NPC in `NPCExchangeCards` collection, but didn't handle the null case when NPC has no exchange cards registered:
+```csharp
+NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.Npc == npc);
+List<ExchangeCard> npcExchanges = entry.ExchangeCards;  // NullRef when entry == null
+```
+
+**Fix Applied:** Added null-safe check before accessing `ExchangeCards`:
+```csharp
+NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.Npc == npc);
+List<ExchangeCard> npcExchanges = entry?.ExchangeCards != null
+    ? new List<ExchangeCard>(entry.ExchangeCards)
+    : new List<ExchangeCard>();
+```
+
+**Verification:** Build successful. Playtest continuing.
+
+---
 
 ### Spawn Graph Visualizer (`/spawngraph`)
 

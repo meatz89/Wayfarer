@@ -69,7 +69,9 @@ public class ExchangeFacade
         // Get exchanges from GameWorld directly
         // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
         NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.Npc == npc);
-        List<ExchangeCard> npcExchanges = entry.ExchangeCards;
+        List<ExchangeCard> npcExchanges = entry?.ExchangeCards != null
+            ? new List<ExchangeCard>(entry.ExchangeCards)
+            : new List<ExchangeCard>();
 
         // Also check NPC.ExchangeDeck
         foreach (ExchangeCard card in npc.ExchangeDeck)
