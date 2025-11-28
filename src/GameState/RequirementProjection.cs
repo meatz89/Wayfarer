@@ -44,7 +44,7 @@ public class PathProjection
 /// <summary>
 /// Status of a single requirement check.
 /// Includes current value, required value, and gap for UI display.
-/// Uses explicit Label instead of NumericRequirement reference.
+/// Uses explicit Label for UI display.
 /// </summary>
 public class RequirementStatus
 {

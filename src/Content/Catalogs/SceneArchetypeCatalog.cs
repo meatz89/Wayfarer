@@ -677,7 +677,7 @@ public static class SceneArchetypeCatalog
             if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
             {
                 // Lower stat requirements from 3 to 2 (achievable with A1 stats)
-                // Uses explicit property lowering instead of NumericRequirement string matching
+                // Uses explicit OrPath property lowering
                 if (modifiedRequirement != null && modifiedRequirement.OrPaths != null)
                 {
                     foreach (OrPath path in modifiedRequirement.OrPaths)

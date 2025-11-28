@@ -522,30 +522,27 @@ public class SituationChoiceExecutorTests
 
     /// <summary>
     /// Create CompoundRequirement with single OR path containing one requirement
+    /// Uses explicit OrPath properties per the Explicit Property Principle
     /// </summary>
     private CompoundRequirement CreateCompoundRequirement(
         string requirementType = "Resolve",
         int threshold = 10)
     {
-        return new CompoundRequirement
+        OrPath path = new OrPath { Label = $"{requirementType} {threshold}+" };
+
+        switch (requirementType)
         {
-            OrPaths = new List<OrPath>
-            {
-                new OrPath
-                {
-                    Label = $"{requirementType} {threshold}+",
-                    NumericRequirements = new List<NumericRequirement>
-                    {
-                        new NumericRequirement
-                        {
-                            Type = requirementType,
-                            Threshold = threshold,
-                            Label = $"{requirementType} {threshold}+"
-                        }
-                    }
-                }
-            }
-        };
+            case "Resolve": path.ResolveRequired = threshold; break;
+            case "Insight": path.InsightRequired = threshold; break;
+            case "Rapport": path.RapportRequired = threshold; break;
+            case "Authority": path.AuthorityRequired = threshold; break;
+            case "Diplomacy": path.DiplomacyRequired = threshold; break;
+            case "Cunning": path.CunningRequired = threshold; break;
+            case "Coins": path.CoinsRequired = threshold; break;
+            default: path.ResolveRequired = threshold; break;
+        }
+
+        return new CompoundRequirement { OrPaths = new List<OrPath> { path } };
     }
 
     /// <summary>

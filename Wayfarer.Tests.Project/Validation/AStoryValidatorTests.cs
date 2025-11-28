@@ -235,10 +235,7 @@ public class AStoryValidatorTests
                                 {
                                     new OrPath
                                     {
-                                        NumericRequirements = new List<NumericRequirement>
-                                        {
-                                            new NumericRequirement()
-                                        }
+                                        InsightRequired = 5
                                     }
                                 }
                             }
@@ -290,14 +287,14 @@ public class AStoryValidatorTests
                             {
                                 ScenesToSpawn = new List<SceneSpawnReward>
                                 {
-                                    new SceneSpawnReward { SceneTemplateId = "next_scene" }
+                                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
                                 }
                             },
                             OnFailureConsequence = new Consequence
                             {
                                 ScenesToSpawn = new List<SceneSpawnReward>
                                 {
-                                    new SceneSpawnReward { SceneTemplateId = "next_scene" }
+                                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
                                 }
                             }
                         }

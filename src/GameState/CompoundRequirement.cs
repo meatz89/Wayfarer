@@ -135,7 +135,7 @@ public class OrPath
     // ============================================
     // SCALE REQUIREMENTS (ScaleType enum, not string)
     // ============================================
-    public ScaleType? ScaleType { get; set; }
+    public ScaleType? RequiredScaleType { get; set; }
     public int? ScaleValueRequired { get; set; }
 
     // ============================================
@@ -174,9 +174,9 @@ public class OrPath
         }
 
         // Check scale (uses ScaleType enum, not string)
-        if (ScaleType.HasValue && ScaleValueRequired.HasValue)
+        if (RequiredScaleType.HasValue && ScaleValueRequired.HasValue)
         {
-            int scaleValue = GetScaleValue(player, ScaleType.Value);
+            int scaleValue = GetScaleValue(player, RequiredScaleType.Value);
             // Positive threshold: scale >= threshold
             // Negative threshold: scale <= threshold
             if (ScaleValueRequired.Value >= 0 && scaleValue < ScaleValueRequired.Value) return false;
@@ -324,16 +324,16 @@ public class OrPath
         }
 
         // Project scale requirements
-        if (ScaleType.HasValue && ScaleValueRequired.HasValue)
+        if (RequiredScaleType.HasValue && ScaleValueRequired.HasValue)
         {
-            int scaleValue = GetScaleValue(player, ScaleType.Value);
+            int scaleValue = GetScaleValue(player, RequiredScaleType.Value);
             bool satisfied = ScaleValueRequired.Value >= 0
                 ? scaleValue >= ScaleValueRequired.Value
                 : scaleValue <= ScaleValueRequired.Value;
             string direction = ScaleValueRequired.Value >= 0 ? "+" : "";
             requirements.Add(new RequirementStatus
             {
-                Label = $"{ScaleType.Value} {direction}{ScaleValueRequired.Value}",
+                Label = $"{RequiredScaleType.Value} {direction}{ScaleValueRequired.Value}",
                 IsSatisfied = satisfied,
                 CurrentValue = scaleValue,
                 RequiredValue = ScaleValueRequired.Value

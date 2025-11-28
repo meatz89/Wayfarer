@@ -58,7 +58,7 @@ public static class RequirementParser
             BondNpc = ResolveNPC(dto.BondNpcName, gameWorld),
             BondStrengthRequired = dto.BondStrengthRequired,
 
-            ScaleType = ParseScaleType(dto.ScaleTypeName),
+            RequiredScaleType = ParseScaleType(dto.ScaleTypeName),
             ScaleValueRequired = dto.ScaleValueRequired,
 
             RequiredAchievement = ResolveAchievement(dto.RequiredAchievementName, gameWorld),

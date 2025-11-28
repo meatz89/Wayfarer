@@ -268,7 +268,7 @@ public class SpawnFacade
                 BondNpc = originalPath.BondNpc,
                 BondStrengthRequired = ApplyOffset(originalPath.BondStrengthRequired, offsets.BondStrengthOffset),
                 // Clone scale properties with ScaleOffset
-                ScaleType = originalPath.ScaleType,
+                RequiredScaleType = originalPath.RequiredScaleType,
                 ScaleValueRequired = ApplyScaleOffset(originalPath.ScaleValueRequired, offsets.ScaleOffset),
                 // Clone boolean requirement references
                 RequiredAchievement = originalPath.RequiredAchievement,

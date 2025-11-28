@@ -14,7 +14,7 @@ public class SpawnRuleDTO
     /// <summary>
     /// Requirement offsets to apply to the spawned situation
     /// Adjusts difficulty/requirements based on parent situation state
-    /// Will be parsed into strongly-typed NumericRequirement adjustments
+    /// Will be parsed into explicit OrPath property adjustments
     /// </summary>
     public RequirementOffsetsDTO RequirementOffsets { get; set; }
 

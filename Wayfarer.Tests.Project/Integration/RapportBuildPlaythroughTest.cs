@@ -85,15 +85,15 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         Assert.True(a2Template.SituationTemplates.Any(), "A2 should have situations to complete");
 
         // Verify A3 template exists and A2 can spawn it
-        // Semantic query: Look for any scene spawn with MainStorySequence == 3
+        // HIGHLANDER: Use SpawnNextMainStoryScene flag (not string IDs)
         SituationTemplate finalA2Sit = a2Template.SituationTemplates.Last();
         SceneTemplate a3Template = gameWorld.SceneTemplates.FirstOrDefault(st =>
             st.Category == StoryCategory.MainStory && st.MainStorySequence == 3);
         Assert.NotNull(a3Template); // A3 template must exist
         bool a3WillSpawn = finalA2Sit.ChoiceTemplates.Any(c =>
-            c.Consequence?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true ||
-            c.OnSuccessConsequence?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true ||
-            c.OnFailureConsequence?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true);
+            c.Consequence?.ScenesToSpawn?.Any(s => s.SpawnNextMainStoryScene || s.Template == a3Template) == true ||
+            c.OnSuccessConsequence?.ScenesToSpawn?.Any(s => s.SpawnNextMainStoryScene || s.Template == a3Template) == true ||
+            c.OnFailureConsequence?.ScenesToSpawn?.Any(s => s.SpawnNextMainStoryScene || s.Template == a3Template) == true);
 
         Assert.True(a3WillSpawn, "A2 final situation should spawn A3");
     }
@@ -157,11 +157,7 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         if (choice.RequirementFormula?.OrPaths == null)
             return false;
 
-        return choice.RequirementFormula.OrPaths.Any(path =>
-            path.NumericRequirements?.Any(req =>
-                req.Type == "PlayerStat" &&
-                req.Context != null &&
-                req.Context.Equals("Rapport", StringComparison.OrdinalIgnoreCase)) == true);
+        return choice.RequirementFormula.OrPaths.Any(path => path.RapportRequired.HasValue);
     }
 
     private int GetRapportRequirement(ChoiceTemplate choice)
@@ -169,13 +165,9 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         if (choice.RequirementFormula?.OrPaths == null)
             return 0;
 
-        NumericRequirement rapportReq = choice.RequirementFormula.OrPaths
-            .SelectMany(path => path.NumericRequirements ?? Enumerable.Empty<NumericRequirement>())
-            .FirstOrDefault(req =>
-                req.Type == "PlayerStat" &&
-                req.Context != null &&
-                req.Context.Equals("Rapport", StringComparison.OrdinalIgnoreCase));
+        OrPath rapportPath = choice.RequirementFormula.OrPaths
+            .FirstOrDefault(path => path.RapportRequired.HasValue);
 
-        return rapportReq?.Threshold ?? 0;
+        return rapportPath?.RapportRequired ?? 0;
     }
 }
