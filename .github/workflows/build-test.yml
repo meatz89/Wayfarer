@@ -193,5 +193,39 @@ jobs:
         fi
         echo "Pass"
 
+    - name: "[FAIL-FAST] Null Coalescing"
+      run: |
+        echo "Checking for null coalescing in domain code..."
+        if grep -rn '\?\?' src/GameState/*.cs src/Services/*.cs src/Content/*.cs 2>/dev/null | grep -v 'DTO\|Tests\.' | grep -v '^\s*//' | grep -v 'parameter\|argument'; then
+          echo "WARNING: Null coalescing (??) found - may hide missing data errors"
+        fi
+        echo "Pass"
+
+    - name: "[FAIL-FAST] TryGetValue/TryParse"
+      run: |
+        echo "Checking for TryGetValue/TryParse in domain code..."
+        if grep -rn 'TryGetValue\|TryParse' src/GameState/*.cs src/Services/*.cs src/Content/*.cs 2>/dev/null | grep -v 'DTO\|Tests\.' | grep -v '^\s*//'; then
+          echo "WARNING: TryGetValue/TryParse found - prefer fail-fast"
+        fi
+        echo "Pass"
+
+    - name: "[ICONS] Emojis in Razor Files"
+      run: |
+        echo "Checking for emojis in .razor files..."
+        if grep -rn '[✓✔✗✘❌✅⚡⭐🔥💀⚠️🎯📍🏠👤💰🗡️🛡️❤️💚💙🟢🔴🟡]' src/**/*.razor 2>/dev/null; then
+          echo "ERROR: Emoji in .razor file! Use <Icon> component instead."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[EXPLICIT] String-Based Property Patterns"
+      run: |
+        echo "Checking for string-based property modification patterns..."
+        if grep -rn 'ModifyProperty\|SetProperty\|GetProperty' src/**/*.cs 2>/dev/null | grep 'string' | grep -v '^\s*//'; then
+          echo "ERROR: String-based property pattern! Use explicit typed properties."
+          exit 1
+        fi
+        echo "Pass"
+
     - name: "All Architecture Checks Passed"
       run: echo "All architecture compliance checks passed!"
