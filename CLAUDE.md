@@ -392,9 +392,44 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 **Location:** `.claude/settings.json` and `.claude/hooks/`
 
-| Hook | Purpose |
-|------|---------|
-| SessionStart | Ensure documentation context before work |
-| Stop | Prevent premature stops |
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| SessionStart | Session begins | Ensure documentation context before work |
+| Stop | Before stopping | Prevent premature stops |
+| PostToolUse | After Edit/Write on arc42/*.md or gdd/*.md | Validate document structure |
 
 **Philosophy:** Hooks remind, documentation governs. Hooks point to CLAUDE.md - they don't duplicate it.
+
+---
+
+# DOCUMENTATION STANDARDS
+
+## arc42 Documents
+
+arc42 is a structured cabinet for architecture documentation. "Dare to leave gaps" - only document what matters.
+
+| Principle | Rule |
+|-----------|------|
+| **Structure** | Pattern/principle tables, not prose paragraphs |
+| **Content** | WHAT and WHY, never HOW |
+| **Format** | "**Consequences:**" and "**Forbidden:**" sections |
+| **Brevity** | Remove irrelevant sections |
+
+**Anti-patterns:** Code blocks, concrete numbers, file paths, enum value lists, redundant content.
+
+**Reference:** [arc42 Documentation](https://docs.arc42.org/), [arc42 Template](https://arc42.org/overview)
+
+## GDD Documents
+
+Game design documents describe the GAME EXPERIENCE, not implementation.
+
+| Principle | Rule |
+|-----------|------|
+| **Structure** | "Why" and "How it manifests" for pillars |
+| **Content** | Design intent and player experience |
+| **Traceability** | Every feature traces to a design pillar |
+| **Separation** | Technical details belong in arc42 or code |
+
+**Exception:** `BASELINE_ECONOMY.md` may contain concrete balance values.
+
+**Anti-patterns:** Code blocks, implementation details, file references, JSON structures.
