@@ -154,6 +154,7 @@ public class EmergencyFacade
         return new EmergencyContext
         {
             IsValid = true,
+            EmergencyState = emergencyState,
             Emergency = template,
             CurrentStamina = player.Stamina,
             MaxStamina = player.MaxStamina,
