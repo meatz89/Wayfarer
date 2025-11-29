@@ -69,6 +69,34 @@ Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementa
 
 ---
 
+# DOCUMENTATION AND BOUNDARIES FIRST
+
+**THE RULE:** Before implementing ANY feature or refactoring, update documentation and define boundaries FIRST.
+
+**Order of Operations:**
+1. **Document the principle** - Update CLAUDE.md, arc42, or gdd with the rule
+2. **Add enforcement** - Pre-commit hook, CI check, or compliance test
+3. **Then implement** - Code changes come LAST, after boundaries are clear
+
+**Why:**
+- Documentation forces clarity BEFORE coding
+- Enforcement prevents future violations (no exceptions accumulate)
+- Implementation becomes mechanical once rules are clear
+- Prevents "exception creep" where temporary workarounds become permanent
+
+**FORBIDDEN:**
+- Implementing code before documenting the principle
+- Adding "temporary exceptions" to documented rules
+- Coding first and "documenting later" (later never comes)
+
+**Correct Pattern:** When you find a violation:
+1. Document the correct principle (no exceptions)
+2. Add enforcement (pre-commit hook)
+3. Fix ALL existing violations
+4. Commit documentation + enforcement + fixes together
+
+---
+
 # CRITICAL: DUAL-TIER ACTION SYSTEM
 
 **READ FIRST:** `DUAL_TIER_ACTION_ARCHITECTURE.md`
@@ -158,22 +186,27 @@ JSON → DTO → Parser → Entity → Service/UI
 
 # CATALOGUE PATTERN (PARSE-TIME TRANSLATION)
 
-**THE RULE:** Catalogues translate categorical properties to concrete values at **PARSE-TIME ONLY**.
+**THE RULE:** Catalogues translate categorical properties to concrete values at **PARSE-TIME ONLY**. No exceptions.
 
 | Layer | Responsibility |
 |-------|----------------|
 | Content JSON | Categorical descriptions (friendly, hostile, premium) |
-| Catalogue | Translation formulas (parse-time) |
+| Catalogue | Translation formulas (parse-time via Parser) |
 | Entity | Concrete values only (integers, no categories) |
 
-**Why:** Single formula change rebalances all content. Zero runtime overhead. AI generates balanced content without knowing game math.
+**Why:** Single formula change rebalances all content. Zero runtime overhead. AI generates balanced content without knowing game math. Enforceable via pre-commit hook.
 
 **FORBIDDEN:**
-- Runtime catalogue lookups in Services
+- Runtime catalogue lookups in Services (use Parser pipeline instead)
 - String-based property matching at runtime
-- Catalogue calls during player actions
+- Direct `Catalogue.GetX()` calls outside Parsers
+- `Catalogue.` patterns in `/Services/`, `/Subsystems/` directories
 
-**Exception:** Procedural generation (ProceduralAStoryService) may call catalogues during scene creation - this is "content creation time" not "player action time".
+**Correct Pattern for Procedural Content:**
+1. Build DTO with categorical properties
+2. Serialize to JSON package
+3. Load via PackageLoader → Parser → Catalogue (parse-time)
+4. Result: Entity with concrete values
 
 **Details:** See `arc42/08_crosscutting_concepts.md` §8.2
 
@@ -344,6 +377,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 | QUALITY | TODO/FIXME comments, .Wait()/.Result, extension methods |
 | NAMESPACE | Namespace declarations in domain code |
 | DETERMINISM | Random usage outside Pile.cs |
+| CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
 | ARC42 | Code blocks in architecture docs |
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)

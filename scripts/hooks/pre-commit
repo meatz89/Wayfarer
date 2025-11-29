@@ -295,7 +295,27 @@ if [ -n "$STRATEGIC_CS" ]; then
 fi
 
 # ============================================================
-# SECTION 9: ARC42 DOCUMENTATION RULES
+# SECTION 9: CATALOGUE PATTERN (PARSE-TIME ONLY)
+# ============================================================
+echo "[CATALOGUE] Parse-Time Translation..."
+
+# 9.1 Catalogue calls in Services/Subsystems (must be in Parsers only)
+RUNTIME_CS=$(echo "$STAGED_CS" | grep -E 'Services|Subsystems' | grep -v 'Parser' || true)
+if [ -n "$RUNTIME_CS" ]; then
+    for file in $RUNTIME_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'Catalog\.\|Catalogue\.' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [CATALOGUE]: Runtime catalogue call in $file (use Parser pipeline):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 10: ARC42 DOCUMENTATION RULES
 # ============================================================
 if [ -n "$STAGED_MD" ]; then
     echo "[ARC42] Documentation Rules..."

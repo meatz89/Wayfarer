@@ -157,6 +157,15 @@ jobs:
         fi
         echo "Pass"
 
+    - name: "[CATALOGUE] Parse-Time Only"
+      run: |
+        echo "Checking for runtime catalogue calls in Services/Subsystems..."
+        if grep -rn 'Catalog\.\|Catalogue\.' src/Services/**/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v 'Parser' | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Runtime catalogue call! Use Parser pipeline instead."
+          exit 1
+        fi
+        echo "Pass"
+
     - name: "[ARC42] Code Blocks in Architecture Docs"
       run: |
         echo "Checking for code blocks in arc42 documents..."

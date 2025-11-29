@@ -46,17 +46,25 @@ public class ProceduralAStoryService
     /// Generate next A-story template for given sequence
     /// Called when previous A-scene completes
     /// Returns generated template ID (for tracking)
+    ///
+    /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
+    /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
+    /// NO runtime catalogue calls - all resolution through Parser pipeline.
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        // 1. Select appropriate archetype (HIGHLANDER: SceneArchetypeType enum)
-        SceneArchetypeType archetypeType = SelectArchetype(sequence, context);
+        // 1. Get archetype CATEGORY (categorical property, not specific archetype)
+        // Parser will resolve to specific archetype via Catalogue
+        string archetypeCategory = GetArchetypeCategory(sequence);
 
-        // 2. Calculate tier from sequence
+        // 2. Get excluded archetypes for anti-repetition (categorical property)
+        List<string> excludedArchetypes = GetExcludedArchetypes(context);
+
+        // 3. Calculate tier from sequence
         int tier = CalculateTier(sequence);
 
-        // 3. Build SceneTemplateDTO
-        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeType, tier, context);
+        // 4. Build SceneTemplateDTO with categorical properties
+        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeCategory, excludedArchetypes, tier, context);
 
         // 4. Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
@@ -73,25 +81,19 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Select archetype for given sequence based on context
+    /// Get archetype category for given sequence based on rotation cycle.
+    /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
     /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
-    /// Anti-repetition: Avoid archetypes used in last 5 scenes
-    /// Tier-appropriate: Match archetype complexity to tier
     /// Works from ANY sequence (flexible number of authored scenes)
     ///
-    /// DYNAMIC CATALOG QUERY (HIGHLANDER - single source of truth):
-    /// Queries SceneArchetypeCatalog.GetArchetypesForCategory() at runtime
-    /// Prevents drift between catalog implementation and procedural selection
-    /// When new archetypes added to catalog, automatically available for selection
+    /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
+    /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
     /// </summary>
-    private SceneArchetypeType SelectArchetype(int sequence, AStoryContext context)
+    private string GetArchetypeCategory(int sequence)
     {
-        // Determine archetype category by rotation cycle
-        // Generic: works regardless of where procedural generation starts
-        // Sequence 1: Investigation (0), Sequence 2: Social (1), etc.
         int cyclePosition = (sequence - 1) % 4;
 
-        string categoryKey = cyclePosition switch
+        return cyclePosition switch
         {
             0 => "Investigation",
             1 => "Social",
@@ -99,39 +101,17 @@ public class ProceduralAStoryService
             3 => "Crisis",
             _ => "Investigation"
         };
+    }
 
-        // Query catalog for available archetypes (SINGLE SOURCE OF TRUTH)
-        // HIGHLANDER: ONE SceneArchetypeCatalog for ALL scene types
-        List<SceneArchetypeType> candidateArchetypes =
-            SceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
-
-        // FAIL-FAST: Validate catalog returned archetypes (prevents division by zero)
-        if (!candidateArchetypes.Any())
-        {
-            throw new InvalidOperationException(
-                $"Cannot select archetype: Catalog returned no archetypes for category '{categoryKey}'. " +
-                $"Sequence {sequence} maps to cycle position {cyclePosition}. " +
-                $"Check SceneArchetypeCatalog.GetArchetypesForCategory implementation.");
-        }
-
-        // Filter out recent archetypes (anti-repetition)
-        List<SceneArchetypeType> availableArchetypes = candidateArchetypes
-            .Where(a => !context.IsArchetypeRecent(a))
+    /// <summary>
+    /// Get excluded archetypes for anti-repetition (categorical properties).
+    /// Returns list of archetype NAMES - Parser will use these when resolving via Catalogue.
+    /// </summary>
+    private List<string> GetExcludedArchetypes(AStoryContext context)
+    {
+        return context.RecentArchetypes
+            .Select(a => a.ToString())
             .ToList();
-
-        // If all recent (edge case), use any from category
-        if (!availableArchetypes.Any())
-        {
-            availableArchetypes = candidateArchetypes;
-        }
-
-        // Select archetype using sequence-based rotation within category (deterministic but varied)
-        // Modulo ensures we cycle through category archetypes instead of always picking first
-        // Example: Investigation has 3 archetypes - Seq1→arch0, Seq5→arch1, Seq9→arch2, Seq13→arch0
-        int selectionIndex = sequence % availableArchetypes.Count;
-        SceneArchetypeType selectedArchetype = availableArchetypes[selectionIndex];
-
-        return selectedArchetype;
     }
 
     /// <summary>
@@ -152,10 +132,14 @@ public class ProceduralAStoryService
     /// Build SceneTemplateDTO for procedural A-story scene
     /// Uses categorical properties (no concrete entity IDs at generation time)
     /// PlacementFilter uses Generic relation for runtime resolution
+    ///
+    /// CATALOGUE PATTERN: Uses ArchetypeCategory + ExcludedArchetypes (categorical).
+    /// Parser will resolve to specific SceneArchetypeType via Catalogue at parse-time.
     /// </summary>
     private SceneTemplateDTO BuildSceneTemplateDTO(
         int sequence,
-        SceneArchetypeType archetypeType,
+        string archetypeCategory,
+        List<string> excludedArchetypes,
         int tier,
         AStoryContext context)
     {
@@ -172,7 +156,10 @@ public class ProceduralAStoryService
             Id = sceneId,
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
-            SceneArchetypeId = archetypeType.ToString(), // PascalCase enum name, parsed by SceneTemplateParser
+            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetypeId
+            // Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time
+            ArchetypeCategory = archetypeCategory,
+            ExcludedArchetypes = excludedArchetypes,
             LocationActivationFilter = placementFilter, // A-story activates when player enters matching location
             SpawnConditions = spawnConditions,
             Tier = tier,

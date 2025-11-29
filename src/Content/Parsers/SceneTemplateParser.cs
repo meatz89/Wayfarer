@@ -82,15 +82,35 @@ public class SceneTemplateParser
         // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetypeId (HIGHLANDER: ONE path)
         // Scene archetype defines BOTH structure (how many situations) AND content (which situation types)
         // NO special handling for Standalone vs Multi-situation - catalogue handles all variation
-        if (string.IsNullOrEmpty(dto.SceneArchetypeId))
-            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required 'sceneArchetypeId'. All scenes must reference a scene archetype.");
+        SceneArchetypeType sceneArchetypeType;
 
-        // Parse SceneArchetypeType enum with fail-fast validation
-        if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetypeId, true, out SceneArchetypeType sceneArchetypeType))
+        if (!string.IsNullOrEmpty(dto.SceneArchetypeId))
+        {
+            // EXPLICIT ARCHETYPE: Parse SceneArchetypeType enum with fail-fast validation
+            if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetypeId, true, out sceneArchetypeType))
+            {
+                throw new InvalidDataException(
+                    $"SceneTemplate '{dto.Id}' has invalid SceneArchetypeId: '{dto.SceneArchetypeId}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
+            }
+        }
+        else if (!string.IsNullOrEmpty(dto.ArchetypeCategory))
+        {
+            // CATEGORICAL ARCHETYPE: Resolve via Catalogue at PARSE TIME (CATALOGUE PATTERN)
+            // Used by procedural generation - ArchetypeCategory + ExcludedArchetypes → specific archetype
+            int sequence = dto.MainStorySequence ?? 1;
+            sceneArchetypeType = SceneArchetypeCatalog.ResolveFromCategory(
+                dto.ArchetypeCategory,
+                dto.ExcludedArchetypes,
+                sequence);
+
+            Console.WriteLine($"[SceneArchetypeGeneration] Resolved category '{dto.ArchetypeCategory}' → archetype '{sceneArchetypeType}'");
+        }
+        else
         {
             throw new InvalidDataException(
-                $"SceneTemplate '{dto.Id}' has invalid SceneArchetypeId: '{dto.SceneArchetypeId}'. " +
-                $"Valid values: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
+                $"SceneTemplate '{dto.Id}' missing required archetype. " +
+                $"Provide either 'sceneArchetypeId' (explicit) or 'archetypeCategory' (categorical resolution).");
         }
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{sceneArchetypeType}'");
