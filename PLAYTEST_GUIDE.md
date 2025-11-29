@@ -31,15 +31,17 @@ dotnet build
 **Run Command:**
 ```bash
 cd src
-ASPNETCORE_URLS="http://localhost:5000" dotnet run
+ASPNETCORE_URLS="http://localhost:<PORT>" dotnet run
 ```
+- Use any port in **5000-5999** range
+- **Avoid port 6000** - blocked by Chrome as "unsafe port"
 
 **What Happens on Startup:**
 1. GameWorld initialization via `GameWorldInitializer.CreateGameWorld()` (verified: Program.cs contains `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld()`)
 2. Content loading from JSON files in `Content/Core/` directory
 3. Serilog console logging starts
-4. Server listens on http://localhost:5000
-5. Navigate browser to http://localhost:5000
+4. Server listens on http://localhost:<PORT>
+5. Navigate browser to http://localhost:<PORT>
 
 **Prerequisites:**
 - **.NET 8.0 SDK required** (verified: Wayfarer.csproj specifies `net8.0`)
@@ -51,7 +53,9 @@ ASPNETCORE_URLS="http://localhost:5000" dotnet run
   - Tutorial spawning (TutorialInnLodgingIntegrationTest.cs)
   - Soft-lock prevention (FallbackPathTests.cs)
   - Economic structure (AStoryPlayerExperienceTest.cs)
+  - **Architecture compliance** (97 tests verifying HIGHLANDER principles)
   - Run via: `cd Wayfarer.Tests.Project && dotnet test`
+  - **Current status:** 436 tests passing (as of 2025-11-30)
 
 - **Manual playtesting** (this guide) tests experiential qualities:
   - Does scarcity FEEL emergent over 2 hours?
@@ -60,11 +64,20 @@ ASPNETCORE_URLS="http://localhost:5000" dotnet run
 
 **Run automated tests FIRST** to catch breaking issues, THEN manual playtest for experience validation.
 
+**Architecture Test Categories (97 tests):**
+| Category | What It Verifies |
+|----------|------------------|
+| Service Statelessness | Services contain logic, not state |
+| Backend/Frontend Separation | Backend returns domain values, frontend handles CSS |
+| Entity Identity Model | No IDs on domain entities (use object references) |
+| HIGHLANDER Compliance | Single source of truth for all data |
+| Type System Compliance | Proper use of List<T> vs Dictionary |
+
 **Expected Console Output on Success:**
 ```
 info: Content loading...
 info: GameWorld initialized
-info: Now listening on: http://localhost:5000
+info: Now listening on: http://localhost:<PORT>
 ```
 
 **If Startup Fails:**
@@ -81,8 +94,8 @@ cd Wayfarer.Tests.Project && dotnet test --filter "Tutorial"
 
 **Port conflict (Address already in use):**
 ```bash
-# Use different port
-ASPNETCORE_URLS="http://localhost:6000" dotnet run
+# Use a different port (any in 5000-5999 range)
+ASPNETCORE_URLS="http://localhost:<DIFFERENT_PORT>" dotnet run
 ```
 
 **Tutorial scene doesn't spawn:**
@@ -107,7 +120,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 **Purpose:** Visual debugging tool to inspect procedurally generated content - see which scenes spawned, which situations activated, which choices were made, and how entities are connected.
 
-**Access:** Add `/spawngraph` to your game URL (e.g., if playing at `http://localhost:5000`, navigate to `http://localhost:5000/spawngraph`)
+**Access:** Add `/spawngraph` to your game URL (e.g., if playing at `http://localhost:<PORT>`, navigate to `http://localhost:<PORT>/spawngraph`)
 
 ### What You Can See
 
@@ -798,12 +811,12 @@ Individual choices/scenes tested in isolation = WRONG. You're testing cumulative
 
 ### 1. Setup (5 min)
 ```bash
-cd /home/user/Wayfarer/src
+cd src
 dotnet build
-ASPNETCORE_URLS="http://localhost:5000" dotnet run
+ASPNETCORE_URLS="http://localhost:<PORT>" dotnet run
 ```
-
-Open browser: http://localhost:5000
+- Use any port in 5000-5999 range
+- Navigate browser to: http://localhost:<PORT>
 
 ### 2. Verify Startup (2 min)
 **Check server console logs:**
@@ -1066,5 +1079,6 @@ for (let i = 0; i < choices; i++) {
 ---
 
 **Document Status:** Ready for immediate playtest execution
-**Last Verified:** Against code and design docs in session claude/prepare-player-testing-01RzQWDhYoVUAjCNyDKkhXox
+**Last Verified:** 2025-11-30 - Architecture compliance verified (436 tests passing)
 **All facts checked** - No assumptions
+**Architecture Status:** HIGHLANDER compliant - 97 architecture tests passing

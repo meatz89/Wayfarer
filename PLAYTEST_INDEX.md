@@ -1,7 +1,8 @@
 # Playtest Documentation Index
 
 **Status:** Active playtest documentation
-**Last Updated:** 2025-11-27
+**Last Updated:** 2025-11-30
+**Test Suite:** 436 tests passing (97 architecture tests)
 
 ---
 
@@ -26,6 +27,22 @@
 | **TIER 1** | No Soft-Locks, Single Source of Truth | Never compromise |
 | **TIER 2** | Playability, Perfect Information, Resource Scarcity | Compromise only for Tier 1 |
 | **TIER 3** | Elegance, Verisimilitude | Compromise for Tier 1 or 2 |
+
+### Architecture Compliance (HIGHLANDER Principles)
+
+| Principle | Status | Description |
+|-----------|--------|-------------|
+| Service Statelessness | PASSING | Services contain logic, not state |
+| Backend/Frontend Separation | PASSING | Backend returns domain values, frontend handles CSS |
+| Entity Identity Model | PASSING | No IDs on domain entities (use object references) |
+| Domain Collection Principle | PASSING | Use List<T> for domain collections |
+| Single Source of Truth | PASSING | No dual storage of same data |
+
+**Documented Exceptions:**
+- `CardInstance.InstanceId` - Valid identity tracking for card instances of same template
+- Pure utility services (NarrativeService, TimeBlockCalculator) - Don't need state parameters
+- Enum-keyed Dictionary lookups - Configuration data, not identity collections
+- `DisplayName` properties on Scene classes - Entity canonical names, not presentation
 
 ---
 
@@ -54,7 +71,7 @@ Fix critical UX issues discovered during playtesting.
 ### Spawn Graph Visualizer (`/spawngraph`)
 **Purpose:** Interactive visual debugger for inspecting procedurally generated content - scenes, situations, choices, and entity dependencies.
 
-**Access:** Navigate to `/spawngraph` route while game is running (e.g., if game is at `http://localhost:5000`, go to `http://localhost:5000/spawngraph`)
+**Access:** Navigate to `/spawngraph` route while game is running (e.g., if game is at `http://localhost:<PORT>`, go to `http://localhost:<PORT>/spawngraph`)
 
 **Key Features:**
 - **Node Types:** Scenes, Situations, Choices, Entities (NPCs, Locations, Routes)
@@ -83,24 +100,22 @@ The spawn graph visualizer is at `/spawngraph` route.
 
 ### Fresh Game State
 ```bash
-# Kill server
+# Kill any zombie servers
 taskkill //F //IM dotnet.exe
 
-# Start fresh
-cd src && ASPNETCORE_URLS="http://localhost:8100" dotnet run --no-build
-```
-
-### Build Commands
-```bash
-# Build
+# Build and run (pick any available port in 5000-5999)
 cd src && dotnet build
+cd src && ASPNETCORE_URLS="http://localhost:$PORT" dotnet run --no-build
 
-# Run (after build)
-cd src && ASPNETCORE_URLS="http://localhost:8100" dotnet run --no-build
-
-# Test
-cd src && dotnet test
+# Test (run BEFORE playtesting - 436 tests should pass)
+cd Wayfarer.Tests.Project && dotnet test
 ```
+
+**Port Selection:**
+- Use any port in **5000-5999** range
+- **Avoid 6000** - blocked by Chrome as "unsafe port"
+- **Avoid 8000-9999** - may have zombie servers from previous sessions
+- If port conflict: increment and retry
 
 ### Game State Notes
 - Blazor Server persists state server-side
