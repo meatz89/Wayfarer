@@ -38,12 +38,12 @@ public static class ItemParser
             }
         }
 
-        // Parse token generation modifiers - DTO has inline init, trust it
-        foreach (KeyValuePair<string, int> kvp in dto.TokenGenerationModifiers)
+        // Parse token generation bonuses - DTO has inline init, trust it
+        foreach (KeyValuePair<string, int> kvp in dto.TokenGenerationBonuses)
         {
             if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
             {
-                item.TokenGenerationModifiers[connectionType] = kvp.Value;
+                item.TokenGenerationBonuses[connectionType] = kvp.Value;
             }
         }
 

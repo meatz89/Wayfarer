@@ -237,11 +237,11 @@ public class TokenFacade
     }
 
     /// <summary>
-    /// Get all active token modifiers from equipment (basis points: 10000 = 1.0)
+    /// Get all active token bonuses from equipment (flat integer additions)
     /// </summary>
-    public Dictionary<ConnectionType, int> GetActiveModifiers()
+    public Dictionary<ConnectionType, int> GetActiveBonuses()
     {
-        return _tokenEffectProcessor.GetActiveModifiers();
+        return _tokenEffectProcessor.GetActiveBonuses();
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ public class TokenFacade
             TotalShadow = GetTotalTokensOfType(ConnectionType.Shadow),
             NPCsWithRelationships = GetNPCsWithTokens().Count,
             TotalDebts = GetAllDebts().Count,
-            ActiveModifiers = GetActiveModifiers()
+            ActiveBonuses = GetActiveBonuses()
         };
     }
 }
@@ -359,7 +359,7 @@ public class TokenSummary
     public int TotalShadow { get; set; }
     public int NPCsWithRelationships { get; set; }
     public int TotalDebts { get; set; }
-    public Dictionary<ConnectionType, int> ActiveModifiers { get; set; }
+    public Dictionary<ConnectionType, int> ActiveBonuses { get; set; }
 }
 
 public class DebtInfo

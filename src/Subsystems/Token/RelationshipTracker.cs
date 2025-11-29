@@ -275,21 +275,21 @@ public class RelationshipTracker
 
     private int CalculateDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
     {
-        // Different token types decay at different rates (basis points: 10000 = 100%)
-        int decayRateBasisPoints = type switch
+        // Different token types decay at different base rates (flat integers)
+        int baseDecayPerWeek = type switch
         {
-            ConnectionType.Trust => 200,      // Trust decays slowly (2%)
-            ConnectionType.Diplomacy => 100,  // Diplomacy is most stable (1%)
-            ConnectionType.Status => 400,     // Status decays faster (4%)
-            ConnectionType.Shadow => 500,     // Shadow decays fastest (5%)
-            _ => 200
+            ConnectionType.Trust => 1,      // Trust decays slowly (1 token per week)
+            ConnectionType.Diplomacy => 1,  // Diplomacy is most stable (1 token per week)
+            ConnectionType.Status => 2,     // Status decays faster (2 tokens per week)
+            ConnectionType.Shadow => 2,     // Shadow decays fastest (2 tokens per week)
+            _ => 1
         };
 
-        // Decay accelerates with time (basis points: 10000 = 1.0)
+        // Decay accelerates with time (additive escalation)
         int weeksWithoutContact = daysSinceInteraction / 7;
-        int decayMultiplierBasisPoints = 10000 + (weeksWithoutContact * 1000);
+        int additionalDecay = weeksWithoutContact - 1; // First week uses base rate, subsequent weeks add +1 each
 
-        int decay = currentTokens * decayRateBasisPoints / 10000 * decayMultiplierBasisPoints / 10000;
+        int decay = baseDecayPerWeek + Math.Max(0, additionalDecay);
 
         // Never decay more than 1 token per week for low token counts
         if (currentTokens <= 3)

@@ -149,12 +149,12 @@ public class TravelEventEntry
 
 /// <summary>
 /// Helper class for stepped threshold entries (replaces Dictionary<int, float>)
-/// Stores threshold levels with values in basis points for precise integer representation
+/// Stores threshold levels with flat integer values
 /// </summary>
 public class SteppedThreshold
 {
     public int Level { get; set; }
-    public int ThresholdBasisPoints { get; set; }
+    public int Value { get; set; }
 }
 
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs
