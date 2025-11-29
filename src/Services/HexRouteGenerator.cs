@@ -204,6 +204,7 @@ public class HexRouteGenerator
     /// Assign MandatorySceneTemplate to Encounter segments at route generation time
     /// Templates are filtered by StoryCategory.Service (transactional encounters)
     /// Actual Scene spawning happens in TravelManager when player reaches segment
+    /// DDR-007: Template selection is deterministic based on route and segment properties
     /// </summary>
     private void AssignMandatorySceneTemplates(RouteOption route, int dangerRating)
     {
@@ -224,12 +225,12 @@ public class HexRouteGenerator
             List<SceneTemplate> matching = FilterTemplatesByDanger(eligibleTemplates, dangerRating);
             if (matching.Count > 0)
             {
-                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(matching);
+                segment.MandatorySceneTemplate = SelectDeterministicTemplate(matching, route.Name, segment.SegmentNumber);
             }
             else if (eligibleTemplates.Count > 0)
             {
                 // Fallback: use any eligible template if no tier match
-                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(eligibleTemplates);
+                segment.MandatorySceneTemplate = SelectDeterministicTemplate(eligibleTemplates, route.Name, segment.SegmentNumber);
             }
         }
     }
@@ -256,18 +257,23 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Select random template with tier-based weighting (lower tiers more common)
+    /// Select template deterministically based on route and segment properties
+    /// DDR-007: Deterministic selection ensures same route/segment always gets same template
+    /// Prefers lower-tier templates (safer encounters) via weighted selection
     /// </summary>
-    private SceneTemplate SelectWeightedRandomTemplate(List<SceneTemplate> templates)
+    private SceneTemplate SelectDeterministicTemplate(List<SceneTemplate> templates, string routeName, int segmentNumber)
     {
         if (templates.Count == 1)
             return templates[0];
+
+        // Sort templates by tier (lower tiers first for consistent ordering)
+        List<SceneTemplate> sortedTemplates = templates.OrderBy(t => t.Tier).ThenBy(t => t.Id).ToList();
 
         // Weight calculation: Tier 0 = 8x, Tier 1 = 4x, Tier 2 = 2x, Tier 3+ = 1x
         int totalWeight = 0;
         List<int> weights = new List<int>();
 
-        foreach (SceneTemplate template in templates)
+        foreach (SceneTemplate template in sortedTemplates)
         {
             int weight = template.Tier switch
             {
@@ -280,20 +286,21 @@ public class HexRouteGenerator
             totalWeight += weight;
         }
 
-        // Random selection weighted by tier
-        Random random = new Random();
-        int roll = random.Next(totalWeight);
+        // DDR-007: Deterministic selection based on route name and segment number
+        // Hash combines route and segment to ensure consistent results
+        int seed = (routeName.GetHashCode() ^ segmentNumber.GetHashCode()) & 0x7FFFFFFF;
+        int deterministicValue = seed % totalWeight;
         int cumulative = 0;
 
-        for (int i = 0; i < templates.Count; i++)
+        for (int i = 0; i < sortedTemplates.Count; i++)
         {
             cumulative += weights[i];
-            if (roll < cumulative)
-                return templates[i];
+            if (deterministicValue < cumulative)
+                return sortedTemplates[i];
         }
 
         // Fallback (shouldn't reach here)
-        return templates[0];
+        return sortedTemplates[0];
     }
 
     // NOTE: SpawnActiveSceneForRoute() and InstantiateSituation() DELETED

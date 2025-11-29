@@ -87,7 +87,7 @@
       "name": "Wealth Seeker",
       "description": "Accumulated significant resources through cunning",
       "grantConditions": {
-        "coinsEarned": 1000
+        "coinsEarned": 80
       }
     },
     {
@@ -96,7 +96,7 @@
       "name": "Merchant Prince",
       "description": "Mastered the art of commerce and trade",
       "grantConditions": {
-        "coinsEarned": 5000
+        "coinsEarned": 200
       }
     },
     {

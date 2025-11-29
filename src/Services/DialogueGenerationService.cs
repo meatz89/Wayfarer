@@ -1,11 +1,11 @@
 /// <summary>
 /// Generates dialogue from categorical templates - NO hardcoded text
 /// All narrative must come from templates and categorical properties
+/// DDR-007: All dialogue selection is deterministic based on game state
 /// </summary>
 public class DialogueGenerationService
 {
     private DialogueTemplates _templates;
-    private readonly Random _random = new Random();
 
     public DialogueGenerationService(GameWorld gameWorld)
     {
@@ -19,6 +19,7 @@ public class DialogueGenerationService
     /// <summary>
     /// Generate NPC dialogue from connection state and context
     /// Returns categorical template, NOT English text
+    /// DDR-007: Deterministic selection based on turn number (predictable)
     /// </summary>
     public string GenerateNPCDialogue(
         ConnectionState state,
@@ -37,13 +38,17 @@ public class DialogueGenerationService
         if (stateTemplate.Personality.ContainsKey(personality.ToString()))
         {
             List<string> options = stateTemplate.Personality[personality.ToString()];
-            return options[_random.Next(options.Count)];
+            // DDR-007: Deterministic selection based on turn number
+            int deterministicIndex = turnNumber % options.Count;
+            return options[deterministicIndex];
         }
 
         // Fall back to default for state
         if (stateTemplate.Default.Any())
         {
-            return stateTemplate.Default[_random.Next(stateTemplate.Default.Count)];
+            // DDR-007: Deterministic selection based on turn number
+            int deterministicIndex = turnNumber % stateTemplate.Default.Count;
+            return stateTemplate.Default[deterministicIndex];
         }
 
         return "emotional:neutral query:general";
@@ -52,6 +57,7 @@ public class DialogueGenerationService
     /// <summary>
     /// Generate card dialogue from template type
     /// Returns categorical template, NOT English text
+    /// DDR-007: Deterministic selection based on template ID hash
     /// </summary>
     public string GenerateCardDialogue(string templateId, bool isPlayer)
     {
@@ -64,7 +70,9 @@ public class DialogueGenerationService
 
             if (options.Any())
             {
-                return options[_random.Next(options.Count)];
+                // DDR-007: Deterministic selection based on template ID
+                int deterministicIndex = Math.Abs(templateId.GetHashCode()) % options.Count;
+                return options[deterministicIndex];
             }
         }
 
@@ -74,6 +82,7 @@ public class DialogueGenerationService
     /// <summary>
     /// Generate NPC description from profession and state
     /// Returns categorical template, NOT English text
+    /// DDR-007: Deterministic selection based on NPC name hash
     /// </summary>
     public string GenerateNPCDescription(NPC npc, ConnectionState state)
     {
@@ -86,7 +95,9 @@ public class DialogueGenerationService
             List<string> profOptions = _templates.NpcDescriptions.ProfessionBase[profKey];
             if (profOptions.Any())
             {
-                elements.Add(profOptions[_random.Next(profOptions.Count)]);
+                // DDR-007: Deterministic selection based on NPC name
+                int deterministicIndex = Math.Abs(npc.Name.GetHashCode()) % profOptions.Count;
+                elements.Add(profOptions[deterministicIndex]);
             }
         }
 

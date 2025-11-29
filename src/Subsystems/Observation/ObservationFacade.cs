@@ -10,7 +10,6 @@ public class ObservationFacade
     private readonly MessageSystem _messageSystem;
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
-    private readonly Random _random;
 
     public ObservationFacade(
         GameWorld gameWorld,
@@ -22,7 +21,6 @@ public class ObservationFacade
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-        _random = new Random();
     }
 
     /// <summary>
@@ -206,10 +204,13 @@ public class ObservationFacade
         }
 
         // Check for item finding (using object reference)
+        // DDR-007: Deterministic item finding based on point properties
         if (point.FoundItem != null && point.FindItemChance > 0)
         {
-            int roll = _random.Next(1, 101);
-            if (roll <= point.FindItemChance)
+            // Deterministic outcome based on examination point title hash
+            // Same point always produces same result (predictable)
+            int deterministicValue = Math.Abs(point.Title.GetHashCode()) % 100 + 1;
+            if (deterministicValue <= point.FindItemChance)
             {
                 result.ItemFound = point.FoundItem;
                 _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info);

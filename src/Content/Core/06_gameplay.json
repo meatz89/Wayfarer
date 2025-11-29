@@ -11,12 +11,12 @@
     "playerConfig": {
       "level": 1,
       "currentXP": 0,
-      "xpToNextLevel": 100,
+      "xpToNextLevel": 20,
       "coins": 8,
       "health": 4,
       "maxHealth": 6,
       "hunger": 0,
-      "maxHunger": 100,
+      "maxHunger": 10,
       "staminaPoints": 3,
       "maxStamina": 6,
       "focus": 6,
@@ -84,29 +84,25 @@
 	  "Trusting": 5
 	},
     "progression": {
-      "xpThresholds": [10, 25, 50, 100],
+      "xpThresholds": [5, 10, 15, 20],
       "levelBonuses": [
         {
           "level": 2,
-          "successBonus": 5,
-          "description": "+5% success rate to all cards of this stat"
+          "description": "Unlocks additional stat-specific cards"
         },
         {
           "level": 3,
-          "successBonus": 10,
           "effect": "gains_thought_persistence",
-          "description": "+10% success rate and cards gain Thought persistence"
+          "description": "Cards gain Thought persistence"
         },
         {
           "level": 4,
-          "successBonus": 15,
-          "description": "+15% success rate to all cards of this stat"
+          "description": "Unlocks advanced stat-specific abilities"
         },
         {
           "level": 5,
-          "successBonus": 20,
           "effect": "ignores_failure_listen",
-          "description": "+20% success rate and cards never force LISTEN on failure"
+          "description": "Cards never force LISTEN on failure"
         }
       ]
     },

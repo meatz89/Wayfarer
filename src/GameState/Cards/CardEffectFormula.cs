@@ -7,9 +7,6 @@ public enum EffectFormulaType
     /// <summary>Type A: Fixed value - Simple, predictable (Foundation tier)</summary>
     Fixed,
 
-    /// <summary>Type B: Linear scaling - Effect = base × state_value</summary>
-    Scaling,
-
     /// <summary>Type C: State conditional - Effect depends on threshold</summary>
     Conditional,
 
@@ -37,11 +34,6 @@ public class CardEffectFormula
 
     // Base value for Fixed/Compound types
     public int? BaseValue { get; set; }
-
-    // Scaling properties for Type B
-    public ScalingSourceType? ScalingSource { get; set; }
-    public decimal ScalingMultiplier { get; set; } = 1.0m;
-    public int? ScalingMax { get; set; } // Cap for scaling effects
 
     // Conditional properties for Type C
     public SocialChallengeResourceType? ConditionResource { get; set; }
@@ -73,9 +65,6 @@ public class CardEffectFormula
                     throw new InvalidOperationException("Fixed effect formula missing required BaseValue");
                 return BaseValue.Value;
 
-            case EffectFormulaType.Scaling:
-                return CalculateScaling(session);
-
             case EffectFormulaType.Conditional:
                 return CalculateConditional(session);
 
@@ -98,39 +87,6 @@ public class CardEffectFormula
             default:
                 return 0;
         }
-    }
-
-    private int CalculateScaling(SocialSession session)
-    {
-        if (!ScalingSource.HasValue) return 0;
-
-        int sourceValue = ScalingSource.Value switch
-        {
-            ScalingSourceType.Doubt => session.CurrentDoubt,
-            ScalingSourceType.PositiveCadence => Math.Max(0, session.Cadence),
-            ScalingSourceType.NegativeCadence => Math.Abs(Math.Min(0, session.Cadence)),
-            ScalingSourceType.Momentum => session.CurrentMomentum,
-            ScalingSourceType.Initiative => session.CurrentInitiative,
-            ScalingSourceType.MindCards => session.Deck.HandSize,
-            ScalingSourceType.SpokenCards => session.Deck.SpokenPileCount,
-            ScalingSourceType.DeckCards => session.Deck.RemainingDeckCards,
-            ScalingSourceType.TotalStatements => session.GetTotalStatements(),
-            ScalingSourceType.InsightStatements => session.GetStatementCount(PlayerStatType.Insight),
-            ScalingSourceType.RapportStatements => session.GetStatementCount(PlayerStatType.Rapport),
-            ScalingSourceType.AuthorityStatements => session.GetStatementCount(PlayerStatType.Authority),
-            ScalingSourceType.DiplomacyStatements => session.GetStatementCount(PlayerStatType.Diplomacy),
-            ScalingSourceType.CunningStatements => session.GetStatementCount(PlayerStatType.Cunning),
-            _ => 0
-        };
-
-        int scaled = (int)(sourceValue * ScalingMultiplier);
-
-        if (ScalingMax.HasValue)
-        {
-            scaled = Math.Min(scaled, ScalingMax.Value);
-        }
-
-        return scaled;
     }
 
     private int CalculateConditional(SocialSession session)
@@ -219,7 +175,6 @@ public class CardEffectFormula
         return FormulaType switch
         {
             EffectFormulaType.Fixed => $"{TargetResource} {(BaseValue > 0 ? "+" : "")}{BaseValue}",
-            EffectFormulaType.Scaling => $"{TargetResource} +{ScalingMultiplier}×{ScalingSource}" + (ScalingMax.HasValue ? $" (max {ScalingMax})" : ""),
             EffectFormulaType.Conditional => $"{TargetResource} if {ConditionResource}≥{ConditionThreshold}: {ConditionMetValue}",
             EffectFormulaType.Trading => $"Consume {ConsumeAmount} {ConsumeResource}: {TargetResource} +{TradeRatio}",
             EffectFormulaType.Setting => $"{TargetResource} → {SetValue}",

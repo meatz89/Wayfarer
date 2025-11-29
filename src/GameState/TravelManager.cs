@@ -5,7 +5,6 @@ public class TravelManager
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstantiator _sceneInstantiator;
-    private readonly Random _random = new Random();
 
     public TravelManager(GameWorld gameWorld, TimeManager timeManager, MessageSystem messageSystem, SceneInstantiator sceneInstantiator)
     {
@@ -219,6 +218,7 @@ public class TravelManager
 
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
+    /// DDR-007: Event selection is deterministic based on segment properties
     /// </summary>
     private string GetOrDrawEventForSegment(RouteSegment segment, TravelSession session, List<string> eventIds)
     {
@@ -229,8 +229,10 @@ public class TravelManager
             return session.SegmentEventDraws[key];
         }
 
-        // Draw random event from collection
-        string eventId = eventIds[_random.Next(eventIds.Count)];
+        // DDR-007: Deterministic event selection based on segment number
+        // Same segment number always produces same event (predictable)
+        int deterministicIndex = segment.SegmentNumber % eventIds.Count;
+        string eventId = eventIds[deterministicIndex];
         session.SegmentEventDraws[key] = eventId;
 
         return eventId;

@@ -3,14 +3,14 @@
 /// Works WITH MessageSystem - NarrativeService generates the narrative content,
 /// MessageSystem handles the display. This separation allows for rich, varied
 /// narrative while keeping MessageSystem focused on UI toast management.
-/// 
+///
 /// Responsibility: Generate narrative text with variety and context
 /// NOT Responsible: Display, timing, or UI concerns (that's MessageSystem's job)
+/// DDR-007: All narrative selection is deterministic based on game state
 /// </summary>
 public class NarrativeService
 {
     private readonly NPCRepository _npcRepository;
-    private readonly Random _random = new Random();
 
     public NarrativeService(NPCRepository npcRepository)
     {
@@ -41,6 +41,7 @@ public class NarrativeService
     /// <summary>
     /// Generate narrative for morning letter generation
     /// Returns: MorningNarrativeResult
+    /// DDR-007: Deterministic selection based on letters generated count
     /// </summary>
     public MorningNarrativeResult GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
     {
@@ -53,7 +54,9 @@ public class NarrativeService
             "Morning mist clears to show new letters have arrived."
         };
 
-        string morning = morningNarratives[_random.Next(morningNarratives.Length)];
+        // DDR-007: Deterministic selection based on letters count (predictable variety)
+        int narrativeIndex = lettersGenerated % morningNarratives.Length;
+        string morning = morningNarratives[narrativeIndex];
         string letterCount;
         string severity = "info";
 
@@ -186,6 +189,7 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for token spending (queue manipulation)
+    /// DDR-007: Deterministic selection based on amount spent
     /// </summary>
     public string GenerateTokenSpendingNarrative(ConnectionType type, int amount, string action)
     {
@@ -210,7 +214,9 @@ public class NarrativeService
 
         if (spendingNarratives.TryGetValue(action.ToLower(), out string[]? narratives))
         {
-            return narratives[_random.Next(narratives.Length)];
+            // DDR-007: Deterministic selection based on amount
+            int narrativeIndex = amount % narratives.Length;
+            return narratives[narrativeIndex];
         }
 
         return $"You spend {amount} {type} tokens.";
@@ -218,6 +224,7 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for accepting a new standing obligation
+    /// DDR-007: Deterministic selection based on obligation name hash
     /// </summary>
     public string GenerateObligationAcceptanceNarrative(StandingObligation obligation)
     {
@@ -241,7 +248,9 @@ public class NarrativeService
             if (obligation.Name.Contains(key, StringComparison.OrdinalIgnoreCase))
             {
                 string[] narratives = acceptanceNarratives[key];
-                return narratives[_random.Next(narratives.Length)];
+                // DDR-007: Deterministic selection based on obligation name
+                int narrativeIndex = Math.Abs(obligation.Name.GetHashCode()) % narratives.Length;
+                return narratives[narrativeIndex];
             }
         }
 
@@ -266,6 +275,7 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for removing an obligation
+    /// DDR-007: Deterministic selection based on obligation name hash
     /// </summary>
     public string GenerateObligationRemovalNarrative(StandingObligation obligation, bool isVoluntary)
     {
@@ -276,7 +286,9 @@ public class NarrativeService
                 $"The {obligation.Name} contract burns in the fire. Your former associates will not forget this betrayal.",
                 $"With a heavy heart, you abandon {obligation.Name}. Trust, once broken, is hard to rebuild."
             };
-            return breakingNarratives[_random.Next(breakingNarratives.Length)];
+            // DDR-007: Deterministic selection based on obligation name
+            int narrativeIndex = Math.Abs(obligation.Name.GetHashCode()) % breakingNarratives.Length;
+            return breakingNarratives[narrativeIndex];
         }
         else
         {
@@ -286,6 +298,7 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for breaking obligation penalties
+    /// DDR-007: Deterministic selection based on token loss amount
     /// </summary>
     public string GenerateObligationBreakingNarrative(StandingObligation obligation, int tokenLoss)
     {
@@ -296,6 +309,8 @@ public class NarrativeService
             $"\"We had a deal!\" The fury in their eyes matches the {tokenLoss} {obligation.RelatedTokenType} tokens you've lost."
         };
 
-        return penaltyNarratives[_random.Next(penaltyNarratives.Length)];
+        // DDR-007: Deterministic selection based on token loss
+        int narrativeIndex = tokenLoss % penaltyNarratives.Length;
+        return penaltyNarratives[narrativeIndex];
     }
 }

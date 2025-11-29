@@ -48,6 +48,8 @@ flowchart LR
 - Single formula change rebalances all affected content
 - Zero runtime overhead (translation complete at startup)
 
+Catalogues implement DDR-007's Absolute Modifiers principle: translations always use fixed additions and subtractions, never multipliers.
+
 **Forbidden:** Runtime catalogue lookups, string-based property matching.
 
 ---
