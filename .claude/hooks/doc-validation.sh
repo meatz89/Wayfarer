@@ -1,5 +1,5 @@
 #!/bin/bash
-# PostToolUse Hook: Validate arc42 and gdd document structure after edits
+# PostToolUse Hook: Remind about document structure after arc42/gdd edits
 # Receives: CLAUDE_TOOL_INPUT containing file path
 
 # Extract file path from tool input (JSON format)
@@ -8,22 +8,10 @@ FILE_PATH=$(echo "$CLAUDE_TOOL_INPUT" | grep -oP '"file_path"\s*:\s*"\K[^"]+' 2>
 # Check if arc42 document
 if echo "$FILE_PATH" | grep -q 'arc42/.*\.md'; then
     cat << 'EOF'
-ARC42 DOCUMENT VALIDATION
+ARC42 EDIT: Review the content you just wrote.
 
-Verify this arc42 document follows the template standard:
-
-1. STRUCTURE: Each section uses pattern/principle tables, not prose paragraphs
-2. CONTENT: Describes WHAT and WHY, never HOW (no implementation details)
-3. FORMAT: Uses "**Consequences:**" and "**Forbidden:**" sections
-4. BREVITY: "Dare to leave gaps" - only document what matters
-5. ANTI-PATTERNS:
-   - Code blocks (C#, JSON) - forbidden
-   - Concrete numbers (50 coins, 1.1x) - forbidden
-   - File paths (src/*.cs) - forbidden
-   - Enum value lists - forbidden
-   - Redundant sections duplicating other documents
-
-Arc42 is a structured cabinet, not a form to fill. Remove irrelevant sections.
+Arc42 describes WHAT and WHY, never HOW. "Dare to leave gaps."
+Pre-commit hook will catch violations - no need to scan.
 EOF
     exit 0
 fi
@@ -36,24 +24,13 @@ if echo "$FILE_PATH" | grep -q 'gdd/.*\.md'; then
     fi
 
     cat << 'EOF'
-GDD DOCUMENT VALIDATION
+GDD EDIT: Review the content you just wrote.
 
-Verify this game design document follows the project standard:
-
-1. STRUCTURE: Uses "Why" and "How it manifests" pattern for pillars
-2. CONTENT: Design intent and player experience, not implementation
-3. FORMAT: Conceptual tables, not code examples
-4. PILLARS: Every feature traces back to a design pillar
-5. ANTI-PATTERNS:
-   - Code blocks - forbidden (except BASELINE_ECONOMY)
-   - Implementation details - belong in arc42 or code
-   - Specific file references - forbidden
-   - JSON structures - forbidden
-
-GDD describes the GAME EXPERIENCE. Technical details belong elsewhere.
+GDD describes GAME EXPERIENCE, not implementation.
+Pre-commit hook will catch violations - no need to scan.
 EOF
     exit 0
 fi
 
-# Not a documentation file - no validation needed
+# Not a documentation file - no output needed
 exit 0

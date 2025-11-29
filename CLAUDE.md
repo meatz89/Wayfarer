@@ -400,6 +400,13 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 **Philosophy:** Hooks remind, documentation governs. Hooks point to CLAUDE.md - they don't duplicate it.
 
+**Division of Labor:**
+- **Pre-commit hooks + CI**: Enforce compliance (scan for violations)
+- **Claude Code hooks**: Remind about documentation and intent
+- **Your job**: Understand principles through READING, not scanning
+
+**DO NOT** scan the codebase for violations - pre-commit handles that. Use agents to gather context from documentation, not grep searches.
+
 ---
 
 # DOCUMENTATION STANDARDS

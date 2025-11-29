@@ -4,7 +4,10 @@
 cat << 'EOF'
 WAYFARER SESSION START
 
-Read CLAUDE.md first. It contains all principles.
-Use agents to gather context from arc42/ and gdd/ documentation.
-Achieve 100% certainty before acting.
+Before any task:
+1. Read CLAUDE.md - it contains all principles
+2. Use agents (Task tool) to gather context from arc42/ and gdd/ folders
+3. Achieve certainty through documentation, not codebase scans
+
+Pre-commit hooks and CI enforce compliance. Your job is understanding intent.
 EOF
