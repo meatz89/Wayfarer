@@ -71,11 +71,22 @@ public class KnownRouteEntry
 }
 
 /// <summary>
-/// Helper class for familiarity entries (replaces Dictionary<string, int>)
+/// Helper class for route familiarity entries (replaces Dictionary<string, int>)
+/// HIGHLANDER: Object reference, not string ID
 /// </summary>
-public class FamiliarityEntry
+public class RouteFamiliarityEntry
 {
-    public string EntityId { get; set; }
+    public RouteOption Route { get; set; }
+    public int Level { get; set; }
+}
+
+/// <summary>
+/// Helper class for location familiarity entries (replaces Dictionary<string, int>)
+/// HIGHLANDER: Object reference, not string ID
+/// </summary>
+public class LocationFamiliarityEntry
+{
+    public Location Location { get; set; }
     public int Level { get; set; }
 }
 
@@ -134,6 +145,16 @@ public class TravelEventEntry
 {
     // ADR-007: EventId DELETED - use TravelEvent.Id instead (object has Id property)
     public TravelEventDTO TravelEvent { get; set; }
+}
+
+/// <summary>
+/// Helper class for stepped threshold entries (replaces Dictionary<int, float>)
+/// Stores threshold levels with flat integer values
+/// </summary>
+public class SteppedThreshold
+{
+    public int Level { get; set; }
+    public int Value { get; set; }
 }
 
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs

@@ -91,12 +91,12 @@ public class Player
     // No ID lookups - objects stored directly
 
     // Route Familiarity System (0-5 scale per route)
-    // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
-    public List<FamiliarityEntry> RouteFamiliarity { get; set; } = new List<FamiliarityEntry>();
+    // HIGHLANDER: Object reference to RouteOption, not string ID
+    public List<RouteFamiliarityEntry> RouteFamiliarity { get; set; } = new List<RouteFamiliarityEntry>();
 
     // Location Familiarity System (Work Packet 1)
-    // ID is Location ID (spot like "courtyard", "mill_entrance"), level is familiarity level (0-3)
-    public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
+    // HIGHLANDER: Object reference to Location, not string ID
+    public List<LocationFamiliarityEntry> LocationFamiliarity { get; set; } = new List<LocationFamiliarityEntry>();
 
     // ============================================
     // INTERACTION HISTORY (Procedural Content Generation - LeastRecent Selection Strategy)
@@ -232,30 +232,30 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
-    /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// HIGHLANDER: Uses object equality, not string comparison
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public int GetRouteFamiliarity(RouteOption route)
     {
-        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
+        RouteFamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.Route == route);
         return entry != null ? entry.Level : 0;
     }
 
     /// <summary>
     /// Set route familiarity to a specific value (max 5)
-    /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// HIGHLANDER: Uses object equality, not string comparison
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void SetRouteFamiliarity(RouteOption route, int level)
     {
-        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
+        RouteFamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.Route == route);
         if (existing != null)
         {
             existing.Level = level;
         }
         else
         {
-            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = route.Name, Level = level });
+            RouteFamiliarity.Add(new RouteFamiliarityEntry { Route = route, Level = level });
         }
     }
 
@@ -282,31 +282,31 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a Location (0-3 scale)
-    /// HIGHLANDER: Accept Location object, not string ID
+    /// HIGHLANDER: Uses object equality, not string comparison
     /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public int GetLocationFamiliarity(Location location)
     {
-        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
+        LocationFamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.Location == location);
         return entry != null ? entry.Level : 0;
     }
 
     /// <summary>
     /// Set Location familiarity to a specific value (max 3)
-    /// HIGHLANDER: Accept Location object, not string ID
+    /// HIGHLANDER: Uses object equality, not string comparison
     /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public void SetLocationFamiliarity(Location location, int value)
     {
         int clampedValue = Math.Min(3, Math.Max(0, value));
-        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
+        LocationFamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.Location == location);
         if (existing != null)
         {
             existing.Level = clampedValue;
         }
         else
         {
-            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = location.Name, Level = clampedValue });
+            LocationFamiliarity.Add(new LocationFamiliarityEntry { Location = location, Level = clampedValue });
         }
     }
 

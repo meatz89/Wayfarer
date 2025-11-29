@@ -1159,12 +1159,13 @@ public class GameFacade
 
         // EMERGENCY CHECKING: Check for active emergencies at sync points
         // Emergencies interrupt normal gameplay and demand immediate response
-        EmergencySituation activeEmergency = await CheckForActiveEmergency();
+        // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
+        ActiveEmergencyState activeEmergency = CheckForActiveEmergency();
         if (activeEmergency != null)
         {
             _gameWorld.ActiveEmergency = activeEmergency;
             _messageSystem.AddSystemMessage(
-                $"⚠️ EMERGENCY: {activeEmergency.Name}",
+                $"⚠️ EMERGENCY: {activeEmergency.Template.Name}",
                 SystemMessageTypes.Warning);
         }
 
@@ -1510,34 +1511,38 @@ public class GameFacade
 
     /// <summary>
     /// Check for active emergencies (called at sync points)
+    /// HIGHLANDER: Returns ActiveEmergencyState with Template reference + mutable state.
     /// </summary>
-    public async Task<EmergencySituation> CheckForActiveEmergency()
+    public ActiveEmergencyState CheckForActiveEmergency()
     {
-        return await _emergencyFacade.CheckForActiveEmergency();
+        return _emergencyFacade.CheckForActiveEmergency();
     }
 
     /// <summary>
     /// Create context for emergency situation screen
+    /// HIGHLANDER: Accepts ActiveEmergencyState, accesses Template for immutable data.
     /// </summary>
-    public EmergencyContext CreateEmergencyContext(EmergencySituation emergency)
+    public EmergencyContext CreateEmergencyContext(ActiveEmergencyState emergencyState)
     {
-        return _emergencyFacade.CreateContext(emergency);
+        return _emergencyFacade.CreateContext(emergencyState);
     }
 
     /// <summary>
     /// Select a response to an emergency situation
+    /// HIGHLANDER: Accepts ActiveEmergencyState, mutates state not template.
     /// </summary>
-    public async Task<EmergencyResult> SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
+    public EmergencyResult SelectEmergencyResponse(ActiveEmergencyState emergencyState, EmergencyResponse response)
     {
-        return await _emergencyFacade.SelectResponse(emergency, response);
+        return _emergencyFacade.SelectResponse(emergencyState, response);
     }
 
     /// <summary>
     /// Ignore an emergency situation (accept consequences)
+    /// HIGHLANDER: Accepts ActiveEmergencyState, mutates state not template.
     /// </summary>
-    public async Task<EmergencyResult> IgnoreEmergency(EmergencySituation emergency)
+    public EmergencyResult IgnoreEmergency(ActiveEmergencyState emergencyState)
     {
-        return await _emergencyFacade.IgnoreEmergency(emergency);
+        return _emergencyFacade.IgnoreEmergency(emergencyState);
     }
 
     // ========== LOCATION QUERY METHODS ==========
@@ -1597,8 +1602,9 @@ public class GameFacade
 
     /// <summary>
     /// Get the currently active emergency (if any)
+    /// HIGHLANDER: Returns ActiveEmergencyState with Template reference + mutable state.
     /// </summary>
-    public EmergencySituation GetActiveEmergency()
+    public ActiveEmergencyState GetActiveEmergency()
     {
         return _gameWorld.ActiveEmergency;
     }

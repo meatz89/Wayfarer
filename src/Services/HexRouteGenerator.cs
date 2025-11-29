@@ -163,7 +163,7 @@ public class HexRouteGenerator
         Location destination,
         List<AxialCoordinates> hexPath,
         int dangerRating,
-        float pathCost,
+        int pathCost,
         TransportType transportType)
     {
         // Calculate time segments based on path length and terrain
@@ -204,6 +204,7 @@ public class HexRouteGenerator
     /// Assign MandatorySceneTemplate to Encounter segments at route generation time
     /// Templates are filtered by StoryCategory.Service (transactional encounters)
     /// Actual Scene spawning happens in TravelManager when player reaches segment
+    /// DDR-007: Template selection is deterministic based on route and segment properties
     /// </summary>
     private void AssignMandatorySceneTemplates(RouteOption route, int dangerRating)
     {
@@ -224,12 +225,12 @@ public class HexRouteGenerator
             List<SceneTemplate> matching = FilterTemplatesByDanger(eligibleTemplates, dangerRating);
             if (matching.Count > 0)
             {
-                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(matching);
+                segment.MandatorySceneTemplate = SelectDeterministicTemplate(matching, route.Name, segment.SegmentNumber);
             }
             else if (eligibleTemplates.Count > 0)
             {
                 // Fallback: use any eligible template if no tier match
-                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(eligibleTemplates);
+                segment.MandatorySceneTemplate = SelectDeterministicTemplate(eligibleTemplates, route.Name, segment.SegmentNumber);
             }
         }
     }
@@ -256,18 +257,23 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Select random template with tier-based weighting (lower tiers more common)
+    /// Select template deterministically based on route and segment properties
+    /// DDR-007: Deterministic selection ensures same route/segment always gets same template
+    /// Prefers lower-tier templates (safer encounters) via weighted selection
     /// </summary>
-    private SceneTemplate SelectWeightedRandomTemplate(List<SceneTemplate> templates)
+    private SceneTemplate SelectDeterministicTemplate(List<SceneTemplate> templates, string routeName, int segmentNumber)
     {
         if (templates.Count == 1)
             return templates[0];
+
+        // Sort templates by tier (lower tiers first for consistent ordering)
+        List<SceneTemplate> sortedTemplates = templates.OrderBy(t => t.Tier).ThenBy(t => t.Id).ToList();
 
         // Weight calculation: Tier 0 = 8x, Tier 1 = 4x, Tier 2 = 2x, Tier 3+ = 1x
         int totalWeight = 0;
         List<int> weights = new List<int>();
 
-        foreach (SceneTemplate template in templates)
+        foreach (SceneTemplate template in sortedTemplates)
         {
             int weight = template.Tier switch
             {
@@ -280,20 +286,21 @@ public class HexRouteGenerator
             totalWeight += weight;
         }
 
-        // Random selection weighted by tier
-        Random random = new Random();
-        int roll = random.Next(totalWeight);
+        // DDR-007: Deterministic selection based on route name and segment number
+        // Hash combines route and segment to ensure consistent results
+        int seed = (routeName.GetHashCode() ^ segmentNumber.GetHashCode()) & 0x7FFFFFFF;
+        int deterministicValue = seed % totalWeight;
         int cumulative = 0;
 
-        for (int i = 0; i < templates.Count; i++)
+        for (int i = 0; i < sortedTemplates.Count; i++)
         {
             cumulative += weights[i];
-            if (roll < cumulative)
-                return templates[i];
+            if (deterministicValue < cumulative)
+                return sortedTemplates[i];
         }
 
         // Fallback (shouldn't reach here)
-        return templates[0];
+        return sortedTemplates[0];
     }
 
     // NOTE: SpawnActiveSceneForRoute() and InstantiateSituation() DELETED
@@ -373,8 +380,8 @@ public class HexRouteGenerator
         if (dangerRating < 80)
             return Math.Min(3, timeSegments - 2); // High danger: 3 encounters (if space)
 
-        // Very high danger: 30% of segments (spec recommendation)
-        return Math.Min((int)Math.Ceiling(timeSegments * 0.3), timeSegments - 2);
+        // DDR-007: Very high danger uses integer division (1 encounter per 3 segments)
+        return Math.Min((timeSegments + 2) / 3, timeSegments - 2);
     }
 
     /// <summary>
@@ -406,10 +413,10 @@ public class HexRouteGenerator
         else
         {
             // Distribute evenly
-            float spacing = (float)availableCount / encounterCount;
+            int spacing = availableCount / encounterCount;
             for (int i = 0; i < encounterCount; i++)
             {
-                int position = availableStart + (int)Math.Round(i * spacing + spacing / 2);
+                int position = availableStart + (i * spacing + spacing / 2);
                 // Ensure within bounds
                 position = Math.Max(availableStart, Math.Min(availableEnd - 1, position));
                 if (!positions.Contains(position))
@@ -591,96 +598,103 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Calculate time segments from hex path
-    /// Based on specification: TimeSegments = PathLength × TerrainMultipliers
+    /// Calculate time segments from hex path (DDR-007: flat segment costs)
     /// </summary>
     private int CalculateTimeSegments(List<AxialCoordinates> hexPath, TransportType transportType)
     {
         if (hexPath == null || hexPath.Count == 0)
             return 1;
 
-        float totalTime = 0;
+        int totalSegments = 0;
 
         foreach (AxialCoordinates coords in hexPath)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                totalTime += GetTerrainTimeMultiplier(hex.Terrain, transportType);
+                totalSegments += GetTerrainSegmentCost(hex.Terrain, transportType);
             }
         }
 
-        // Convert to time segments (round up, minimum 1)
-        return Math.Max(1, (int)Math.Ceiling(totalTime / 3.0f)); // Divide by 3 for segment granularity
+        // DDR-007: Total is already in segments, minimum 1
+        return Math.Max(1, totalSegments);
     }
 
     /// <summary>
-    /// Calculate stamina cost based on terrain difficulty
+    /// Calculate stamina cost based on terrain difficulty (DDR-007: flat stamina costs)
     /// </summary>
     private int CalculateStaminaCost(List<AxialCoordinates> hexPath, TransportType transportType)
     {
         if (hexPath == null || hexPath.Count == 0)
             return 1;
 
-        float totalStamina = 0;
+        int totalStamina = 0;
 
         foreach (AxialCoordinates coords in hexPath)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                // Base stamina from terrain difficulty
-                float terrainStamina = GetTerrainTimeMultiplier(hex.Terrain, transportType) * 0.5f;
-                totalStamina += terrainStamina;
+                totalStamina += GetTerrainStaminaCost(hex.Terrain, transportType);
             }
         }
 
-        return Math.Max(1, (int)Math.Ceiling(totalStamina));
+        // DDR-007: Total is already flat stamina, minimum 1
+        return Math.Max(1, totalStamina);
     }
 
     /// <summary>
-    /// Calculate coin cost based on transport type and distance
+    /// Calculate coin cost based on transport type (DDR-007: flat costs)
     /// </summary>
     private int CalculateCoinCost(TransportType transportType, int pathLength)
     {
-        int baseCost = transportType switch
+        // DDR-007: Flat coin cost per transport type
+        return transportType switch
         {
-            TransportType.Walking => 0,      // Free
-            TransportType.Cart => 5,         // Moderate fee
-            TransportType.Horseback => 10,   // Higher fee
-            TransportType.Boat => 8,         // Moderate fee
+            TransportType.Walking => 0,        // Free
+            TransportType.Cart => 5,           // 5 coins
+            TransportType.Horseback => 8,      // 8 coins
+            TransportType.Boat => 6,           // 6 coins
             _ => 0
         };
-
-        // Scale with distance
-        return baseCost + (pathLength / 5); // +1 coin per 5 hexes
     }
 
     /// <summary>
-    /// Get terrain time multiplier (same as pathfinding movement cost)
-    /// From specification lines 181-187
+    /// Get terrain segment cost (DDR-007: flat segment values)
+    /// Each terrain type costs a fixed number of segments to traverse
     /// </summary>
-    private float GetTerrainTimeMultiplier(TerrainType terrain, TransportType transportType)
+    private int GetTerrainSegmentCost(TerrainType terrain, TransportType transportType)
     {
-        switch (terrain)
+        return terrain switch
         {
-            case TerrainType.Plains:
-                return 1.0f;
-            case TerrainType.Road:
-                return 0.8f;
-            case TerrainType.Forest:
-                return transportType == TransportType.Cart ? 2.0f : 1.5f;
-            case TerrainType.Mountains:
-                return 2.0f;
-            case TerrainType.Swamp:
-                return 2.5f;
-            case TerrainType.Water:
-                return 0.9f;
-            case TerrainType.Impassable:
-                return float.PositiveInfinity;
-            default:
-                return 1.0f;
-        }
+            TerrainType.Plains => 1,           // Easy terrain: 1 segment
+            TerrainType.Road => 1,             // Fast terrain: 1 segment
+            TerrainType.Forest => transportType == TransportType.Cart ? 3 : 2,  // Moderate: 2 segments (3 for cart)
+            TerrainType.Mountains => 3,        // Difficult terrain: 3 segments
+            TerrainType.Swamp => 3,            // Difficult terrain: 3 segments
+            TerrainType.Water => 1,            // Easy for boats: 1 segment
+            TerrainType.Impassable => 99,      // Effectively impassable
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Get terrain stamina cost (DDR-007: flat stamina values)
+    /// Each terrain type costs a fixed amount of stamina to traverse
+    /// </summary>
+    private int GetTerrainStaminaCost(TerrainType terrain, TransportType transportType)
+    {
+        return terrain switch
+        {
+            TerrainType.Plains => 1,           // Easy: 1 stamina
+            TerrainType.Road => 0,             // Roads are easy: 0 stamina
+            TerrainType.Forest => 2,           // Moderate: 2 stamina
+            TerrainType.Mountains => 3,        // Hard: 3 stamina
+            TerrainType.Swamp => 3,            // Hard: 3 stamina
+            TerrainType.Water => 1,            // Easy for boats: 1 stamina
+            TerrainType.Impassable => 99,      // Effectively impassable
+            _ => 1
+        };
     }
 
     /// <summary>

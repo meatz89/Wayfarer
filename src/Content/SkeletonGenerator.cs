@@ -6,8 +6,6 @@
 /// </summary>
 public static class SkeletonGenerator
 {
-    private static readonly Random _random = new Random();
-
     // Generic name templates
     private static readonly string[] GenericNpcNames =
     {

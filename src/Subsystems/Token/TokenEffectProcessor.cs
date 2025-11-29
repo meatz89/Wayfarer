@@ -7,11 +7,11 @@ public class TokenEffectProcessor
     private readonly ItemRepository _itemRepository;
     private readonly ConnectionTokenManager _tokenManager;
 
-    // Base success bonus per token (configurable via GameRules)
-    private const int BASE_TRUST_BONUS = 5;      // +5% per Trust token
-    private const int BASE_COMMERCE_BONUS = 5;   // +5% per Diplomacy token
-    private const int BASE_STATUS_BONUS = 10;    // +10% per Status token
-    private const int BASE_SHADOW_BONUS = 8;     // +8% per Shadow token
+    // Base success bonus per token (flat integer additions)
+    private const int BASE_TRUST_BONUS = 1;      // +1 per Trust token
+    private const int BASE_COMMERCE_BONUS = 1;   // +1 per Diplomacy token
+    private const int BASE_STATUS_BONUS = 2;     // +2 per Status token
+    private const int BASE_SHADOW_BONUS = 1;     // +1 per Shadow token
 
     public TokenEffectProcessor(
         GameWorld gameWorld,
@@ -24,16 +24,16 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Apply equipment modifiers to token generation
+    /// Apply equipment bonuses to token generation (additive, not multiplicative)
     /// </summary>
     public int ApplyGenerationModifiers(ConnectionType tokenType, int baseAmount)
     {
         if (baseAmount <= 0) return baseAmount;
 
-        float totalModifier = GetEquipmentTokenModifier(tokenType);
-        int modifiedAmount = (int)Math.Ceiling(baseAmount * totalModifier);
+        int equipmentBonus = GetEquipmentTokenBonus(tokenType);
+        int modifiedAmount = baseAmount + equipmentBonus;
 
-        return modifiedAmount;
+        return Math.Max(0, modifiedAmount);
     }
 
     /// <summary>
@@ -80,37 +80,37 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Get all active token modifiers from equipment
+    /// Get all active token bonuses from equipment (flat integer additions)
     /// </summary>
-    public Dictionary<ConnectionType, float> GetActiveModifiers()
+    public Dictionary<ConnectionType, int> GetActiveBonuses()
     {
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, float> activeModifiers = new Dictionary<ConnectionType, float>();
+        Dictionary<ConnectionType, int> activeBonuses = new Dictionary<ConnectionType, int>();
 
-        // Initialize all types to 1.0 (no modifier)
+        // Initialize all types to 0 (no bonus)
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                activeModifiers[type] = 1.0f;
+                activeBonuses[type] = 0;
             }
         }
 
-        // Apply equipment modifiers
+        // Apply equipment bonuses (additive stacking)
         foreach (Item item in player.Inventory.GetAllItems())
         {
             // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
-            if (item != null && item.TokenGenerationModifiers != null)
+            if (item != null && item.TokenGenerationBonuses != null)
             {
-                foreach (KeyValuePair<ConnectionType, float> modifier in item.TokenGenerationModifiers)
+                foreach (KeyValuePair<ConnectionType, int> bonus in item.TokenGenerationBonuses)
                 {
-                    // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
-                    activeModifiers[modifier.Key] *= modifier.Value;
+                    // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+                    activeBonuses[bonus.Key] = activeBonuses[bonus.Key] + bonus.Value;
                 }
             }
         }
 
-        return activeModifiers;
+        return activeBonuses;
     }
 
     /// <summary>
@@ -144,46 +144,47 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Calculate token decay over time (for relationship degradation)
+    /// Calculate token decay over time (flat integer decay, not percentage-based)
     /// </summary>
     public int CalculateTokenDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
     {
         if (currentTokens <= 0 || daysSinceInteraction < 7) return 0;
 
-        // Different token types decay at different rates
-        float decayRate = GetDecayRate(type);
+        // Different token types decay at different base rates
+        int baseDecayPerWeek = GetBaseDecayPerWeek(type);
 
-        // Decay accelerates with time
+        // Decay accelerates with time (additive escalation)
         int weeksWithoutContact = daysSinceInteraction / 7;
-        float decayMultiplier = 1.0f + (weeksWithoutContact * 0.1f);
+        int additionalDecay = weeksWithoutContact - 1; // First week uses base rate, subsequent weeks add +1 each
 
-        int decay = (int)Math.Ceiling(currentTokens * decayRate * decayMultiplier);
+        // Calculate total decay: base rate + time escalation
+        int decay = baseDecayPerWeek + Math.Max(0, additionalDecay);
 
         // Never decay more than half of current tokens in one go
         return Math.Min(decay, currentTokens / 2);
     }
 
     /// <summary>
-    /// Get equipment-based token generation modifier
+    /// Get equipment-based token generation bonus (flat integer addition)
     /// </summary>
-    private float GetEquipmentTokenModifier(ConnectionType tokenType)
+    private int GetEquipmentTokenBonus(ConnectionType tokenType)
     {
         Player player = _gameWorld.GetPlayer();
-        float totalModifier = 1.0f;
+        int totalBonus = 0;
 
-        // Check all items in inventory for token modifiers
+        // Check all items in inventory for token bonuses
         foreach (Item item in player.Inventory.GetAllItems())
         {
             // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
-            if (item != null && item.TokenGenerationModifiers != null &&
-                item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
+            if (item != null && item.TokenGenerationBonuses != null &&
+                item.TokenGenerationBonuses.TryGetValue(tokenType, out int bonus))
             {
-                // Multiply modifiers
-                totalModifier *= modifier;
+                // Add bonuses together
+                totalBonus = totalBonus + bonus;
             }
         }
 
-        return totalModifier;
+        return totalBonus;
     }
 
     /// <summary>
@@ -237,22 +238,22 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Get decay rate for token type
+    /// Get base decay per week for token type (flat integers)
     /// </summary>
-    private float GetDecayRate(ConnectionType type)
+    private int GetBaseDecayPerWeek(ConnectionType type)
     {
         switch (type)
         {
             case ConnectionType.Trust:
-                return 0.05f; // Trust decays slowly (5% per week)
+                return 1; // Trust decays slowly (1 token per week)
             case ConnectionType.Diplomacy:
-                return 0.03f; // Diplomacy is most stable (3% per week)
+                return 1; // Diplomacy is most stable (1 token per week)
             case ConnectionType.Status:
-                return 0.08f; // Status decays faster (8% per week)
+                return 2; // Status decays faster (2 tokens per week)
             case ConnectionType.Shadow:
-                return 0.10f; // Shadow decays fastest (10% per week)
+                return 2; // Shadow decays fastest (2 tokens per week)
             default:
-                return 0.05f;
+                return 1;
         }
     }
 }

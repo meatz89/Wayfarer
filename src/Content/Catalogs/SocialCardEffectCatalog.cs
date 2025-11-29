@@ -138,12 +138,7 @@ public static class SocialCardEffectCatalog
             return "Compound";
         }
 
-        string baseName = formula.FormulaType.ToString();
-        if (formula.ScalingSource.HasValue)
-        {
-            baseName += $"_{formula.ScalingSource.Value}";
-        }
-        return baseName;
+        return formula.FormulaType.ToString();
     }
 
     // ==================== INSIGHT (CARDS + UNDERSTANDING) ====================

@@ -47,11 +47,10 @@ public class ResourceFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // TWO PILLARS: Validate affordability via CompoundRequirement
-        CompoundRequirement coinRequirement = new CompoundRequirement();
-        OrPath coinPath = new OrPath { CoinsRequired = amount };
-        coinRequirement.OrPaths.Add(coinPath);
-        if (!coinRequirement.IsAnySatisfied(player, _gameWorld))
+        // HIGHLANDER: Use CompoundRequirement for affordability check
+        Consequence cost = new Consequence { Coins = -amount };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        if (!resourceReq.IsAnySatisfied(player, _gameWorld))
         {
             _messageSystem.AddSystemMessage(
                 $"Not enough coins! Need {amount}, have {player.Coins}",

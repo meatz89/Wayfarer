@@ -182,14 +182,19 @@ public class TravelFacade
         int travelTime = _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
         int coinCost = _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
 
-        // Check if player can afford
-        if (coinCost > 0 && _gameWorld.GetPlayer().Coins < coinCost)
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
+        if (coinCost > 0)
         {
-            return new TravelResult
+            Consequence cost = new Consequence { Coins = -coinCost };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
             {
-                Success = false,
-                Reason = $"Not enough coins. Need {coinCost}, have {_gameWorld.GetPlayer().Coins}"
-            };
+                return new TravelResult
+                {
+                    Success = false,
+                    Reason = $"Not enough coins. Need {coinCost}, have {player.Coins}"
+                };
+            }
         }
 
         // Return travel information for GameFacade to execute
@@ -359,10 +364,15 @@ public class TravelFacade
             return new PathCardAvailability { CanPlay = false, Reason = $"Need {card.StaminaCost} stamina, have {session.StaminaRemaining}" };
         }
 
-        // Check coin requirement
-        if (card.CoinRequirement > 0 && player.Coins < card.CoinRequirement)
+        // HIGHLANDER: Use CompoundRequirement for coin requirement check
+        if (card.CoinRequirement > 0)
         {
-            return new PathCardAvailability { CanPlay = false, Reason = $"Need {card.CoinRequirement} coins, have {player.Coins}" };
+            Consequence cost = new Consequence { Coins = -card.CoinRequirement };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
+            {
+                return new PathCardAvailability { CanPlay = false, Reason = $"Need {card.CoinRequirement} coins, have {player.Coins}" };
+            }
         }
 
         // Check permit requirement

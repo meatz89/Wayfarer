@@ -25,14 +25,14 @@ public class PlayerExertionCalculator
         int maxStamina = player.MaxStamina;
         if (maxStamina == 0) return PlayerExertionLevel.Normal;
 
-        float staminaPercent = (float)player.Stamina / maxStamina;
+        int staminaPercent = player.Stamina * 100 / maxStamina;
 
         return staminaPercent switch
         {
-            > 0.8f => PlayerExertionLevel.Fresh,
-            > 0.5f => PlayerExertionLevel.Normal,
-            > 0.3f => PlayerExertionLevel.Fatigued,
-            > 0.1f => PlayerExertionLevel.Exhausted,
+            > 80 => PlayerExertionLevel.Fresh,
+            > 50 => PlayerExertionLevel.Normal,
+            > 30 => PlayerExertionLevel.Fatigued,
+            > 10 => PlayerExertionLevel.Exhausted,
             _ => PlayerExertionLevel.Desperate
         };
     }
@@ -46,14 +46,14 @@ public class PlayerExertionCalculator
         int maxHealth = player.MaxHealth;
         if (maxHealth == 0) return PlayerExertionLevel.Normal;
 
-        float healthPercent = (float)player.Health / maxHealth;
+        int healthPercent = player.Health * 100 / maxHealth;
 
         return healthPercent switch
         {
-            > 0.8f => PlayerExertionLevel.Fresh,
-            > 0.5f => PlayerExertionLevel.Normal,
-            > 0.3f => PlayerExertionLevel.Fatigued,
-            > 0.1f => PlayerExertionLevel.Exhausted,
+            > 80 => PlayerExertionLevel.Fresh,
+            > 50 => PlayerExertionLevel.Normal,
+            > 30 => PlayerExertionLevel.Fatigued,
+            > 10 => PlayerExertionLevel.Exhausted,
             _ => PlayerExertionLevel.Desperate
         };
     }
@@ -70,14 +70,14 @@ public class PlayerExertionCalculator
         if (maxStamina == 0 || maxHealth == 0) return EnvironmentalRiskLevel.Moderate;
 
         // Average percentage of both resources
-        float avgPercent = ((float)player.Stamina / maxStamina + (float)player.Health / maxHealth) / 2;
+        int avgPercent = (player.Stamina * 100 / maxStamina + player.Health * 100 / maxHealth) / 2;
 
         return avgPercent switch
         {
-            > 0.8f => EnvironmentalRiskLevel.Minimal,
-            > 0.6f => EnvironmentalRiskLevel.Low,
-            > 0.4f => EnvironmentalRiskLevel.Moderate,
-            > 0.2f => EnvironmentalRiskLevel.High,
+            > 80 => EnvironmentalRiskLevel.Minimal,
+            > 60 => EnvironmentalRiskLevel.Low,
+            > 40 => EnvironmentalRiskLevel.Moderate,
+            > 20 => EnvironmentalRiskLevel.High,
             _ => EnvironmentalRiskLevel.Extreme
         };
     }

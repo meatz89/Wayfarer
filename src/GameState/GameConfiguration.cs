@@ -18,8 +18,8 @@ public class GameConfiguration
 
 public class TokenEconomyConfig
 {
-    public float BaseTokenChance { get; set; }
-    public float TokenChancePerExisting { get; set; }
+    public int BaseTokenChance { get; set; } // Percentage (100 = 100%)
+    public int TokenChancePerExisting { get; set; } // Percentage (100 = 100%)
     public int StrangerThreshold { get; set; }
     public int BasicLetterThreshold { get; set; }
     public int QualityLetterThreshold { get; set; }
@@ -102,7 +102,7 @@ public class LetterPaymentConfig
     public int PremiumMax { get; set; }
     public int ReturnLetterMin { get; set; }
     public int ReturnLetterMax { get; set; }
-    public float UrgentMultiplier { get; set; }
+    public int UrgentBonus { get; set; } // DDR-007: Flat coin bonus for urgent letters
     public int LateDeliveryPenaltyPerDay { get; set; }
 }
 
@@ -117,8 +117,8 @@ public class RelationshipConfig
 public class TravelConfig
 {
     public int BaseStaminaCost { get; set; }
-    public float EncounterChance { get; set; }
-    public Dictionary<string, float> TerrainStaminaModifiers { get; set; } = new();
+    public int EncounterChance { get; set; } // Percentage (100 = 100%)
+    public Dictionary<string, int> TerrainStaminaAdjustments { get; set; } = new(); // DDR-007: Flat stamina adjustments per terrain
 }
 
 public class DebtConfig

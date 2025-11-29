@@ -68,9 +68,9 @@ public class TokenMechanicsManager
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        // Apply equipment modifiers
-        float modifier = GetEquipmentTokenModifier(type);
-        int modifiedCount = (int)Math.Ceiling(count * modifier);
+        // Apply equipment bonuses (flat integer additions)
+        int equipmentBonus = GetEquipmentTokenBonus(type);
+        int modifiedCount = count + equipmentBonus;
 
         // Initialize NPC token tracking if needed
         // HIGHLANDER: Pass NPC object directly, not npc.ID
@@ -328,28 +328,28 @@ public class TokenMechanicsManager
     }
 
     /// <summary>
-    /// Get the token generation modifier from equipped items
+    /// Get the token generation bonus from equipped items (flat integer additions)
     /// </summary>
-    private float GetEquipmentTokenModifier(ConnectionType tokenType)
+    private int GetEquipmentTokenBonus(ConnectionType tokenType)
     {
-        if (_itemRepository == null) return 1.0f;
+        if (_itemRepository == null) return 0;
 
         Player player = _gameWorld.GetPlayer();
-        float totalModifier = 1.0f;
+        int totalBonus = 0;
 
-        // Check all items in inventory for token modifiers
+        // Check all items in inventory for token bonuses
         foreach (Item item in player.Inventory.GetAllItems())
         {
             if (item == null) continue;
-            if (item.TokenGenerationModifiers != null &&
-                item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
+            if (item.TokenGenerationBonuses != null &&
+                item.TokenGenerationBonuses.TryGetValue(tokenType, out int bonus))
             {
-                // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
-                totalModifier *= modifier;
+                // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+                totalBonus = totalBonus + bonus;
             }
         }
 
-        return totalModifier;
+        return totalBonus;
     }
 
 }

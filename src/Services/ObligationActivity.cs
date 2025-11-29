@@ -1,7 +1,7 @@
 
 /// <summary>
 /// Obligation service - provides operations for obligation lifecycle
-/// STATE-LESS: All state lives in GameWorld.ObligationJournal
+/// HIGHLANDER STATELESS: All state lives in GameWorld (ObligationJournal + PendingResults)
 /// Does NOT spawn tactical sessions - creates LocationSituations that existing situation system evaluates
 /// </summary>
 public class ObligationActivity
@@ -12,11 +12,7 @@ public class ObligationActivity
     private readonly PackageLoader _packageLoader;
     private readonly RewardApplicationService _rewardApplicationService;
 
-    private ObligationDiscoveryResult _pendingDiscoveryResult;
-    private ObligationActivationResult _pendingActivationResult;
-    private ObligationProgressResult _pendingProgressResult;
-    private ObligationCompleteResult _pendingCompleteResult;
-    private ObligationIntroResult _pendingIntroResult;
+    // HIGHLANDER: NO private state fields - all state in GameWorld
 
     public ObligationActivity(
         GameWorld gameWorld,
@@ -34,56 +30,61 @@ public class ObligationActivity
 
     /// <summary>
     /// Get and clear pending discovery result for UI modal display
+    /// HIGHLANDER: State stored in GameWorld, not service.
     /// Returns null if no result pending
     /// </summary>
     public ObligationDiscoveryResult GetAndClearPendingDiscoveryResult()
     {
-        ObligationDiscoveryResult result = _pendingDiscoveryResult;
-        _pendingDiscoveryResult = null;
+        ObligationDiscoveryResult result = _gameWorld.PendingDiscoveryResult;
+        _gameWorld.PendingDiscoveryResult = null;
         return result;
     }
 
     /// <summary>
     /// Get and clear pending progress result for UI modal display
+    /// HIGHLANDER: State stored in GameWorld, not service.
     /// Returns null if no result pending
     /// </summary>
     public ObligationProgressResult GetAndClearPendingProgressResult()
     {
-        ObligationProgressResult result = _pendingProgressResult;
-        _pendingProgressResult = null;
+        ObligationProgressResult result = _gameWorld.PendingProgressResult;
+        _gameWorld.PendingProgressResult = null;
         return result;
     }
 
     /// <summary>
     /// Get and clear pending completion result for UI modal display
+    /// HIGHLANDER: State stored in GameWorld, not service.
     /// Returns null if no result pending
     /// </summary>
     public ObligationCompleteResult GetAndClearPendingCompleteResult()
     {
-        ObligationCompleteResult result = _pendingCompleteResult;
-        _pendingCompleteResult = null;
+        ObligationCompleteResult result = _gameWorld.PendingCompleteResult;
+        _gameWorld.PendingCompleteResult = null;
         return result;
     }
 
     /// <summary>
     /// Get and clear pending activation result for UI modal display
+    /// HIGHLANDER: State stored in GameWorld, not service.
     /// Returns null if no result pending
     /// </summary>
     public ObligationActivationResult GetAndClearPendingActivationResult()
     {
-        ObligationActivationResult result = _pendingActivationResult;
-        _pendingActivationResult = null;
+        ObligationActivationResult result = _gameWorld.PendingActivationResult;
+        _gameWorld.PendingActivationResult = null;
         return result;
     }
 
     /// <summary>
     /// Get and clear pending intro result for UI modal display
+    /// HIGHLANDER: State stored in GameWorld, not service.
     /// Returns null if no result pending
     /// </summary>
     public ObligationIntroResult GetAndClearPendingIntroResult()
     {
-        ObligationIntroResult result = _pendingIntroResult;
-        _pendingIntroResult = null;
+        ObligationIntroResult result = _gameWorld.PendingIntroResult;
+        _gameWorld.PendingIntroResult = null;
         return result;
     }
 
@@ -108,8 +109,8 @@ public class ObligationActivity
         if (venue == null)
             throw new InvalidOperationException($"Location '{location.Name}' has no venue");
 
-        // Create intro result for quest acceptance modal
-        _pendingIntroResult = new ObligationIntroResult
+        // Create intro result for quest acceptance modal (stored in GameWorld, not service)
+        _gameWorld.PendingIntroResult = new ObligationIntroResult
         {
             Obligation = obligation,
             ObligationName = obligation.Name,
@@ -225,7 +226,7 @@ public class ObligationActivity
             TotalSituationCount = totalSceneCount
         };
 
-        _pendingProgressResult = result;
+        _gameWorld.PendingProgressResult = result;
 
         return result;
     }
@@ -277,7 +278,7 @@ public class ObligationActivity
             // ObservationCardRewards eliminated - observation system removed
         };
 
-        _pendingCompleteResult = result;
+        _gameWorld.PendingCompleteResult = result;
 
         _messageSystem.AddSystemMessage(
             $"Obligation complete: {obligation.Name}",
@@ -392,7 +393,7 @@ public class ObligationActivity
             LocationName = venue.Name,
             SpotName = location.Name
         };
-        _pendingDiscoveryResult = discoveryResult;
+        _gameWorld.PendingDiscoveryResult = discoveryResult;
 
         _messageSystem.AddSystemMessage(
             $"Obligation discovered: {obligation.Name}",
@@ -445,8 +446,8 @@ public class ObligationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Create activation result for UI modal
-        _pendingActivationResult = new ObligationActivationResult
+        // Create activation result for UI modal (stored in GameWorld, not service)
+        _gameWorld.PendingActivationResult = new ObligationActivationResult
         {
             Obligation = obligation,  // HIGHLANDER: Object reference, not ID
             ObligationName = obligation.Name,

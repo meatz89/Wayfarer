@@ -55,7 +55,7 @@ public class PersonalityRuleEnforcer
     /// <summary>
     /// Modify momentum change based on personality rules (UPDATED FOR 4-RESOURCE SYSTEM)
     /// Mercantile: Highest Initiative card gains +3 Momentum
-    /// Devoted: Momentum losses doubled
+    /// Devoted: Momentum losses increased by flat amount (additive penalty)
     /// Cunning: Playing same Initiative as previous card costs -2 momentum
     /// Steadfast: All momentum changes capped at ±2
     /// </summary>
@@ -77,14 +77,14 @@ public class PersonalityRuleEnforcer
                 }
                 break;
 
-            case PersonalityModifierType.MomentumLossDoubled:
-                // Devoted: When momentum would decrease, decrease it twice
+            case PersonalityModifierType.MomentumLossIncreased:
+                // Devoted: When momentum would decrease, add additional loss (additive, not multiplicative)
                 if (baseMomentumChange < 0)
                 {
-                    int multiplier = _modifier.Parameters.ContainsKey("multiplier")
-                        ? _modifier.Parameters["multiplier"]
+                    int additionalLoss = _modifier.Parameters.ContainsKey("additionalLoss")
+                        ? _modifier.Parameters["additionalLoss"]
                         : 2;
-                    modifiedChange = baseMomentumChange * multiplier;
+                    modifiedChange -= additionalLoss; // Subtract additional loss (making it more negative)
                 }
                 break;
 
@@ -114,13 +114,13 @@ public class PersonalityRuleEnforcer
     }
 
     /// <summary>
-    /// Check if doubt should be doubled for Devoted personality on card failure
+    /// Get additional doubt for Devoted personality on card failure (additive)
     /// </summary>
     public int GetDoubtModifier()
     {
-        if (_modifier.Type == PersonalityModifierType.MomentumLossDoubled)
+        if (_modifier.Type == PersonalityModifierType.MomentumLossIncreased)
         {
-            // Devoted: +1 additional doubt on failure (doubles the base +1 doubt)
+            // Devoted: +1 additional doubt on failure (additive penalty)
             return 1; // Additional doubt beyond the base +1
         }
 
@@ -160,7 +160,7 @@ public class PersonalityRuleEnforcer
         return _modifier.Type switch
         {
             PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending Initiative order",
-            PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled, +1 doubt on failure",
+            PersonalityModifierType.MomentumLossIncreased => "Devoted: All momentum losses +2 penalty, +1 doubt on failure",
             PersonalityModifierType.HighestFocusBonus => "Mercantile: Highest Initiative card gains +3 Momentum",
             PersonalityModifierType.RepeatFocusPenalty => "Cunning: Repeat Initiative costs -2 Momentum",
             PersonalityModifierType.RapportChangeCap => "Steadfast: All Momentum changes capped at ±2",
@@ -205,11 +205,11 @@ public class PersonalityRuleEnforcer
     }
 
     /// <summary>
-    /// Check if momentum losses should be doubled for Devoted personality
+    /// Check if momentum losses should be increased for Devoted personality
     /// </summary>
-    public bool ShouldDoubleMomentumLoss()
+    public bool ShouldIncreaseMomentumLoss()
     {
-        return _modifier.Type == PersonalityModifierType.MomentumLossDoubled;
+        return _modifier.Type == PersonalityModifierType.MomentumLossIncreased;
     }
 
     /// <summary>

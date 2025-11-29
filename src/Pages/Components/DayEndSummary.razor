@@ -22,7 +22,7 @@ Core Loop: Consumes DayEndReport data structure from TimeFacade.EndDay()
             @if (Summary.CompletedObligations.Any())
             {
                 <div class="completed-obligations">
-                    <h4 class="subsection-title">✓ Completed</h4>
+                    <h4 class="subsection-title"><Icon Name="check-mark" CssClass="icon-positive" /> Completed</h4>
                     @foreach (CompletedObligationInfo result in Summary.CompletedObligations)
                     {
                         <div class="obligation-result success">
@@ -36,7 +36,7 @@ Core Loop: Consumes DayEndReport data structure from TimeFacade.EndDay()
             @if (Summary.FailedObligations.Any())
             {
                 <div class="failed-obligations">
-                    <h4 class="subsection-title">✗ Failed</h4>
+                    <h4 class="subsection-title"><Icon Name="cancel" CssClass="icon-negative" /> Failed</h4>
                     @foreach (FailedObligationInfo result in Summary.FailedObligations)
                     {
                         <div class="obligation-result failure">

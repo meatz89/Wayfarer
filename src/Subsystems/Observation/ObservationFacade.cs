@@ -2,6 +2,7 @@
 /// Public facade for observation scene operations.
 /// Handles scene investigation with multiple examination points and resource management.
 /// This is the public interface for the Observation subsystem.
+/// HIGHLANDER: Mutable state (ObservationSceneState) separated from immutable templates (ObservationScene).
 /// </summary>
 public class ObservationFacade
 {
@@ -10,7 +11,6 @@ public class ObservationFacade
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly RewardApplicationService _rewardApplicationService;
-    private readonly Random _random;
 
     public ObservationFacade(
         GameWorld gameWorld,
@@ -24,12 +24,26 @@ public class ObservationFacade
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
-        _random = new Random();
+    }
+
+    /// <summary>
+    /// Get or create ObservationSceneState for a template.
+    /// HIGHLANDER: Mutable state separated from immutable template.
+    /// </summary>
+    private ObservationSceneState GetOrCreateState(ObservationScene template)
+    {
+        ObservationSceneState state = _gameWorld.ObservationSceneStates.FirstOrDefault(s => s.Template == template);
+        if (state == null)
+        {
+            state = new ObservationSceneState { Template = template };
+            _gameWorld.ObservationSceneStates.Add(state);
+        }
+        return state;
     }
 
     /// <summary>
     /// Create context for an observation scene screen
-    /// HIGHLANDER: Accepts ObservationScene object, not string ID
+    /// HIGHLANDER: Accepts ObservationScene object, accesses state via GetOrCreateState.
     /// </summary>
     public ObservationContext CreateContext(ObservationScene scene)
     {
@@ -55,6 +69,7 @@ public class ObservationFacade
         }
 
         Player player = _gameWorld.GetPlayer();
+        ObservationSceneState state = GetOrCreateState(scene);
 
         // Check required knowledge
         foreach (string knowledge in scene.RequiredKnowledge)
@@ -69,8 +84,8 @@ public class ObservationFacade
             }
         }
 
-        // Check if already completed and not repeatable
-        if (scene.IsCompleted && !scene.IsRepeatable)
+        // Check if already completed and not repeatable (state, not template)
+        if (state.IsCompleted && !scene.IsRepeatable)
         {
             return new ObservationContext
             {
@@ -88,14 +103,14 @@ public class ObservationFacade
             MaxFocus = player.MaxFocus,
             PlayerStats = BuildPlayerStats(player),
             PlayerKnowledge = new List<string>(player.Knowledge),
-            ExaminedPoints = new List<ExaminationPoint>(scene.ExaminedPoints), // Object collection, not string IDs
+            ExaminedPoints = new List<ExaminationPoint>(state.ExaminedPoints), // From state, not template
             TimeDisplay = _timeFacade.GetTimeString()
         };
     }
 
     /// <summary>
     /// Examine a point within the observation scene
-    /// HIGHLANDER: Accepts ExaminationPoint object, not pointId string
+    /// HIGHLANDER: Accepts ExaminationPoint object, not pointId string. Mutates state, not template.
     /// TWO PILLARS: Uses CompoundRequirement for availability, Consequence for costs
     /// </summary>
     public async Task<ObservationResult> ExaminePoint(ObservationScene scene, ExaminationPoint point)
@@ -110,15 +125,17 @@ public class ObservationFacade
         if (!scene.ExaminationPoints.Contains(point))
             return ObservationResult.Failed("Examination point does not belong to this scene");
 
-        // Check if already examined (using object collection)
-        if (scene.ExaminedPoints.Contains(point))
+        ObservationSceneState state = GetOrCreateState(scene);
+
+        // Check if already examined (using state, not template)
+        if (state.ExaminedPoints.Contains(point))
             return ObservationResult.Failed("This point has already been examined");
 
         // Check if hidden and not revealed
         if (point.IsHidden)
         {
             bool isRevealed = scene.ExaminationPoints.Any(p =>
-                scene.ExaminedPoints.Contains(p) &&
+                state.ExaminedPoints.Contains(p) &&
                 p.RevealsExaminationPoint == point); // Object reference, not ID string
 
             if (!isRevealed)
@@ -180,8 +197,8 @@ public class ObservationFacade
             _timeFacade.AdvanceSegments(point.TimeCost);
         }
 
-        // Mark as examined (add to object collection)
-        scene.ExaminedPoints.Add(point);
+        // Mark as examined (add to state's object collection, not template)
+        state.ExaminedPoints.Add(point);
         point.IsExamined = true;
 
         ObservationResult result = new ObservationResult
@@ -202,10 +219,13 @@ public class ObservationFacade
         }
 
         // Check for item finding (using object reference)
+        // DDR-007: Deterministic item finding based on point properties
         if (point.FoundItem != null && point.FindItemChance > 0)
         {
-            int roll = _random.Next(1, 101);
-            if (roll <= point.FindItemChance)
+            // Deterministic outcome based on examination point title hash
+            // Same point always produces same result (predictable)
+            int deterministicValue = Math.Abs(point.Title.GetHashCode()) % 100 + 1;
+            if (deterministicValue <= point.FindItemChance)
             {
                 result.ItemFound = point.FoundItem;
                 _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info);
@@ -233,13 +253,13 @@ public class ObservationFacade
             _messageSystem.AddSystemMessage($"New examination point revealed: {point.RevealsExaminationPoint.Title}", SystemMessageTypes.Info);
         }
 
-        // Check if scene is fully examined
+        // Check if scene is fully examined (using state, not template)
         int totalAvailablePoints = scene.ExaminationPoints.Count(p => !p.IsHidden);
-        int totalExaminedPoints = scene.ExaminedPoints.Count;
+        int totalExaminedPoints = state.ExaminedPoints.Count;
 
         if (totalExaminedPoints >= totalAvailablePoints)
         {
-            scene.IsCompleted = true;
+            state.IsCompleted = true; // Mutate state, not template
             result.SceneCompleted = true;
             _messageSystem.AddSystemMessage("Scene investigation complete", SystemMessageTypes.Info);
         }
@@ -263,16 +283,21 @@ public class ObservationFacade
 
     /// <summary>
     /// Get all observation scenes available at a specific location
-    /// Checks location match, completion status, and knowledge requirements
+    /// Checks location match, completion status (from state), and knowledge requirements
+    /// HIGHLANDER: Checks state for completion, not template.
     /// </summary>
     public List<ObservationScene> GetAvailableScenesAtLocation(Location location)
     {
         Player player = _gameWorld.GetPlayer();
 
         return _gameWorld.ObservationScenes
-            .Where(s => s.Location == location)
-            .Where(s => !s.IsCompleted || s.IsRepeatable)
-            .Where(s => s.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
+            .Where(template => template.Location == location)
+            .Where(template =>
+            {
+                ObservationSceneState state = GetOrCreateState(template);
+                return !state.IsCompleted || template.IsRepeatable;
+            })
+            .Where(template => template.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
             .ToList();
     }
 }

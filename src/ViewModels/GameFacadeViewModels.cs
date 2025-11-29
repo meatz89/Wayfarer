@@ -18,14 +18,15 @@ public class TravelDestinationViewModel
 }
 
 // New travel context ViewModel
+// BACKEND/FRONTEND SEPARATION: Backend provides domain values, frontend computes presentation
 public class TravelContextViewModel
 {
     // Player travel resources
     public int CurrentStamina { get; set; }
     public int TotalWeight { get; set; }
     public string FocusStatus { get; set; } // "Light load", "Medium load (+1 stamina)", etc.
-    public string FocusClass { get; set; } // CSS class: "", "warning", "danger"
-    public int BaseStaminaPenalty { get; set; } // 0, 1, or 2
+    // DELETED: FocusClass (presentation) - frontend computes from BaseStaminaPenalty
+    public int BaseStaminaPenalty { get; set; } // 0, 1, or 2 - domain value for frontend to style
 
     // DeliveryObligation effects
     public int CarriedLetterCount { get; set; }
@@ -38,9 +39,9 @@ public class TravelContextViewModel
     // Equipment
     public List<ItemCategory> CurrentEquipmentCategories { get; set; } = new();
 
-    // Weather
+    // Weather - domain enum, frontend computes icon
+    // DELETED: WeatherIcon (presentation) - frontend uses CurrentWeather enum
     public WeatherCondition CurrentWeather { get; set; }
-    public string WeatherIcon { get; set; }
 }
 
 public class TravelRouteViewModel
@@ -72,13 +73,15 @@ public class TravelRouteViewModel
     public List<RouteDiscoveryOptionViewModel> DiscoveryOptions { get; set; } = new();
 }
 
+// BACKEND/FRONTEND SEPARATION: Backend provides domain values, frontend computes presentation
 public class RouteTokenRequirementViewModel
 {
     public string RequirementKey { get; set; } // e.g., "type_Trust" or "npc_123"
     public int RequiredAmount { get; set; }
     public int CurrentAmount { get; set; }
     public string DisplayName { get; set; }
-    public string Icon { get; set; }
+    // DELETED: Icon (presentation) - frontend computes from ConnectionType
+    public ConnectionType? TokenType { get; set; } // Domain value for frontend to derive icon
     public bool IsMet { get; set; }
 }
 

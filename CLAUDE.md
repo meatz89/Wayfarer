@@ -69,6 +69,34 @@ Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementa
 
 ---
 
+# DOCUMENTATION AND BOUNDARIES FIRST
+
+**THE RULE:** Before implementing ANY feature or refactoring, update documentation and define boundaries FIRST.
+
+**Order of Operations:**
+1. **Document the principle** - Update CLAUDE.md, arc42, or gdd with the rule
+2. **Add enforcement** - Pre-commit hook, CI check, or compliance test
+3. **Then implement** - Code changes come LAST, after boundaries are clear
+
+**Why:**
+- Documentation forces clarity BEFORE coding
+- Enforcement prevents future violations (no exceptions accumulate)
+- Implementation becomes mechanical once rules are clear
+- Prevents "exception creep" where temporary workarounds become permanent
+
+**FORBIDDEN:**
+- Implementing code before documenting the principle
+- Adding "temporary exceptions" to documented rules
+- Coding first and "documenting later" (later never comes)
+
+**Correct Pattern:** When you find a violation:
+1. Document the correct principle (no exceptions)
+2. Add enforcement (pre-commit hook)
+3. Fix ALL existing violations
+4. Commit documentation + enforcement + fixes together
+
+---
+
 # CRITICAL: DUAL-TIER ACTION SYSTEM
 
 **READ FIRST:** `DUAL_TIER_ACTION_ARCHITECTURE.md`
@@ -156,6 +184,51 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# CATALOGUE PATTERN (PARSE-TIME TRANSLATION)
+
+**THE RULE:** Catalogues translate categorical properties to concrete values at **PARSE-TIME ONLY**. No exceptions.
+
+| Layer | Responsibility |
+|-------|----------------|
+| Content JSON | Categorical descriptions (friendly, hostile, premium) |
+| Catalogue | Translation formulas (parse-time via Parser) |
+| Entity | Concrete values only (integers, no categories) |
+
+**Why:** Single formula change rebalances all content. Zero runtime overhead. AI generates balanced content without knowing game math. Enforceable via pre-commit hook.
+
+**FORBIDDEN:**
+- Runtime catalogue lookups in Services (use Parser pipeline instead)
+- String-based property matching at runtime
+- Direct `Catalogue.GetX()` calls outside Parsers
+- `Catalogue.` patterns in `/Services/`, `/Subsystems/` directories
+
+**Correct Pattern for Procedural Content:**
+1. Build DTO with categorical properties
+2. Serialize to JSON package
+3. Load via PackageLoader → Parser → Catalogue (parse-time)
+4. Result: Entity with concrete values
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.2
+
+---
+
+# FAIL-FAST PHILOSOPHY
+
+**THE RULE:** Missing data should fail loudly, not silently default.
+
+**Why:** Null coalescing (`??`) and TryGetValue hide content authoring errors. Invalid state becomes player-visible bugs instead of parse-time crashes. Silent defaults make debugging impossible.
+
+**FORBIDDEN:**
+- `??` null coalescing in domain logic (hides missing required data)
+- `TryGetValue` patterns in domain code (use direct access, let it throw)
+- `TryParse` patterns (data should be valid by design)
+
+**Correct Pattern:** Let exceptions propagate. Parse-time crashes are features, not bugs.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.5
+
+---
+
 # EXPLICIT PROPERTY PRINCIPLE
 
 Use explicit strongly-typed properties for state modifications. Never route changes through string-based generic systems.
@@ -218,13 +291,16 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 # USER CODE PREFERENCES
 
-**Types:**
-- ONLY: `List<T>`, strongly-typed objects, `int` (never float)
-- FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples
+**Types (DDR-007 Enforced):**
+- ONLY: `List<T>`, strongly-typed objects, `int` (see GDD DDR-007: Intentional Numeric Design)
+- FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples, `float`, `double`
+- FORBIDDEN: Decimal multipliers (`* 0.X`, `* 1.X`), percentage calculations (`* 100 /`, `/ 100`), basis points
+- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.22)
+- Enforcement: DDR007ComplianceTests.cs (CI), pre-commit hook (`scripts/hooks/install.sh`)
 
 **Lambdas:**
-- FORBIDDEN: Backend event handlers, DI registration lambdas
-- ALLOWED: LINQ queries, Blazor event handlers, framework configuration
+- FORBIDDEN: Custom backend event handlers, DI registration code
+- ALLOWED: LINQ queries, Blazor event handlers, framework extension methods (IServiceCollection)
 
 **Structure:**
 - Domain Services and Entities only (no Helper/Utility classes)
@@ -280,3 +356,87 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 - ALL logic changes require unit tests BEFORE committing
 - Build: `cd src && dotnet build`
 - Test: `cd src && dotnet test`
+
+---
+
+# PRE-COMMIT HOOK (REQUIRED)
+
+**Installation (run once per clone):**
+```bash
+./scripts/hooks/install.sh
+```
+
+**What it enforces:**
+| Category | Checks |
+|----------|--------|
+| DDR-007 | Decimal multipliers, basis points, float/double types |
+| TYPE | Dictionary, HashSet, `var` keyword |
+| HIGHLANDER | Entity instance ID properties |
+| FAIL-FAST | Null coalescing (??), TryGetValue/TryParse |
+| SEPARATION | CssClass/IconName in backend services |
+| QUALITY | TODO/FIXME comments, .Wait()/.Result, extension methods |
+| NAMESPACE | Namespace declarations in domain code |
+| DETERMINISM | Random usage outside Pile.cs |
+| CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
+| DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
+| ICONS | Emojis in .razor files (use `<Icon>` component) |
+| EXPLICIT | String-based property modification patterns |
+
+**Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
+
+**Reference:** `arc42/08_crosscutting_concepts.md` for architectural rationale
+
+---
+
+# CLAUDE CODE HOOKS
+
+**Location:** `.claude/settings.json` and `.claude/hooks/`
+
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| SessionStart | Session begins | Ensure documentation context before work |
+| Stop | Before stopping | Prevent premature stops |
+| PostToolUse | After Edit/Write on arc42/*.md or gdd/*.md | Validate document structure |
+
+**Philosophy:** Hooks remind, documentation governs. Hooks point to CLAUDE.md - they don't duplicate it.
+
+**Division of Labor:**
+- **Pre-commit hooks + CI**: Enforce compliance (scan for violations)
+- **Claude Code hooks**: Remind about documentation and intent
+- **Your job**: Understand principles through READING, not scanning
+
+**DO NOT** scan the codebase for violations - pre-commit handles that. Use agents to gather context from documentation, not grep searches.
+
+---
+
+# DOCUMENTATION STANDARDS
+
+## arc42 Documents
+
+arc42 is a structured cabinet for architecture documentation. "Dare to leave gaps" - only document what matters.
+
+| Principle | Rule |
+|-----------|------|
+| **Structure** | Pattern/principle tables, not prose paragraphs |
+| **Content** | WHAT and WHY, never HOW |
+| **Format** | "**Consequences:**" and "**Forbidden:**" sections |
+| **Brevity** | Remove irrelevant sections |
+
+**Anti-patterns:** Code blocks, concrete numbers, file paths, enum value lists, redundant content.
+
+**Reference:** [arc42 Documentation](https://docs.arc42.org/), [arc42 Template](https://arc42.org/overview)
+
+## GDD Documents
+
+Game design documents describe the GAME EXPERIENCE, not implementation.
+
+| Principle | Rule |
+|-----------|------|
+| **Structure** | "Why" and "How it manifests" for pillars |
+| **Content** | Design intent and player experience |
+| **Traceability** | Every feature traces to a design pillar |
+| **Separation** | Technical details belong in arc42 or code |
+
+**Exception:** `BASELINE_ECONOMY.md` may contain concrete balance values.
+
+**Anti-patterns:** Code blocks, implementation details, file references, JSON structures.

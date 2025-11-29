@@ -1,0 +1,231 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore src/
+
+    - name: Build
+      run: dotnet build src/ --no-restore --configuration Release
+
+    - name: Run All Tests
+      run: dotnet test src/ --no-build --configuration Release --verbosity normal
+
+    - name: Run Architecture Compliance Tests (explicit)
+      run: |
+        dotnet test src/ --no-build --configuration Release --filter "FullyQualifiedName~ComplianceTests" --verbosity detailed
+
+  architecture-compliance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: "[DDR-007] Decimal Multipliers"
+      run: |
+        echo "Checking for decimal multiplier violations (* 0.X, * 1.X)..."
+        if grep -rn '\* [01]\.[0-9]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v '^\s*//' | grep -vi 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom'; then
+          echo "ERROR: Decimal multiplier patterns found! DDR-007 requires integer math."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DDR-007] Basis Points"
+      run: |
+        echo "Checking for basis points patterns..."
+        if grep -rn 'BasisPoint\|[^a-zA-Z]BP[A-Z]\|/ *10000\|bp *=' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Basis point patterns found! DDR-007 forbids basis points."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DDR-007] Float/Double Types"
+      run: |
+        echo "Checking for float/double in domain code..."
+        if grep -rn '\bfloat\b\|\bdouble\b' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v 'DTO\.' | grep -v '^\s*//'; then
+          echo "ERROR: float/double types found! Use int for game values."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[TYPE] Dictionary in Domain"
+      run: |
+        echo "Checking for Dictionary in domain code..."
+        if grep -rn 'Dictionary<' src/**/*.cs 2>/dev/null | grep -v 'DTO\|External\|Framework\|Config\|Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Dictionary found in domain code! Use List<T>."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[TYPE] HashSet in Domain"
+      run: |
+        echo "Checking for HashSet in domain code..."
+        if grep -rn 'HashSet<' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: HashSet found in domain code! Use List<T>."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[HIGHLANDER] Entity Instance IDs"
+      run: |
+        echo "Checking for instance ID properties on domain entities..."
+        if grep -rn 'public.*\(string\|int\|Guid\).*Id\s*{' src/GameState/*.cs src/Content/*.cs 2>/dev/null | grep -v 'TemplateId\|PackageId' | grep -v 'Tests\.'; then
+          echo "ERROR: Instance ID property found! Use object references."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[SEPARATION] CssClass in Backend"
+      run: |
+        echo "Checking for CssClass in backend services..."
+        if grep -rn 'CssClass\|ClassName.*string' src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: CssClass/ClassName in backend! Frontend decides presentation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[SEPARATION] IconName in Backend"
+      run: |
+        echo "Checking for IconName in backend services..."
+        if grep -rn 'IconName\|public.*Icon.*{' src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: IconName/Icon in backend! Frontend decides presentation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] TODO/FIXME Comments"
+      run: |
+        echo "Checking for TODO/FIXME comments..."
+        if grep -rn 'TODO\|FIXME\|HACK\|XXX' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v 'completed\|done\|removed'; then
+          echo "ERROR: TODO/FIXME comments found! Finish before committing."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] Blocking Async"
+      run: |
+        echo "Checking for blocking async calls..."
+        if grep -rn '\.Wait()\|\.Result[;,)]\|GetAwaiter.*GetResult' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Blocking async call found! Use await."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] Extension Methods"
+      run: |
+        echo "Checking for extension methods in domain code..."
+        if grep -rn 'public static.*this ' src/GameState/*.cs src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: Extension method in domain code!"
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[NAMESPACE] Domain Namespace Declarations"
+      run: |
+        echo "Checking for namespace declarations in domain code..."
+        if grep -rn '^namespace' src/GameState/*.cs src/Services/*.cs src/Subsystems/**/*.cs src/Content/*.cs 2>/dev/null | grep -v 'Wayfarer\.Tests\|Wayfarer\.Pages'; then
+          echo "ERROR: Namespace declaration in domain code! Use global namespace."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DETERMINISM] Random Outside Pile"
+      run: |
+        echo "Checking for Random usage outside Pile.cs..."
+        if grep -rn 'new Random\|Random()\|\.Next(' src/**/*.cs 2>/dev/null | grep -v 'Pile\.cs' | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Random in strategic code! Only Pile.cs allowed."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[CATALOGUE] Parse-Time Only"
+      run: |
+        echo "Checking for runtime catalogue calls in Services/Subsystems..."
+        if grep -rn 'Catalog\.\|Catalogue\.' src/Services/**/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v 'Parser' | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Runtime catalogue call! Use Parser pipeline instead."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DOC-PURITY] Code Blocks in arc42/gdd"
+      run: |
+        echo "Checking for code blocks in principles documentation..."
+        if grep -rn '```csharp\|```c#\|```json\|```cs' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY'; then
+          echo "ERROR: Code block in arc42/gdd! Describe concepts, not implementation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DOC-PURITY] JSON Structures in arc42/gdd"
+      run: |
+        echo "Checking for JSON structures in principles documentation..."
+        if grep -rn '"[a-zA-Z]*":\s*["{0-9\[]' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY' | grep -v 'Example:\|example:'; then
+          echo "ERROR: JSON structure in arc42/gdd! Use conceptual tables instead."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DOC-PURITY] File Paths in arc42/gdd"
+      run: |
+        echo "Checking for file paths in principles documentation..."
+        if grep -rn '[a-zA-Z]*\.cs:[0-9]\|src/.*\.cs' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY'; then
+          echo "ERROR: File path in arc42/gdd! Describe patterns, not locations."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[FAIL-FAST] Null Coalescing"
+      run: |
+        echo "Checking for null coalescing in domain code..."
+        if grep -rn '\?\?' src/GameState/*.cs src/Services/*.cs src/Content/*.cs 2>/dev/null | grep -v 'DTO\|Tests\.' | grep -v '^\s*//' | grep -v 'parameter\|argument'; then
+          echo "WARNING: Null coalescing (??) found - may hide missing data errors"
+        fi
+        echo "Pass"
+
+    - name: "[FAIL-FAST] TryGetValue/TryParse"
+      run: |
+        echo "Checking for TryGetValue/TryParse in domain code..."
+        if grep -rn 'TryGetValue\|TryParse' src/GameState/*.cs src/Services/*.cs src/Content/*.cs 2>/dev/null | grep -v 'DTO\|Tests\.' | grep -v '^\s*//'; then
+          echo "WARNING: TryGetValue/TryParse found - prefer fail-fast"
+        fi
+        echo "Pass"
+
+    - name: "[ICONS] Emojis in Razor Files"
+      run: |
+        echo "Checking for emojis in .razor files..."
+        if grep -rn '[✓✔✗✘❌✅⚡⭐🔥💀⚠️🎯📍🏠👤💰🗡️🛡️❤️💚💙🟢🔴🟡]' src/**/*.razor 2>/dev/null; then
+          echo "ERROR: Emoji in .razor file! Use <Icon> component instead."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[EXPLICIT] String-Based Property Patterns"
+      run: |
+        echo "Checking for string-based property modification patterns..."
+        if grep -rn 'ModifyProperty\|SetProperty\|GetProperty' src/**/*.cs 2>/dev/null | grep 'string' | grep -v '^\s*//'; then
+          echo "ERROR: String-based property pattern! Use explicit typed properties."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "All Architecture Checks Passed"
+      run: echo "All architecture compliance checks passed!"

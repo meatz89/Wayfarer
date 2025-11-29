@@ -157,6 +157,45 @@ Without atmospheric layer:
 
 ---
 
+## DDR-007: Intentional Numeric Design
+
+### Problem
+How to ensure players can mentally calculate costs and predict outcomes without external tools?
+
+### Decision
+Three principles govern all numeric values in the game:
+
+| Principle | Description | Player Benefit |
+|-----------|-------------|----------------|
+| **Mental Math Design** | Values small enough for head calculation | No calculator needed |
+| **Deterministic Arithmetic** | Outcomes predictable from inputs | Planning is meaningful |
+| **Absolute Modifiers** | Bonuses stack additively | No compounding surprises |
+
+### Mental Math Design
+All values fit in working memory. Players see small adjustments like +2 or -5, not large numbers requiring paper calculation. When faced with a choice, players can add costs in their heads.
+
+### Deterministic Arithmetic
+No randomness in strategic outcomes. Stat requirements mean exactly what they say—not probability chances. Tactical layer may involve card draw variance, but strategic costs and requirements are fixed and predictable.
+
+### Absolute Modifiers
+Bonuses apply as flat additions, never multipliers. A friendly NPC reduces requirements by a fixed amount. Premium quality adds a fixed cost. These stack predictably: two bonuses of the same size always produce double that bonus.
+
+### Why This Over Alternatives
+
+| Option | Rejected Because |
+|--------|------------------|
+| Percentage modifiers | Compound unexpectedly, break mental math |
+| Large numbers | Require external calculation, break immersion |
+| Probability-based outcomes | Undermine Perfect Information pillar |
+
+### Consequences
+- Players strategize without pausing to calculate
+- Perfect Information extends to the math itself
+- Balance is transparent—no hidden complexity
+- Implementation uses integer arithmetic throughout
+
+---
+
 ## Cross-References
 
 - **Complete DDR Documentation**: See [design/11_design_decisions.md](../design/11_design_decisions.md) for all DDRs

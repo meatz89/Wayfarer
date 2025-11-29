@@ -23,15 +23,15 @@ public static class ObservationSceneParser
                 "Ensure Locations are loaded before ObservationScenes.");
         }
 
+        // HIGHLANDER: ObservationScene is immutable template - no state properties
+        // State (IsCompleted, ExaminedPoints) stored in ObservationSceneState at runtime
         ObservationScene scene = new ObservationScene
         {
             Name = dto.Name,
             Description = dto.Description,
             Location = location, // Object reference, no LocationId
             RequiredKnowledge = new List<string>(dto.RequiredKnowledge),
-            IsRepeatable = dto.IsRepeatable,
-            IsCompleted = false,
-            ExaminedPoints = new List<ExaminationPoint>() // Object collection, not ExaminedPointIds
+            IsRepeatable = dto.IsRepeatable
         };
 
         // Parse examination points (first pass - no cross-references yet)

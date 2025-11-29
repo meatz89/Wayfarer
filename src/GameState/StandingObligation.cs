@@ -67,15 +67,15 @@ public class StandingObligation
     // Tracking for forced generation effects
     public int DaysSinceLastForcedDeliveryObligation { get; set; } = 0;
 
-    // Dynamic Scaling Properties
+    // Dynamic Scaling Properties (flat integer additions)
     public ScalingType ScalingType { get; set; } = ScalingType.None;
-    public float ScalingFactor { get; set; } = 1.0f; // How much per token for linear scaling
-    public float BaseValue { get; set; } = 0f; // Base value before scaling
-    public float MinValue { get; set; } = 0f; // Minimum scaled value
-    public float MaxValue { get; set; } = 100f; // Maximum scaled value
+    public int ScalingFactor { get; set; } = 1; // Flat bonus per token (e.g., +1 per token)
+    public int BaseValue { get; set; } = 0; // Base value (flat integer)
+    public int MinValue { get; set; } = 0; // Minimum scaled value (flat integer)
+    public int MaxValue { get; set; } = 100; // Maximum scaled value (flat integer)
 
     // Stepped scaling thresholds (token count -> effect value)
-    public Dictionary<int, float> SteppedThresholds { get; set; } = new Dictionary<int, float>();
+    public List<SteppedThreshold> SteppedThresholds { get; set; } = new List<SteppedThreshold>();
 
     public StandingObligation()
     {
@@ -199,8 +199,8 @@ public class StandingObligation
         };
     }
 
-    // Calculate dynamic value based on current token count
-    public float CalculateDynamicValue(int tokenCount)
+    // Calculate dynamic value based on current token count (flat integer arithmetic)
+    public int CalculateDynamicValue(int tokenCount)
     {
         switch (ScalingType)
         {
@@ -209,15 +209,15 @@ public class StandingObligation
 
             case ScalingType.Linear:
                 // Linear scaling: base + (tokens * factor)
-                float linearValue = BaseValue + (tokenCount * ScalingFactor);
+                int linearValue = BaseValue + (tokenCount * ScalingFactor);
                 return Math.Max(MinValue, Math.Min(MaxValue, linearValue));
 
             case ScalingType.Stepped:
                 // Find the highest threshold that we meet
-                float steppedValue = BaseValue;
-                foreach (KeyValuePair<int, float> threshold in SteppedThresholds.OrderBy(t => t.Key))
+                int steppedValue = BaseValue;
+                foreach (SteppedThreshold threshold in SteppedThresholds.OrderBy(t => t.Level))
                 {
-                    if (tokenCount >= threshold.Key)
+                    if (tokenCount >= threshold.Level)
                     {
                         steppedValue = threshold.Value;
                     }
@@ -231,7 +231,7 @@ public class StandingObligation
                     bool meetsThreshold = ActivatesAboveThreshold ?
                         tokenCount >= ActivationThreshold.Value :
                         tokenCount <= ActivationThreshold.Value;
-                    return meetsThreshold ? BaseValue : 0f;
+                    return meetsThreshold ? BaseValue : 0;
                 }
                 return BaseValue;
 

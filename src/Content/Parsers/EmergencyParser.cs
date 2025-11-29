@@ -32,6 +32,8 @@ public static class EmergencyParser
             // Cannot validate here without Location.Id
         }
 
+        // HIGHLANDER: EmergencySituation is immutable template - no state properties
+        // State (IsTriggered, IsResolved, TriggeredAtSegment) stored in ActiveEmergencyState at runtime
         EmergencySituation emergency = new EmergencySituation
         {
             Id = dto.Id,
@@ -39,10 +41,7 @@ public static class EmergencyParser
             Description = dto.Description ?? "",
             TriggerDay = dto.TriggerDay,
             TriggerSegment = dto.TriggerSegment,
-            ResponseWindowSegments = dto.ResponseWindowSegments,
-            IsTriggered = dto.IsTriggered,
-            IsResolved = dto.IsResolved,
-            TriggeredAtSegment = dto.TriggeredAtSegment
+            ResponseWindowSegments = dto.ResponseWindowSegments
         };
 
         // Parse response options

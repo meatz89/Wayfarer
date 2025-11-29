@@ -78,7 +78,7 @@ Difficulty scales through entity properties:
 - **Environment Quality:** Poor → Standard → Fine → Exceptional
 - **Power Dynamic:** Subordinate → Equal → Superior → Authority
 
-These multiply base archetype costs, creating contextual difficulty without explicit "level 5 required" gates.
+These adjust base archetype costs, creating contextual difficulty without explicit "level 5 required" gates.
 
 ### Progression Tier Expectations
 

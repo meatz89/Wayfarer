@@ -226,6 +226,7 @@ public class TravelManager
 
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
+    /// DDR-007: Event selection is deterministic based on segment properties
     /// </summary>
     private string GetOrDrawEventForSegment(RouteSegment segment, TravelSession session, List<string> eventIds)
     {
@@ -236,8 +237,10 @@ public class TravelManager
             return session.SegmentEventDraws[key];
         }
 
-        // Draw random event from collection
-        string eventId = eventIds[_random.Next(eventIds.Count)];
+        // DDR-007: Deterministic event selection based on segment number
+        // Same segment number always produces same event (predictable)
+        int deterministicIndex = segment.SegmentNumber % eventIds.Count;
+        string eventId = eventIds[deterministicIndex];
         session.SegmentEventDraws[key] = eventId;
 
         return eventId;
@@ -272,9 +275,16 @@ public class TravelManager
             return false;
         }
 
-        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
+        if (card.CoinRequirement > 0)
         {
-            return false;
+            Player player = _gameWorld.GetPlayer();
+            Consequence cost = new Consequence { Coins = -card.CoinRequirement };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
+            {
+                return false;
+            }
         }
 
         // Check one-time card usage
@@ -334,9 +344,15 @@ public class TravelManager
             return false;
         }
 
-        if (card.CoinRequirement > 0 && player.Coins < card.CoinRequirement)
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
+        if (card.CoinRequirement > 0)
         {
-            return false;
+            Consequence cost = new Consequence { Coins = -card.CoinRequirement };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
+            {
+                return false;
+            }
         }
 
         // Deduct stamina (travel-specific resource, not player resource)

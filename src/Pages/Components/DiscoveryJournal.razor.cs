@@ -34,8 +34,9 @@ namespace Wayfarer.Pages.Components
         protected List<Location> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
+            // HIGHLANDER: Object reference comparison, not string ID comparison
             return GameWorld.Locations
-                .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Name))
+                .Where(l => player.LocationFamiliarity.Any(f => f.Location == l))
                 .OrderBy(l => l.Name)
                 .ToList();
         }

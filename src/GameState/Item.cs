@@ -52,8 +52,8 @@ public class Item
     // Items should reference Venue/Location objects, not ID strings
     public string Description { get; set; }
 
-    // Token generation modifiers for equipment
-    public Dictionary<ConnectionType, float> TokenGenerationModifiers { get; set; } = new Dictionary<ConnectionType, float>();
+    // Token generation bonuses for equipment (flat integer additions, e.g., +1, +2)
+    public Dictionary<ConnectionType, int> TokenGenerationBonuses { get; set; } = new Dictionary<ConnectionType, int>();
 
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();

@@ -1,20 +1,20 @@
 /// <summary>
 /// Templated observation system to generate varied content without explosion
 /// Based on Alex's recommendation: 24 base templates + 120 detail phrases = 1000+ combinations
+/// DDR-007: All observation generation is deterministic based on location properties
 /// </summary>
 public class ObservationTemplates
 {
     private readonly Dictionary<LocationTag, ObservationTemplate> _templates;
-    private readonly Random _random;
 
     public ObservationTemplates()
     {
-        _random = new Random();
         _templates = InitializeTemplates();
     }
 
     /// <summary>
     /// Generate an observation based on Venue tag and context
+    /// DDR-007: Deterministic generation based on venueId and tag (always predictable)
     /// </summary>
     public string GenerateObservation(LocationTag tag, string venueId, int seed = 0)
     {
@@ -23,14 +23,15 @@ public class ObservationTemplates
 
         ObservationTemplate template = _templates[tag];
 
-        // Use seed for deterministic generation if provided
-        Random rnd = seed > 0 ? new Random(seed) : _random;
+        // DDR-007: Always use deterministic seed based on venue and tag
+        int deterministicSeed = seed > 0 ? seed : Math.Abs((venueId + tag.ToString()).GetHashCode());
 
-        // Select template variation
-        string templateText = template.Variations[rnd.Next(template.Variations.Count)];
+        // Select template variation deterministically
+        int variationIndex = deterministicSeed % template.Variations.Count;
+        string templateText = template.Variations[variationIndex];
 
-        // Get location-specific detail
-        string detail = GetLocationDetail(tag, venueId, rnd);
+        // Get location-specific detail deterministically
+        string detail = GetLocationDetail(tag, venueId, deterministicSeed);
 
         // Replace placeholder
         return templateText.Replace("{detail}", detail);
@@ -122,16 +123,23 @@ public class ObservationTemplates
         };
     }
 
-    private string GetLocationDetail(LocationTag tag, string venueId, Random rnd)
+    /// <summary>
+    /// Get location detail deterministically based on seed
+    /// DDR-007: Deterministic selection ensures consistent observations
+    /// </summary>
+    private string GetLocationDetail(LocationTag tag, string venueId, int seed)
     {
         // Location-specific details based on tag and location
         List<string> details = GetDetailsForLocation(tag, venueId);
 
         if (details.Any())
-            return details[rnd.Next(details.Count)];
+        {
+            int detailIndex = seed % details.Count;
+            return details[detailIndex];
+        }
 
         // Fallback generic details
-        return GetGenericDetail(tag, rnd);
+        return GetGenericDetail(tag, seed);
     }
 
     private List<string> GetDetailsForLocation(LocationTag tag, string venueId)
@@ -264,7 +272,11 @@ public class ObservationTemplates
         return locationDetails.ContainsKey(key) ? locationDetails[key] : new List<string>();
     }
 
-    private string GetGenericDetail(LocationTag tag, Random rnd)
+    /// <summary>
+    /// Get generic detail deterministically based on seed
+    /// DDR-007: Deterministic selection ensures consistent observations
+    /// </summary>
+    private string GetGenericDetail(LocationTag tag, int seed)
     {
         Dictionary<LocationTag, List<string>> genericDetails = new Dictionary<LocationTag, List<string>>
         {
@@ -351,7 +363,8 @@ public class ObservationTemplates
         if (genericDetails.ContainsKey(tag))
         {
             List<string> details = genericDetails[tag];
-            return details[rnd.Next(details.Count)];
+            int detailIndex = seed % details.Count;
+            return details[detailIndex];
         }
 
         return "something noteworthy";

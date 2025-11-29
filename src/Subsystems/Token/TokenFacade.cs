@@ -33,7 +33,7 @@ public class TokenFacade
     /// Get all tokens with a specific NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public List<TokenCount> GetTokensWithNPC(NPC npc)
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
     {
         return _connectionTokenManager.GetTokensWithNPC(npc);
     }
@@ -237,11 +237,11 @@ public class TokenFacade
     }
 
     /// <summary>
-    /// Get all active token modifiers from equipment
+    /// Get all active token bonuses from equipment (flat integer additions)
     /// </summary>
-    public Dictionary<ConnectionType, float> GetActiveModifiers()
+    public Dictionary<ConnectionType, int> GetActiveBonuses()
     {
-        return _tokenEffectProcessor.GetActiveModifiers();
+        return _tokenEffectProcessor.GetActiveBonuses();
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ public class TokenFacade
             TotalShadow = GetTotalTokensOfType(ConnectionType.Shadow),
             NPCsWithRelationships = GetNPCsWithTokens().Count,
             TotalDebts = GetAllDebts().Count,
-            ActiveModifiers = GetActiveModifiers()
+            ActiveBonuses = GetActiveBonuses()
         };
     }
 }
@@ -359,7 +359,7 @@ public class TokenSummary
     public int TotalShadow { get; set; }
     public int NPCsWithRelationships { get; set; }
     public int TotalDebts { get; set; }
-    public Dictionary<ConnectionType, float> ActiveModifiers { get; set; }
+    public Dictionary<ConnectionType, int> ActiveBonuses { get; set; }
 }
 
 public class DebtInfo

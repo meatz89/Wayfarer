@@ -30,6 +30,34 @@ public class CompoundRequirement
     }
 
     /// <summary>
+    /// Factory method: Create CompoundRequirement for checking if player can afford a Consequence.
+    /// Extracts negative values from Consequence (costs) and creates appropriate resource requirements.
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes - this bridges to CompoundRequirement.
+    /// </summary>
+    public static CompoundRequirement CreateForConsequence(Consequence consequence)
+    {
+        CompoundRequirement requirement = new CompoundRequirement();
+        OrPath path = new OrPath();
+
+        // Extract costs from Consequence (negative values = costs)
+        if (consequence.Coins < 0)
+            path.CoinsRequired = -consequence.Coins;
+        if (consequence.Health < 0)
+            path.HealthRequired = -consequence.Health;
+        if (consequence.Stamina < 0)
+            path.StaminaRequired = -consequence.Stamina;
+        if (consequence.Focus < 0)
+            path.FocusRequired = -consequence.Focus;
+        if (consequence.Resolve < 0)
+            path.ResolveRequired = -consequence.Resolve;
+        if (consequence.Hunger > 0) // Positive hunger = cost (room needed)
+            path.HungerCapacityRequired = consequence.Hunger;
+
+        requirement.OrPaths.Add(path);
+        return requirement;
+    }
+
+    /// <summary>
     /// Project which paths are satisfied and which are missing.
     /// Returns detailed status for Perfect Information UI display.
     /// </summary>

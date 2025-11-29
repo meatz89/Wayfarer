@@ -47,6 +47,7 @@ public class TravelTimeCalculator
     /// <summary>
     /// Calculate actual travel time with transport method modifier and route improvements.
     /// Uses Route.Id directly for improvement lookup (no ID construction/parsing).
+    /// DDR-007: All adjustments are flat segment additions/subtractions.
     /// </summary>
     public int CalculateTravelTime(RouteOption route, TravelMethods transportMethod)
     {
@@ -59,12 +60,13 @@ public class TravelTimeCalculator
 
         int baseTime = GetBaseTravelTime(fromLocation, toLocation);
 
-        // Apply transport method modifier
-        double modifier = GetTransportModifier(transportMethod);
-        int actualTime = (int)(baseTime * modifier);
+        // DDR-007: Apply transport method as flat segment adjustment
+        int transportAdjustment = GetTransportTimeAdjustment(transportMethod);
+        int actualTime = baseTime + transportAdjustment;
 
-        // Apply weather effects if any
-        actualTime = ApplyWeatherEffects(actualTime);
+        // DDR-007: Apply weather effects as flat segment adjustment
+        int weatherAdjustment = GetWeatherTimeAdjustment();
+        actualTime = actualTime + weatherAdjustment;
 
         // Apply route improvements (V2 Obligation System)
         // HIGHLANDER: Query by Route object reference, not deleted RouteId property
@@ -84,56 +86,53 @@ public class TravelTimeCalculator
     }
 
     /// <summary>
-    /// Get transport method speed modifier.
+    /// Get transport method time adjustment in segments (DDR-007: flat adjustments).
+    /// Negative = faster, Positive = slower.
     /// </summary>
-    private double GetTransportModifier(TravelMethods transportMethod)
+    private int GetTransportTimeAdjustment(TravelMethods transportMethod)
     {
         return transportMethod switch
         {
-            TravelMethods.Walking => 1.0,      // Base speed
-            TravelMethods.Horseback => 0.5,    // Twice as fast
-            TravelMethods.Carriage => 0.7,     // Moderate speed boost
-            TravelMethods.Cart => 1.3,          // Slower due to cargo
-            TravelMethods.Boat => 0.8,          // Good for water routes
-            _ => 1.0
+            TravelMethods.Walking => 0,       // Base speed (no adjustment)
+            TravelMethods.Horseback => -2,    // 2 segments faster
+            TravelMethods.Carriage => -1,     // 1 segment faster
+            TravelMethods.Cart => 2,          // 2 segments slower (cargo)
+            TravelMethods.Boat => -1,         // 1 segment faster (water routes)
+            _ => 0
         };
     }
 
     /// <summary>
-    /// Apply weather effects to travel time.
+    /// Get weather time adjustment in segments (DDR-007: flat adjustments).
     /// </summary>
-    private int ApplyWeatherEffects(int baseTime)
+    private int GetWeatherTimeAdjustment()
     {
         WeatherCondition weather = _gameWorld.CurrentWeather;
 
         return weather switch
         {
-            WeatherCondition.Rain => (int)(baseTime * 1.2),      // 20% slower in rain
-            WeatherCondition.Snow => (int)(baseTime * 1.5),      // 50% slower in snow
-            WeatherCondition.Storm => (int)(baseTime * 2.0),     // Double time in storm
-            _ => baseTime                                         // No effect
+            WeatherCondition.Rain => 1,       // +1 segment in rain
+            WeatherCondition.Snow => 2,       // +2 segments in snow
+            WeatherCondition.Storm => 3,      // +3 segments in storm
+            _ => 0                            // No effect
         };
     }
 
     /// <summary>
-    /// Calculate coin cost for travel.
+    /// Calculate coin cost for travel (DDR-007: flat costs per transport type).
     /// </summary>
     public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
     {
-        int baseCost = route.BaseCoinCost;
-
-        // Apply transport method cost modifier
-        baseCost = transportMethod switch
+        // DDR-007: Each transport type has a flat coin cost
+        return transportMethod switch
         {
-            TravelMethods.Walking => 0,                  // Free
-            TravelMethods.Horseback => baseCost * 2,     // More expensive
-            TravelMethods.Carriage => baseCost * 3,      // Most expensive
-            TravelMethods.Cart => baseCost,              // Standard cost
-            TravelMethods.Boat => baseCost * 2,          // Moderate cost
-            _ => baseCost
+            TravelMethods.Walking => 0,        // Free
+            TravelMethods.Horseback => 8,      // 8 coins (premium service)
+            TravelMethods.Carriage => 12,      // 12 coins (luxury service)
+            TravelMethods.Cart => 5,           // 5 coins (standard cargo)
+            TravelMethods.Boat => 6,           // 6 coins (ferry fee)
+            _ => 0
         };
-
-        return baseCost;
     }
 
     /// <summary>

@@ -48,6 +48,8 @@ flowchart LR
 - Single formula change rebalances all affected content
 - Zero runtime overhead (translation complete at startup)
 
+Catalogues implement DDR-007's Absolute Modifiers principle: translations always use fixed additions and subtractions, never multipliers.
+
 **Forbidden:** Runtime catalogue lookups, string-based property matching.
 
 ---
@@ -635,6 +637,79 @@ With unified application:
 - Consistent behavior everywhere
 - Changes to resource logic happen in ONE place
 - Guaranteed consistency across all game systems
+
+---
+
+## 8.23 DDR-007: Intentional Numeric Design
+
+**"If you can't do it in your head, the design is wrong."**
+
+All game mechanics use integer-only arithmetic with values small enough for mental calculation. This principle governs three domains:
+
+### The Three Principles
+
+| Principle | Description | Forbidden |
+|-----------|-------------|-----------|
+| **Mental Math Design** | Values fit in working memory (range: -20 to +20) | Large numbers, complex formulas |
+| **Deterministic Arithmetic** | Strategic outcomes predictable from inputs | Random in strategic layer |
+| **Absolute Modifiers** | Bonuses stack additively | Multiplicative scaling, percentages |
+
+### Numeric Type Usage
+
+| Type | Usage | Example |
+|------|-------|---------|
+| **int** | All game values | Coins, stamina, thresholds, adjustments |
+| **Enums** | Categorical states | TradeConfidence.High, PowerDynamic.Dominant |
+
+| Forbidden Type | Reason |
+|----------------|--------|
+| **float/double** | Introduces rounding errors, violates determinism |
+| **decimal** | Overkill precision, implies financial calculation |
+| **Percentages** | Mental math barrier, multiplicative by nature |
+| **Basis Points** | Financial jargon, opaque to players |
+
+### Pattern Transformations
+
+When encountering percentage-based patterns, transform to DDR-007 compliant forms:
+
+| Before (Forbidden) | After (Compliant) |
+|-------------------|-------------------|
+| `price * 1.15` | `price + 3` (flat spread) |
+| `value * 0.7` | `value - 3` (flat reduction) |
+| `total * 0.3` | `(total + 2) / 3` (integer division) |
+| `current > total * 0.75` | `total - current <= total / 4` |
+| `BasisPoints / 10000` | Direct integer value |
+
+### Enforcement Layers
+
+DDR-007 compliance is enforced at multiple levels:
+
+| Layer | Mechanism | Location |
+|-------|-----------|----------|
+| **Compile-Time** | Type system (int only) | C# compiler |
+| **Test-Time** | DDR007ComplianceTests.cs | Architecture tests |
+| **Pre-Commit** | Pattern detection hook | scripts/hooks/pre-commit |
+| **CI** | Grep-based pattern check | .github/workflows/build-test.yml |
+| **Review** | CLAUDE.md guidance | Code review |
+
+### Exempt Patterns
+
+| Context | Reason |
+|---------|--------|
+| **UI rendering** | Visual layout requires floating-point geometry |
+| **Tactical layer** | Card shuffling (Pile.cs) uses Random per design |
+| **Parsing layer** | External format translation may require conversion |
+
+### Player Experience Impact
+
+Players can perform all calculations mentally:
+- Travel time: "4 hexes + 2 forest = 6 segments"
+- Trade profit: "Buy for 10, sell for 18 = 8 coin profit"
+- Conversation: "My Flow is 5, their Patience is 4, so I qualify"
+
+No calculator, no percentage math, no multiplicative confusion.
+
+**Reference:** `gdd/06_design_discipline.md` DDR-007, `compliance-audit/ddr007/00_MASTER_SUMMARY.md`
 
 ---
 

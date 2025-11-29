@@ -8,6 +8,8 @@ public class EmergencyContext
     public string ErrorMessage { get; set; }
 
     // Emergency data
+    // HIGHLANDER: EmergencyState is the mutable runtime state, Emergency is the immutable template
+    public ActiveEmergencyState EmergencyState { get; set; }
     public EmergencySituation Emergency { get; set; }
 
     // Player resources

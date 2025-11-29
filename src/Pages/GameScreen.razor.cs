@@ -95,7 +95,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshLocationDisplay();
 
         // Check for active emergency - interrupts normal gameplay
-        EmergencySituation activeEmergency = GameFacade.GetActiveEmergency();
+        // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
+        ActiveEmergencyState activeEmergency = GameFacade.GetActiveEmergency();
         if (activeEmergency != null)
         {
             await StartEmergency(activeEmergency);
@@ -501,9 +502,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartEmergency(EmergencySituation emergency)
+    public async Task StartEmergency(ActiveEmergencyState emergencyState)
     {
-        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergency);
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyState);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();

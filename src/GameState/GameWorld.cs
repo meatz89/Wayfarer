@@ -63,15 +63,22 @@ public class GameWorld
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
 
-    // ObservationScenes - Mental challenge system for scene investigation
+    // ObservationScenes - Immutable templates for mental challenge investigation (loaded from JSON)
     public List<ObservationScene> ObservationScenes { get; set; } = new List<ObservationScene>();
+    // ObservationSceneStates - Mutable runtime state for each observation scene template
+    // HIGHLANDER: Separates immutable template from mutable game state
+    public List<ObservationSceneState> ObservationSceneStates { get; set; } = new List<ObservationSceneState>();
 
     // ConversationTrees - Simple dialogue without tactical challenge
     public List<ConversationTree> ConversationTrees { get; set; } = new List<ConversationTree>();
-    // EmergencySituations - Urgent situations demanding immediate response
+    // EmergencySituations - Immutable templates for urgent situations (loaded from JSON)
     public List<EmergencySituation> EmergencySituations { get; set; } = new List<EmergencySituation>();
+    // EmergencyStates - Mutable runtime state for each emergency template
+    // HIGHLANDER: Separates immutable template from mutable game state
+    public List<ActiveEmergencyState> EmergencyStates { get; set; } = new List<ActiveEmergencyState>();
     // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
-    public EmergencySituation ActiveEmergency { get; set; }
+    // HIGHLANDER: ActiveEmergencyState holds Template reference + mutable state
+    public ActiveEmergencyState ActiveEmergency { get; set; }
 
     // ADR-007: PendingForcedSceneId DELETED - replaced with PendingForcedScene object reference
     // Modal scene that should auto-trigger on location entry
@@ -84,6 +91,14 @@ public class GameWorld
     public DialogueTemplates DialogueTemplates { get; set; }
     public List<Obligation> Obligations { get; private set; } = new List<Obligation>();
     public ObligationJournal ObligationJournal { get; private set; } = new ObligationJournal();
+
+    // HIGHLANDER: Pending obligation results stored in GameWorld, not in service
+    // Services are stateless - all state belongs in GameWorld
+    public ObligationDiscoveryResult PendingDiscoveryResult { get; set; }
+    public ObligationActivationResult PendingActivationResult { get; set; }
+    public ObligationProgressResult PendingProgressResult { get; set; }
+    public ObligationCompleteResult PendingCompleteResult { get; set; }
+    public ObligationIntroResult PendingIntroResult { get; set; }
 
     // Travel System
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();

@@ -56,17 +56,28 @@ public class MarketSubsystemManager
     }
 
     /// <summary>
+    /// Confidence level for trade recommendations (DDR-007: categorical, not percentage)
+    /// </summary>
+    public enum TradeConfidence
+    {
+        Low,      // Profit 1-5 coins
+        Medium,   // Profit 6-10 coins
+        High      // Profit 11+ coins
+    }
+
+    /// <summary>
     /// Trade recommendation for strategic planning
     /// HIGHLANDER: Object references only
+    /// DDR-007: All values are flat coins, confidence is categorical
     /// </summary>
     public class TradeRecommendation
     {
         public Item Item { get; set; }
         public TradeAction RecommendedAction { get; set; }
         public Location Location { get; set; }
-        public int ExpectedProfit { get; set; }
+        public int ExpectedProfit { get; set; }       // DDR-007: Flat coin profit for mental math
         public string Reasoning { get; set; }
-        public float Confidence { get; set; } // 0.0 to 1.0
+        public TradeConfidence Confidence { get; set; } // DDR-007: Categorical, not basis points
     }
 
     /// <summary>
@@ -155,7 +166,7 @@ public class MarketSubsystemManager
         public int BuyPrice { get; set; }
         public int SellPrice { get; set; }
         public bool IsAvailable { get; set; }
-        public float SupplyLevel { get; set; }
+        public int SupplyLevel { get; set; }
     }
 
     /// <summary>
@@ -185,7 +196,7 @@ public class MarketSubsystemManager
         LocationPricing pricing = new LocationPricing
         {
             IsAvailable = true,
-            SupplyLevel = 1.0f
+            SupplyLevel = 100
         };
 
         // Location purpose/role determine pricing (orthogonal properties replace capabilities)
@@ -218,8 +229,8 @@ public class MarketSubsystemManager
             pricing.SellPrice = item.SellPrice;
         }
 
-        // Ensure buy price is always higher than sell price
-        int minimumBuyPrice = (int)Math.Ceiling(pricing.SellPrice * 1.15);
+        // DDR-007: Ensure buy price is always higher than sell price using flat spread
+        int minimumBuyPrice = pricing.SellPrice + 3; // Flat 3-coin spread (matches PriceManager.BUY_SELL_SPREAD)
         if (pricing.BuyPrice < minimumBuyPrice)
         {
             pricing.BuyPrice = minimumBuyPrice;
@@ -296,9 +307,11 @@ public class MarketSubsystemManager
         int buyPrice = GetItemPrice(location, item, true);
         if (buyPrice <= 0) return false;
 
-        // Check player resources
+        // HIGHLANDER: Use CompoundRequirement for resource availability check
         Player player = _gameWorld.GetPlayer();
-        if (player.Coins < buyPrice) return false;
+        Consequence cost = new Consequence { Coins = -buyPrice };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        if (!resourceReq.IsAnySatisfied(player, _gameWorld)) return false;
 
         // Check inventory space
         return player.Inventory.CanAddItem(item);
@@ -367,9 +380,14 @@ public class MarketSubsystemManager
         int buyPrice = GetItemPrice(location, item, true);
         result.Price = buyPrice;
 
+        // HIGHLANDER: Use CompoundRequirement for affordability check
+        Consequence cost = new Consequence { Coins = -buyPrice };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        bool canAfford = resourceReq.IsAnySatisfied(player, _gameWorld);
+
         // Attempt purchase
         bool success = false;
-        if (buyPrice > 0 && player.Coins >= buyPrice && player.Inventory.CanAddItem(item))
+        if (buyPrice > 0 && canAfford && player.Inventory.CanAddItem(item))
         {
             // TWO PILLARS: Apply purchase via Consequence + ApplyConsequence
             Consequence purchaseCost = new Consequence
@@ -394,7 +412,7 @@ public class MarketSubsystemManager
         }
         else
         {
-            if (player.Coins < buyPrice)
+            if (!canAfford)
             {
                 result.ErrorReason = $"Insufficient funds (need {buyPrice}, have {player.Coins})";
             }
@@ -561,30 +579,43 @@ public class MarketSubsystemManager
             {
                 avgSellPrice /= validLocations;
 
-                if (sellPriceHere > avgSellPrice * 1.1f) // 10% above average
+                int priceDiff = sellPriceHere - avgSellPrice;
+                if (priceDiff > 2) // DDR-007: 3+ coins above average is meaningful
                 {
+                    // DDR-007: Categorical confidence based on flat coin profit
+                    TradeConfidence confidence = priceDiff > 10 ? TradeConfidence.High
+                        : priceDiff > 5 ? TradeConfidence.Medium
+                        : TradeConfidence.Low;
+
                     recommendations.Add(new TradeRecommendation
                     {
                         Item = item,
                         RecommendedAction = TradeAction.Sell,
                         Location = currentLocation,
-                        ExpectedProfit = sellPriceHere - avgSellPrice,
-                        Reasoning = $"Price here ({sellPriceHere}) is above average ({avgSellPrice})",
-                        Confidence = Math.Min(1.0f, (float)(sellPriceHere - avgSellPrice) / avgSellPrice)
+                        ExpectedProfit = priceDiff,
+                        Reasoning = $"Price here ({sellPriceHere}) is {priceDiff} coins above average ({avgSellPrice})",
+                        Confidence = confidence
                     });
                 }
             }
         }
 
         // Recommend buying items that are cheap here
-        if (player.Coins > 10) // Only if player has money to invest
+        // HIGHLANDER: Use CompoundRequirement to check if player has investing capital
+        Consequence investmentThreshold = new Consequence { Coins = -10 };
+        CompoundRequirement hasInvestingCapital = CompoundRequirement.CreateForConsequence(investmentThreshold);
+        if (hasInvestingCapital.IsAnySatisfied(player, _gameWorld))
         {
             List<Item> availableItems = GetAvailableItems(currentLocation);
 
             foreach (Item item in availableItems)
             {
                 if (!player.Inventory.CanAddItem(item)) continue;
-                if (player.Coins < item.BuyPrice) continue;
+
+                // HIGHLANDER: Use CompoundRequirement for item affordability
+                Consequence itemCost = new Consequence { Coins = -item.BuyPrice };
+                CompoundRequirement canAffordItem = CompoundRequirement.CreateForConsequence(itemCost);
+                if (!canAffordItem.IsAnySatisfied(player, _gameWorld)) continue;
 
                 // Check profit potential
                 int buyPriceHere = item.BuyPrice;
@@ -604,16 +635,21 @@ public class MarketSubsystemManager
                 }
 
                 int profit = maxSellPrice - buyPriceHere;
-                if (profit > 5) // Minimum profit threshold
+                if (profit > 5) // DDR-007: 6+ coins profit is meaningful
                 {
+                    // DDR-007: Categorical confidence based on flat coin profit
+                    TradeConfidence confidence = profit > 10 ? TradeConfidence.High
+                        : profit > 5 ? TradeConfidence.Medium
+                        : TradeConfidence.Low;
+
                     recommendations.Add(new TradeRecommendation
                     {
                         Item = item,
                         RecommendedAction = TradeAction.Buy,
                         Location = currentLocation,
                         ExpectedProfit = profit,
-                        Reasoning = $"Can sell for {maxSellPrice} in {bestSellLocation?.Name ?? "elsewhere"}",
-                        Confidence = Math.Min(1.0f, (float)profit / buyPriceHere)
+                        Reasoning = $"Can sell for {maxSellPrice} in {bestSellLocation?.Name ?? "elsewhere"} (profit: {profit} coins)",
+                        Confidence = confidence
                     });
                 }
             }
@@ -647,7 +683,13 @@ public class MarketSubsystemManager
 
             List<Item> items = GetAvailableItems(location);
             summary.TotalItemsAvailable = items.Count;
-            summary.AffordableItems = items.Count(i => i.BuyPrice <= player.Coins);
+
+            // HIGHLANDER: Use CompoundRequirement to count affordable items
+            summary.AffordableItems = items.Count(i => {
+                Consequence itemCost = new Consequence { Coins = -i.BuyPrice };
+                CompoundRequirement canAfford = CompoundRequirement.CreateForConsequence(itemCost);
+                return canAfford.IsAnySatisfied(player, _gameWorld);
+            });
 
             // Count items profitable to sell
             foreach (Item item in player.Inventory.GetAllItems())

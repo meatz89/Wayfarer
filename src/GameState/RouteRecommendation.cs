@@ -7,7 +7,7 @@ public class RouteRecommendation
 {
     public RouteOption RecommendedRoute { get; set; }
     public string Justification { get; set; }
-    public double EfficiencyScore { get; set; }
+    public int EfficiencyScore { get; set; }
     public OptimizationStrategy Strategy { get; set; }
     public string ResourceAnalysis { get; set; }
     public string AlternativeOptions { get; set; }

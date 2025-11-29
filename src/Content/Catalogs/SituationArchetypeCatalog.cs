@@ -787,33 +787,33 @@ public static class SituationArchetypeCatalog
 
         if (context != null)
         {
-            // Scale stat threshold by PowerDynamic (easier if dominant, harder if submissive)
+            // Adjust stat threshold by PowerDynamic (easier if dominant, harder if submissive)
             scaledStatThreshold = context.Power switch
             {
-                PowerDynamic.Dominant => (int)(archetype.StatThreshold * 0.6),
+                PowerDynamic.Dominant => archetype.StatThreshold - 2,
                 PowerDynamic.Equal => archetype.StatThreshold,
-                PowerDynamic.Submissive => (int)(archetype.StatThreshold * 1.4),
+                PowerDynamic.Submissive => archetype.StatThreshold + 2,
                 _ => archetype.StatThreshold
             };
 
-            // Scale coin cost by Quality (cheaper if basic, expensive if luxury)
+            // Adjust coin cost by Quality (cheaper if basic, expensive if luxury)
             scaledCoinCost = context.Quality switch
             {
-                Quality.Basic => (int)(archetype.CoinCost * 0.6),
+                Quality.Basic => archetype.CoinCost - 3,
                 Quality.Standard => archetype.CoinCost,
-                Quality.Premium => (int)(archetype.CoinCost * 1.6),
-                Quality.Luxury => (int)(archetype.CoinCost * 2.4),
+                Quality.Premium => archetype.CoinCost + 5,
+                Quality.Luxury => archetype.CoinCost + 10,
                 _ => archetype.CoinCost
             };
 
-            // Could also scale by NpcDemeanor for additional nuance
+            // Adjust by NpcDemeanor for additional nuance
             if (context.NpcDemeanor == NPCDemeanor.Hostile)
             {
-                scaledStatThreshold = (int)(scaledStatThreshold * 1.4); // Hostile NPCs harder to influence
+                scaledStatThreshold = scaledStatThreshold + 2; // Hostile NPCs harder to influence
             }
             else if (context.NpcDemeanor == NPCDemeanor.Friendly)
             {
-                scaledStatThreshold = (int)(scaledStatThreshold * 0.6); // Friendly NPCs easier
+                scaledStatThreshold = scaledStatThreshold - 2; // Friendly NPCs easier
             }
         }
 
@@ -1046,22 +1046,22 @@ public static class SituationArchetypeCatalog
         string situationTemplateId,
         GenerationContext context)
     {
-        // Scale stat threshold by NPC demeanor
+        // Adjust stat threshold by NPC demeanor
         int scaledStatThreshold = context.NpcDemeanor switch
         {
-            NPCDemeanor.Friendly => (int)(archetype.StatThreshold * 0.6),  // Easier
-            NPCDemeanor.Neutral => archetype.StatThreshold,                 // Baseline
-            NPCDemeanor.Hostile => (int)(archetype.StatThreshold * 1.4),   // Harder
+            NPCDemeanor.Friendly => archetype.StatThreshold - 2,  // Easier
+            NPCDemeanor.Neutral => archetype.StatThreshold,       // Baseline
+            NPCDemeanor.Hostile => archetype.StatThreshold + 2,   // Harder
             _ => archetype.StatThreshold
         };
 
-        // Scale coin cost by quality (universal property)
+        // Adjust coin cost by quality (universal property)
         int scaledCoinCost = context.Quality switch
         {
-            Quality.Basic => (int)(archetype.CoinCost * 0.6),    // 3 coins
-            Quality.Standard => archetype.CoinCost,              // 5 coins
-            Quality.Premium => (int)(archetype.CoinCost * 1.6),  // 8 coins
-            Quality.Luxury => (int)(archetype.CoinCost * 2.4),   // 12 coins
+            Quality.Basic => archetype.CoinCost - 3,    // 2 coins (5-3)
+            Quality.Standard => archetype.CoinCost,     // 5 coins
+            Quality.Premium => archetype.CoinCost + 5,  // 10 coins (5+5)
+            Quality.Luxury => archetype.CoinCost + 10,  // 15 coins (5+10)
             _ => archetype.CoinCost
         };
 
@@ -1135,24 +1135,104 @@ public static class SituationArchetypeCatalog
     /// <summary>
     /// Generate service_execution_rest choices with context-aware restoration scaling.
     /// Returns 4 rest choices that all advance to next morning.
-    /// Restoration amounts scale by Environment.Quality (1x/2x/3x).
+    /// Restoration amounts scale by Environment.Quality using tier-based explicit values.
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceExecutionRestChoices(
         string situationTemplateId,
         GenerationContext context)
     {
-        // Environment quality multiplier for restoration
-        int environmentMultiplier = context.Environment switch
+        // Tier-based restoration values (Basic/Standard/Premium)
+        // Balanced restoration: moderate recovery for all resources
+        int balancedHealth = context.Environment switch
         {
-            EnvironmentQuality.Basic => 1,
-            EnvironmentQuality.Standard => 2,
-            EnvironmentQuality.Premium => 3,
-            _ => 2
+            EnvironmentQuality.Basic => 15,
+            EnvironmentQuality.Standard => 30,
+            EnvironmentQuality.Premium => 45,
+            _ => 30
+        };
+        int balancedStamina = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 15,
+            EnvironmentQuality.Standard => 30,
+            EnvironmentQuality.Premium => 45,
+            _ => 30
+        };
+        int balancedFocus = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 10,
+            EnvironmentQuality.Standard => 21,
+            EnvironmentQuality.Premium => 31,
+            _ => 21
         };
 
-        int baseHealth = 10 * environmentMultiplier;
-        int baseStamina = 10 * environmentMultiplier;
-        int baseFocus = 7 * environmentMultiplier;
+        // Physical focus: high health, low focus
+        int physicalHealth = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 25,
+            EnvironmentQuality.Standard => 50,
+            EnvironmentQuality.Premium => 75,
+            _ => 50
+        };
+        int physicalStamina = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 10,
+            EnvironmentQuality.Standard => 20,
+            EnvironmentQuality.Premium => 30,
+            _ => 20
+        };
+        int physicalFocus = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 3,
+            EnvironmentQuality.Standard => 7,
+            EnvironmentQuality.Premium => 10,
+            _ => 7
+        };
+
+        // Mental focus: low health, high focus
+        int mentalHealth = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 5,
+            EnvironmentQuality.Standard => 10,
+            EnvironmentQuality.Premium => 15,
+            _ => 10
+        };
+        int mentalStamina = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 10,
+            EnvironmentQuality.Standard => 20,
+            EnvironmentQuality.Premium => 30,
+            _ => 20
+        };
+        int mentalFocus = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 17,
+            EnvironmentQuality.Standard => 35,
+            EnvironmentQuality.Premium => 52,
+            _ => 35
+        };
+
+        // Special: balanced + slight bonus + buff
+        int specialHealth = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 13,
+            EnvironmentQuality.Standard => 27,
+            EnvironmentQuality.Premium => 40,
+            _ => 27
+        };
+        int specialStamina = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 13,
+            EnvironmentQuality.Standard => 27,
+            EnvironmentQuality.Premium => 40,
+            _ => 27
+        };
+        int specialFocus = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 10,
+            EnvironmentQuality.Standard => 21,
+            EnvironmentQuality.Premium => 31,
+            _ => 21
+        };
 
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
@@ -1160,14 +1240,14 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_balanced",
-            PathType = ChoicePathType.InstantSuccess,  // Standard rest choice
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Sleep peacefully",
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence
             {
-                Health = baseHealth + baseHealth / 2,      // 15/30/45
-                Stamina = baseStamina + baseStamina / 2,   // 15/30/45
-                Focus = baseFocus + baseFocus / 2,         // 10/21/31
+                Health = balancedHealth,
+                Stamina = balancedStamina,
+                Focus = balancedFocus,
                 AdvanceToDay = DayAdvancement.NextDay,
                 AdvanceToBlock = TimeBlocks.Morning
             },
@@ -1178,14 +1258,14 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_physical",
-            PathType = ChoicePathType.InstantSuccess,  // Physical variant
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Rest deeply",
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence
             {
-                Health = baseHealth * 2 + baseHealth / 2,  // 25/50/75
-                Stamina = baseStamina,                      // 10/20/30
-                Focus = baseFocus / 2,                      // 3/7/10
+                Health = physicalHealth,
+                Stamina = physicalStamina,
+                Focus = physicalFocus,
                 AdvanceToDay = DayAdvancement.NextDay,
                 AdvanceToBlock = TimeBlocks.Morning
             },
@@ -1196,14 +1276,14 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_mental",
-            PathType = ChoicePathType.InstantSuccess,  // Mental variant
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Meditate before sleeping",
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence
             {
-                Health = baseHealth / 2,                    // 5/10/15
-                Stamina = baseStamina,                      // 10/20/30
-                Focus = baseFocus * 2 + baseFocus / 2,     // 17/35/52
+                Health = mentalHealth,
+                Stamina = mentalStamina,
+                Focus = mentalFocus,
                 AdvanceToDay = DayAdvancement.NextDay,
                 AdvanceToBlock = TimeBlocks.Morning
             },
@@ -1214,14 +1294,14 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_special",
-            PathType = ChoicePathType.InstantSuccess,  // Special variant with buff
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = "Dream vividly",
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence
             {
-                Health = baseHealth + baseFocus / 2,        // 13/27/40
-                Stamina = baseStamina + baseFocus / 2,      // 13/27/40
-                Focus = baseFocus + baseFocus / 2,          // 10/21/31
+                Health = specialHealth,
+                Stamina = specialStamina,
+                Focus = specialFocus,
                 AdvanceToDay = DayAdvancement.NextDay,
                 AdvanceToBlock = TimeBlocks.Morning,
                 StateApplications = new List<StateApplication>

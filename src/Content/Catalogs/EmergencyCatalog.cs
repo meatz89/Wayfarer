@@ -37,34 +37,36 @@ public static class EmergencyCatalog
     }
 
     /// <summary>
-    /// Get cost scaling factor based on emergency severity
+    /// Get cost adjustment based on emergency severity
     /// More severe emergencies require more resources to handle
+    /// Returns flat coin adjustment (additive, not multiplicative)
     /// </summary>
-    public static double GetCostScalingFactor(EmergencySeverity severity)
+    public static int GetCostAdjustment(EmergencySeverity severity)
     {
         return severity switch
         {
-            EmergencySeverity.Minor => 1.0,    // Normal costs
-            EmergencySeverity.Moderate => 1.5, // 50% higher costs
-            EmergencySeverity.Urgent => 2.0,   // Double costs
-            EmergencySeverity.Critical => 3.0, // Triple costs
-            _ => 1.0
+            EmergencySeverity.Minor => 0,     // No adjustment
+            EmergencySeverity.Moderate => 5,  // +5 coins
+            EmergencySeverity.Urgent => 10,   // +10 coins
+            EmergencySeverity.Critical => 20, // +20 coins
+            _ => 0
         };
     }
 
     /// <summary>
-    /// Get reward scaling factor based on emergency severity
+    /// Get reward adjustment based on emergency severity
     /// More severe emergencies offer greater rewards
+    /// Returns flat coin adjustment (additive, not multiplicative)
     /// </summary>
-    public static double GetRewardScalingFactor(EmergencySeverity severity)
+    public static int GetRewardAdjustment(EmergencySeverity severity)
     {
         return severity switch
         {
-            EmergencySeverity.Minor => 1.0,    // Normal rewards
-            EmergencySeverity.Moderate => 1.5, // 50% higher rewards
-            EmergencySeverity.Urgent => 2.0,   // Double rewards
-            EmergencySeverity.Critical => 3.0, // Triple rewards
-            _ => 1.0
+            EmergencySeverity.Minor => 0,     // No adjustment
+            EmergencySeverity.Moderate => 5,  // +5 coins
+            EmergencySeverity.Urgent => 10,   // +10 coins
+            EmergencySeverity.Critical => 20, // +20 coins
+            _ => 0
         };
     }
 
