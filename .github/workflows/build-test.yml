@@ -28,8 +28,9 @@ jobs:
     - name: Run All Tests
       run: dotnet test src/ --no-build --configuration Release --verbosity normal
 
-    - name: Run DDR-007 Compliance Tests (explicit)
-      run: dotnet test src/ --no-build --configuration Release --filter "FullyQualifiedName~DDR007" --verbosity detailed
+    - name: Run Architecture Compliance Tests (explicit)
+      run: |
+        dotnet test src/ --no-build --configuration Release --filter "FullyQualifiedName~ComplianceTests" --verbosity detailed
 
   architecture-compliance:
     runs-on: ubuntu-latest
@@ -39,30 +40,131 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Quick DDR-007 Pattern Check (grep-based)
+    - name: "[DDR-007] Decimal Multipliers"
       run: |
-        echo "=== Checking for decimal multiplier violations ==="
-        # Find * 0.X or * 1.X patterns (excluding .razor.cs UI files and comments)
-        if grep -rn '\* [01]\.[0-9]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v '^\s*//' | grep -v 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom'; then
+        echo "Checking for decimal multiplier violations (* 0.X, * 1.X)..."
+        if grep -rn '\* [01]\.[0-9]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v '^\s*//' | grep -vi 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom'; then
           echo "ERROR: Decimal multiplier patterns found! DDR-007 requires integer math."
-          echo "See: gdd/06_design_discipline.md DDR-007"
           exit 1
         fi
-        echo "✅ No decimal multiplier violations found"
+        echo "Pass"
 
-        echo ""
-        echo "=== Checking for basis points patterns ==="
-        # Find BasisPoint or BP patterns in property/field names
-        if grep -rn 'BasisPoint\|[^a-zA-Z]BP[A-Z]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v '^\s*//'; then
+    - name: "[DDR-007] Basis Points"
+      run: |
+        echo "Checking for basis points patterns..."
+        if grep -rn 'BasisPoint\|[^a-zA-Z]BP[A-Z]\|/ *10000\|bp *=' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v '^\s*//'; then
           echo "ERROR: Basis point patterns found! DDR-007 forbids basis points."
           exit 1
         fi
-        echo "✅ No basis point violations found"
+        echo "Pass"
 
-        echo ""
-        echo "=== Checking for percentage calculations ==="
-        # Find / 100 or * 100 / patterns
-        if grep -rn '\* *100 */\| */ *100[^0-9]' src/**/*.cs 2>/dev/null | grep -v '^\s*//' | grep -v 'Parser\|DTO'; then
-          echo "WARNING: Percentage calculation patterns found. Review for DDR-007 compliance."
+    - name: "[DDR-007] Float/Double Types"
+      run: |
+        echo "Checking for float/double in domain code..."
+        if grep -rn '\bfloat\b\|\bdouble\b' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v 'Tests\.' | grep -v 'DTO\.' | grep -v '^\s*//'; then
+          echo "ERROR: float/double types found! Use int for game values."
+          exit 1
         fi
-        echo "✅ Pattern check complete"
+        echo "Pass"
+
+    - name: "[TYPE] Dictionary in Domain"
+      run: |
+        echo "Checking for Dictionary in domain code..."
+        if grep -rn 'Dictionary<' src/**/*.cs 2>/dev/null | grep -v 'DTO\|External\|Framework\|Config\|Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Dictionary found in domain code! Use List<T>."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[TYPE] HashSet in Domain"
+      run: |
+        echo "Checking for HashSet in domain code..."
+        if grep -rn 'HashSet<' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: HashSet found in domain code! Use List<T>."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[HIGHLANDER] Entity Instance IDs"
+      run: |
+        echo "Checking for instance ID properties on domain entities..."
+        if grep -rn 'public.*\(string\|int\|Guid\).*Id\s*{' src/GameState/*.cs src/Content/*.cs 2>/dev/null | grep -v 'TemplateId\|PackageId' | grep -v 'Tests\.'; then
+          echo "ERROR: Instance ID property found! Use object references."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[SEPARATION] CssClass in Backend"
+      run: |
+        echo "Checking for CssClass in backend services..."
+        if grep -rn 'CssClass\|ClassName.*string' src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: CssClass/ClassName in backend! Frontend decides presentation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[SEPARATION] IconName in Backend"
+      run: |
+        echo "Checking for IconName in backend services..."
+        if grep -rn 'IconName\|public.*Icon.*{' src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: IconName/Icon in backend! Frontend decides presentation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] TODO/FIXME Comments"
+      run: |
+        echo "Checking for TODO/FIXME comments..."
+        if grep -rn 'TODO\|FIXME\|HACK\|XXX' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v 'completed\|done\|removed'; then
+          echo "ERROR: TODO/FIXME comments found! Finish before committing."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] Blocking Async"
+      run: |
+        echo "Checking for blocking async calls..."
+        if grep -rn '\.Wait()\|\.Result[;,)]\|GetAwaiter.*GetResult' src/**/*.cs 2>/dev/null | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Blocking async call found! Use await."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[QUALITY] Extension Methods"
+      run: |
+        echo "Checking for extension methods in domain code..."
+        if grep -rn 'public static.*this ' src/GameState/*.cs src/Services/*.cs src/Subsystems/**/*.cs 2>/dev/null | grep -v '^\s*//'; then
+          echo "ERROR: Extension method in domain code!"
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[NAMESPACE] Domain Namespace Declarations"
+      run: |
+        echo "Checking for namespace declarations in domain code..."
+        if grep -rn '^namespace' src/GameState/*.cs src/Services/*.cs src/Subsystems/**/*.cs src/Content/*.cs 2>/dev/null | grep -v 'Wayfarer\.Tests\|Wayfarer\.Pages'; then
+          echo "ERROR: Namespace declaration in domain code! Use global namespace."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DETERMINISM] Random Outside Pile"
+      run: |
+        echo "Checking for Random usage outside Pile.cs..."
+        if grep -rn 'new Random\|Random()\|\.Next(' src/**/*.cs 2>/dev/null | grep -v 'Pile\.cs' | grep -v 'Tests\.' | grep -v '^\s*//'; then
+          echo "ERROR: Random in strategic code! Only Pile.cs allowed."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[ARC42] Code Blocks in Architecture Docs"
+      run: |
+        echo "Checking for code blocks in arc42 documents..."
+        if grep -rn '```csharp\|```c#\|```json' arc42/*.md 2>/dev/null; then
+          echo "ERROR: Code block in arc42! Arc42 describes WHAT, not HOW."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "All Architecture Checks Passed"
+      run: echo "All architecture compliance checks passed!"
