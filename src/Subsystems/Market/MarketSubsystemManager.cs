@@ -52,17 +52,28 @@ public class MarketSubsystemManager
     }
 
     /// <summary>
+    /// Confidence level for trade recommendations (DDR-007: categorical, not percentage)
+    /// </summary>
+    public enum TradeConfidence
+    {
+        Low,      // Profit 1-5 coins
+        Medium,   // Profit 6-10 coins
+        High      // Profit 11+ coins
+    }
+
+    /// <summary>
     /// Trade recommendation for strategic planning
     /// HIGHLANDER: Object references only
+    /// DDR-007: All values are flat coins, confidence is categorical
     /// </summary>
     public class TradeRecommendation
     {
         public Item Item { get; set; }
         public TradeAction RecommendedAction { get; set; }
         public Location Location { get; set; }
-        public int ExpectedProfit { get; set; }
+        public int ExpectedProfit { get; set; }       // DDR-007: Flat coin profit for mental math
         public string Reasoning { get; set; }
-        public int ConfidenceBasisPoints { get; set; }
+        public TradeConfidence Confidence { get; set; } // DDR-007: Categorical, not basis points
     }
 
     /// <summary>
@@ -552,16 +563,22 @@ public class MarketSubsystemManager
             {
                 avgSellPrice /= validLocations;
 
-                if (sellPriceHere * 10 > avgSellPrice * 11) // 10% above average
+                int priceDiff = sellPriceHere - avgSellPrice;
+                if (priceDiff > 2) // DDR-007: 3+ coins above average is meaningful
                 {
+                    // DDR-007: Categorical confidence based on flat coin profit
+                    TradeConfidence confidence = priceDiff > 10 ? TradeConfidence.High
+                        : priceDiff > 5 ? TradeConfidence.Medium
+                        : TradeConfidence.Low;
+
                     recommendations.Add(new TradeRecommendation
                     {
                         Item = item,
                         RecommendedAction = TradeAction.Sell,
                         Location = currentLocation,
-                        ExpectedProfit = sellPriceHere - avgSellPrice,
-                        Reasoning = $"Price here ({sellPriceHere}) is above average ({avgSellPrice})",
-                        ConfidenceBasisPoints = Math.Min(10000, (sellPriceHere - avgSellPrice) * 10000 / avgSellPrice)
+                        ExpectedProfit = priceDiff,
+                        Reasoning = $"Price here ({sellPriceHere}) is {priceDiff} coins above average ({avgSellPrice})",
+                        Confidence = confidence
                     });
                 }
             }
@@ -602,16 +619,21 @@ public class MarketSubsystemManager
                 }
 
                 int profit = maxSellPrice - buyPriceHere;
-                if (profit > 5) // Minimum profit threshold
+                if (profit > 5) // DDR-007: 6+ coins profit is meaningful
                 {
+                    // DDR-007: Categorical confidence based on flat coin profit
+                    TradeConfidence confidence = profit > 10 ? TradeConfidence.High
+                        : profit > 5 ? TradeConfidence.Medium
+                        : TradeConfidence.Low;
+
                     recommendations.Add(new TradeRecommendation
                     {
                         Item = item,
                         RecommendedAction = TradeAction.Buy,
                         Location = currentLocation,
                         ExpectedProfit = profit,
-                        Reasoning = $"Can sell for {maxSellPrice} in {bestSellLocation?.Name ?? "elsewhere"}",
-                        ConfidenceBasisPoints = Math.Min(10000, buyPriceHere > 0 ? profit * 10000 / buyPriceHere : 0)
+                        Reasoning = $"Can sell for {maxSellPrice} in {bestSellLocation?.Name ?? "elsewhere"} (profit: {profit} coins)",
+                        Confidence = confidence
                     });
                 }
             }

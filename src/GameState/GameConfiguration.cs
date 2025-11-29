@@ -102,7 +102,7 @@ public class LetterPaymentConfig
     public int PremiumMax { get; set; }
     public int ReturnLetterMin { get; set; }
     public int ReturnLetterMax { get; set; }
-    public int UrgentMultiplier { get; set; } // Basis points (10000 = 1.0x)
+    public int UrgentBonus { get; set; } // DDR-007: Flat coin bonus for urgent letters
     public int LateDeliveryPenaltyPerDay { get; set; }
 }
 
@@ -118,7 +118,7 @@ public class TravelConfig
 {
     public int BaseStaminaCost { get; set; }
     public int EncounterChance { get; set; } // Percentage (100 = 100%)
-    public Dictionary<string, int> TerrainStaminaModifiers { get; set; } = new(); // Basis points (10000 = 1.0x)
+    public Dictionary<string, int> TerrainStaminaAdjustments { get; set; } = new(); // DDR-007: Flat stamina adjustments per terrain
 }
 
 public class DebtConfig

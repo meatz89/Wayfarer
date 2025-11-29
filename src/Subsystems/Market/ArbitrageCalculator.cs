@@ -21,6 +21,7 @@ public class ArbitrageCalculator
     /// <summary>
     /// Represents an arbitrage opening for trading an item between locations
     /// HIGHLANDER: Object references only, no string identifiers
+    /// DDR-007: All profits shown as flat coin values (NetProfit), not percentages
     /// </summary>
     public class ArbitrageOpening
     {
@@ -31,27 +32,27 @@ public class ArbitrageCalculator
         public int SellPrice { get; set; }
         public int GrossProfit { get; set; }
         public int TravelCost { get; set; }
-        public int NetProfit { get; set; }
-        public int ProfitMarginBasisPoints { get; set; }
+        public int NetProfit { get; set; }          // DDR-007: Flat coin profit for mental math
         public int RequiredCapital { get; set; }
         public bool IsCurrentlyProfitable { get; set; }
         public string OpeningDescription { get; set; }
         public int DistanceBetweenLocations { get; set; }
-        public int ProfitPerDistance { get; set; }
+        public int ProfitPerDistance { get; set; }  // DDR-007: Flat coins per hex (efficiency metric)
     }
 
     /// <summary>
     /// Represents a complete trade route with multiple stops
     /// HIGHLANDER: Object references only, no string identifiers
+    /// DDR-007: All profits shown as flat coin values (TotalProfit), not percentages
     /// </summary>
     public class TradeRoute
     {
         public List<Location> LocationSequence { get; set; } = new List<Location>();
         public List<ArbitrageOpening> Trades { get; set; } = new List<ArbitrageOpening>();
-        public int TotalProfit { get; set; }
+        public int TotalProfit { get; set; }        // DDR-007: Sum of flat coin profits
         public int RequiredCapital { get; set; }
         public int TotalDistance { get; set; }
-        public int AverageProfitMarginBasisPoints { get; set; }
+        public int AverageProfit { get; set; }      // DDR-007: Average flat coin profit per trade
         public string RouteDescription { get; set; }
     }
 
@@ -97,6 +98,7 @@ public class ArbitrageCalculator
                     bestOpening = new ArbitrageOpening
                     {
                         // HIGHLANDER: Object references only
+                        // DDR-007: All values are flat coins for mental math
                         Item = item,
                         BuyLocation = buyLocation,
                         BuyPrice = buyPrice,
@@ -105,7 +107,6 @@ public class ArbitrageCalculator
                         GrossProfit = grossProfit,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = netProfit > 0,
                         DistanceBetweenLocations = distance,
@@ -206,6 +207,7 @@ public class ArbitrageCalculator
                 if (netProfit > 0)
                 {
                     // HIGHLANDER: Object references only
+                    // DDR-007: All values are flat coins for mental math
                     opportunities.Add(new ArbitrageOpening
                     {
                         Item = item,
@@ -216,7 +218,6 @@ public class ArbitrageCalculator
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
@@ -261,6 +262,7 @@ public class ArbitrageCalculator
 
                 if (netProfit > 0)
                 {
+                    // DDR-007: All values are flat coins for mental math
                     opportunities.Add(new ArbitrageOpening
                     {
                         Item = item,
@@ -271,7 +273,6 @@ public class ArbitrageCalculator
                         GrossProfit = otherSellPrice - currentSellPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMarginBasisPoints = currentSellPrice > 0 ? netProfit * 10000 / currentSellPrice : 0,
                         RequiredCapital = 0, // Already own the item
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
@@ -329,8 +330,9 @@ public class ArbitrageCalculator
         bestRoute.TotalProfit = totalProfit;
         bestRoute.RequiredCapital = availableCapital;
         bestRoute.TotalDistance = bestRoute.Trades.Sum(t => t.DistanceBetweenLocations);
-        bestRoute.AverageProfitMarginBasisPoints = bestRoute.Trades.Count > 0
-            ? (int)bestRoute.Trades.Average(t => t.ProfitMarginBasisPoints)
+        // DDR-007: Average flat coin profit per trade (not percentage)
+        bestRoute.AverageProfit = bestRoute.Trades.Count > 0
+            ? (int)bestRoute.Trades.Average(t => t.NetProfit)
             : 0;
         bestRoute.RouteDescription = GenerateRouteDescription(bestRoute);
 
@@ -366,6 +368,7 @@ public class ArbitrageCalculator
                 if (netProfit > 0)
                 {
                     // HIGHLANDER: Object references only
+                    // DDR-007: All values are flat coins for mental math
                     opportunities.Add(new ArbitrageOpening
                     {
                         Item = item,
@@ -376,7 +379,6 @@ public class ArbitrageCalculator
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,

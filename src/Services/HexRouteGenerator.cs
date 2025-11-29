@@ -598,33 +598,30 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Calculate time segments from hex path
-    /// Based on specification: TimeSegments = PathLength × TerrainMultipliers
-    /// Multipliers in basis points (10000 = 1.0x)
+    /// Calculate time segments from hex path (DDR-007: flat segment costs)
     /// </summary>
     private int CalculateTimeSegments(List<AxialCoordinates> hexPath, TransportType transportType)
     {
         if (hexPath == null || hexPath.Count == 0)
             return 1;
 
-        int totalTime = 0;
+        int totalSegments = 0;
 
         foreach (AxialCoordinates coords in hexPath)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                totalTime += GetTerrainTimeMultiplier(hex.Terrain, transportType);
+                totalSegments += GetTerrainSegmentCost(hex.Terrain, transportType);
             }
         }
 
-        // Convert to time segments (divide by 30000 = 3.0 * 10000 basis points, round up, minimum 1)
-        return Math.Max(1, (totalTime + 29999) / 30000);
+        // DDR-007: Total is already in segments, minimum 1
+        return Math.Max(1, totalSegments);
     }
 
     /// <summary>
-    /// Calculate stamina cost based on terrain difficulty
-    /// Multipliers in basis points (10000 = 1.0x)
+    /// Calculate stamina cost based on terrain difficulty (DDR-007: flat stamina costs)
     /// </summary>
     private int CalculateStaminaCost(List<AxialCoordinates> hexPath, TransportType transportType)
     {
@@ -638,60 +635,66 @@ public class HexRouteGenerator
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                // Base stamina from terrain difficulty (multiply by 0.5 = divide by 2)
-                int terrainStamina = GetTerrainTimeMultiplier(hex.Terrain, transportType) / 2;
-                totalStamina += terrainStamina;
+                totalStamina += GetTerrainStaminaCost(hex.Terrain, transportType);
             }
         }
 
-        // Convert from basis points to final value (divide by 10000, round up, minimum 1)
-        return Math.Max(1, (totalStamina + 9999) / 10000);
+        // DDR-007: Total is already flat stamina, minimum 1
+        return Math.Max(1, totalStamina);
     }
 
     /// <summary>
-    /// Calculate coin cost based on transport type and distance
+    /// Calculate coin cost based on transport type (DDR-007: flat costs)
     /// </summary>
     private int CalculateCoinCost(TransportType transportType, int pathLength)
     {
-        int baseCost = transportType switch
+        // DDR-007: Flat coin cost per transport type
+        return transportType switch
         {
-            TransportType.Walking => 0,      // Free
-            TransportType.Cart => 5,         // Moderate fee
-            TransportType.Horseback => 10,   // Higher fee
-            TransportType.Boat => 8,         // Moderate fee
+            TransportType.Walking => 0,        // Free
+            TransportType.Cart => 5,           // 5 coins
+            TransportType.Horseback => 8,      // 8 coins
+            TransportType.Boat => 6,           // 6 coins
             _ => 0
         };
-
-        // Scale with distance
-        return baseCost + (pathLength / 5); // +1 coin per 5 hexes
     }
 
     /// <summary>
-    /// Get terrain time multiplier (same as pathfinding movement cost)
-    /// From specification lines 181-187
-    /// Returns basis points (10000 = 1.0x)
+    /// Get terrain segment cost (DDR-007: flat segment values)
+    /// Each terrain type costs a fixed number of segments to traverse
     /// </summary>
-    private int GetTerrainTimeMultiplier(TerrainType terrain, TransportType transportType)
+    private int GetTerrainSegmentCost(TerrainType terrain, TransportType transportType)
     {
-        switch (terrain)
+        return terrain switch
         {
-            case TerrainType.Plains:
-                return 10000;
-            case TerrainType.Road:
-                return 8000;
-            case TerrainType.Forest:
-                return transportType == TransportType.Cart ? 20000 : 15000;
-            case TerrainType.Mountains:
-                return 20000;
-            case TerrainType.Swamp:
-                return 25000;
-            case TerrainType.Water:
-                return 9000;
-            case TerrainType.Impassable:
-                return int.MaxValue;
-            default:
-                return 10000;
-        }
+            TerrainType.Plains => 1,           // Easy terrain: 1 segment
+            TerrainType.Road => 1,             // Fast terrain: 1 segment
+            TerrainType.Forest => transportType == TransportType.Cart ? 3 : 2,  // Moderate: 2 segments (3 for cart)
+            TerrainType.Mountains => 3,        // Difficult terrain: 3 segments
+            TerrainType.Swamp => 3,            // Difficult terrain: 3 segments
+            TerrainType.Water => 1,            // Easy for boats: 1 segment
+            TerrainType.Impassable => 99,      // Effectively impassable
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Get terrain stamina cost (DDR-007: flat stamina values)
+    /// Each terrain type costs a fixed amount of stamina to traverse
+    /// </summary>
+    private int GetTerrainStaminaCost(TerrainType terrain, TransportType transportType)
+    {
+        return terrain switch
+        {
+            TerrainType.Plains => 1,           // Easy: 1 stamina
+            TerrainType.Road => 0,             // Roads are easy: 0 stamina
+            TerrainType.Forest => 2,           // Moderate: 2 stamina
+            TerrainType.Mountains => 3,        // Hard: 3 stamina
+            TerrainType.Swamp => 3,            // Hard: 3 stamina
+            TerrainType.Water => 1,            // Easy for boats: 1 stamina
+            TerrainType.Impassable => 99,      // Effectively impassable
+            _ => 1
+        };
     }
 
     /// <summary>
