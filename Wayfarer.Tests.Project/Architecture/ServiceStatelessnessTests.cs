@@ -20,9 +20,11 @@ public class ServiceStatelessnessTests
     // Known stateful components (by design)
     private static readonly HashSet<string> AllowedStatefulTypes = new HashSet<string>
     {
-        "TimeManager",      // Time is global mutable state (by design)
-        "GameFacade",       // Coordinator, holds references to state containers
-        "StreamingContentState" // Content loading state
+        "TimeManager",           // Time is global mutable state (by design)
+        "GameFacade",            // Coordinator, holds references to state containers
+        "StreamingContentState", // Content loading state
+        "LoadingStateService",   // UI coordination service for loading indicators (Blazor pattern)
+        "MusicService"           // Audio playback state (track queue, playback position - inherently stateful)
     };
 
     /// <summary>

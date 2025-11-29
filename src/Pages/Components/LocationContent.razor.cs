@@ -448,4 +448,21 @@ public class LocationContentBase : ComponentBase
 
         return new MoveIntent(action.DestinationLocation);
     }
+
+    // ============================================
+    // CSS HELPERS - Frontend determines presentation from domain values
+    // ============================================
+
+    /// <summary>
+    /// Map ConnectionState string to CSS class
+    /// BACKEND/FRONTEND SEPARATION: Backend provides domain enum, frontend decides CSS
+    /// </summary>
+    protected string GetConnectionStateClass(string connectionState)
+    {
+        return connectionState switch
+        {
+            "DISCONNECTED" => "disconnected",
+            _ => ""
+        };
+    }
 }

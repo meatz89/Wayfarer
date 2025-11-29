@@ -6,7 +6,6 @@ public class TravelManager
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
-    private readonly Random _random = new Random();
 
     public TravelManager(
         GameWorld gameWorld,

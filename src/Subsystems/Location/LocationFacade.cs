@@ -926,7 +926,6 @@ public class LocationFacade
                 Name = npc.Name,
                 PersonalityType = npc.PersonalityType.ToString(),
                 ConnectionState = connectionState.ToString(),
-                StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null,
@@ -937,15 +936,6 @@ public class LocationFacade
         }
 
         return result;
-    }
-
-    private string GetConnectionStateClass(ConnectionState state)
-    {
-        return state switch
-        {
-            ConnectionState.DISCONNECTED => "disconnected",
-            _ => ""
-        };
     }
 
     private string GetNPCDescriptionText(NPC npc, ConnectionState state)

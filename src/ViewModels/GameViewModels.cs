@@ -221,7 +221,6 @@ public class NpcWithSituationsViewModel
     public string Name { get; set; }
     public string PersonalityType { get; set; }
     public string ConnectionState { get; set; }
-    public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
 
     // Exchange availability for MERCANTILE NPCs
