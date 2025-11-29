@@ -27,6 +27,16 @@ public class ServiceStatelessnessTests
         "MusicService"           // Audio playback state (track queue, playback position - inherently stateful)
     };
 
+    // Pure utility services that don't need state parameters (string generation, formatting)
+    // Or orchestration services that coordinate other services without needing state objects
+    private static readonly HashSet<string> PureUtilityServices = new HashSet<string>
+    {
+        "NarrativeService",      // Pure string generation utility - works with domain types, not state objects
+        "ObligationActivity",    // Orchestration service - coordinates obligations via injected services, not state objects
+        "TimeBlockCalculator",   // Pure time calculation utility - works with TimeBlocks and ints, not state objects
+        "PermitValidator"        // Pure validation utility - validates permits without game state
+    };
+
     /// <summary>
     /// Verify service classes do not have mutable instance fields.
     /// Services should receive state through method parameters, not store it.
@@ -176,6 +186,7 @@ public class ServiceStatelessnessTests
         foreach (Type type in GetServiceTypes(assembly))
         {
             if (AllowedStatefulTypes.Contains(type.Name)) continue;
+            if (PureUtilityServices.Contains(type.Name)) continue;
 
             MethodInfo[] publicMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 

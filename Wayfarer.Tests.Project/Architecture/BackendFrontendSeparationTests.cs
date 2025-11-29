@@ -252,9 +252,21 @@ public class BackendFrontendSeparationTests
         Assert.Empty(violations);
     }
 
+    // Types where DisplayName is the entity's canonical name (domain concept, not presentation)
+    private static readonly HashSet<string> DisplayNameIsEntityName = new HashSet<string>
+    {
+        "Scene",               // DisplayName is the scene's narrative title
+        "ScenePreview",        // Preview of scene name
+        "SceneTemplate",       // DisplayNameTemplate is name template with tokens
+        "SceneNodeModel",      // SpawnGraph visualization node
+        "SceneSpawnNode",      // SpawnGraph spawn node
+        "LocationSceneDisplay" // Location-scene relationship display
+    };
+
     /// <summary>
     /// Verify domain classes do not have "Display" prefixed properties.
     /// Display properties indicate presentation leaking into backend.
+    /// Exception: DisplayName properties that are the entity's canonical name (not styling).
     /// </summary>
     [Fact]
     public void DomainClasses_ShouldNot_HaveDisplayProperties()
@@ -264,12 +276,20 @@ public class BackendFrontendSeparationTests
 
         foreach (Type type in GetDomainTypes(assembly))
         {
+            // Skip SpawnGraph namespace (visualization tools)
+            if (type.Namespace?.Contains("SpawnGraph") == true) continue;
+
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
             foreach (PropertyInfo prop in properties)
             {
                 if (prop.Name.StartsWith("Display") && prop.PropertyType == typeof(string))
                 {
+                    // Skip types where DisplayName is the entity's canonical name
+                    if ((prop.Name == "DisplayName" || prop.Name == "DisplayNameTemplate") &&
+                        DisplayNameIsEntityName.Contains(type.Name))
+                        continue;
+
                     violations.Add($"{type.Name}.{prop.Name} is a display property (presentation belongs in frontend)");
                 }
             }

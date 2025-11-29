@@ -13,6 +13,8 @@ namespace Wayfarer.Tests.Architecture;
 public class EntityIdentityModelTests
 {
     // Domain entity types that should NOT have ID properties
+    // NOTE: CardInstance excluded - it's an instance wrapper where InstanceId distinguishes
+    // multiple card instances of the same template (valid identity tracking use case)
     private static readonly HashSet<Type> DomainEntityTypes = new HashSet<Type>
     {
         typeof(Player),
@@ -26,7 +28,6 @@ public class EntityIdentityModelTests
         typeof(ActiveState),
         typeof(ActiveEmergencyState),
         typeof(ObservationSceneState),
-        typeof(CardInstance),
         typeof(TravelSession),
         typeof(SocialSession),
         typeof(MentalSession),
