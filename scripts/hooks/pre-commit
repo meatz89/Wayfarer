@@ -1,0 +1,84 @@
+#!/bin/bash
+# DDR-007 Pre-Commit Hook
+# Prevents commits that violate DDR-007 (Intentional Numeric Design)
+#
+# Install: ./scripts/hooks/install.sh
+# Or manually: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+set -e
+
+echo "DDR-007 Compliance Check..."
+
+# Get staged .cs files (excluding UI rendering files)
+STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' || true)
+
+if [ -z "$STAGED_CS" ]; then
+    echo "No C# files staged, skipping DDR-007 check"
+    exit 0
+fi
+
+VIOLATIONS=0
+
+# Check 1: Decimal multipliers (* 0.X or * 1.X)
+echo "  Checking for decimal multipliers..."
+for file in $STAGED_CS; do
+    if [ -f "$file" ]; then
+        # Get only the staged content
+        MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\* [01]\.[0-9]' | grep -v '^\s*//' | grep -v 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom' || true)
+        if [ -n "$MATCHES" ]; then
+            echo "  ERROR: Decimal multiplier in $file:"
+            echo "$MATCHES"
+            VIOLATIONS=1
+        fi
+    fi
+done
+
+# Check 2: Basis points patterns
+echo "  Checking for basis points patterns..."
+for file in $STAGED_CS; do
+    if [ -f "$file" ]; then
+        MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'BasisPoint\|[^a-zA-Z]BP[A-Z]' | grep -v '^\s*//' || true)
+        if [ -n "$MATCHES" ]; then
+            echo "  ERROR: Basis point pattern in $file:"
+            echo "$MATCHES"
+            VIOLATIONS=1
+        fi
+    fi
+done
+
+# Check 3: Percentage calculations (warning only)
+echo "  Checking for percentage calculations..."
+for file in $STAGED_CS; do
+    if [ -f "$file" ]; then
+        if echo "$file" | grep -qE 'Parser|DTO'; then
+            continue  # Skip parsing layer
+        fi
+        MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\* *100 */\| */ *100[^0-9]' | grep -v '^\s*//' || true)
+        if [ -n "$MATCHES" ]; then
+            echo "  WARNING: Percentage pattern in $file (review manually):"
+            echo "$MATCHES"
+        fi
+    fi
+done
+
+if [ $VIOLATIONS -eq 1 ]; then
+    echo ""
+    echo "DDR-007 VIOLATION DETECTED!"
+    echo ""
+    echo "DDR-007 (Intentional Numeric Design) requires:"
+    echo "  1. Mental Math Design - Values small enough for head calculation"
+    echo "  2. Deterministic Arithmetic - No randomness in strategic outcomes"
+    echo "  3. Absolute Modifiers - Bonuses stack additively, never multiplicatively"
+    echo ""
+    echo "Fix: Replace decimal multipliers with flat integer adjustments"
+    echo "     Replace percentages with categorical thresholds or integer division"
+    echo ""
+    echo "See: gdd/06_design_discipline.md DDR-007"
+    echo "     compliance-audit/ddr007/00_MASTER_SUMMARY.md"
+    echo ""
+    echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+    exit 1
+fi
+
+echo "DDR-007 check passed"
+exit 0

@@ -218,9 +218,12 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 # USER CODE PREFERENCES
 
-**Types:**
+**Types (DDR-007 Enforced):**
 - ONLY: `List<T>`, strongly-typed objects, `int` (see GDD DDR-007: Intentional Numeric Design)
 - FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples, `float`, `double`
+- FORBIDDEN: Decimal multipliers (`* 0.X`, `* 1.X`), percentage calculations (`* 100 /`, `/ 100`), basis points
+- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.22)
+- Enforcement: DDR007ComplianceTests.cs (CI), pre-commit hook (`scripts/hooks/install.sh`)
 
 **Lambdas:**
 - FORBIDDEN: Backend event handlers, DI registration lambdas

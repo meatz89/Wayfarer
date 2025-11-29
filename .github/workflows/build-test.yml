@@ -1,0 +1,68 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore src/
+
+    - name: Build
+      run: dotnet build src/ --no-restore --configuration Release
+
+    - name: Run All Tests
+      run: dotnet test src/ --no-build --configuration Release --verbosity normal
+
+    - name: Run DDR-007 Compliance Tests (explicit)
+      run: dotnet test src/ --no-build --configuration Release --filter "FullyQualifiedName~DDR007" --verbosity detailed
+
+  architecture-compliance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Quick DDR-007 Pattern Check (grep-based)
+      run: |
+        echo "=== Checking for decimal multiplier violations ==="
+        # Find * 0.X or * 1.X patterns (excluding .razor.cs UI files and comments)
+        if grep -rn '\* [01]\.[0-9]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v '^\s*//' | grep -v 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom'; then
+          echo "ERROR: Decimal multiplier patterns found! DDR-007 requires integer math."
+          echo "See: gdd/06_design_discipline.md DDR-007"
+          exit 1
+        fi
+        echo "✅ No decimal multiplier violations found"
+
+        echo ""
+        echo "=== Checking for basis points patterns ==="
+        # Find BasisPoint or BP patterns in property/field names
+        if grep -rn 'BasisPoint\|[^a-zA-Z]BP[A-Z]' src/**/*.cs 2>/dev/null | grep -v '\.razor\.cs' | grep -v '^\s*//'; then
+          echo "ERROR: Basis point patterns found! DDR-007 forbids basis points."
+          exit 1
+        fi
+        echo "✅ No basis point violations found"
+
+        echo ""
+        echo "=== Checking for percentage calculations ==="
+        # Find / 100 or * 100 / patterns
+        if grep -rn '\* *100 */\| */ *100[^0-9]' src/**/*.cs 2>/dev/null | grep -v '^\s*//' | grep -v 'Parser\|DTO'; then
+          echo "WARNING: Percentage calculation patterns found. Review for DDR-007 compliance."
+        fi
+        echo "✅ Pattern check complete"

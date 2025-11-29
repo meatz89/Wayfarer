@@ -198,3 +198,55 @@ Players can now:
 - Plan resource usage: "Each mountain hex costs 3 stamina"
 
 No calculator, no percentage math, no multiplicative confusion.
+
+---
+
+## Prevention Strategy (Implemented)
+
+### Multi-Layer Enforcement
+
+| Layer | Mechanism | Location | When |
+|-------|-----------|----------|------|
+| **Compile-Time** | C# type system | int-only types | Build |
+| **Test-Time** | DDR007ComplianceTests.cs | 16 tests | CI |
+| **Pre-Commit** | Pattern detection | scripts/hooks/pre-commit | Local commit |
+| **CI** | Grep-based check | .github/workflows/build-test.yml | PR |
+| **Review** | CLAUDE.md guidance | Code review | Manual |
+
+### Installation
+
+**Pre-commit hook (local enforcement):**
+```bash
+./scripts/hooks/install.sh
+```
+
+**CI (automatic):**
+CI workflow `.github/workflows/build-test.yml` runs on every push/PR:
+1. Builds the solution
+2. Runs all tests (including DDR007ComplianceTests)
+3. Performs grep-based pattern check for violations
+
+### Tests Added
+
+| Test | What It Catches |
+|------|-----------------|
+| `SourceCode_NoDecimalMultipliers()` | `* 0.X`, `* 1.X` patterns |
+| `SourceCode_NoPercentageCalculations()` | `* 100 /`, `/ 100` patterns |
+| `PriceManager_UsesAbsoluteSpread_NotPercentage()` | Percentage/BP naming |
+| `DomainTypes_DoNotUseBasisPointProperties()` | BP property names |
+| `StrategicServices_DoNotUseRandom()` | Random in strategic code |
+| (and 11 more) | Various DDR-007 patterns |
+
+### Documentation Cross-References
+
+| Document | Section |
+|----------|---------|
+| `arc42/08_crosscutting_concepts.md` | §8.22 DDR-007: Intentional Numeric Design |
+| `CLAUDE.md` | Types (DDR-007 Enforced) |
+| `gdd/06_design_discipline.md` | DDR-007 |
+
+### Future Violations Will Be Caught At:
+
+1. **Pre-commit hook** - Before code leaves developer machine
+2. **CI tests** - Before PR can be merged
+3. **Architecture tests** - Build fails with clear violation list
