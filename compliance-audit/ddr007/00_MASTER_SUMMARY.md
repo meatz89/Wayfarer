@@ -31,7 +31,31 @@ DDR-007 (Intentional Numeric Design) defines three principles:
 4. `5c4b4cc` - Complete DDR-007 basis points removal: PriceManager + Token system (12 files)
 5. `5548eb3` - Update DDR-007 master summary to reflect completed remediation
 6. `b76470b` - Fix remaining DDR-007 violations and add compliance tests
-7. `b5513f9` - **Complete DDR-007 remediation: remove ALL remaining basis points (7 files)**
+7. `b5513f9` - Complete DDR-007 remediation: remove ALL remaining basis points (7 files)
+8. `[pending]` - **Final decimal multiplier removal + source code pattern detection tests**
+
+---
+
+## Latest Remediation (Pending Commit)
+
+### Decimal Multiplier Violations Fixed
+
+| File | Before | After |
+|------|--------|-------|
+| `MarketSubsystemManager.cs:229` | `pricing.SellPrice * 1.15` | `pricing.SellPrice + 3` (flat spread) |
+| `MarketItem.cs:15` | `Price * 0.7` | `Price - 3` (flat spread) |
+| `HexRouteGenerator.cs:384` | `timeSegments * 0.3` | `(timeSegments + 2) / 3` (integer division) |
+| `MessageSystemManager.cs:159` | `total * 0.75` | `total - current <= total / 4` (integer division) |
+
+### Tests Added
+
+New source code pattern detection tests in `DDR007ComplianceTests.cs`:
+- `SourceCode_NoDecimalMultipliers()` - Detects `* 0.X` and `* 1.X` patterns
+- `SourceCode_NoPercentageCalculations()` - Detects `* 100 /` and `/ 100` patterns
+
+### Exempt Patterns
+
+- `HexMapContent.razor.cs` - Hex grid rendering geometry (pure visual, not game mechanics)
 
 ---
 

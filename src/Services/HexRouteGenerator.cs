@@ -380,8 +380,8 @@ public class HexRouteGenerator
         if (dangerRating < 80)
             return Math.Min(3, timeSegments - 2); // High danger: 3 encounters (if space)
 
-        // Very high danger: 30% of segments (spec recommendation)
-        return Math.Min((int)Math.Ceiling(timeSegments * 0.3), timeSegments - 2);
+        // DDR-007: Very high danger uses integer division (1 encounter per 3 segments)
+        return Math.Min((timeSegments + 2) / 3, timeSegments - 2);
     }
 
     /// <summary>

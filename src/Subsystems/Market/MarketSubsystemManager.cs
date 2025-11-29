@@ -225,8 +225,8 @@ public class MarketSubsystemManager
             pricing.SellPrice = item.SellPrice;
         }
 
-        // Ensure buy price is always higher than sell price
-        int minimumBuyPrice = (int)Math.Ceiling(pricing.SellPrice * 1.15);
+        // DDR-007: Ensure buy price is always higher than sell price using flat spread
+        int minimumBuyPrice = pricing.SellPrice + 3; // Flat 3-coin spread (matches PriceManager.BUY_SELL_SPREAD)
         if (pricing.BuyPrice < minimumBuyPrice)
         {
             pricing.BuyPrice = minimumBuyPrice;

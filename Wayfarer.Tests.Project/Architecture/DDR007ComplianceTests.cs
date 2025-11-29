@@ -1,3 +1,4 @@
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -323,6 +324,91 @@ public class DDR007ComplianceTests
                     field.FieldType == typeof(decimal))
                 {
                     violations.Add($"{catalogType.Name}.{field.Name} uses {field.FieldType.Name} (should use int)");
+                }
+            }
+        }
+
+        Assert.Empty(violations);
+    }
+
+    // ========== SOURCE CODE PATTERN DETECTION ==========
+
+    /// <summary>
+    /// Detect decimal multipliers in source code (e.g., * 1.15, * 0.85).
+    /// These patterns violate DDR-007 Absolute Modifiers principle.
+    /// </summary>
+    [Fact]
+    public void SourceCode_NoDecimalMultipliers()
+    {
+        string srcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "src");
+
+        if (!Directory.Exists(srcPath))
+        {
+            srcPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src"));
+        }
+
+        List<string> violations = new List<string>();
+        Regex multiplierPattern = new Regex(@"\*\s*[0-9]+\.[0-9]+[^f]", RegexOptions.Compiled);
+        Regex exemptPattern = new Regex(@"milliseconds|timeout|delay|animation|opacity|alpha|scale|zoom", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        if (Directory.Exists(srcPath))
+        {
+            foreach (string file in Directory.GetFiles(srcPath, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains("Test") || file.Contains("obj") || file.Contains("bin")) continue;
+
+                string[] lines = File.ReadAllLines(file);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+
+                    if (multiplierPattern.IsMatch(line) && !exemptPattern.IsMatch(line))
+                    {
+                        string fileName = Path.GetFileName(file);
+                        violations.Add($"{fileName}:{i + 1}: {line.Trim()}");
+                    }
+                }
+            }
+        }
+
+        Assert.Empty(violations);
+    }
+
+    /// <summary>
+    /// Detect percentage calculations in domain code (e.g., / 100, * 100 / x).
+    /// These patterns typically indicate DDR-007 violations.
+    /// </summary>
+    [Fact]
+    public void SourceCode_NoPercentageCalculations()
+    {
+        string srcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "src");
+
+        if (!Directory.Exists(srcPath))
+        {
+            srcPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src"));
+        }
+
+        List<string> violations = new List<string>();
+        Regex percentPattern = new Regex(@"\*\s*100\s*/|\s*/\s*100(?!\d)", RegexOptions.Compiled);
+        Regex exemptCommentPattern = new Regex(@"^\s*//|^\s*/\*|\*\s+100\s+coins", RegexOptions.Compiled);
+
+        if (Directory.Exists(srcPath))
+        {
+            foreach (string file in Directory.GetFiles(srcPath, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains("Test") || file.Contains("obj") || file.Contains("bin")) continue;
+                if (file.Contains("Parser") || file.Contains("DTO")) continue; // Allow in parsing layer
+
+                string[] lines = File.ReadAllLines(file);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+
+                    if (percentPattern.IsMatch(line) && !exemptCommentPattern.IsMatch(line))
+                    {
+                        string fileName = Path.GetFileName(file);
+                        violations.Add($"{fileName}:{i + 1}: {line.Trim()}");
+                    }
                 }
             }
         }
