@@ -386,29 +386,13 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
-# CLAUDE CODE HOOKS (AUTOMATED ENFORCEMENT)
+# CLAUDE CODE HOOKS
 
 **Location:** `.claude/settings.json` and `.claude/hooks/`
 
-**Installed Hooks:**
+| Hook | Purpose |
+|------|---------|
+| SessionStart | Ensure documentation context before work |
+| Stop | Prevent premature stops |
 
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| SessionStart | Beginning of session | Reminds to read CLAUDE.md, gather arc42/gdd context |
-| Stop | Before stopping conversation | Validates work is 100% complete before stopping |
-
-**SessionStart Hook Behavior:**
-- Outputs checklist of required reading (CLAUDE.md, glossaries)
-- Reminds to use agents for documentation context gathering
-- Lists key principles (DDR-007, HIGHLANDER, CATALOGUE PATTERN)
-- Prompts to spawn review agents after changes
-
-**Stop Hook Behavior:**
-- Blocks premature stops when work is incomplete
-- Validates all todos are completed
-- Reminds to spawn validation agent asking "What's missing?"
-- Only allows stop for: plan approvals, clarifying questions, user request
-
-**Requirements:**
-- Bash shell required (WSL on Windows)
-- Hook scripts must be executable (`chmod +x .claude/hooks/*.sh`)
+**Philosophy:** Hooks remind, documentation governs. Hooks point to CLAUDE.md - they don't duplicate it.
