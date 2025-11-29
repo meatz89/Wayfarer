@@ -12,7 +12,7 @@ public class PriceManager
     // Price adjustment limits (flat coin adjustments)
     private const int MIN_TOTAL_ADJUSTMENT = -10;  // Maximum price reduction
     private const int MAX_TOTAL_ADJUSTMENT = 20;   // Maximum price increase
-    private const int BUY_SELL_SPREAD_PERCENT = 15;    // 15% spread between buy and sell prices
+    private const int BUY_SELL_SPREAD = 3;         // Fixed 3-coin spread between buy and sell prices (DDR-007)
 
     public PriceManager(
         GameWorld gameWorld,
@@ -119,8 +119,8 @@ public class PriceManager
         pricing.AdjustedBuyPrice = pricing.BaseBuyPrice + pricing.TotalAdjustment;
         pricing.AdjustedSellPrice = pricing.BaseSellPrice + pricing.TotalAdjustment;
 
-        // Ensure buy price is always higher than sell price (add percentage spread)
-        int minBuyPrice = pricing.AdjustedSellPrice * (100 + BUY_SELL_SPREAD_PERCENT) / 100;
+        // Ensure buy price is always higher than sell price (DDR-007: fixed spread)
+        int minBuyPrice = pricing.AdjustedSellPrice + BUY_SELL_SPREAD;
         if (pricing.AdjustedBuyPrice < minBuyPrice)
         {
             pricing.AdjustedBuyPrice = minBuyPrice;
@@ -442,7 +442,7 @@ public class PriceManager
     }
 
     /// <summary>
-    /// Calculate bulk discount for multiple purchases
+    /// Calculate bulk discount for multiple purchases (DDR-007: flat per-item discount)
     /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
     public int CalculateBulkPrice(Item item, Location location, int quantity)
@@ -450,12 +450,13 @@ public class PriceManager
         int singlePrice = GetBuyPrice(item, location);
         if (singlePrice <= 0) return -1;
 
-        int discountPercent = 100; // No discount (100%)
+        int perItemDiscount = 0; // No discount
         if (quantity >= 10)
-            discountPercent = 90;  // 10% discount for 10+ items
+            perItemDiscount = 2;  // -2 coins per item for 10+ items
         else if (quantity >= 5)
-            discountPercent = 95;  // 5% discount for 5+ items
+            perItemDiscount = 1;  // -1 coin per item for 5+ items
 
-        return singlePrice * quantity * discountPercent / 100;
+        int discountedPrice = Math.Max(1, singlePrice - perItemDiscount);
+        return discountedPrice * quantity;
     }
 }
