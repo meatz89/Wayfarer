@@ -228,16 +228,17 @@ public class PathfindingService
 /// <summary>
 /// Result of pathfinding operation
 /// Contains path, cost metrics, or failure reason
+/// TYPE SYSTEM: Internal A* uses float for precision, public API converts to int
 /// </summary>
 public class PathfindingResult
 {
     public bool IsSuccess { get; private set; }
     public List<AxialCoordinates> Path { get; private set; }
-    public float TotalCost { get; private set; }
+    public int TotalCost { get; private set; } // Converted from internal float at API boundary
     public int DangerRating { get; private set; }
     public string FailureReason { get; private set; }
 
-    private PathfindingResult(bool isSuccess, List<AxialCoordinates> path, float totalCost, int dangerRating, string failureReason)
+    private PathfindingResult(bool isSuccess, List<AxialCoordinates> path, int totalCost, int dangerRating, string failureReason)
     {
         IsSuccess = isSuccess;
         Path = path;
@@ -246,9 +247,10 @@ public class PathfindingResult
         FailureReason = failureReason;
     }
 
+    // Internal method accepts float from A* algorithm, converts to int at API boundary
     public static PathfindingResult Success(List<AxialCoordinates> path, float totalCost, int dangerRating)
     {
-        return new PathfindingResult(true, path, totalCost, dangerRating, null);
+        return new PathfindingResult(true, path, (int)Math.Ceiling(totalCost), dangerRating, null);
     }
 
     public static PathfindingResult NoPathFound(string reason)

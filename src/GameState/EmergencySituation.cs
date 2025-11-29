@@ -1,10 +1,11 @@
 /// <summary>
-/// Urgent situation demanding immediate player response.
-/// Interrupts normal gameplay at sync points (time advancement, location entry).
+/// Immutable template defining an emergency situation archetype.
+/// Templates are loaded from JSON and never mutated at runtime.
+/// HIGHLANDER: Template IDs are allowed (immutable archetypes).
 /// </summary>
 public class EmergencySituation
 {
-    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    // ADR-007: Id property - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
@@ -21,8 +22,19 @@ public class EmergencySituation
 
     // Outcome if ignored
     public EmergencyOutcome IgnoreOutcome { get; set; }
+}
 
-    // State
+/// <summary>
+/// Mutable runtime state for an active emergency.
+/// HIGHLANDER: NO Id property - identified by object reference only.
+/// References immutable EmergencySituation template.
+/// </summary>
+public class ActiveEmergencyState
+{
+    // HIGHLANDER: Object reference to template, not template ID
+    public EmergencySituation Template { get; set; }
+
+    // Mutable state
     public bool IsTriggered { get; set; }
     public bool IsResolved { get; set; }
     public int? TriggeredAtSegment { get; set; }
