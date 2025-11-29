@@ -383,3 +383,32 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 
 **Reference:** `arc42/08_crosscutting_concepts.md` for architectural rationale
+
+---
+
+# CLAUDE CODE HOOKS (AUTOMATED ENFORCEMENT)
+
+**Location:** `.claude/settings.json` and `.claude/hooks/`
+
+**Installed Hooks:**
+
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| SessionStart | Beginning of session | Reminds to read CLAUDE.md, gather arc42/gdd context |
+| Stop | Before stopping conversation | Validates work is 100% complete before stopping |
+
+**SessionStart Hook Behavior:**
+- Outputs checklist of required reading (CLAUDE.md, glossaries)
+- Reminds to use agents for documentation context gathering
+- Lists key principles (DDR-007, HIGHLANDER, CATALOGUE PATTERN)
+- Prompts to spawn review agents after changes
+
+**Stop Hook Behavior:**
+- Blocks premature stops when work is incomplete
+- Validates all todos are completed
+- Reminds to spawn validation agent asking "What's missing?"
+- Only allows stop for: plan approvals, clarifying questions, user request
+
+**Requirements:**
+- Bash shell required (WSL on Windows)
+- Hook scripts must be executable (`chmod +x .claude/hooks/*.sh`)
