@@ -62,7 +62,7 @@ public static class GameConstants
     public static class Game
     {
         public const int MINUTES_PER_HOUR = 60;
-        public const float DEFAULT_ENCOUNTER_CHANCE = 0.3f;
+        public const int DEFAULT_ENCOUNTER_CHANCE = 30; // 30%
     }
 
     /// <summary>

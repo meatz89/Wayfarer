@@ -68,9 +68,9 @@ public class TokenMechanicsManager
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        // Apply equipment modifiers
-        float modifier = GetEquipmentTokenModifier(type);
-        int modifiedCount = (int)Math.Ceiling(count * modifier);
+        // Apply equipment modifiers (basis points where 10000 = 1.0x)
+        int modifierBasisPoints = GetEquipmentTokenModifier(type);
+        int modifiedCount = (count * modifierBasisPoints + 9999) / 10000; // Round up
 
         // Initialize NPC token tracking if needed
         // HIGHLANDER: Pass NPC object directly, not npc.ID
@@ -328,28 +328,28 @@ public class TokenMechanicsManager
     }
 
     /// <summary>
-    /// Get the token generation modifier from equipped items
+    /// Get the token generation modifier from equipped items in basis points
     /// </summary>
-    private float GetEquipmentTokenModifier(ConnectionType tokenType)
+    private int GetEquipmentTokenModifier(ConnectionType tokenType)
     {
-        if (_itemRepository == null) return 1.0f;
+        if (_itemRepository == null) return 10000;
 
         Player player = _gameWorld.GetPlayer();
-        float totalModifier = 1.0f;
+        int totalModifierBasisPoints = 10000; // Start at 1.0x
 
         // Check all items in inventory for token modifiers
         foreach (Item item in player.Inventory.GetAllItems())
         {
             if (item == null) continue;
             if (item.TokenGenerationModifiers != null &&
-                item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
+                item.TokenGenerationModifiers.TryGetValue(tokenType, out int modifierBasisPoints))
             {
-                // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
-                totalModifier *= modifier;
+                // Multiply modifiers (e.g., 15000 * 12000 / 10000 = 18000 for 1.5x * 1.2x = 1.8x)
+                totalModifierBasisPoints = totalModifierBasisPoints * modifierBasisPoints / 10000;
             }
         }
 
-        return totalModifier;
+        return totalModifierBasisPoints;
     }
 
 }

@@ -21,9 +21,9 @@ public class StandingObligationDTO
 
     // Dynamic scaling fields
     public string ScalingType { get; set; } = "None";
-    public float ScalingFactor { get; set; } = 1.0f;
-    public float BaseValue { get; set; } = 0f;
-    public float MinValue { get; set; } = 0f;
-    public float MaxValue { get; set; } = 100f;
-    public Dictionary<int, float> SteppedThresholds { get; set; } = new Dictionary<int, float>();
+    public int ScalingFactorBasisPoints { get; set; } = 10000;
+    public int BaseValueBasisPoints { get; set; } = 0;
+    public int MinValueBasisPoints { get; set; } = 0;
+    public int MaxValueBasisPoints { get; set; } = 1000000;
+    public List<SteppedThreshold> SteppedThresholds { get; set; } = new List<SteppedThreshold>();
 }

@@ -34,15 +34,14 @@ public class ResourceFacade
         return _gameWorld.GetPlayer().Coins;
     }
 
-    public bool CanAfford(int amount)
-    {
-        return _gameWorld.GetPlayer().Coins >= amount;
-    }
-
     public bool SpendCoins(int amount, string reason)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.Coins < amount)
+
+        // HIGHLANDER: Use CompoundRequirement for affordability check
+        Consequence cost = new Consequence { Coins = -amount };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        if (!resourceReq.IsAnySatisfied(player, _gameWorld))
         {
             _messageSystem.AddSystemMessage(
                 $"Not enough coins! Need {amount}, have {player.Coins}",

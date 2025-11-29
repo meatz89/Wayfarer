@@ -59,9 +59,9 @@ public class TravelTimeCalculator
 
         int baseTime = GetBaseTravelTime(fromLocation, toLocation);
 
-        // Apply transport method modifier
-        double modifier = GetTransportModifier(transportMethod);
-        int actualTime = (int)(baseTime * modifier);
+        // Apply transport method modifier (basis points: 10000 = 1.0)
+        int modifierBasisPoints = GetTransportModifierBasisPoints(transportMethod);
+        int actualTime = baseTime * modifierBasisPoints / 10000;
 
         // Apply weather effects if any
         actualTime = ApplyWeatherEffects(actualTime);
@@ -84,18 +84,18 @@ public class TravelTimeCalculator
     }
 
     /// <summary>
-    /// Get transport method speed modifier.
+    /// Get transport method speed modifier in basis points (10000 = 1.0).
     /// </summary>
-    private double GetTransportModifier(TravelMethods transportMethod)
+    private int GetTransportModifierBasisPoints(TravelMethods transportMethod)
     {
         return transportMethod switch
         {
-            TravelMethods.Walking => 1.0,      // Base speed
-            TravelMethods.Horseback => 0.5,    // Twice as fast
-            TravelMethods.Carriage => 0.7,     // Moderate speed boost
-            TravelMethods.Cart => 1.3,          // Slower due to cargo
-            TravelMethods.Boat => 0.8,          // Good for water routes
-            _ => 1.0
+            TravelMethods.Walking => 10000,    // Base speed
+            TravelMethods.Horseback => 5000,   // Twice as fast
+            TravelMethods.Carriage => 7000,    // Moderate speed boost
+            TravelMethods.Cart => 13000,       // Slower due to cargo
+            TravelMethods.Boat => 8000,        // Good for water routes
+            _ => 10000
         };
     }
 
@@ -108,10 +108,10 @@ public class TravelTimeCalculator
 
         return weather switch
         {
-            WeatherCondition.Rain => (int)(baseTime * 1.2),      // 20% slower in rain
-            WeatherCondition.Snow => (int)(baseTime * 1.5),      // 50% slower in snow
-            WeatherCondition.Storm => (int)(baseTime * 2.0),     // Double time in storm
-            _ => baseTime                                         // No effect
+            WeatherCondition.Rain => baseTime * 12 / 10,         // 20% slower in rain
+            WeatherCondition.Snow => baseTime * 15 / 10,         // 50% slower in snow
+            WeatherCondition.Storm => baseTime * 2,              // Double time in storm
+            _ => baseTime                                        // No effect
         };
     }
 

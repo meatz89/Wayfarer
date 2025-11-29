@@ -8,17 +8,20 @@ public class GameRuleEngine : IGameRuleEngine
     private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly TimeManager _timeManager;
+    private readonly GameWorld _gameWorld;
 
     public GameRuleEngine(
         GameConfiguration config,
         TokenMechanicsManager tokenManager,
         NPCRepository npcRepository,
-        TimeManager timeManager)
+        TimeManager timeManager,
+        GameWorld gameWorld)
     {
         _config = config;
         _tokenManager = tokenManager;
         _npcRepository = npcRepository;
         _timeManager = timeManager;
+        _gameWorld = gameWorld;
     }
 
     // Travel mechanics
@@ -26,13 +29,13 @@ public class GameRuleEngine : IGameRuleEngine
     {
         int baseCost = _config.Travel.BaseStaminaCost;
 
-        // Apply terrain modifiers
+        // Apply terrain modifiers (basis points where 10000 = 1.0x)
         foreach (TerrainCategory terrain in route.TerrainCategories)
         {
             string terrainName = terrain.ToString();
-            if (_config.Travel.TerrainStaminaModifiers.TryGetValue(terrainName, out float modifier))
+            if (_config.Travel.TerrainStaminaModifiers.TryGetValue(terrainName, out int modifier))
             {
-                baseCost = (int)(baseCost * modifier);
+                baseCost = baseCost * modifier / 10000;
             }
         }
 
@@ -44,8 +47,12 @@ public class GameRuleEngine : IGameRuleEngine
         int staminaCost = CalculateTravelStamina(route);
         int segmentCost = route.TravelTimeSegments;
 
-        return player.Stamina >= staminaCost &&
-               _timeManager.SegmentsRemainingInDay >= segmentCost;
+        // HIGHLANDER: Use CompoundRequirement for stamina check
+        Consequence cost = new Consequence { Stamina = -staminaCost };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        bool hasStamina = resourceReq.IsAnySatisfied(player, _gameWorld);
+
+        return hasStamina && _timeManager.SegmentsRemainingInDay >= segmentCost;
     }
 
     // Time management

@@ -32,12 +32,12 @@ public class ArbitrageCalculator
         public int GrossProfit { get; set; }
         public int TravelCost { get; set; }
         public int NetProfit { get; set; }
-        public float ProfitMargin { get; set; } // Percentage return on investment
+        public int ProfitMarginBasisPoints { get; set; }
         public int RequiredCapital { get; set; }
         public bool IsCurrentlyProfitable { get; set; }
         public string OpeningDescription { get; set; }
         public int DistanceBetweenLocations { get; set; }
-        public float ProfitPerDistance { get; set; }
+        public int ProfitPerDistance { get; set; }
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class ArbitrageCalculator
         public int TotalProfit { get; set; }
         public int RequiredCapital { get; set; }
         public int TotalDistance { get; set; }
-        public float AverageProfitMargin { get; set; }
+        public int AverageProfitMarginBasisPoints { get; set; }
         public string RouteDescription { get; set; }
     }
 
@@ -105,11 +105,11 @@ public class ArbitrageCalculator
                         GrossProfit = grossProfit,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMargin = (float)netProfit / buyPrice,
+                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = netProfit > 0,
                         DistanceBetweenLocations = distance,
-                        ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
+                        ProfitPerDistance = distance > 0 ? netProfit / distance : netProfit,
                         OpeningDescription = GenerateOpeningDescription(item, buyLocation, sellLocation, netProfit)
                     };
                 }
@@ -216,11 +216,11 @@ public class ArbitrageCalculator
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMargin = (float)netProfit / buyPrice,
+                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
-                        ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
+                        ProfitPerDistance = distance > 0 ? netProfit / distance : netProfit,
                         OpeningDescription = GenerateOpeningDescription(item, currentLocation, sellLocation, netProfit)
                     });
                 }
@@ -271,11 +271,11 @@ public class ArbitrageCalculator
                         GrossProfit = otherSellPrice - currentSellPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMargin = currentSellPrice > 0 ? (float)netProfit / currentSellPrice : 0,
+                        ProfitMarginBasisPoints = currentSellPrice > 0 ? netProfit * 10000 / currentSellPrice : 0,
                         RequiredCapital = 0, // Already own the item
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
-                        ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
+                        ProfitPerDistance = distance > 0 ? netProfit / distance : netProfit,
                         OpeningDescription = $"Sell {item.Name} in {sellLocation.Name} for {netProfit} coin profit"
                     });
                 }
@@ -329,8 +329,8 @@ public class ArbitrageCalculator
         bestRoute.TotalProfit = totalProfit;
         bestRoute.RequiredCapital = availableCapital;
         bestRoute.TotalDistance = bestRoute.Trades.Sum(t => t.DistanceBetweenLocations);
-        bestRoute.AverageProfitMargin = bestRoute.Trades.Count > 0
-            ? bestRoute.Trades.Average(t => t.ProfitMargin)
+        bestRoute.AverageProfitMarginBasisPoints = bestRoute.Trades.Count > 0
+            ? (int)bestRoute.Trades.Average(t => t.ProfitMarginBasisPoints)
             : 0;
         bestRoute.RouteDescription = GenerateRouteDescription(bestRoute);
 
@@ -376,11 +376,11 @@ public class ArbitrageCalculator
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,
                         NetProfit = netProfit,
-                        ProfitMargin = (float)netProfit / buyPrice,
+                        ProfitMarginBasisPoints = buyPrice > 0 ? netProfit * 10000 / buyPrice : 0,
                         RequiredCapital = buyPrice,
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
-                        ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit
+                        ProfitPerDistance = distance > 0 ? netProfit / distance : netProfit
                     });
                 }
             }

@@ -207,13 +207,29 @@ public class ExchangeValidator
 
     /// <summary>
     /// Check if player can afford a specific resource cost
+    /// HIGHLANDER: Use CompoundRequirement for Coins and Health checks
     /// </summary>
     private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
     {
+        // HIGHLANDER: Use CompoundRequirement for resource availability checks
+        if (cost.Type == ResourceType.Coins)
+        {
+            Consequence consequence = new Consequence { Coins = -cost.Amount };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
+            Player player = _gameWorld.GetPlayer();
+            return resourceReq.IsAnySatisfied(player, _gameWorld);
+        }
+
+        if (cost.Type == ResourceType.Health)
+        {
+            Consequence consequence = new Consequence { Health = -cost.Amount };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(consequence);
+            Player player = _gameWorld.GetPlayer();
+            return resourceReq.IsAnySatisfied(player, _gameWorld);
+        }
+
         return cost.Type switch
         {
-            ResourceType.Coins => playerResources.Coins >= cost.Amount,
-            ResourceType.Health => playerResources.Health >= cost.Amount,
             ResourceType.Hunger => true, // Hunger is usually a reward, not a cost
             ResourceType.TrustToken => npcTokens.GetValueOrDefault(ConnectionType.Trust, 0) >= cost.Amount,
             ResourceType.DiplomacyToken => npcTokens.GetValueOrDefault(ConnectionType.Diplomacy, 0) >= cost.Amount,

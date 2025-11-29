@@ -265,9 +265,16 @@ public class TravelManager
             return false;
         }
 
-        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
+        if (card.CoinRequirement > 0)
         {
-            return false;
+            Player player = _gameWorld.GetPlayer();
+            Consequence cost = new Consequence { Coins = -card.CoinRequirement };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
+            {
+                return false;
+            }
         }
 
         // Check one-time card usage
@@ -324,9 +331,16 @@ public class TravelManager
             return false;
         }
 
-        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
+        if (card.CoinRequirement > 0)
         {
-            return false;
+            Player player = _gameWorld.GetPlayer();
+            Consequence cost = new Consequence { Coins = -card.CoinRequirement };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            if (!resourceReq.IsAnySatisfied(player, _gameWorld))
+            {
+                return false;
+            }
         }
 
         // Deduct costs and add system messages
