@@ -156,6 +156,46 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# CATALOGUE PATTERN (PARSE-TIME TRANSLATION)
+
+**THE RULE:** Catalogues translate categorical properties to concrete values at **PARSE-TIME ONLY**.
+
+| Layer | Responsibility |
+|-------|----------------|
+| Content JSON | Categorical descriptions (friendly, hostile, premium) |
+| Catalogue | Translation formulas (parse-time) |
+| Entity | Concrete values only (integers, no categories) |
+
+**Why:** Single formula change rebalances all content. Zero runtime overhead. AI generates balanced content without knowing game math.
+
+**FORBIDDEN:**
+- Runtime catalogue lookups in Services
+- String-based property matching at runtime
+- Catalogue calls during player actions
+
+**Exception:** Procedural generation (ProceduralAStoryService) may call catalogues during scene creation - this is "content creation time" not "player action time".
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.2
+
+---
+
+# FAIL-FAST PHILOSOPHY
+
+**THE RULE:** Missing data should fail loudly, not silently default.
+
+**Why:** Null coalescing (`??`) and TryGetValue hide content authoring errors. Invalid state becomes player-visible bugs instead of parse-time crashes. Silent defaults make debugging impossible.
+
+**FORBIDDEN:**
+- `??` null coalescing in domain logic (hides missing required data)
+- `TryGetValue` patterns in domain code (use direct access, let it throw)
+- `TryParse` patterns (data should be valid by design)
+
+**Correct Pattern:** Let exceptions propagate. Parse-time crashes are features, not bugs.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.5
+
+---
+
 # EXPLICIT PROPERTY PRINCIPLE
 
 Use explicit strongly-typed properties for state modifications. Never route changes through string-based generic systems.
