@@ -219,8 +219,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 # USER CODE PREFERENCES
 
 **Types:**
-- ONLY: `List<T>`, strongly-typed objects, `int` (never float)
-- FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples
+- ONLY: `List<T>`, strongly-typed objects, `int` (see GDD DDR-007: Intentional Numeric Design)
+- FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples, `float`, `double`
 
 **Lambdas:**
 - FORBIDDEN: Backend event handlers, DI registration lambdas

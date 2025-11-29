@@ -30,8 +30,17 @@ The pattern guaranteeing every A-story situation offers four path types: stat-ga
 ### Impossible Choice
 Core design principle. Every decision forces trade-offs between multiple valid alternatives. No optimal path exists—only the path you choose.
 
+### Mental Math Design
+Design principle (DDR-007). All numeric values small enough for players to calculate in their heads without external tools. Values like +2 or -5, not +147 or -2,340.
+
+### Deterministic Arithmetic
+Design principle (DDR-007). Strategic outcomes are predictable from inputs with no randomness. "Insight 5 required" means exactly that—not "70% chance with Insight 5."
+
+### Absolute Modifier
+Numeric adjustment that stacks additively. Two +3 bonuses always equal +6. Contrast with multipliers which compound unexpectedly. Part of Intentional Numeric Design (DDR-007).
+
 ### Perfect Information
-Design principle. All costs, requirements, and rewards visible before selection. Strategic layer has no hidden gotchas.
+Design principle. All costs, requirements, and rewards visible before selection. Strategic layer has no hidden gotchas. Extended by DDR-007: information must be not just visible but mentally calculable.
 
 ### Requirement Inversion
 Foundational principle: stat requirements affect COST, not ACCESS. Unlike traditional RPGs with boolean gates ("Level 5 required"), Wayfarer uses resource arithmetic—everyone can progress, but high-stat players pay less. This ensures no soft-locks while rewarding specialization.

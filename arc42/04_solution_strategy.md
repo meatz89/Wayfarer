@@ -24,7 +24,7 @@ Content authors and AI generators cannot specify exact numeric values because th
 
 Wayfarer solves this through categorical properties and parse-time translation. Authors write descriptive categories: demeanor (Friendly, Neutral, Hostile), quality (Budget, Standard, Premium), power dynamic (Submissive, Equal, Dominant). At startup, catalogues translate these categories into concrete mechanical values using universal formulas.
 
-A friendly NPC reduces difficulty by 40%. Premium quality increases costs by 60%. These multipliers compound: the same negotiation archetype produces an easy interaction at a friendly budget inn and a challenging one at a hostile premium establishment. The formulas encode game balance once; authors instantiate infinite variations through categorical description.
+A friendly NPC reduces difficulty thresholds. Premium quality increases costs. Categories translate to absolute adjustments that stack predictably—no compounding multipliers that obscure final values. The same negotiation archetype produces an easy interaction at a friendly budget inn and a challenging one at a hostile premium establishment. Catalogues encode balance formulas once; authors instantiate infinite variations through categorical description.
 
 This translation happens exactly once during content loading. At runtime, domain entities contain only concrete values—no catalogue lookups, no string matching, no runtime translation overhead.
 
