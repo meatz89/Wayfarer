@@ -340,11 +340,12 @@ public class Situation
     public bool DeleteOnSuccess { get; set; } = true;
 
     /// <summary>
+    /// HIGHLANDER: Entry costs as Consequence (negative values = costs to pay)
     /// Resources player must pay to attempt this situation
     /// Transparent costs create resource competition and strategic choices
     /// Board game pattern: Situation A costs 20 Focus, Situation B costs 30 Focus - choose wisely
     /// </summary>
-    public SituationCosts Costs { get; set; } = new SituationCosts();
+    public Consequence EntryCost { get; set; } = Consequence.None();
 
     /// <summary>
     /// Difficulty modifiers that reduce/increase difficulty based on player state

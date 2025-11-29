@@ -32,8 +32,9 @@ public class TokenFacade
     /// <summary>
     /// Get all tokens with a specific NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
+    /// DOMAIN COLLECTION: Returns List<TokenCount>, queried with LINQ
     /// </summary>
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
+    public List<TokenCount> GetTokensWithNPC(NPC npc)
     {
         return _connectionTokenManager.GetTokensWithNPC(npc);
     }
@@ -192,11 +193,12 @@ public class TokenFacade
     /// <summary>
     /// Get total tokens with an NPC across all types (only positive values)
     /// HIGHLANDER: Accepts NPC object, not string ID
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     public int GetTotalTokensWithNPC(NPC npc)
     {
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
-        return tokens.Values.Where(v => v > 0).Sum();
+        List<TokenCount> tokens = GetTokensWithNPC(npc);
+        return tokens.Where(t => t.Count > 0).Sum(t => t.Count);
     }
 
     /// <summary>

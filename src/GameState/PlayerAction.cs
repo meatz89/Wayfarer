@@ -18,14 +18,11 @@ public class PlayerAction
     public string Description { get; set; }
 
     /// <summary>
-    /// Resource costs required to perform this action
+    /// HIGHLANDER: Unified costs and rewards
+    /// Consequence is the ONLY class for resource outcomes.
+    /// Negative values = costs, Positive values = rewards
     /// </summary>
-    public ActionCosts Costs { get; set; } = new ActionCosts();
-
-    /// <summary>
-    /// Resources rewarded for performing this action
-    /// </summary>
-    public ActionRewards Rewards { get; set; } = new ActionRewards();
+    public Consequence Consequence { get; set; } = new Consequence();
 
     /// <summary>
     /// Time required to complete this action in segments

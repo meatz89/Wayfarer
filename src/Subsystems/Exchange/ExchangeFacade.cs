@@ -2,6 +2,7 @@
 /// Public facade for all exchange-related operations.
 /// Handles resource trades, exchange validation, and NPC inventory management.
 /// This is the ONLY public interface for the Exchange subsystem.
+/// TWO PILLARS: Delegates all mutations to RewardApplicationService
 /// </summary>
 public class ExchangeFacade
 {
@@ -9,6 +10,7 @@ public class ExchangeFacade
     private readonly ExchangeOrchestrator _orchestrator;
     private readonly ExchangeValidator _validator;
     private readonly ExchangeProcessor _processor;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     // External dependencies
     private readonly TimeManager _timeManager;
@@ -20,7 +22,8 @@ public class ExchangeFacade
         ExchangeValidator validator,
         ExchangeProcessor processor,
         TimeManager timeManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
@@ -28,6 +31,7 @@ public class ExchangeFacade
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -44,7 +48,7 @@ public class ExchangeFacade
         // Get available exchanges for this NPC - placeholder parameters for now
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
         TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
-        Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>(); // Would need TokenFacade
+        List<TokenCount> npcTokens = new List<TokenCount>(); // Would need TokenFacade
         RelationshipTier relationshipTier = RelationshipTier.None;
         List<ExchangeOption> availableExchanges = GetAvailableExchanges(npc, playerResources, npcTokens, relationshipTier);
         if (!availableExchanges.Any())
@@ -59,7 +63,7 @@ public class ExchangeFacade
     /// Get all available exchanges for an NPC
     /// HIGHLANDER: Accepts NPC object, not string identifier
     /// </summary>
-    public List<ExchangeOption> GetAvailableExchanges(NPC npc, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
+    public List<ExchangeOption> GetAvailableExchanges(NPC npc, PlayerResourceState playerResources, List<TokenCount> npcTokens, RelationshipTier relationshipTier)
     {
         if (npc == null)
         {
@@ -143,7 +147,7 @@ public class ExchangeFacade
     /// Execute an exchange with an NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public async Task<ExchangeResult> ExecuteExchange(NPC npc, ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
+    public async Task<ExchangeResult> ExecuteExchange(NPC npc, ExchangeCard exchange, PlayerResourceState playerResources, List<TokenCount> npcTokens, RelationshipTier relationshipTier)
     {
         if (npc == null)
         {
@@ -186,7 +190,7 @@ public class ExchangeFacade
         Player player = _gameWorld.GetPlayer();
 
         // Apply costs
-        if (!ApplyExchangeCosts(exchange, player, npc))
+        if (!await ApplyExchangeCosts(exchange, player, npc))
         {
             return new ExchangeResult
             {
@@ -195,9 +199,8 @@ public class ExchangeFacade
             };
         }
 
-        // Apply rewards
-        Dictionary<ResourceType, int> rewardsGranted = ApplyExchangeRewards(exchange, player, npc);
-        List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
+        // Apply rewards (DOMAIN COLLECTION: strongly-typed result, no tuple)
+        ExchangeRewardsApplied appliedRewards = await ApplyExchangeRewards(exchange, player, npc);
 
         // Track exchange history in GameWorld
         ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
@@ -224,8 +227,8 @@ public class ExchangeFacade
         {
             Success = true,
             Message = "Exchange completed",
-            RewardsGranted = rewardsGranted,
-            ItemsGranted = itemsGranted
+            RewardsGranted = appliedRewards.ResourcesGranted,
+            ItemsGranted = appliedRewards.ItemsGranted
         };
     }
 
@@ -258,7 +261,7 @@ public class ExchangeFacade
     {
         // Placeholder implementation - would need proper orchestration
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
-        Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>();
+        List<TokenCount> npcTokens = new List<TokenCount>();
         RelationshipTier relationshipTier = RelationshipTier.None;
         return GetAvailableExchanges(npc, playerResources, npcTokens, relationshipTier).Any();
     }
@@ -330,27 +333,6 @@ public class ExchangeFacade
     }
 
     // Helper methods
-
-    private string FormatExchangeDescription(ExchangeCard exchange)
-    {
-        List<string> parts = new List<string>();
-
-        List<ResourceAmount> costs = exchange.GetCostAsList();
-        List<ResourceAmount> rewards = exchange.GetRewardAsList();
-
-        if (costs.Any())
-        {
-            parts.Add($"Pay: {FormatCost(costs)}");
-        }
-
-        if (rewards.Any())
-        {
-            parts.Add($"Receive: {FormatReward(rewards)}");
-        }
-
-        return string.Join(" → ", parts);
-    }
-
     private string FormatCost(List<ResourceAmount> costs)
     {
         if (!costs.Any()) return "Free";
@@ -387,33 +369,36 @@ public class ExchangeFacade
     /// <summary>
     /// Apply exchange costs to player (resources + items)
     /// </summary>
-    private bool ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<bool> ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
     {
-        // Apply resource costs
+        // TWO PILLARS: Build Consequence from costs and validate via CompoundRequirement
+        int coinCost = 0;
+        int healthCost = 0;
+        int hungerIncrease = 0;
+
         foreach (ResourceAmount cost in exchange.GetCostAsList())
         {
             switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Amount)
-                        return false;
-                    player.Coins -= cost.Amount;
+                    coinCost += cost.Amount;
                     break;
-
                 case ResourceType.Health:
-                    if (player.Health < cost.Amount)
-                        return false;
-                    player.Health -= cost.Amount;
+                    healthCost += cost.Amount;
                     break;
-
                 case ResourceType.Hunger:
-                    player.Hunger = Math.Min(player.MaxHunger, player.Hunger + cost.Amount);
+                    hungerIncrease += cost.Amount;
                     break;
             }
         }
 
-        // Apply item costs (consume items from inventory)
-        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        // Validate affordability
+        if (player.Coins < coinCost || player.Health < healthCost)
+        {
+            return false;
+        }
+
+        // Validate item availability BEFORE applying any costs
         foreach (Item item in exchange.Cost.ConsumedItems)
         {
             if (!player.Inventory.Contains(item))
@@ -421,74 +406,99 @@ public class ExchangeFacade
                 _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.Remove(item);
         }
+
+        // TWO PILLARS: Apply ALL costs via single Consequence (resources + item removal)
+        Consequence costConsequence = new Consequence
+        {
+            Coins = -coinCost,
+            Health = -healthCost,
+            Hunger = hungerIncrease,  // Hunger increase is positive
+            ItemsToRemove = exchange.Cost.ConsumedItems.ToList()
+        };
+        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
 
         return true;
     }
 
     /// <summary>
-    /// Apply exchange resource rewards to player
+    /// Apply exchange resource and item rewards to player
+    /// TWO PILLARS: Delegates ALL mutations to RewardApplicationService via single Consequence
+    /// DOMAIN COLLECTION: Returns List-based strongly-typed result (no Dictionary/tuple)
     /// </summary>
-    private Dictionary<ResourceType, int> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<ExchangeRewardsApplied> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
     {
-        Dictionary<ResourceType, int> rewardsGranted = new Dictionary<ResourceType, int>();
+        List<ResourceAmount> rewardsGranted = new List<ResourceAmount>();
+        List<Item> itemsGranted = new List<Item>();
+
+        // TWO PILLARS: Build Consequence from rewards
+        int coinReward = 0;
+        int healthReward = 0;
+        int hungerDecrease = 0;
+        List<Item> itemRewards = new List<Item>();
 
         foreach (ResourceAmount reward in exchange.GetRewardAsList())
         {
             switch (reward.Type)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Amount;
-                    rewardsGranted[ResourceType.Coins] = reward.Amount;
+                    coinReward += reward.Amount;
+                    rewardsGranted.Add(new ResourceAmount(ResourceType.Coins, reward.Amount));
                     break;
-
                 case ResourceType.Health:
-                    int healthBefore = player.Health;
-                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
-                    rewardsGranted[ResourceType.Health] = player.Health - healthBefore;
+                    healthReward += reward.Amount;
+                    rewardsGranted.Add(new ResourceAmount(ResourceType.Health, reward.Amount));
                     break;
-
                 case ResourceType.Hunger:
-                    int hungerBefore = player.Hunger;
-                    player.Hunger = Math.Max(0, player.Hunger - reward.Amount);
-                    rewardsGranted[ResourceType.Hunger] = hungerBefore - player.Hunger;
+                    hungerDecrease += reward.Amount;
+                    rewardsGranted.Add(new ResourceAmount(ResourceType.Hunger, reward.Amount));
                     break;
             }
         }
 
-        return rewardsGranted;
-    }
-
-    /// <summary>
-    /// Apply exchange item rewards to player
-    /// HIGHLANDER: Use Item objects, not string IDs
-    /// </summary>
-    private List<string> ApplyExchangeItemRewards(ExchangeCard exchange, Player player)
-    {
-        List<string> itemsGranted = new List<string>();
-
+        // Collect item rewards (HIGHLANDER: Item objects, not strings)
         foreach (Item item in exchange.GetItemRewards())
         {
-            player.Inventory.Add(item);
-            itemsGranted.Add(item.Name);
+            itemRewards.Add(item);
+            itemsGranted.Add(item);
         }
 
-        return itemsGranted;
+        // TWO PILLARS: Apply ALL rewards via single Consequence (resources + items)
+        Consequence rewardConsequence = new Consequence
+        {
+            Coins = coinReward,
+            Health = healthReward,
+            Hunger = -hungerDecrease,  // Hunger decrease is negative (good for player)
+            Items = itemRewards
+        };
+        await _rewardApplicationService.ApplyConsequence(rewardConsequence, null);
+
+        return new ExchangeRewardsApplied { ResourcesGranted = rewardsGranted, ItemsGranted = itemsGranted };
     }
 }
 
 /// <summary>
+/// Result of applying exchange rewards (DOMAIN COLLECTION: no Dictionary/tuple)
+/// </summary>
+public class ExchangeRewardsApplied
+{
+    public List<ResourceAmount> ResourcesGranted { get; set; } = new List<ResourceAmount>();
+    public List<Item> ItemsGranted { get; set; } = new List<Item>();
+}
+
+/// <summary>
 /// Result of executing an exchange
+/// DOMAIN COLLECTION: List-based strongly-typed properties (no Dictionary)
+/// HIGHLANDER: Item objects, not string IDs
 /// </summary>
 public class ExchangeResult
 {
     public bool Success { get; set; }
     public string Message { get; set; }
-    public Dictionary<ResourceType, int> CostsApplied { get; set; }
-    public Dictionary<ResourceType, int> RewardsGranted { get; set; }
-    public List<string> ItemsGranted { get; set; } = new List<string>();
-    public List<string> SideEffects { get; set; }
+    public List<ResourceAmount> CostsApplied { get; set; } = new List<ResourceAmount>();
+    public List<ResourceAmount> RewardsGranted { get; set; } = new List<ResourceAmount>();
+    public List<Item> ItemsGranted { get; set; } = new List<Item>();
+    public List<string> SideEffects { get; set; } = new List<string>();
     public ExchangeOperationData OperationData { get; set; }
 }
 

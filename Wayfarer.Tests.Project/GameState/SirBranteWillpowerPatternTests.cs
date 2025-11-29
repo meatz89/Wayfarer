@@ -6,6 +6,9 @@ namespace Wayfarer.Tests.GameState;
 /// Tests for the Sir Brante Willpower Pattern implementation.
 /// Validates that Resolve uses GATE logic (>= 0), not AFFORDABILITY logic (>= cost).
 /// See arc42/08 §8.20 and ADR-017 for documentation.
+///
+/// BEHAVIOR-ONLY TESTING: Tests verify boolean outcomes (satisfied/not satisfied),
+/// not implementation details. Callers build OrPath directly.
 /// </summary>
 public class SirBranteWillpowerPatternTests
 {
@@ -54,114 +57,8 @@ public class SirBranteWillpowerPatternTests
     }
 
     // ============================================
-    // COMPOUND REQUIREMENT FACTORY
+    // RESOURCE AFFORDABILITY (OrPath.IsSatisfied)
     // ============================================
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_AddsResolveGate_WhenNegativeResolve()
-    {
-        // When consequence costs Resolve, should add ResolveRequired gate check
-        Consequence consequence = new Consequence { Resolve = -5 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].ResolveRequired);
-        Assert.NotNull(req.OrPaths[0].Label);
-    }
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_NoResolveGate_WhenPositiveResolve()
-    {
-        // When consequence GIVES Resolve (positive), no gate needed
-        Consequence consequence = new Consequence { Resolve = 10 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Empty(req.OrPaths);
-    }
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_NoResolveGate_WhenZeroResolve()
-    {
-        // When consequence has no Resolve change, no gate needed
-        Consequence consequence = new Consequence { Resolve = 0 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Empty(req.OrPaths);
-    }
-
-    // ============================================
-    // UNIFIED RESOURCE AVAILABILITY (HIGHLANDER)
-    // ALL resource checks now in CompoundRequirement.CreateForConsequence()
-    // See arc42/08 §8.20 for documentation
-    // ============================================
-
-    [Fact]
-    public void CreateForConsequence_GeneratesCoinsRequirement()
-    {
-        // Coins cost creates CoinsRequired property
-        Consequence consequence = new Consequence { Coins = -5 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].CoinsRequired);
-        Assert.True(req.OrPaths[0].CoinsRequired > 0);
-    }
-
-    [Fact]
-    public void CreateForConsequence_GeneratesHealthRequirement()
-    {
-        // Health cost creates HealthRequired property
-        Consequence consequence = new Consequence { Health = -5 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].HealthRequired);
-        Assert.True(req.OrPaths[0].HealthRequired > 0);
-    }
-
-    [Fact]
-    public void CreateForConsequence_GeneratesStaminaRequirement()
-    {
-        // Stamina cost creates StaminaRequired property
-        Consequence consequence = new Consequence { Stamina = -5 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].StaminaRequired);
-        Assert.True(req.OrPaths[0].StaminaRequired > 0);
-    }
-
-    [Fact]
-    public void CreateForConsequence_GeneratesFocusRequirement()
-    {
-        // Focus cost creates FocusRequired property
-        Consequence consequence = new Consequence { Focus = -5 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].FocusRequired);
-        Assert.True(req.OrPaths[0].FocusRequired > 0);
-    }
-
-    [Fact]
-    public void CreateForConsequence_GeneratesHungerCapacityRequirement()
-    {
-        // Hunger increase creates HungerCapacityRequired property
-        Consequence consequence = new Consequence { Hunger = 20 };
-
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].HungerCapacityRequired);
-        Assert.True(req.OrPaths[0].HungerCapacityRequired > 0);
-    }
 
     [Fact]
     public void OrPath_CoinsAffordability_PassesWhenEnough()
@@ -212,20 +109,20 @@ public class SirBranteWillpowerPatternTests
     }
 
     // ============================================
-    // FULL INTEGRATION: Unified Resource Checks
+    // FULL INTEGRATION: Sir Brante Willpower Pattern
+    // Tests build OrPath directly - no factory methods
     // ============================================
 
     [Fact]
     public void Integration_ResolveZero_CanTakeResolveCostingAction()
     {
         // Player at Resolve = 0 CAN take action costing -5 Resolve
-        // Gate: 0 >= 0 = TRUE via unified CompoundRequirement
+        // Gate: 0 >= 0 = TRUE
         // Result: Action IS available
         Player player = CreatePlayer(resolve: 0, coins: 100);
-        Consequence consequence = new Consequence { Resolve = -5 };
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        Assert.True(req.IsAnySatisfied(player, CreateGameWorld()), "Unified check should pass for Resolve = 0");
+        Assert.True(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     [Fact]
@@ -233,15 +130,11 @@ public class SirBranteWillpowerPatternTests
     {
         // Player at Resolve = -5 CANNOT take action costing -5 Resolve
         // Gate: -5 >= 0 = FALSE
-        // Affordability: Resolve not checked = TRUE (irrelevant, gate failed)
         // Result: Action is NOT available
         Player player = CreatePlayer(resolve: -5, coins: 100);
-        Consequence consequence = new Consequence { Resolve = -5 };
-        CompoundRequirement gateReq = CompoundRequirement.CreateForConsequence(consequence);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        bool gateCheck = gateReq.IsAnySatisfied(player, CreateGameWorld());
-
-        Assert.False(gateCheck, "Gate check (Resolve >= 0) should FAIL when Resolve is negative");
+        Assert.False(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     [Fact]
@@ -263,12 +156,9 @@ public class SirBranteWillpowerPatternTests
         // After going negative (-5), the NEXT costly action is blocked
         // This is the willpower gate kicking in
         Player player = CreatePlayer(resolve: -5);
-        Consequence nextAction = new Consequence { Resolve = -5 };
-        CompoundRequirement gateReq = CompoundRequirement.CreateForConsequence(nextAction);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        bool canTakeNextAction = gateReq.IsAnySatisfied(player, CreateGameWorld());
-
-        Assert.False(canTakeNextAction, "Player at negative Resolve cannot take costly actions");
+        Assert.False(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     [Fact]
@@ -279,12 +169,9 @@ public class SirBranteWillpowerPatternTests
         Player player = CreatePlayer(resolve: -5);
         player.Resolve += 10; // Rebuild through positive choice
 
-        Consequence costlyAction = new Consequence { Resolve = -5 };
-        CompoundRequirement gateReq = CompoundRequirement.CreateForConsequence(costlyAction);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        bool canTakeAction = gateReq.IsAnySatisfied(player, CreateGameWorld());
-
-        Assert.True(canTakeAction, "Player who rebuilt to positive Resolve can take costly actions");
+        Assert.True(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     // ============================================
@@ -296,10 +183,9 @@ public class SirBranteWillpowerPatternTests
     {
         // Even at Resolve = -100, gate check works correctly
         Player player = CreatePlayer(resolve: -100);
-        Consequence consequence = new Consequence { Resolve = -5 };
-        CompoundRequirement gateReq = CompoundRequirement.CreateForConsequence(consequence);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        Assert.False(gateReq.IsAnySatisfied(player, CreateGameWorld()));
+        Assert.False(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     [Fact]
@@ -307,24 +193,51 @@ public class SirBranteWillpowerPatternTests
     {
         // Resolve = 100 passes gate check
         Player player = CreatePlayer(resolve: 100);
-        Consequence consequence = new Consequence { Resolve = -50 };
-        CompoundRequirement gateReq = CompoundRequirement.CreateForConsequence(consequence);
+        OrPath path = new OrPath { ResolveRequired = 0 };  // Gate pattern
 
-        Assert.True(gateReq.IsAnySatisfied(player, CreateGameWorld()));
+        Assert.True(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     [Fact]
-    public void EdgeCase_CombinedConsequence_BothResourcesCreateRequirements()
+    public void EdgeCase_CombinedRequirements_BothMustPass()
     {
-        // HIGHLANDER: Both Resolve and Coins create requirements in the SAME path
-        // Resolve uses GATE, Coins uses AFFORDABILITY
-        Consequence consequence = new Consequence { Resolve = -5, Coins = -10 };
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
+        // Both Resolve gate AND Coins affordability must pass
+        Player player = CreatePlayer(resolve: 0, coins: 100);
+        OrPath path = new OrPath
+        {
+            ResolveRequired = 0,     // Gate pattern
+            CoinsRequired = 50       // Affordability pattern
+        };
 
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].ResolveRequired);
-        Assert.NotNull(req.OrPaths[0].CoinsRequired);
-        Assert.True(req.OrPaths[0].CoinsRequired > 0);
+        Assert.True(path.IsSatisfied(player, CreateGameWorld()));
+    }
+
+    [Fact]
+    public void EdgeCase_CombinedRequirements_FailsIfResolveFails()
+    {
+        // Resolve gate fails, even though coins are sufficient
+        Player player = CreatePlayer(resolve: -5, coins: 100);
+        OrPath path = new OrPath
+        {
+            ResolveRequired = 0,     // Gate pattern - FAILS
+            CoinsRequired = 50       // Affordability pattern - passes
+        };
+
+        Assert.False(path.IsSatisfied(player, CreateGameWorld()));
+    }
+
+    [Fact]
+    public void EdgeCase_CombinedRequirements_FailsIfCoinsFails()
+    {
+        // Coins affordability fails, even though resolve gate passes
+        Player player = CreatePlayer(resolve: 5, coins: 10);
+        OrPath path = new OrPath
+        {
+            ResolveRequired = 0,     // Gate pattern - passes
+            CoinsRequired = 50       // Affordability pattern - FAILS
+        };
+
+        Assert.False(path.IsSatisfied(player, CreateGameWorld()));
     }
 
     // ============================================

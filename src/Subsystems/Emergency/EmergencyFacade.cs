@@ -11,19 +11,22 @@ public class EmergencyFacade
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly TokenFacade _tokenFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public EmergencyFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         ResourceFacade resourceFacade,
         TimeFacade timeFacade,
-        TokenFacade tokenFacade)
+        TokenFacade tokenFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
         _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -174,6 +177,7 @@ public class EmergencyFacade
     /// <summary>
     /// Select a response to an emergency situation
     /// HIGHLANDER: Accepts ActiveEmergencyState, mutates state not template.
+    /// TWO PILLARS: Uses CompoundRequirement for availability, Consequence for costs
     /// </summary>
     public EmergencyResult SelectResponse(ActiveEmergencyState emergencyState, EmergencyResponse response)
     {
@@ -191,31 +195,28 @@ public class EmergencyFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Validate resources
-        if (player.Stamina < response.StaminaCost)
-            return EmergencyResult.Failed($"Not enough Stamina (need {response.StaminaCost}, have {player.Stamina})");
+        // TWO PILLARS: Validate resources via CompoundRequirement
+        CompoundRequirement costRequirement = new CompoundRequirement();
+        OrPath costPath = new OrPath
+        {
+            StaminaRequired = response.StaminaCost,
+            HealthRequired = response.HealthCost,
+            CoinsRequired = response.CoinCost
+        };
+        costRequirement.OrPaths.Add(costPath);
 
-        if (player.Health < response.HealthCost)
-            return EmergencyResult.Failed($"Not enough Health (need {response.HealthCost}, have {player.Health})");
+        if (!costRequirement.IsAnySatisfied(player, _gameWorld))
+        {
+            return EmergencyResult.Failed("Insufficient resources for this response");
+        }
 
-        if (player.Coins < response.CoinCost)
-            return EmergencyResult.Failed($"Not enough Coins (need {response.CoinCost}, have {player.Coins})");
-
-        // Apply costs
+        // TWO PILLARS: Apply costs directly (sync pattern for emergency responses)
         if (response.StaminaCost > 0)
-        {
-            player.Stamina -= response.StaminaCost;
-        }
-
+            player.Stamina = Math.Max(0, player.Stamina - response.StaminaCost);
         if (response.HealthCost > 0)
-        {
-            _resourceFacade.TakeDamage(response.HealthCost, "Emergency response");
-        }
-
+            player.Health = Math.Max(0, player.Health - response.HealthCost);
         if (response.CoinCost > 0)
-        {
-            _resourceFacade.SpendCoins(response.CoinCost, "Emergency response");
-        }
+            player.Coins -= response.CoinCost;
 
         if (response.TimeCost > 0)
         {
@@ -324,17 +325,14 @@ public class EmergencyFacade
             _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info);
         }
 
-        // Grant/remove coins
+        // Grant/remove coins directly (sync pattern)
         if (outcome.CoinReward != 0)
         {
-            if (outcome.CoinReward > 0)
-            {
-                _resourceFacade.AddCoins(outcome.CoinReward, "Emergency outcome");
-            }
-            else
-            {
-                _resourceFacade.SpendCoins(-outcome.CoinReward, "Emergency outcome");
-            }
+            player.Coins += outcome.CoinReward;
+            string rewardText = outcome.CoinReward > 0
+                ? $"+{outcome.CoinReward} coins"
+                : $"{outcome.CoinReward} coins";
+            _messageSystem.AddSystemMessage(rewardText, SystemMessageTypes.Info);
         }
 
         foreach (Situation situation in outcome.SpawnedSituations)

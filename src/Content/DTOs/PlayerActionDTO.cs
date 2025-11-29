@@ -2,6 +2,7 @@
 /// Data Transfer Object for deserializing global Player action data from JSON.
 /// PlayerActions are available everywhere, not location-specific like LocationActions.
 /// Maps to the structure in the playerActions array in game packages.
+/// HIGHLANDER: Uses unified Consequence for all resource outcomes.
 /// </summary>
 public class PlayerActionDTO
 {
@@ -21,14 +22,9 @@ public class PlayerActionDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Resource costs required to perform this action
+    /// HIGHLANDER: Unified consequence (negative = cost, positive = reward)
     /// </summary>
-    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
-
-    /// <summary>
-    /// Resources rewarded for performing this action
-    /// </summary>
-    public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
+    public ConsequenceDTO Consequence { get; set; } = new ConsequenceDTO();
 
     /// <summary>
     /// Time required to complete this action in segments

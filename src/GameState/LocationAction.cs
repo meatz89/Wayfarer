@@ -36,16 +36,12 @@ public class LocationAction
     // No runtime capability matching needed - action availability determined by generation logic
 
     /// <summary>
-    /// Resource costs required to perform this action (ATMOSPHERIC PATTERN)
+    /// HIGHLANDER: Unified costs and rewards (ATMOSPHERIC PATTERN)
+    /// Consequence is the ONLY class for resource outcomes.
+    /// Negative values = costs, Positive values = rewards
     /// Used when ChoiceTemplate is null (catalog-generated atmospheric actions)
     /// </summary>
-    public ActionCosts Costs { get; set; } = new ActionCosts();
-
-    /// <summary>
-    /// Resources rewarded for performing this action (ATMOSPHERIC PATTERN)
-    /// Used when ChoiceTemplate is null (catalog-generated atmospheric actions)
-    /// </summary>
-    public ActionRewards Rewards { get; set; } = new ActionRewards();
+    public Consequence Consequence { get; set; } = new Consequence();
 
     /// <summary>
     /// Time required to complete this action in minutes
@@ -84,13 +80,11 @@ public class LocationAction
     ///
     /// PATTERN DISCRIMINATION:
     /// - IF ChoiceTemplate != null → SCENE-BASED action (use template consequences)
-    /// - IF ChoiceTemplate == null → ATMOSPHERIC action (use direct Costs/Rewards properties)
+    /// - IF ChoiceTemplate == null → ATMOSPHERIC action (use direct Consequence property)
     ///
-    /// Scene-spawned actions generated from ChoiceTemplate at spawn time.
-    /// ChoiceTemplate provides:
-    /// - RequirementFormula (CompoundRequirement with OR paths)
-    /// - OnSuccessConsequence (Consequence with resource changes, bonds, scales, states, scene spawns)
-    /// - OnFailureConsequence (Consequence with failure outcomes)
+    /// HIGHLANDER: Both patterns use Consequence. The distinction is WHERE the Consequence comes from:
+    /// - Atmospheric: Consequence created at parse-time by LocationActionCatalog
+    /// - Scene-based: Consequence from ChoiceTemplate at query-time
     ///
     /// See DUAL_TIER_ACTION_ARCHITECTURE.md for complete explanation.
     /// </summary>

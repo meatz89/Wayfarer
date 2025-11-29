@@ -128,10 +128,11 @@ public class MarketFacade
     /// <summary>
     /// Buy an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
+    /// TWO PILLARS: Delegates to async MarketSubsystemManager
     /// </summary>
-    public MarketSubsystemManager.TradeResult BuyItem(Item item, Location location)
+    public async Task<MarketSubsystemManager.TradeResult> BuyItem(Item item, Location location)
     {
-        MarketSubsystemManager.TradeResult result = _marketManager.BuyItem(item, location);
+        MarketSubsystemManager.TradeResult result = await _marketManager.BuyItem(item, location);
 
         if (result.Success)
         {
@@ -144,10 +145,11 @@ public class MarketFacade
     /// <summary>
     /// Sell an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
+    /// TWO PILLARS: Delegates to async MarketSubsystemManager
     /// </summary>
-    public MarketSubsystemManager.TradeResult SellItem(Item item, Location location)
+    public async Task<MarketSubsystemManager.TradeResult> SellItem(Item item, Location location)
     {
-        MarketSubsystemManager.TradeResult result = _marketManager.SellItem(item, location);
+        MarketSubsystemManager.TradeResult result = await _marketManager.SellItem(item, location);
 
         if (result.Success)
         {

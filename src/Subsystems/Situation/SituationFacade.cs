@@ -30,6 +30,7 @@ public class SituationFacade
     private readonly PhysicalFacade _physicalFacade;
     private readonly SocialFacade _socialFacade;
     private readonly ConsequenceFacade _consequenceFacade;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public SituationFacade(
         GameWorld gameWorld,
@@ -38,7 +39,8 @@ public class SituationFacade
         MentalFacade mentalFacade,
         PhysicalFacade physicalFacade,
         SocialFacade socialFacade,
-        ConsequenceFacade consequenceFacade)
+        ConsequenceFacade consequenceFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
@@ -47,14 +49,15 @@ public class SituationFacade
         _physicalFacade = physicalFacade ?? throw new ArgumentNullException(nameof(physicalFacade));
         _socialFacade = socialFacade ?? throw new ArgumentNullException(nameof(socialFacade));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
     /// Select and execute a situation - STRATEGIC LAYER ENTRY POINT
     /// Validates requirements, consumes strategic costs, routes to appropriate subsystem
-    /// PHASE 4: Accept Situation object instead of ID
+    /// TWO PILLARS: Uses CompoundRequirement for checks, Consequence for mutations
     /// </summary>
-    public SituationSelectionResult SelectAndExecuteSituation(Situation situation)
+    public async Task<SituationSelectionResult> SelectAndExecuteSituation(Situation situation)
     {
         if (situation == null)
             return SituationSelectionResult.Failed("Situation is null");
@@ -71,35 +74,49 @@ public class SituationFacade
             }
         }
 
-        // Validate strategic costs (player has enough resources)
-        if (player.Resolve < situation.Costs.Resolve)
+        // HIGHLANDER: EntryCost uses negative values for costs
+        // Extract positive cost amounts for validation
+        int resolveCost = situation.EntryCost.Resolve < 0 ? -situation.EntryCost.Resolve : 0;
+        int coinsCost = situation.EntryCost.Coins < 0 ? -situation.EntryCost.Coins : 0;
+        int timeCost = situation.EntryCost.TimeSegments;
+
+        // TWO PILLARS: Validate strategic costs via CompoundRequirement
+        if (resolveCost > 0 || coinsCost > 0)
         {
-            return SituationSelectionResult.Failed($"Not enough Resolve (need {situation.Costs.Resolve}, have {player.Resolve})");
+            CompoundRequirement costRequirement = new CompoundRequirement();
+            OrPath costPath = new OrPath
+            {
+                ResolveRequired = resolveCost,
+                CoinsRequired = coinsCost
+            };
+            costRequirement.OrPaths.Add(costPath);
+            if (!costRequirement.IsAnySatisfied(player, _gameWorld))
+            {
+                return SituationSelectionResult.Failed("Not enough resources for this situation");
+            }
         }
 
-        if (player.Coins < situation.Costs.Coins)
-        {
-            return SituationSelectionResult.Failed($"Not enough Coins (need {situation.Costs.Coins}, have {player.Coins})");
-        }
-
-        // Consume strategic costs (RESOLVE, TIME, COINS)
+        // HIGHLANDER: Apply EntryCost directly (already negative values)
         // NOTE: Focus/Stamina are TACTICAL costs consumed by challenge facades
-        if (situation.Costs.Resolve > 0)
+        if (resolveCost > 0 || coinsCost > 0)
         {
-            player.Resolve -= situation.Costs.Resolve;
-            _messageSystem.AddSystemMessage($"Resolve consumed: {situation.Costs.Resolve} (now {player.Resolve})", SystemMessageTypes.Warning);
+            Consequence strategicCosts = new Consequence
+            {
+                Resolve = situation.EntryCost.Resolve,
+                Coins = situation.EntryCost.Coins
+            };
+            await _rewardApplicationService.ApplyConsequence(strategicCosts, situation);
+
+            if (resolveCost > 0)
+                _messageSystem.AddSystemMessage($"Resolve consumed: {resolveCost} (now {player.Resolve})", SystemMessageTypes.Warning);
+            if (coinsCost > 0)
+                _messageSystem.AddSystemMessage($"Coins spent: {coinsCost}", SystemMessageTypes.Info);
         }
 
-        if (situation.Costs.Coins > 0)
+        if (timeCost > 0)
         {
-            player.Coins -= situation.Costs.Coins;
-            _messageSystem.AddSystemMessage($"Coins spent: {situation.Costs.Coins}", SystemMessageTypes.Info);
-        }
-
-        if (situation.Costs.Time > 0)
-        {
-            _timeFacade.AdvanceSegments(situation.Costs.Time);
-            _messageSystem.AddSystemMessage($"Time passed: {situation.Costs.Time} segments", SystemMessageTypes.Info);
+            _timeFacade.AdvanceSegments(timeCost);
+            _messageSystem.AddSystemMessage($"Time passed: {timeCost} segments", SystemMessageTypes.Info);
         }
 
         // Mark situation as in progress

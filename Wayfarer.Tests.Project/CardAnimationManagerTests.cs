@@ -35,7 +35,7 @@ public class CardAnimationManagerTests
             CardId = "test_card_1",
             State = "new",
             StateChangedAt = DateTime.Now,
-            AnimationDelay = 0.2,
+            AnimationDelayMs = 200, // DDR-007: int milliseconds instead of double seconds
             SequenceIndex = 0,
             AnimationDirection = "up"
         };

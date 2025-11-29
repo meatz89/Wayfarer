@@ -182,17 +182,18 @@ public class TokenUnlockManager
     /// <summary>
     /// Get all available unlocks for an NPC based on current tokens
     /// HIGHLANDER: Accept typed NPC object
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     public List<TokenUnlock> GetAvailableUnlocks(NPC npc)
     {
         List<TokenUnlock> availableUnlocks = new List<TokenUnlock>();
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npc);
 
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type == ConnectionType.None) continue;
 
-            int tokenCount = tokens.GetValueOrDefault(type, 0);
+            int tokenCount = tokens.FirstOrDefault(t => t.Type == type)?.Count ?? 0;
             if (tokenCount <= 0) continue;
 
             List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
@@ -309,11 +310,12 @@ public class TokenUnlockManager
 
     /// <summary>
     /// HIGHLANDER: Accept typed NPC object
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     private int GetTotalTokensWithNPC(NPC npc)
     {
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
-        return tokens.Values.Where(v => v > 0).Sum();
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npc);
+        return tokens.Where(t => t.Count > 0).Sum(t => t.Count);
     }
 }
 

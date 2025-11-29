@@ -2,6 +2,7 @@
 /// <summary>
 /// Core market logic manager for all trading operations and market queries.
 /// Implements dynamic pricing system with location-based arbitrage opportunities.
+/// TWO PILLARS: Delegates resource mutations to RewardApplicationService
 /// </summary>
 public class MarketSubsystemManager
 {
@@ -10,19 +11,22 @@ public class MarketSubsystemManager
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public MarketSubsystemManager(
         GameWorld gameWorld,
         ItemRepository itemRepository,
         NPCRepository npcRepository,
         MessageSystem messageSystem,
-        TimeManager timeManager)
+        TimeManager timeManager,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld;
         _itemRepository = itemRepository;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
         _timeManager = timeManager;
+        _rewardApplicationService = rewardApplicationService;
     }
 
     /// <summary>
@@ -339,8 +343,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Buy an item at a location
     /// HIGHLANDER: Accept Item and Location objects, not string IDs
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    public TradeResult BuyItem(Item item, Location location)
+    public async Task<TradeResult> BuyItem(Item item, Location location)
     {
         if (item == null || location == null)
         {
@@ -384,8 +389,13 @@ public class MarketSubsystemManager
         bool success = false;
         if (buyPrice > 0 && canAfford && player.Inventory.CanAddItem(item))
         {
-            player.AddCoins(-buyPrice);
-            player.Inventory.Add(item);
+            // TWO PILLARS: Apply purchase via Consequence + ApplyConsequence
+            Consequence purchaseCost = new Consequence
+            {
+                Coins = -buyPrice,
+                Items = new List<Item> { item }
+            };
+            await _rewardApplicationService.ApplyConsequence(purchaseCost, null);
             success = true;
             _messageSystem.AddSystemMessage($"Bought {item.Name} for {buyPrice} coins", SystemMessageTypes.Success);
         }
@@ -423,8 +433,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Sell an item at a location
     /// HIGHLANDER: Accept Item and Location objects, not string IDs
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    public TradeResult SellItem(Item item, Location location)
+    public async Task<TradeResult> SellItem(Item item, Location location)
     {
         if (item == null || location == null)
         {
@@ -464,8 +475,13 @@ public class MarketSubsystemManager
         // HIGHLANDER: Inventory.Contains(Item) accepts object, not string name
         if (sellPrice > 0 && player.Inventory.Contains(item))
         {
-            player.Inventory.Remove(item);
-            player.AddCoins(sellPrice);
+            // TWO PILLARS: Apply sale via single Consequence (remove item + gain coins)
+            Consequence saleConsequence = new Consequence
+            {
+                Coins = sellPrice,
+                ItemsToRemove = new List<Item> { item }
+            };
+            await _rewardApplicationService.ApplyConsequence(saleConsequence, null);
             success = true;
             _messageSystem.AddSystemMessage($"Sold {item.Name} for {sellPrice} coins", SystemMessageTypes.Success);
         }

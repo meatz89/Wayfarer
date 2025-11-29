@@ -11,38 +11,47 @@ public class LocationActionExecutor
     /// FALLBACK SCENE: These are permanent actions that prevent soft-locks
     /// Examples: Travel, Work, Rest, IntraVenueMove
     /// GameFacade applies the plan via facades
+    ///
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
+    /// Negative values = costs, Positive values = rewards.
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(LocationAction action, Player player)
     {
+        // Extract costs from Consequence (negative values become positive cost amounts)
+        int coinsCost = action.Consequence.Coins < 0 ? -action.Consequence.Coins : 0;
+        int staminaCost = action.Consequence.Stamina < 0 ? -action.Consequence.Stamina : 0;
+        int focusCost = action.Consequence.Focus < 0 ? -action.Consequence.Focus : 0;
+        int healthCost = action.Consequence.Health < 0 ? -action.Consequence.Health : 0;
+
         // STEP 1: Validate costs (atmospheric actions have no requirements, only costs)
-        if (player.Coins < action.Costs.Coins)
+        if (player.Coins < coinsCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {action.Costs.Coins}, have {player.Coins})");
+            return ActionExecutionPlan.Invalid($"Not enough Coins (need {coinsCost}, have {player.Coins})");
         }
 
-        if (player.Stamina < action.Costs.Stamina)
+        if (player.Stamina < staminaCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {action.Costs.Stamina}, have {player.Stamina})");
+            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {staminaCost}, have {player.Stamina})");
         }
 
-        if (player.Focus < action.Costs.Focus)
+        if (player.Focus < focusCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Focus (need {action.Costs.Focus}, have {player.Focus})");
+            return ActionExecutionPlan.Invalid($"Not enough Focus (need {focusCost}, have {player.Focus})");
         }
 
-        if (player.Health < action.Costs.Health)
+        if (player.Health < healthCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Health (need {action.Costs.Health}, have {player.Health})");
+            return ActionExecutionPlan.Invalid($"Not enough Health (need {healthCost}, have {player.Health})");
         }
 
         // STEP 2: Build execution plan
         ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.CoinsCost = action.Costs.Coins;
-        plan.StaminaCost = action.Costs.Stamina;
-        plan.FocusCost = action.Costs.Focus;
-        plan.HealthCost = action.Costs.Health;
+        plan.CoinsCost = coinsCost;
+        plan.StaminaCost = staminaCost;
+        plan.FocusCost = focusCost;
+        plan.HealthCost = healthCost;
         plan.TimeSegments = action.TimeRequired;
-        plan.DirectRewards = action.Rewards;  // Atmospheric rewards
+        plan.Consequence = action.Consequence;  // HIGHLANDER: Unified consequence
         plan.ActionType = ChoiceActionType.Instant;  // Atmospheric actions are always instant
         plan.ActionName = action.Name;
         plan.IsAtmosphericAction = true;  // Atmospheric pattern (fallback scene)
@@ -92,7 +101,7 @@ public class LocationActionExecutor
         plan.HungerCost = card.HungerEffect;  // PathCards can increase hunger
 
         // PathCard rewards (CoinReward, StaminaRestore, HealthEffect, etc.)
-        // Note: PathCard uses individual reward properties, not ActionRewards object
+        // Note: PathCard uses individual reward properties (specific to travel mechanic)
         // GameFacade handles these specifically for PathCard execution
         plan.ActionType = ChoiceActionType.Instant;  // Atmospheric path cards execute instantly
         plan.ActionName = card.Name;

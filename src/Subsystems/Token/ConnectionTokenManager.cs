@@ -25,8 +25,9 @@ public class ConnectionTokenManager
     /// <summary>
     /// Get all tokens with a specific NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
+    /// DOMAIN COLLECTION: Returns List<TokenCount>, queried with LINQ (never Dictionary)
     /// </summary>
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
+    public List<TokenCount> GetTokensWithNPC(NPC npc)
     {
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
@@ -35,36 +36,34 @@ public class ConnectionTokenManager
         NPCTokenEntry entry = npcTokens.FirstOrDefault(x => x.Npc == npc);
         if (entry != null)
         {
-            // Build dictionary from properties
-            return new Dictionary<ConnectionType, int>
+            return new List<TokenCount>
             {
-                { ConnectionType.Trust, entry.Trust },
-                { ConnectionType.Diplomacy, entry.Diplomacy },
-                { ConnectionType.Status, entry.Status },
-                { ConnectionType.Shadow, entry.Shadow }
+                new TokenCount { Type = ConnectionType.Trust, Count = entry.Trust },
+                new TokenCount { Type = ConnectionType.Diplomacy, Count = entry.Diplomacy },
+                new TokenCount { Type = ConnectionType.Status, Count = entry.Status },
+                new TokenCount { Type = ConnectionType.Shadow, Count = entry.Shadow }
             };
         }
 
-        // Return empty dictionary if no tokens with this NPC
-        Dictionary<ConnectionType, int> emptyTokens = new Dictionary<ConnectionType, int>();
-        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        // Return list with zero counts if no tokens with this NPC
+        return new List<TokenCount>
         {
-            if (tokenType != ConnectionType.None)
-            {
-                emptyTokens.Add(tokenType, 0);
-            }
-        }
-        return emptyTokens;
+            new TokenCount { Type = ConnectionType.Trust, Count = 0 },
+            new TokenCount { Type = ConnectionType.Diplomacy, Count = 0 },
+            new TokenCount { Type = ConnectionType.Status, Count = 0 },
+            new TokenCount { Type = ConnectionType.Shadow, Count = 0 }
+        };
     }
 
     /// <summary>
     /// Get specific token count with an NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
-        return tokens.TryGetValue(type, out int count) ? count : 0;
+        List<TokenCount> tokens = GetTokensWithNPC(npc);
+        return tokens.FirstOrDefault(t => t.Type == type)?.Count ?? 0;
     }
 
     /// <summary>
@@ -184,13 +183,14 @@ public class ConnectionTokenManager
     /// <summary>
     /// Get leverage an NPC has over the player (negative tokens)
     /// HIGHLANDER: Accept typed NPC object
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     public int GetLeverage(NPC npc, ConnectionType type)
     {
         if (npc == null) return 0;
 
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
-        int tokenCount = tokens.TryGetValue(type, out int count) ? count : 0;
+        List<TokenCount> tokens = GetTokensWithNPC(npc);
+        int tokenCount = tokens.FirstOrDefault(t => t.Type == type)?.Count ?? 0;
 
         // Return absolute value if negative, 0 otherwise
         return tokenCount < 0 ? Math.Abs(tokenCount) : 0;

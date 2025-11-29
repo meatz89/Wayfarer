@@ -135,23 +135,25 @@ LocationAction is a **union type** supporting two intentional patterns via patte
 flowchart TB
     subgraph "Action Resolution"
         Check{"Pattern\nDiscriminator"}
-        Atmospheric["Atmospheric Action"]
-        SceneBased["Scene-Based Action"]
+        Atmospheric["Atmospheric Action\n(Parse-time Consequence)"]
+        SceneBased["Scene-Based Action\n(Query-time Consequence)"]
     end
 
     Check -->|"Simple"| Atmospheric
     Check -->|"Complex"| SceneBased
 ```
 
-| Tier | Pattern | Characteristics |
-|------|---------|-----------------|
-| **Atmospheric** | Simple, permanent | Always available, constant costs/rewards, soft-lock prevention |
-| **Scene-Based** | Complex, dynamic | Context-dependent, narrative-driven, OR-path requirements |
+| Tier | Pattern | Consequence Creation | Characteristics |
+|------|---------|---------------------|-----------------|
+| **Atmospheric** | Simple, permanent | Parse-time (LocationActionCatalog) | Always available, constant costs/rewards, soft-lock prevention |
+| **Scene-Based** | Complex, dynamic | Query-time (ChoiceTemplate reference) | Context-dependent, narrative-driven, OR-path requirements |
+
+**HIGHLANDER Compliance:** Both patterns use `Consequence` for costs/rewards. The distinction is WHEN the Consequence is created, not WHAT class represents it.
 
 **Why Both Patterns Exist:**
 
-- **Atmospheric:** Baseline actions (work, rest, travel) that prevent soft-locks. Simple enough that complexity is unjustified.
-- **Scene-based:** Dynamic actions with contextual variation and complex requirements. Simplicity would be insufficient.
+- **Atmospheric:** Baseline actions (work, rest, travel) that prevent soft-locks. Consequence created once at parse-time.
+- **Scene-based:** Dynamic actions with contextual variation. Consequence retrieved from ChoiceTemplate at query-time.
 
 **Critical:** Neither pattern replaces the other. Both are intentional architecture supporting different gameplay needs.
 
@@ -561,7 +563,84 @@ None of these are regressions. The behavior (invalid when insufficient, valid wh
 
 ---
 
-## 8.22 DDR-007: Intentional Numeric Design
+## 8.22 Unified Cost/Reward Application (HIGHLANDER)
+
+**"There can be only ONE way to change player resources."**
+
+ALL player resource mutations (costs AND rewards) flow through a single method: `RewardApplicationService.ApplyConsequence()`. No direct player mutations anywhere else in the codebase.
+
+### The TWO PILLARS (HIGHLANDER Resource Classes)
+
+Together with §8.20, these form the TWO PILLARS of resource management:
+
+| Pillar | Class | Purpose | Single Entry Point |
+|--------|-------|---------|-------------------|
+| **Availability** | `CompoundRequirement` | Check if player CAN do something | `IsAnySatisfied(player, gameWorld)` |
+| **Application** | `Consequence` | Apply costs/rewards | `ApplyConsequence(consequence, situation)` |
+
+**HIGHLANDER ENFORCEMENT:** These are the ONLY classes that handle resource values. No other classes may contain resource properties (Coins, Health, Stamina, Focus, Resolve, Hunger).
+
+| Class | Status |
+|-------|--------|
+| `Consequence` | ALLOWED (unified costs/rewards) |
+| `CompoundRequirement.OrPath` | ALLOWED (unified prerequisites) |
+| Any other class with resource properties | FORBIDDEN |
+
+**NO EXCEPTIONS.** No individual property checks. No direct mutations. No optional parameters.
+
+### Sign Convention
+
+The Consequence class uses signed values to distinguish costs from rewards:
+
+| Direction | Sign | Example |
+|-----------|------|---------|
+| **Cost** | Negative | `Coins = -10` (pay 10 coins) |
+| **Reward** | Positive | `Health = 5` (heal 5 HP) |
+| **Hunger (special)** | Positive = bad | `Hunger = 10` (increases hunger, which is bad) |
+
+### What Is FORBIDDEN
+
+| Forbidden Pattern | Why |
+|-------------------|-----|
+| `player.Coins -= 10` | Direct mutation bypasses clamping, validation |
+| `player.Health -= damage` | Same - must go through Consequence |
+| `ApplyCosts(player, coins: 10)` | Optional parameters hide what's being changed |
+| `if (player.Coins < cost) return false` | Must use CompoundRequirement |
+
+### What Is REQUIRED
+
+| Correct Pattern | Usage |
+|-----------------|-------|
+| Build Consequence object | `new Consequence { Coins = -10, Health = -5 }` |
+| Apply via service | `await _rewardService.ApplyConsequence(costs, situation)` |
+| Check via requirement | `requirement.IsAnySatisfied(player, gameWorld)` |
+
+### Where Mutations ARE Allowed
+
+`RewardApplicationService.ApplyConsequence()` is the SINGLE location authorized to mutate player resources. This method:
+
+- Applies costs (negative values) with appropriate clamping
+- Applies rewards (positive values) with appropriate capping
+- Handles special cases (FullRecovery, Hunger inversion)
+- Processes non-resource consequences (bonds, achievements, items, scene spawns)
+
+### Rationale
+
+Without unified application:
+- Clamping logic duplicated across facades
+- Inconsistent floor/ceiling behavior
+- Some paths forget to validate before mutation
+- Bugs in one facade don't exist in another (inconsistent behavior)
+
+With unified application:
+- Single clamping implementation
+- Consistent behavior everywhere
+- Changes to resource logic happen in ONE place
+- Guaranteed consistency across all game systems
+
+---
+
+## 8.23 DDR-007: Intentional Numeric Design
 
 **"If you can't do it in your head, the design is wrong."**
 

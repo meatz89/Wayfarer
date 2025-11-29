@@ -111,10 +111,11 @@ public class SituationDTO
     public List<SituationCardDTO> SituationCards { get; set; } = new List<SituationCardDTO>();
 
     /// <summary>
+    /// HIGHLANDER: Entry costs as Consequence (negative values = costs to pay)
     /// Resources player must pay to attempt this situation
     /// Transparent costs create resource competition and strategic choices
     /// </summary>
-    public SituationCostsDTO Costs { get; set; }
+    public ConsequenceDTO EntryCost { get; set; }
 
     /// <summary>
     /// Difficulty modifiers that reduce/increase difficulty based on player state

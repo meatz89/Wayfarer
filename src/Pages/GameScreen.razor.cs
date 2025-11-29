@@ -394,7 +394,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartMentalSession(MentalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        MentalSession session = GameFacade.StartMentalSession(deck, location, situation, obligation);
+        MentalSession session = await GameFacade.StartMentalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext

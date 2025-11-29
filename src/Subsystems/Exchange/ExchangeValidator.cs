@@ -22,7 +22,7 @@ public class ExchangeValidator
         ExchangeCard exchange,
         NPC npc,
         PlayerResourceState playerResources,
-        Dictionary<ConnectionType, int> npcTokens,
+        List<TokenCount> npcTokens,
         RelationshipTier relationshipTier,
         List<string> currentSpotDomains)
     {
@@ -97,7 +97,7 @@ public class ExchangeValidator
     /// Check if player can afford the exchange costs (resources only, NOT items)
     /// Item affordability is checked at runtime by ExchangeContext.CanAfford()
     /// </summary>
-    public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
+    public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources, List<TokenCount> npcTokens)
     {
 
         foreach (ResourceAmount cost in exchange.GetCostAsList())
@@ -166,7 +166,7 @@ public class ExchangeValidator
     /// <summary>
     /// Check if player has required tokens with NPC
     /// </summary>
-    private bool CheckTokenRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
+    private bool CheckTokenRequirements(ExchangeCard exchange, NPC npc, List<TokenCount> npcTokens)
     {
         if (exchange.Cost.TokenRequirements.Count == 0)
         {
@@ -175,7 +175,7 @@ public class ExchangeValidator
 
         foreach (TokenCount requirement in exchange.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.GetValueOrDefault(requirement.Type, 0);
+            int currentTokens = npcTokens.FirstOrDefault(t => t.Type == requirement.Type)?.Count ?? 0;
             if (currentTokens < requirement.Count)
             {
                 return false;
@@ -188,7 +188,7 @@ public class ExchangeValidator
     /// <summary>
     /// Check NPC-specific state requirements
     /// </summary>
-    private bool CheckNPCStateRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
+    private bool CheckNPCStateRequirements(ExchangeCard exchange, NPC npc, List<TokenCount> npcTokens)
     {
         // Patience system removed - all NPCs always have patience
 
@@ -209,7 +209,7 @@ public class ExchangeValidator
     /// Check if player can afford a specific resource cost
     /// HIGHLANDER: Use CompoundRequirement for Coins and Health checks
     /// </summary>
-    private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
+    private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, List<TokenCount> npcTokens)
     {
         // HIGHLANDER: Use CompoundRequirement for resource availability checks
         if (cost.Type == ResourceType.Coins)
@@ -231,10 +231,10 @@ public class ExchangeValidator
         return cost.Type switch
         {
             ResourceType.Hunger => true, // Hunger is usually a reward, not a cost
-            ResourceType.TrustToken => npcTokens.GetValueOrDefault(ConnectionType.Trust, 0) >= cost.Amount,
-            ResourceType.DiplomacyToken => npcTokens.GetValueOrDefault(ConnectionType.Diplomacy, 0) >= cost.Amount,
-            ResourceType.StatusToken => npcTokens.GetValueOrDefault(ConnectionType.Status, 0) >= cost.Amount,
-            ResourceType.ShadowToken => npcTokens.GetValueOrDefault(ConnectionType.Shadow, 0) >= cost.Amount,
+            ResourceType.TrustToken => (npcTokens.FirstOrDefault(t => t.Type == ConnectionType.Trust)?.Count ?? 0) >= cost.Amount,
+            ResourceType.DiplomacyToken => (npcTokens.FirstOrDefault(t => t.Type == ConnectionType.Diplomacy)?.Count ?? 0) >= cost.Amount,
+            ResourceType.StatusToken => (npcTokens.FirstOrDefault(t => t.Type == ConnectionType.Status)?.Count ?? 0) >= cost.Amount,
+            ResourceType.ShadowToken => (npcTokens.FirstOrDefault(t => t.Type == ConnectionType.Shadow)?.Count ?? 0) >= cost.Amount,
             _ => true
         };
     }
@@ -242,10 +242,10 @@ public class ExchangeValidator
     /// <summary>
     /// Determine NPC's current connection state
     /// </summary>
-    private ConnectionState DetermineNPCConnectionState(Dictionary<ConnectionType, int> npcTokens)
+    private ConnectionState DetermineNPCConnectionState(List<TokenCount> npcTokens)
     {
         // Get total tokens with this NPC
-        int totalTokens = npcTokens.Values.Sum();
+        int totalTokens = npcTokens.Select(t => t.Count).Sum();
 
         // Map token count to connection state
         if (totalTokens <= 0) return ConnectionState.DISCONNECTED;

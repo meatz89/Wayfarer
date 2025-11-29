@@ -1,6 +1,6 @@
 
 /// <summary>
-/// Centralized service for applying ChoiceReward consequences
+/// HIGHLANDER: Centralized service for applying Consequence (the ONLY class for resource outcomes)
 /// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
@@ -32,23 +32,24 @@ public class RewardApplicationService
     }
 
     /// <summary>
-    /// Apply all components of a ChoiceReward
+    /// HIGHLANDER: Apply all components of a Consequence (costs AND rewards)
+    /// This is the SINGLE METHOD for ALL resource mutations.
     ///
     /// PROCEDURAL CONTENT TRACING NOTE:
     /// Choice execution recording should happen in the CALLER before invoking this method:
     ///   1. choiceNode = tracer.RecordChoiceExecution(choiceTemplate, situationNodeId, actionText, metRequirements)
     ///   2. tracer.PushChoiceContext(choiceNode.NodeId)
-    ///   3. await ApplyChoiceReward(reward, situation)  // Scenes spawned here auto-link to choice
+    ///   3. await ApplyConsequence(consequence, situation)  // Scenes spawned here auto-link to choice
     ///   4. tracer.PopChoiceContext()
     /// This ensures spawned scenes link correctly to the choice that triggered them.
     /// </summary>
-    public async Task ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
+    public async Task ApplyConsequence(Consequence consequence, Situation currentSituation)
     {
-        // ZERO NULL TOLERANCE: reward must never be null (architectural guarantee from caller)
+        // ZERO NULL TOLERANCE: consequence must never be null (architectural guarantee from caller)
         Player player = _gameWorld.GetPlayer();
 
         // Apply FullRecovery if flagged (overrides individual resource rewards)
-        if (reward.FullRecovery)
+        if (consequence.FullRecovery)
         {
             player.Health = player.MaxHealth;
             player.Stamina = player.MaxStamina;
@@ -57,51 +58,56 @@ public class RewardApplicationService
         }
         else
         {
-            // Apply basic resource rewards (existing)
-            if (reward.Coins != 0)
-                player.Coins += reward.Coins;
+            // HIGHLANDER: Apply ALL resource changes via Consequence (negative = cost, positive = reward)
+            if (consequence.Coins != 0)
+                player.Coins += consequence.Coins;
 
-            if (reward.Resolve != 0)
-                player.Resolve += reward.Resolve;
+            // Sir Brante Willpower Pattern: Resolve CAN go negative
+            if (consequence.Resolve != 0)
+                player.Resolve += consequence.Resolve;
 
-            // Apply tutorial resource rewards (NEW)
-            if (reward.Health != 0)
-                player.Health = Math.Clamp(player.Health + reward.Health, 0, player.MaxHealth);
+            // Health/Stamina/Focus: Clamp to 0-Max range
+            if (consequence.Health != 0)
+                player.Health = Math.Clamp(player.Health + consequence.Health, 0, player.MaxHealth);
 
-            if (reward.Stamina != 0)
-                player.Stamina = Math.Clamp(player.Stamina + reward.Stamina, 0, player.MaxStamina);
+            if (consequence.Stamina != 0)
+                player.Stamina = Math.Clamp(player.Stamina + consequence.Stamina, 0, player.MaxStamina);
 
-            if (reward.Focus != 0)
-                player.Focus = Math.Clamp(player.Focus + reward.Focus, 0, player.MaxFocus);
+            if (consequence.Focus != 0)
+                player.Focus = Math.Clamp(player.Focus + consequence.Focus, 0, player.MaxFocus);
 
-            if (reward.Hunger != 0)
-                player.Hunger = Math.Clamp(player.Hunger + reward.Hunger, 0, player.MaxHunger);
+            if (consequence.Hunger != 0)
+                player.Hunger = Math.Clamp(player.Hunger + consequence.Hunger, 0, player.MaxHunger);
 
-            // Apply stat rewards (Sir Brante pattern: direct grants, no XP system)
-            if (reward.Insight != 0)
-                player.Insight += reward.Insight;
+            // Apply stat changes (Sir Brante pattern: direct grants, no XP system)
+            if (consequence.Insight != 0)
+                player.Insight += consequence.Insight;
 
-            if (reward.Rapport != 0)
-                player.Rapport += reward.Rapport;
+            if (consequence.Rapport != 0)
+                player.Rapport += consequence.Rapport;
 
-            if (reward.Authority != 0)
-                player.Authority += reward.Authority;
+            if (consequence.Authority != 0)
+                player.Authority += consequence.Authority;
 
-            if (reward.Diplomacy != 0)
-                player.Diplomacy += reward.Diplomacy;
+            if (consequence.Diplomacy != 0)
+                player.Diplomacy += consequence.Diplomacy;
 
-            if (reward.Cunning != 0)
-                player.Cunning += reward.Cunning;
+            if (consequence.Cunning != 0)
+                player.Cunning += consequence.Cunning;
+
+            // Mental progression: Understanding (0-10 scale, cumulative expertise)
+            if (consequence.Understanding != 0)
+                player.Understanding = Math.Min(10, player.Understanding + consequence.Understanding);
         }
 
         // Apply consequences (bonds, scales, states)
-        if (reward.BondChanges.Count > 0 || reward.ScaleShifts.Count > 0 || reward.StateApplications.Count > 0)
+        if (consequence.BondChanges.Count > 0 || consequence.ScaleShifts.Count > 0 || consequence.StateApplications.Count > 0)
         {
-            _consequenceFacade.ApplyConsequences(reward.BondChanges, reward.ScaleShifts, reward.StateApplications);
+            _consequenceFacade.ApplyConsequences(consequence.BondChanges, consequence.ScaleShifts, consequence.StateApplications);
         }
 
         // Apply achievements
-        foreach (Achievement achievement in reward.Achievements)
+        foreach (Achievement achievement in consequence.Achievements)
         {
             // Check if achievement already earned
             // HIGHLANDER: Compare Achievement objects directly
@@ -117,43 +123,40 @@ public class RewardApplicationService
             }
         }
 
-        // Markers deleted in 5-system architecture - entity IDs are concrete, no resolution needed
-
         // Apply item grants (runtime resolved items from JSON templates)
-        foreach (Item item in reward.Items)
+        foreach (Item item in consequence.Items)
         {
             player.Inventory.Add(item);
         }
 
         // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
-        // Runtime resolved items (from JSON templates)
-        foreach (Item item in reward.ItemsToRemove)
+        foreach (Item item in consequence.ItemsToRemove)
         {
             player.RemoveItem(item);
         }
 
-        // Apply time advancement (NEW - for tutorial Night Rest scene)
-        if (reward.AdvanceToBlock.HasValue)
+        // Apply time advancement
+        if (consequence.AdvanceToBlock.HasValue)
         {
-            if (reward.AdvanceToDay == DayAdvancement.NextDay)
+            if (consequence.AdvanceToDay == DayAdvancement.NextDay)
             {
                 // Advance to next day at specified block
-                AdvanceToNextDayAtBlock(reward.AdvanceToBlock.Value);
+                AdvanceToNextDayAtBlock(consequence.AdvanceToBlock.Value);
             }
             else
             {
                 // Advance to block within current day
-                AdvanceToBlock(reward.AdvanceToBlock.Value);
+                AdvanceToBlock(consequence.AdvanceToBlock.Value);
             }
         }
-        else if (reward.TimeSegments > 0)
+        else if (consequence.TimeSegments > 0)
         {
             // Normal segment advancement
-            _timeFacade.AdvanceSegments(reward.TimeSegments);
+            _timeFacade.AdvanceSegments(consequence.TimeSegments);
         }
 
         // Finalize scene spawns
-        await FinalizeSceneSpawns(reward, currentSituation);
+        await FinalizeSceneSpawns(consequence, currentSituation);
     }
 
     /// <summary>
@@ -198,11 +201,11 @@ public class RewardApplicationService
     /// NO ID STRINGS - uses boolean flags and sequence-based lookup
     /// Perfect information shown from SceneTemplate metadata
     /// </summary>
-    private async Task FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation)
+    private async Task FinalizeSceneSpawns(Consequence consequence, Situation currentSituation)
     {
         Player player = _gameWorld.GetPlayer();
 
-        foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
+        foreach (SceneSpawnReward sceneSpawn in consequence.ScenesToSpawn)
         {
             SceneTemplate template;
 
@@ -276,42 +279,4 @@ public class RewardApplicationService
             }
         }
     }
-
-    /// <summary>
-    /// Apply Consequence to player state (unified costs/rewards pattern)
-    /// Wraps ApplyChoiceReward for Consequence parameter type
-    /// Used by ChoiceTemplate.Consequence (new unified pattern)
-    /// </summary>
-    public async Task ApplyConsequence(Consequence consequence, Situation currentSituation)
-    {
-        // Consequence and ChoiceReward are semantically equivalent (costs + rewards)
-        // Consequence uses negative values for costs, ChoiceReward uses separate Cost/Reward objects
-        // This adapter bridges the gap until full refactoring
-
-        ChoiceReward legacyReward = new ChoiceReward
-        {
-            Coins = consequence.Coins > 0 ? consequence.Coins : 0,
-            Resolve = consequence.Resolve > 0 ? consequence.Resolve : 0,
-            Health = consequence.Health > 0 ? consequence.Health : 0,
-            Stamina = consequence.Stamina > 0 ? consequence.Stamina : 0,
-            Focus = consequence.Focus > 0 ? consequence.Focus : 0,
-            Hunger = consequence.Hunger,
-            FullRecovery = consequence.FullRecovery,
-            Insight = consequence.Insight,
-            Rapport = consequence.Rapport,
-            Authority = consequence.Authority,
-            Diplomacy = consequence.Diplomacy,
-            Cunning = consequence.Cunning,
-            BondChanges = consequence.BondChanges,
-            ScaleShifts = consequence.ScaleShifts,
-            StateApplications = consequence.StateApplications,
-            Achievements = consequence.Achievements,
-            Items = consequence.Items,
-            ItemsToRemove = consequence.ItemsToRemove,
-            ScenesToSpawn = consequence.ScenesToSpawn
-        };
-
-        await ApplyChoiceReward(legacyReward, currentSituation);
-    }
-
 }

@@ -33,16 +33,17 @@ Domain and technical terms used throughout this documentation.
 | Term | Definition |
 |------|------------|
 | **Catalogue** | Static class translating categorical properties to concrete values at parse-time |
-| **ChoiceTemplate** | Template defining choice costs, rewards, and requirements; used by scene-based actions |
-| **Consequence** | Unified ValueObject for costs and rewards; negative values = costs, positive = rewards; used by scene-based actions |
+| **ChoiceTemplate** | Template defining choice requirements and consequence reference; used by scene-based actions |
+| **CompoundRequirement** | Unified class for ALL resource prerequisites; uses OR-path logic; HIGHLANDER: only class for availability checks |
+| **Consequence** | Unified ValueObject for ALL costs and rewards; negative values = costs, positive = rewards; HIGHLANDER: only class for resource outcomes |
 | **DTO** | Data Transfer Object; intermediate structure between JSON and domain entity |
-| **Dual-Tier Actions** | Union type pattern: LocationAction supports atmospheric (direct properties) OR scene-based (ChoiceTemplate) |
+| **Dual-Tier Actions** | Union type pattern: LocationAction supports atmospheric (parse-time Consequence) OR scene-based (query-time Consequence via ChoiceTemplate); both use Consequence class, differ in creation timing |
 | **EntityResolver** | Pattern for find-or-create queries using categorical filters |
 | **Facade** | Stateless service encapsulating business logic for one domain area |
 | **GameWorld** | Single source of truth; state container with zero external dependencies |
 | **HIGHLANDER** | "There can be only one" — single canonical storage for each piece of state |
 | **Hex Position** | AxialCoordinates (Q, R) defining spatial location on hex grid |
-| **Hybrid Responsibility Pattern** | ValueObject provides pure query methods (HasAnyEffect, IsAffordable); Service handles mutations |
+| **Hybrid Responsibility Pattern** | ValueObject provides pure query methods (HasAnyEffect, GetProjectedState); Service handles mutations |
 | **InstantiationState** | Scene/Situation lifecycle: Deferred → Instantiated |
 | **LocationActionCatalog** | Generator creating atmospheric actions for all locations at parse-time |
 | **Object Reference** | Direct entity relationship (not ID string); e.g., `NPC.Location` |

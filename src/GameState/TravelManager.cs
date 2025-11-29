@@ -5,13 +5,20 @@ public class TravelManager
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly RewardApplicationService _rewardApplicationService;
 
-    public TravelManager(GameWorld gameWorld, TimeManager timeManager, MessageSystem messageSystem, SceneInstantiator sceneInstantiator)
+    public TravelManager(
+        GameWorld gameWorld,
+        TimeManager timeManager,
+        MessageSystem messageSystem,
+        SceneInstantiator sceneInstantiator,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
         _messageSystem = messageSystem;
         _sceneInstantiator = sceneInstantiator;
+        _rewardApplicationService = rewardApplicationService;
     }
 
     // ========== TRAVEL SESSION METHODS ==========
@@ -298,8 +305,9 @@ public class TravelManager
     /// <summary>
     /// Confirm the revealed card and apply its effects, then advance to next segment
     /// ADR-007: Use RevealedCard object (not RevealedCardId)
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    public bool ConfirmRevealedCard()
+    public async Task<bool> ConfirmRevealedCard()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         // ADR-007: Check if RevealedCard object is null (not string empty check)
@@ -317,15 +325,17 @@ public class TravelManager
         session.RevealedCard = null;
 
         // Apply selection effects (shared logic with discovered cards)
-        return ApplyPathCardSelectionEffects(card, pathCardId);
+        return await ApplyPathCardSelectionEffects(card, pathCardId);
     }
 
     /// <summary>
     /// Apply path card selection effects - shared logic for both revealed and already-discovered cards
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    private bool ApplyPathCardSelectionEffects(PathCardDTO card, string pathCardId)
+    private async Task<bool> ApplyPathCardSelectionEffects(PathCardDTO card, string pathCardId)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
+        Player player = _gameWorld.GetPlayer();
 
         // Affordability checks
         if (session.StaminaRemaining < card.StaminaCost)
@@ -336,7 +346,6 @@ public class TravelManager
         // HIGHLANDER: Use CompoundRequirement for coin affordability check
         if (card.CoinRequirement > 0)
         {
-            Player player = _gameWorld.GetPlayer();
             Consequence cost = new Consequence { Coins = -card.CoinRequirement };
             CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
             if (!resourceReq.IsAnySatisfied(player, _gameWorld))
@@ -345,21 +354,23 @@ public class TravelManager
             }
         }
 
-        // Deduct costs and add system messages
+        // Deduct stamina (travel-specific resource, not player resource)
         if (card.StaminaCost > 0)
         {
             session.StaminaRemaining -= card.StaminaCost;
             _messageSystem.AddSystemMessage($"Spent {card.StaminaCost} stamina for path choice", SystemMessageTypes.Info);
         }
 
+        // TWO PILLARS: Apply coin cost via Consequence + ApplyConsequence
         if (card.CoinRequirement > 0)
         {
-            _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
+            Consequence passageCost = new Consequence { Coins = -card.CoinRequirement };
+            await _rewardApplicationService.ApplyConsequence(passageCost, null);
             _messageSystem.AddSystemMessage($"Paid {card.CoinRequirement} coins for passage", SystemMessageTypes.Info);
         }
 
         // Apply effects with messages
-        ApplyPathCardEffects(card);
+        await ApplyPathCardEffects(card);
 
         // ADR-007: Record path selection with PathCardDTO object (not ID)
         session.SelectedPath = card;
@@ -391,8 +402,9 @@ public class TravelManager
     /// <summary>
     /// Select and play a path card from the current segment - ALL cards now use reveal mechanic
     /// HIGHLANDER: Accept PathCardDTO object, not string ID
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    public bool SelectPathCard(PathCardDTO card)
+    public async Task<bool> SelectPathCard(PathCardDTO card)
     {
         if (card == null)
         {
@@ -425,7 +437,7 @@ public class TravelManager
         // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
         {
-            return ApplyPathCardSelectionEffects(card, card.Id);
+            return await ApplyPathCardSelectionEffects(card, card.Id);
         }
 
         // For undiscovered cards, use the reveal mechanic
@@ -624,15 +636,23 @@ public class TravelManager
 
     /// <summary>
     /// Apply path card effects to player with system messages
+    /// TWO PILLARS: Delegates mutations to RewardApplicationService
     /// </summary>
-    private void ApplyPathCardEffects(PathCardDTO card)
+    private async Task ApplyPathCardEffects(PathCardDTO card)
     {
-        Player player = _gameWorld.GetPlayer();
+        // TWO PILLARS: Build Consequence for all path card effects
+        Consequence pathEffects = new Consequence
+        {
+            Hunger = card.HungerEffect,
+            Coins = card.CoinReward
+        };
 
-        // Apply hunger effect with message
+        // Apply via RewardApplicationService
+        await _rewardApplicationService.ApplyConsequence(pathEffects, null);
+
+        // Generate messages based on effects
         if (card.HungerEffect != 0)
         {
-            player.ModifyHunger(card.HungerEffect);
             if (card.HungerEffect > 0)
             {
                 _messageSystem.AddSystemMessage($"Hunger increased by {card.HungerEffect}", SystemMessageTypes.Warning);
@@ -643,10 +663,8 @@ public class TravelManager
             }
         }
 
-        // Apply coin reward directly from DTO
         if (card.CoinReward > 0)
         {
-            player.ModifyCoins(card.CoinReward);
             _messageSystem.AddSystemMessage($"Gained {card.CoinReward} coins from path", SystemMessageTypes.Success);
         }
     }

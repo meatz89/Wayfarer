@@ -223,7 +223,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
-            bool success = TravelManager.SelectPathCard(card);
+            bool success = await TravelManager.SelectPathCard(card);
             if (success)
             {
                 // Refresh the context after card selection
@@ -510,7 +510,7 @@ namespace Wayfarer.Pages.Components
             if (TravelContext.Session == null)
                 throw new InvalidOperationException("No active travel session");
 
-            bool success = TravelFacade.ConfirmRevealedCard();
+            bool success = await TravelFacade.ConfirmRevealedCard();
             if (success)
             {
                 await RefreshTravelContext();

@@ -1,6 +1,8 @@
 /// <summary>
 /// Public facade for all time-related operations.
 /// Single entry point for time management, progression, and display.
+/// NOTE: TimeFacade does NOT depend on RewardApplicationService to avoid circular dependency.
+/// Day-end recovery is applied directly to Player.
 /// </summary>
 public class TimeFacade
 {
@@ -272,6 +274,7 @@ public class TimeFacade
     /// <summary>
     /// End the current day - process deadlines, restore resources, generate summary
     /// Called explicitly when player chooses to rest/sleep
+    /// Resources restored directly (no Consequence to avoid circular dependency)
     /// </summary>
     public DayEndReport EndDay()
     {
@@ -307,8 +310,10 @@ public class TimeFacade
             });
         }
 
-        // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
-        player.Focus = 6; // Hardcoded max per design
+        // 3. Restore resources directly (Focus and Stamina only - Health does NOT auto-recover)
+        // NOTE: Applied directly to player to avoid circular dependency with RewardApplicationService
+        int targetFocus = 6; // Hardcoded max per design
+        player.Focus = targetFocus;
         player.Stamina = player.MaxStamina;
 
         // 4. Build current resource snapshot

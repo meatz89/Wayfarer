@@ -2,18 +2,15 @@
 /// Generates dialogue from categorical templates - NO hardcoded text
 /// All narrative must come from templates and categorical properties
 /// DDR-007: All dialogue selection is deterministic based on game state
+/// STATELESS SERVICE: Reads templates from GameWorld on demand (no cached fields)
 /// </summary>
 public class DialogueGenerationService
 {
-    private DialogueTemplates _templates;
+    private readonly GameWorld _gameWorld;
 
     public DialogueGenerationService(GameWorld gameWorld)
     {
-        _templates = gameWorld.DialogueTemplates;
-        if (_templates.ConnectionStateDialogue == null)
-        { }
-        else
-        { }
+        _gameWorld = gameWorld;
     }
 
     /// <summary>
@@ -27,12 +24,13 @@ public class DialogueGenerationService
         MeetingObligation meeting,
         int turnNumber)
     {
+        DialogueTemplates templates = _gameWorld.DialogueTemplates;
         string stateKey = state.ToString();
 
-        if (!_templates.ConnectionStateDialogue.ContainsKey(stateKey))
+        if (!templates.ConnectionStateDialogue.ContainsKey(stateKey))
             return "emotional:neutral query:general";
 
-        ConnectionStateTemplate stateTemplate = _templates.ConnectionStateDialogue[stateKey];
+        ConnectionStateTemplate stateTemplate = templates.ConnectionStateDialogue[stateKey];
 
         // Use personality-based dialogue
         if (stateTemplate.Personality.ContainsKey(personality.ToString()))
@@ -61,11 +59,12 @@ public class DialogueGenerationService
     /// </summary>
     public string GenerateCardDialogue(string templateId, bool isPlayer)
     {
+        DialogueTemplates templates = _gameWorld.DialogueTemplates;
         string key = templateId;
 
-        if (_templates.CardDialogue.Categories.ContainsKey(key))
+        if (templates.CardDialogue.Categories.ContainsKey(key))
         {
-            CardCategoryDialogue category = _templates.CardDialogue.Categories[key];
+            CardCategoryDialogue category = templates.CardDialogue.Categories[key];
             List<string> options = isPlayer ? category.Player : category.Npc;
 
             if (options.Any())
@@ -86,13 +85,14 @@ public class DialogueGenerationService
     /// </summary>
     public string GenerateNPCDescription(NPC npc, ConnectionState state)
     {
+        DialogueTemplates templates = _gameWorld.DialogueTemplates;
         List<string> elements = new List<string>();
 
         // Add profession base
         string profKey = npc.Profession.ToString();
-        if (_templates.NpcDescriptions?.ProfessionBase?.ContainsKey(profKey) == true)
+        if (templates.NpcDescriptions?.ProfessionBase?.ContainsKey(profKey) == true)
         {
-            List<string> profOptions = _templates.NpcDescriptions.ProfessionBase[profKey];
+            List<string> profOptions = templates.NpcDescriptions.ProfessionBase[profKey];
             if (profOptions.Any())
             {
                 // DDR-007: Deterministic selection based on NPC name
@@ -103,9 +103,9 @@ public class DialogueGenerationService
 
         // Add emotional modifiers
         string stateKey = state.ToString();
-        if (_templates.NpcDescriptions?.EmotionalModifiers?.ContainsKey(stateKey) == true)
+        if (templates.NpcDescriptions?.EmotionalModifiers?.ContainsKey(stateKey) == true)
         {
-            Dictionary<string, List<string>> modifiers = _templates.NpcDescriptions.EmotionalModifiers[stateKey];
+            Dictionary<string, List<string>> modifiers = templates.NpcDescriptions.EmotionalModifiers[stateKey];
         }
 
         return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";

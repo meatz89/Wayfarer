@@ -846,12 +846,20 @@ public static class SituationArchetypeCatalog
             ? new Consequence { Resolve = -archetype.ResolveCost }
             : new Consequence();
 
+        // HIGHLANDER: Build CompoundRequirement with OrPath directly - no factory method coupling
+        CompoundRequirement challengeReq = new CompoundRequirement();
+        if (archetype.ResolveCost > 0)
+        {
+            OrPath resourcePath = new OrPath { Label = "Resource Requirements", ResolveRequired = 0 };
+            challengeReq.OrPaths.Add(resourcePath);
+        }
+
         ChoiceTemplate challengeChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
             PathType = ChoicePathType.Challenge,
             ActionTextTemplate = GenerateChallengeActionText(archetype),
-            RequirementFormula = CompoundRequirement.CreateForConsequence(challengeConsequence),
+            RequirementFormula = challengeReq,
             Consequence = challengeConsequence,
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
@@ -1090,12 +1098,20 @@ public static class SituationArchetypeCatalog
             ? new Consequence { Resolve = -archetype.ResolveCost }
             : new Consequence();
 
+        // HIGHLANDER: Build CompoundRequirement with OrPath directly - no factory method coupling
+        CompoundRequirement negotiationReq = new CompoundRequirement();
+        if (archetype.ResolveCost > 0)
+        {
+            OrPath resourcePath = new OrPath { Label = "Resource Requirements", ResolveRequired = 0 };
+            negotiationReq.OrPaths.Add(resourcePath);
+        }
+
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
             PathType = ChoicePathType.Challenge,
             ActionTextTemplate = "Attempt to negotiate better terms",
-            RequirementFormula = CompoundRequirement.CreateForConsequence(negotiationChallengeConsequence),
+            RequirementFormula = negotiationReq,
             Consequence = negotiationChallengeConsequence,
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeType = archetype.ChallengeType,

@@ -120,78 +120,22 @@ public static class SnapshotFactory
     }
 
     /// <summary>
-    /// Create immutable snapshot of ChoiceCost
+    /// HIGHLANDER: Create CostSnapshot from Consequence (the ONLY class for resource outcomes)
+    /// Extracts negative values from Consequence as costs (absolute values)
     /// </summary>
-    public static CostSnapshot CreateCostSnapshot(ChoiceCost cost)
+    public static CostSnapshot CreateCostSnapshot(Consequence consequence)
     {
-        if (cost == null) return null;
+        if (consequence == null) return null;
 
         return new CostSnapshot
         {
-            CoinsSpent = cost.Coins,
-            StaminaSpent = cost.Stamina,
-            FocusSpent = cost.Focus,
-            HealthSpent = cost.Health,
-            ResolveSpent = cost.Resolve,
-            TimeSegmentsSpent = cost.TimeSegments
+            CoinsSpent = consequence.Coins < 0 ? -consequence.Coins : 0,
+            StaminaSpent = consequence.Stamina < 0 ? -consequence.Stamina : 0,
+            FocusSpent = consequence.Focus < 0 ? -consequence.Focus : 0,
+            HealthSpent = consequence.Health < 0 ? -consequence.Health : 0,
+            ResolveSpent = consequence.Resolve < 0 ? -consequence.Resolve : 0,
+            TimeSegmentsSpent = consequence.TimeSegments  // Time is always positive (spent)
         };
-    }
-
-    /// <summary>
-    /// Create immutable snapshot of ChoiceReward
-    /// </summary>
-    public static RewardSnapshot CreateRewardSnapshot(ChoiceReward reward)
-    {
-        if (reward == null) return null;
-
-        RewardSnapshot snapshot = new RewardSnapshot
-        {
-            CoinsGained = reward.Coins,
-            ResolveGained = reward.Resolve,
-            HealthGained = reward.Health,
-            StaminaGained = reward.Stamina,
-            FocusGained = reward.Focus,
-            InsightGained = reward.Insight,
-            RapportGained = reward.Rapport,
-            AuthorityGained = reward.Authority,
-            DiplomacyGained = reward.Diplomacy,
-            CunningGained = reward.Cunning,
-            BondChanges = new List<string>(),
-            ItemsGranted = new List<string>(),
-            StatesApplied = new List<string>(),
-            AchievementsGranted = new List<string>()
-        };
-
-        // Summarize bond changes
-        if (reward.BondChanges != null)
-        {
-            foreach (BondChange bondChange in reward.BondChanges)
-            {
-                string npcName = bondChange.Npc?.Name ?? "Unknown NPC";
-                snapshot.BondChanges.Add($"{npcName}: {bondChange.Delta:+#;-#;0}");
-            }
-        }
-
-        // Summarize state applications
-        if (reward.StateApplications != null)
-        {
-            foreach (StateApplication stateApp in reward.StateApplications)
-            {
-                string action = stateApp.Apply ? "Apply" : "Remove";
-                snapshot.StatesApplied.Add($"{stateApp.StateType} ({action})");
-            }
-        }
-
-        // Summarize achievements
-        if (reward.Achievements != null)
-        {
-            foreach (Achievement achievement in reward.Achievements)
-            {
-                snapshot.AchievementsGranted.Add(achievement.Name);
-            }
-        }
-
-        return snapshot;
     }
 
     /// <summary>
@@ -223,10 +167,10 @@ public static class SnapshotFactory
     }
 
     /// <summary>
-    /// Create RewardSnapshot from Consequence (unified pattern adapter)
+    /// HIGHLANDER: Create RewardSnapshot from Consequence (the ONLY class for resource outcomes)
     /// Converts Consequence (negative for costs, positive for rewards) to RewardSnapshot (positive values only)
     /// </summary>
-    public static RewardSnapshot CreateRewardSnapshotFromConsequence(Consequence consequence)
+    public static RewardSnapshot CreateRewardSnapshot(Consequence consequence)
     {
         if (consequence == null) return null;
 

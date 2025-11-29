@@ -8,6 +8,7 @@ public class PhysicalFacade
     private readonly ObligationActivity _obligationActivity;
     private readonly SituationCompletionHandler _situationCompletionHandler;
     private readonly MasteryCubeService _masteryCubeService;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -17,7 +18,8 @@ public class PhysicalFacade
         TimeManager timeManager,
         ObligationActivity obligationActivity,
         SituationCompletionHandler situationCompletionHandler,
-        MasteryCubeService masteryCubeService)
+        MasteryCubeService masteryCubeService,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -27,6 +29,7 @@ public class PhysicalFacade
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
         _masteryCubeService = masteryCubeService ?? throw new ArgumentNullException(nameof(masteryCubeService));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     public PhysicalSession GetCurrentSession()
@@ -170,7 +173,7 @@ public class PhysicalFacade
         bool sessionEnded = false;
         if (_gameWorld.CurrentPhysicalSession.ShouldEnd())
         {
-            ApplyDangerConsequences(player);
+            await ApplyDangerConsequences(player);
             await EndSession();
             sessionEnded = true;
         }
@@ -260,10 +263,14 @@ public class PhysicalFacade
         // Apply Aggression from projection (includes action +1 AND card approach modifier)
         _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange;
 
-        // Apply strategic resource costs
-        if (projection.HealthCost > 0) player.Health -= projection.HealthCost;
-        if (projection.StaminaCost > 0) player.Stamina -= projection.StaminaCost;
-        if (projection.CoinsCost > 0) player.Coins -= projection.CoinsCost;
+        // Apply strategic resource costs (TWO PILLARS: via Consequence class)
+        Consequence executeCosts = new Consequence
+        {
+            Health = -projection.HealthCost,
+            Stamina = -projection.StaminaCost,
+            Coins = -projection.CoinsCost
+        };
+        await _rewardApplicationService.ApplyConsequence(executeCosts, _gameWorld.PendingPhysicalContext?.Situation);
 
         _gameWorld.CurrentPhysicalSession.ApproachHistory++;
 
@@ -286,7 +293,7 @@ public class PhysicalFacade
     /// Physical challenges make retreat difficult
     /// TRANSITION TRACKING: Calls FailSituation to enable OnFailure transitions
     /// </summary>
-    public PhysicalOutcome EscapeChallenge(Player player)
+    public async Task<PhysicalOutcome> EscapeChallenge(Player player)
     {
         if (!IsSessionActive())
         {
@@ -297,8 +304,13 @@ public class PhysicalFacade
         int healthCost = 5 + (_gameWorld.CurrentPhysicalSession.CurrentDanger / 2);
         int staminaCost = 10;
 
-        player.Health -= healthCost;
-        player.Stamina -= staminaCost;
+        // TWO PILLARS: Apply costs via Consequence class
+        Consequence escapeCosts = new Consequence
+        {
+            Health = -healthCost,
+            Stamina = -staminaCost
+        };
+        await _rewardApplicationService.ApplyConsequence(escapeCosts, _gameWorld.PendingPhysicalContext?.Situation);
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
         // ADR-007: Use PendingPhysicalContext.Situation (object reference), no ID lookup
@@ -387,7 +399,7 @@ public class PhysicalFacade
     /// PROJECTION PRINCIPLE: ONLY place where projections become reality
     /// Parallel to MentalFacade.ApplyProjectionToSession() and ConversationFacade.ApplyProjectionToSession()
     /// </summary>
-    private void ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
+    private async Task ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
     {
         // Builder resource: Exertion (can be negative for cost, positive for generation)
         session.CurrentExertion += projection.ExertionChange;
@@ -424,38 +436,38 @@ public class PhysicalFacade
             session.CurrentUnderstanding += projection.ReadinessChange;
         }
 
-        // Strategic resource costs
-        if (projection.HealthCost > 0)
+        // Strategic resource costs (TWO PILLARS: via Consequence class)
+        Consequence tacticalCosts = new Consequence
         {
-            player.Health -= projection.HealthCost;
-        }
-        if (projection.StaminaCost > 0)
-        {
-            player.Stamina -= projection.StaminaCost;
-        }
-        if (projection.CoinsCost > 0)
-        {
-            player.Coins -= projection.CoinsCost;
-        }
+            Health = -projection.HealthCost,
+            Stamina = -projection.StaminaCost,
+            Coins = -projection.CoinsCost
+        };
+        await _rewardApplicationService.ApplyConsequence(tacticalCosts, _gameWorld.PendingPhysicalContext?.Situation);
     }
 
     /// <summary>
     /// Apply consequences when Danger threshold reached
     /// Health/stamina damage, injury cards, forced defeat
     /// </summary>
-    private void ApplyDangerConsequences(Player player)
+    private async Task ApplyDangerConsequences(Player player)
     {
         // Health damage from physical consequences (6-point scale)
         // Base: 1 point + excess danger (capped at 2 for total max of 3 damage)
         int excessDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger - _gameWorld.CurrentPhysicalSession.MaxDanger;
         int healthDamage = 1 + Math.Min(2, excessDanger);
-        player.Health = Math.Max(0, player.Health - healthDamage);
 
         // Stamina damage from exhaustion (6-point scale)
         // 2 points = 33% of max stamina
         int staminaDamage = 2;
-        player.Stamina = Math.Max(0, player.Stamina - staminaDamage);
 
+        // TWO PILLARS: Apply damage via Consequence class
+        Consequence dangerDamage = new Consequence
+        {
+            Health = -healthDamage,
+            Stamina = -staminaDamage
+        };
+        await _rewardApplicationService.ApplyConsequence(dangerDamage, _gameWorld.PendingPhysicalContext?.Situation);
     }
 
     /// <summary>
@@ -481,7 +493,7 @@ public class PhysicalFacade
         // Log progress for UI modal display (UI will handle modal)
 
         // Check if obligation is now complete
-        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation);
+        ObligationCompleteResult completeResult = await _obligationActivity.CheckObligationCompletion(obligation);
         if (completeResult != null)
         {
             // Obligation complete - UI will display completion modal

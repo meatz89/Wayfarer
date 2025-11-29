@@ -557,10 +557,11 @@ public class TravelFacade
 
     /// <summary>
     /// Confirm the revealed card selection
+    /// TWO PILLARS: Delegates to async TravelManager
     /// </summary>
-    public bool ConfirmRevealedCard()
+    public async Task<bool> ConfirmRevealedCard()
     {
-        return _travelManager.ConfirmRevealedCard();
+        return await _travelManager.ConfirmRevealedCard();
     }
 
     // ========== HELPER METHODS ==========

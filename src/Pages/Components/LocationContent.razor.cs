@@ -155,7 +155,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleCommitToSituation(Situation situation)
     {
         // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
+        SituationSelectionResult result = await GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
 
         if (!result.Success)
         {
@@ -384,9 +384,10 @@ public class LocationContentBase : ComponentBase
             SystemType = SelectedSituation.SystemType,
             SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
             Difficulty = difficulty.ToString(),
-            HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
-            FocusCost = SelectedSituation.Costs.Focus,
-            StaminaCost = SelectedSituation.Costs.Stamina
+            // HIGHLANDER: EntryCost uses negative values for costs
+            HasCosts = SelectedSituation.EntryCost.Focus < 0 || SelectedSituation.EntryCost.Stamina < 0,
+            FocusCost = SelectedSituation.EntryCost.Focus < 0 ? -SelectedSituation.EntryCost.Focus : 0,
+            StaminaCost = SelectedSituation.EntryCost.Stamina < 0 ? -SelectedSituation.EntryCost.Stamina : 0
         };
     }
 
@@ -446,5 +447,22 @@ public class LocationContentBase : ComponentBase
             throw new InvalidOperationException("IntraVenueMove action missing DestinationLocation property");
 
         return new MoveIntent(action.DestinationLocation);
+    }
+
+    // ============================================
+    // CSS HELPERS - Frontend determines presentation from domain values
+    // ============================================
+
+    /// <summary>
+    /// Map ConnectionState string to CSS class
+    /// BACKEND/FRONTEND SEPARATION: Backend provides domain enum, frontend decides CSS
+    /// </summary>
+    protected string GetConnectionStateClass(string connectionState)
+    {
+        return connectionState switch
+        {
+            "DISCONNECTED" => "disconnected",
+            _ => ""
+        };
     }
 }

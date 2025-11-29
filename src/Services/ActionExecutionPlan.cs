@@ -19,9 +19,9 @@ public class ActionExecutionPlan
     public int FocusCost { get; set; }
     public int HungerCost { get; set; }  // Positive value increases hunger (exertion)
 
-    // Consequences to apply (unified pattern for costs and rewards)
-    public Consequence Consequence { get; set; }  // Scene-based actions (ChoiceTemplate)
-    public ActionRewards DirectRewards { get; set; }  // Atmospheric actions (LocationActionCatalog)
+    // HIGHLANDER: Consequence is the ONLY class for resource outcomes
+    // Used by BOTH atmospheric and scene-based actions (difference is WHERE it comes from)
+    public Consequence Consequence { get; set; }
 
     // Execution routing
     public ChoiceActionType ActionType { get; set; }

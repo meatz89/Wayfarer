@@ -1,27 +1,32 @@
 /// <summary>
 /// Handles exchange system for Diplomacy conversations.
 /// Manages resource trades and exchange validation.
+/// TWO PILLARS: Delegates mutations to RewardApplicationService
 /// </summary>
 public class ExchangeHandler
 {
     private readonly TimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public ExchangeHandler(
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        RewardApplicationService rewardApplicationService)
     {
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
     /// Execute an exchange with an NPC
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources, GameWorld gameWorld)
+    public async Task<bool> ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources, GameWorld gameWorld)
     {
         if (exchange != null)
         { }
@@ -39,13 +44,13 @@ public class ExchangeHandler
         }
 
         // Apply costs
-        if (!ApplyCosts(exchange, player, npc))
+        if (!await ApplyCosts(exchange, player, npc))
         {
             return false;
         }
 
         // Apply rewards
-        ApplyRewards(exchange, player, npc);
+        await ApplyRewards(exchange, player, npc);
 
         // Generate success message
         string exchangeName = GetExchangeName(exchange);
@@ -112,23 +117,24 @@ public class ExchangeHandler
 
     /// <summary>
     /// Apply exchange costs to player
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    private bool ApplyCosts(ExchangeCard exchange, Player player, NPC npc)
+    private async Task<bool> ApplyCosts(ExchangeCard exchange, Player player, NPC npc)
     {
+        // TWO PILLARS: Collect resource costs for Consequence
+        int coinCost = 0;
+        int healthCost = 0;
+
         foreach (ResourceAmount cost in exchange.GetCostAsList())
         {
             switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Amount)
-                        return false;
-                    player.Coins -= cost.Amount;
+                    coinCost += cost.Amount;
                     break;
 
                 case ResourceType.Health:
-                    if (player.Health < cost.Amount)
-                        return false;
-                    player.Health -= cost.Amount;
+                    healthCost += cost.Amount;
                     break;
 
                 case ResourceType.TrustToken:
@@ -157,8 +163,11 @@ public class ExchangeHandler
             }
         }
 
-        // Apply item costs (consume items from inventory)
-        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        // TWO PILLARS: Validate affordability
+        if (player.Coins < coinCost || player.Health < healthCost)
+            return false;
+
+        // Validate item availability BEFORE applying any costs
         foreach (Item item in exchange.Cost.ConsumedItems)
         {
             if (!player.Inventory.Contains(item))
@@ -166,32 +175,46 @@ public class ExchangeHandler
                 _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.Remove(item);
         }
+
+        // TWO PILLARS: Apply ALL costs via single Consequence (resources + item removal)
+        Consequence costConsequence = new Consequence
+        {
+            Coins = -coinCost,
+            Health = -healthCost,
+            ItemsToRemove = exchange.Cost.ConsumedItems.ToList()
+        };
+        await _rewardApplicationService.ApplyConsequence(costConsequence, null);
 
         return true;
     }
 
     /// <summary>
     /// Apply exchange rewards to player
+    /// TWO PILLARS: Delegates resource mutations to RewardApplicationService
     /// </summary>
-    private void ApplyRewards(ExchangeCard exchange, Player player, NPC npc)
+    private async Task ApplyRewards(ExchangeCard exchange, Player player, NPC npc)
     {
+        // TWO PILLARS: Collect resource rewards for Consequence
+        int coinReward = 0;
+        int healthReward = 0;
+        int hungerReduction = 0;
+
         foreach (ResourceAmount reward in exchange.GetRewardAsList())
         {
             switch (reward.Type)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Amount;
+                    coinReward += reward.Amount;
                     break;
 
                 case ResourceType.Health:
-                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
+                    healthReward += reward.Amount;
                     break;
 
                 case ResourceType.Hunger:
-                    // Hunger maps to Hunger (0 = not hungry, 100 = very hungry)
-                    player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Amount));
+                    // Hunger reduction is positive (reduces hunger)
+                    hungerReduction += reward.Amount;
                     break;
 
                 case ResourceType.TrustToken:
@@ -212,11 +235,29 @@ public class ExchangeHandler
             }
         }
 
+        // TWO PILLARS: Apply resource rewards via Consequence + ApplyConsequence
+        // Note: Hunger uses inverted sign convention (negative = reduce hunger = good)
+        if (coinReward > 0 || healthReward > 0 || hungerReduction > 0)
+        {
+            Consequence rewardConsequence = new Consequence
+            {
+                Coins = coinReward,
+                Health = healthReward,
+                Hunger = -hungerReduction
+            };
+            await _rewardApplicationService.ApplyConsequence(rewardConsequence, null);
+        }
+
         // Apply item rewards (grant items to inventory)
         // HIGHLANDER: Use Item objects, not string IDs
-        foreach (Item item in exchange.GetItemRewards())
+        List<Item> itemRewards = exchange.GetItemRewards();
+        if (itemRewards.Any())
         {
-            player.Inventory.Add(item);
+            Consequence itemRewardConsequence = new Consequence
+            {
+                Items = itemRewards
+            };
+            await _rewardApplicationService.ApplyConsequence(itemRewardConsequence, null);
         }
     }
 
@@ -231,13 +272,12 @@ public class ExchangeHandler
 
         // Check if player has required minimum tokens with this NPC
         // HIGHLANDER: Pass NPC object directly, not npc.ID
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
+        // DOMAIN COLLECTION: GetTokensWithNPC returns List<TokenCount>
+        List<TokenCount> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         foreach (TokenCount tokenReq in card.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.ContainsKey(tokenReq.Type)
-                ? npcTokens[tokenReq.Type]
-                : 0;
+            int currentTokens = npcTokens.FirstOrDefault(t => t.Type == tokenReq.Type)?.Count ?? 0;
             if (currentTokens < tokenReq.Count)
                 return false;
         }

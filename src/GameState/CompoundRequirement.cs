@@ -11,72 +11,6 @@ public class CompoundRequirement
     /// </summary>
     public List<OrPath> OrPaths { get; set; } = new List<OrPath>();
 
-    // ============================================
-    // FACTORY METHODS
-    // ============================================
-
-    /// <summary>
-    /// HIGHLANDER: Creates ALL resource requirements for a consequence.
-    /// This is the SINGLE source of truth for resource availability checking.
-    /// See arc42/08 §8.20 for unified resource availability pattern.
-    ///
-    /// Resolve uses GATE logic: ResolveRequired = 0 checks player.Resolve >= 0
-    /// Other resources use AFFORDABILITY logic: ResourceRequired = cost checks player.Resource >= cost
-    /// Hunger uses CAPACITY logic: HungerCapacityRequired = cost checks room for increase
-    /// </summary>
-    public static CompoundRequirement CreateForConsequence(Consequence consequence)
-    {
-        CompoundRequirement requirement = new CompoundRequirement();
-        OrPath path = new OrPath { Label = "Resource Requirements" };
-        bool hasAnyRequirement = false;
-
-        // Sir Brante gate pattern: Resolve >= 0 (not >= cost)
-        if (consequence.Resolve < 0)
-        {
-            path.ResolveRequired = 0;
-            hasAnyRequirement = true;
-        }
-
-        // Affordability checks: player.Resource >= cost
-        if (consequence.Coins < 0)
-        {
-            path.CoinsRequired = -consequence.Coins;
-            hasAnyRequirement = true;
-        }
-
-        if (consequence.Health < 0)
-        {
-            path.HealthRequired = -consequence.Health;
-            hasAnyRequirement = true;
-        }
-
-        if (consequence.Stamina < 0)
-        {
-            path.StaminaRequired = -consequence.Stamina;
-            hasAnyRequirement = true;
-        }
-
-        if (consequence.Focus < 0)
-        {
-            path.FocusRequired = -consequence.Focus;
-            hasAnyRequirement = true;
-        }
-
-        // Capacity check: room for hunger increase
-        if (consequence.Hunger > 0)
-        {
-            path.HungerCapacityRequired = consequence.Hunger;
-            hasAnyRequirement = true;
-        }
-
-        if (hasAnyRequirement)
-        {
-            requirement.OrPaths.Add(path);
-        }
-
-        return requirement;
-    }
-
     /// <summary>
     /// Check if any path is satisfied by current game state
     /// Returns true if at least one complete path's requirements are all met
@@ -93,6 +27,34 @@ public class CompoundRequirement
         }
 
         return false; // No path satisfied
+    }
+
+    /// <summary>
+    /// Factory method: Create CompoundRequirement for checking if player can afford a Consequence.
+    /// Extracts negative values from Consequence (costs) and creates appropriate resource requirements.
+    /// HIGHLANDER: Consequence is the ONLY class for resource outcomes - this bridges to CompoundRequirement.
+    /// </summary>
+    public static CompoundRequirement CreateForConsequence(Consequence consequence)
+    {
+        CompoundRequirement requirement = new CompoundRequirement();
+        OrPath path = new OrPath();
+
+        // Extract costs from Consequence (negative values = costs)
+        if (consequence.Coins < 0)
+            path.CoinsRequired = -consequence.Coins;
+        if (consequence.Health < 0)
+            path.HealthRequired = -consequence.Health;
+        if (consequence.Stamina < 0)
+            path.StaminaRequired = -consequence.Stamina;
+        if (consequence.Focus < 0)
+            path.FocusRequired = -consequence.Focus;
+        if (consequence.Resolve < 0)
+            path.ResolveRequired = -consequence.Resolve;
+        if (consequence.Hunger > 0) // Positive hunger = cost (room needed)
+            path.HungerCapacityRequired = consequence.Hunger;
+
+        requirement.OrPaths.Add(path);
+        return requirement;
     }
 
     /// <summary>

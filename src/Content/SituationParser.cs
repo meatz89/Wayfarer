@@ -36,8 +36,9 @@ public static class SituationParser
         ResolutionMethod resolutionMethod = ParseResolutionMethod(dto.ResolutionMethod);
         RelationshipOutcome relationshipOutcome = ParseRelationshipOutcome(dto.RelationshipOutcome);
 
-        // Parse costs and difficulty modifiers
-        SituationCosts costs = ParseSituationCosts(dto.Costs);
+        // Parse entry costs and difficulty modifiers
+        // HIGHLANDER: Entry costs use Consequence with negative values
+        Consequence entryCost = ParseEntryCost(dto.EntryCost);
         List<DifficultyModifier> difficultyModifiers = ParseDifficultyModifiers(dto.DifficultyModifiers);
 
         // Parse TimeBlocks for spawn/completion tracking
@@ -56,7 +57,7 @@ public static class SituationParser
             IsIntroAction = dto.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
             DeleteOnSuccess = dto.DeleteOnSuccess,
-            Costs = costs,
+            EntryCost = entryCost,
             DifficultyModifiers = difficultyModifiers,
             SituationCards = new List<SituationCard>(),
             // SituationRequirements system eliminated - situations always visible, difficulty varies
@@ -300,20 +301,26 @@ public static class SituationParser
     }
 
     /// <summary>
-    /// Parse situation costs from DTO
+    /// HIGHLANDER: Parse entry costs as Consequence (negative values = costs)
+    /// Converts positive cost values from JSON to negative values in Consequence
     /// </summary>
-    private static SituationCosts ParseSituationCosts(SituationCostsDTO dto)
+    private static Consequence ParseEntryCost(ConsequenceDTO dto)
     {
         if (dto == null)
-            return new SituationCosts();
+            return Consequence.None();
 
-        return new SituationCosts
+        // HIGHLANDER: Entry costs are stored as NEGATIVE values (cost convention)
+        // JSON specifies positive values (Focus: 20 means "costs 20 Focus")
+        // Consequence stores negatives (Focus: -20 means "pay 20 Focus")
+        return new Consequence
         {
-            Resolve = dto.Resolve,
-            Time = dto.Time,
-            Focus = dto.Focus,
-            Stamina = dto.Stamina,
-            Coins = dto.Coins
+            Resolve = -Math.Abs(dto.Resolve),
+            TimeSegments = dto.TimeSegments,  // Time is always positive (forward movement)
+            Focus = -Math.Abs(dto.Focus),
+            Stamina = -Math.Abs(dto.Stamina),
+            Coins = -Math.Abs(dto.Coins),
+            Health = -Math.Abs(dto.Health),
+            Hunger = dto.Hunger  // Hunger convention is inverted (positive = bad)
         };
     }
 

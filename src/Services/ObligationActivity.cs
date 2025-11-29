@@ -10,6 +10,7 @@ public class ObligationActivity
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly PackageLoader _packageLoader;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     // HIGHLANDER: NO private state fields - all state in GameWorld
 
@@ -17,12 +18,14 @@ public class ObligationActivity
         GameWorld gameWorld,
         MessageSystem messageSystem,
         SceneInstantiator sceneInstantiator,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
     /// <summary>
@@ -178,15 +181,17 @@ public class ObligationActivity
             throw new ArgumentException($"Phase '{situationTemplateId}' not found in obligation '{obligation.Name}'");
         }
 
-        // Grant Understanding from phase completion rewards (0-10 max)
+        // TWO PILLARS: Grant Understanding via Consequence + ApplyConsequence
         if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            int newUnderstanding = Math.Min(10, player.Understanding + completedPhase.CompletionReward.UnderstandingReward);
-            player.Understanding = newUnderstanding;
+            int rewardAmount = completedPhase.CompletionReward.UnderstandingReward;
+            Consequence understandingReward = new Consequence { Understanding = rewardAmount };
+            await _rewardApplicationService.ApplyConsequence(understandingReward, null);
+            int newUnderstanding = player.Understanding;
 
             _messageSystem.AddSystemMessage(
-                $"Understanding increased by {completedPhase.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
                 SystemMessageTypes.Success);
         }
 
@@ -229,8 +234,9 @@ public class ObligationActivity
     /// <summary>
     /// Check if obligation is complete - all situations done
     /// Returns ObligationCompleteResult if complete, null otherwise
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for reward mutations
     /// </summary>
-    public ObligationCompleteResult CheckObligationCompletion(Obligation obligation)
+    public async Task<ObligationCompleteResult> CheckObligationCompletion(Obligation obligation)
     {
         if (obligation == null)
             return null;
@@ -255,7 +261,7 @@ public class ObligationActivity
         _gameWorld.ObligationJournal.CompletedObligations.Add(obligation);
 
         // Grant rewards
-        GrantObligationRewards(obligation);
+        await GrantObligationRewards(obligation);
 
         // Build result for UI modal
         ObligationCompleteResult result = new ObligationCompleteResult
@@ -283,22 +289,22 @@ public class ObligationActivity
 
     /// <summary>
     /// Grant obligation completion rewards
+    /// TWO PILLARS: Uses Consequence + ApplyConsequence for all mutations
     /// </summary>
-    private void GrantObligationRewards(Obligation obligation)
+    private async Task GrantObligationRewards(Obligation obligation)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // Grant coins
-        if (obligation.CompletionRewardCoins > 0)
+        // TWO PILLARS: Build Consequence with all rewards
+        Consequence rewards = new Consequence
         {
-            player.Coins += obligation.CompletionRewardCoins;
-        }
+            Coins = obligation.CompletionRewardCoins,
+            Items = obligation.CompletionRewardItems
+        };
 
-        // Grant items (equipment) - add equipment objects to player inventory
+        await _rewardApplicationService.ApplyConsequence(rewards, null);
+
+        // Show item messages (messaging is UI concern, not mutation)
         foreach (Item item in obligation.CompletionRewardItems)
         {
-            // HIGHLANDER: CompletionRewardItems already contains Item objects
-            player.Inventory.Add(item);
             _messageSystem.AddSystemMessage(
                 $"Received equipment: {item.Name}",
                 SystemMessageTypes.Success);
@@ -357,11 +363,13 @@ public class ObligationActivity
         if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
-            player.Understanding = newUnderstanding;
+            int rewardAmount = obligation.IntroAction.CompletionReward.UnderstandingReward;
+            Consequence understandingReward = new Consequence { Understanding = rewardAmount };
+            await _rewardApplicationService.ApplyConsequence(understandingReward, null);
+            int newUnderstanding = player.Understanding;
 
             _messageSystem.AddSystemMessage(
-                $"Understanding increased by {obligation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
                 SystemMessageTypes.Success);
         }
 
@@ -428,11 +436,13 @@ public class ObligationActivity
         if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
-            player.Understanding = newUnderstanding;
+            int rewardAmount = obligation.IntroAction.CompletionReward.UnderstandingReward;
+            Consequence understandingReward = new Consequence { Understanding = rewardAmount };
+            await _rewardApplicationService.ApplyConsequence(understandingReward, null);
+            int newUnderstanding = player.Understanding;
 
             _messageSystem.AddSystemMessage(
-                $"Understanding increased by {obligation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
                 SystemMessageTypes.Success);
         }
 

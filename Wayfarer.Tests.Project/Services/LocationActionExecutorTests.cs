@@ -40,7 +40,7 @@ public class LocationActionExecutorTests
         Assert.True(plan.FocusCost > 0);
         Assert.Equal(0, plan.HealthCost);
         Assert.True(plan.IsAtmosphericAction);
-        Assert.NotNull(plan.DirectRewards);
+        Assert.NotNull(plan.Consequence); // HIGHLANDER: Consequence replaces DirectRewards
     }
 
     [Fact]
@@ -139,29 +139,20 @@ public class LocationActionExecutorTests
     }
 
     [Fact]
-    public void ValidateAndExtract_DirectRewards_SetCorrectly()
+    public void ValidateAndExtract_Consequence_SetCorrectly()
     {
-        // Arrange: Action with rewards
+        // Arrange: Action with rewards (positive values in Consequence)
+        // HIGHLANDER: Consequence is the ONLY class for resource outcomes
         Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
-        ActionRewards rewards = new ActionRewards
-        {
-            CoinReward = 8,
-            HealthRecovery = 1,
-            StaminaRecovery = 2,
-            FocusRecovery = 1
-        };
-        LocationAction action = CreateAtmosphericAction(rewards: rewards);
+        LocationAction action = CreateAtmosphericAction(coinReward: 8);
 
         // Act
         ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
 
         // Assert
         Assert.True(plan.IsValid);
-        Assert.NotNull(plan.DirectRewards);
-        Assert.True(plan.DirectRewards.CoinReward > 0);
-        Assert.True(plan.DirectRewards.HealthRecovery > 0);
-        Assert.True(plan.DirectRewards.StaminaRecovery > 0);
-        Assert.True(plan.DirectRewards.FocusRecovery > 0);
+        Assert.NotNull(plan.Consequence);
+        Assert.True(plan.Consequence.Coins > 0); // Positive = reward
     }
 
     [Fact]
@@ -380,6 +371,7 @@ public class LocationActionExecutorTests
 
     /// <summary>
     /// Create atmospheric LocationAction (no ChoiceTemplate)
+    /// HIGHLANDER: Uses Consequence with negative values for costs
     /// </summary>
     private LocationAction CreateAtmosphericAction(
         string name = "Test Action",
@@ -388,19 +380,19 @@ public class LocationActionExecutorTests
         int focusCost = 0,
         int healthCost = 0,
         int timeRequired = 0,
-        ActionRewards rewards = null)
+        int coinReward = 0)
     {
         return new LocationAction
         {
             Name = name,
-            Costs = new ActionCosts
+            Consequence = new Consequence
             {
-                Coins = coinCost,
-                Stamina = staminaCost,
-                Focus = focusCost,
-                Health = healthCost
+                // HIGHLANDER: Negative values = costs, Positive values = rewards
+                Coins = coinReward - coinCost,
+                Stamina = -staminaCost,
+                Focus = -focusCost,
+                Health = -healthCost
             },
-            Rewards = rewards ?? new ActionRewards(),
             TimeRequired = timeRequired,
             ChoiceTemplate = null  // ATMOSPHERIC PATTERN
         };

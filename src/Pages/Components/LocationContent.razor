@@ -68,7 +68,7 @@
                                 <div class="npc-header">
                                     <div>
                                         <div class="npc-name">@npc.Name</div>
-                                        <div class="npc-type">@npc.PersonalityType - <span class="npc-state @npc.StateClass">@npc.ConnectionState</span></div>
+                                        <div class="npc-type">@npc.PersonalityType - <span class="npc-state @GetConnectionStateClass(npc.ConnectionState)">@npc.ConnectionState</span></div>
                                     </div>
                                 </div>
                                 <div class="npc-description">@npc.Description</div>

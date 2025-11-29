@@ -316,38 +316,6 @@ public class CompoundRequirementTests
     }
 
     // ============================================
-    // COMPOUND REQUIREMENT FACTORY
-    // ============================================
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_AddsResolveRequirementForNegativeResolve()
-    {
-        Consequence consequence = new Consequence { Resolve = -5 };
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Single(req.OrPaths);
-        Assert.NotNull(req.OrPaths[0].ResolveRequired);
-    }
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_NoRequirementForPositiveResolve()
-    {
-        Consequence consequence = new Consequence { Resolve = 5 };
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Empty(req.OrPaths);
-    }
-
-    [Fact]
-    public void CompoundRequirement_CreateForConsequence_NoRequirementForZeroResolve()
-    {
-        Consequence consequence = new Consequence { Resolve = 0 };
-        CompoundRequirement req = CompoundRequirement.CreateForConsequence(consequence);
-
-        Assert.Empty(req.OrPaths);
-    }
-
-    // ============================================
     // ORPATH PROJECTION TESTS
     // ============================================
 

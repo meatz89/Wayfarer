@@ -20,9 +20,21 @@ public class ServiceStatelessnessTests
     // Known stateful components (by design)
     private static readonly HashSet<string> AllowedStatefulTypes = new HashSet<string>
     {
-        "TimeManager",      // Time is global mutable state (by design)
-        "GameFacade",       // Coordinator, holds references to state containers
-        "StreamingContentState" // Content loading state
+        "TimeManager",           // Time is global mutable state (by design)
+        "GameFacade",            // Coordinator, holds references to state containers
+        "StreamingContentState", // Content loading state
+        "LoadingStateService",   // UI coordination service for loading indicators (Blazor pattern)
+        "MusicService"           // Audio playback state (track queue, playback position - inherently stateful)
+    };
+
+    // Pure utility services that don't need state parameters (string generation, formatting)
+    // Or orchestration services that coordinate other services without needing state objects
+    private static readonly HashSet<string> PureUtilityServices = new HashSet<string>
+    {
+        "NarrativeService",      // Pure string generation utility - works with domain types, not state objects
+        "ObligationActivity",    // Orchestration service - coordinates obligations via injected services, not state objects
+        "TimeBlockCalculator",   // Pure time calculation utility - works with TimeBlocks and ints, not state objects
+        "PermitValidator"        // Pure validation utility - validates permits without game state
     };
 
     /// <summary>
@@ -174,6 +186,7 @@ public class ServiceStatelessnessTests
         foreach (Type type in GetServiceTypes(assembly))
         {
             if (AllowedStatefulTypes.Contains(type.Name)) continue;
+            if (PureUtilityServices.Contains(type.Name)) continue;
 
             MethodInfo[] publicMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
