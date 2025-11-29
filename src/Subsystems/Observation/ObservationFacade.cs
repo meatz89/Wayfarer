@@ -2,6 +2,7 @@
 /// Public facade for observation scene operations.
 /// Handles scene investigation with multiple examination points and resource management.
 /// This is the public interface for the Observation subsystem.
+/// HIGHLANDER: Mutable state (ObservationSceneState) separated from immutable templates (ObservationScene).
 /// </summary>
 public class ObservationFacade
 {
@@ -25,8 +26,23 @@ public class ObservationFacade
     }
 
     /// <summary>
+    /// Get or create ObservationSceneState for a template.
+    /// HIGHLANDER: Mutable state separated from immutable template.
+    /// </summary>
+    private ObservationSceneState GetOrCreateState(ObservationScene template)
+    {
+        ObservationSceneState state = _gameWorld.ObservationSceneStates.FirstOrDefault(s => s.Template == template);
+        if (state == null)
+        {
+            state = new ObservationSceneState { Template = template };
+            _gameWorld.ObservationSceneStates.Add(state);
+        }
+        return state;
+    }
+
+    /// <summary>
     /// Create context for an observation scene screen
-    /// HIGHLANDER: Accepts ObservationScene object, not string ID
+    /// HIGHLANDER: Accepts ObservationScene object, accesses state via GetOrCreateState.
     /// </summary>
     public ObservationContext CreateContext(ObservationScene scene)
     {
@@ -52,6 +68,7 @@ public class ObservationFacade
         }
 
         Player player = _gameWorld.GetPlayer();
+        ObservationSceneState state = GetOrCreateState(scene);
 
         // Check required knowledge
         foreach (string knowledge in scene.RequiredKnowledge)
@@ -66,8 +83,8 @@ public class ObservationFacade
             }
         }
 
-        // Check if already completed and not repeatable
-        if (scene.IsCompleted && !scene.IsRepeatable)
+        // Check if already completed and not repeatable (state, not template)
+        if (state.IsCompleted && !scene.IsRepeatable)
         {
             return new ObservationContext
             {
@@ -85,14 +102,14 @@ public class ObservationFacade
             MaxFocus = player.MaxFocus,
             PlayerStats = BuildPlayerStats(player),
             PlayerKnowledge = new List<string>(player.Knowledge),
-            ExaminedPoints = new List<ExaminationPoint>(scene.ExaminedPoints), // Object collection, not string IDs
+            ExaminedPoints = new List<ExaminationPoint>(state.ExaminedPoints), // From state, not template
             TimeDisplay = _timeFacade.GetTimeString()
         };
     }
 
     /// <summary>
     /// Examine a point within the observation scene
-    /// HIGHLANDER: Accepts ExaminationPoint object, not pointId string
+    /// HIGHLANDER: Mutates state, not template.
     /// </summary>
     public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
@@ -106,15 +123,17 @@ public class ObservationFacade
         if (!scene.ExaminationPoints.Contains(point))
             return ObservationResult.Failed("Examination point does not belong to this scene");
 
-        // Check if already examined (using object collection)
-        if (scene.ExaminedPoints.Contains(point))
+        ObservationSceneState state = GetOrCreateState(scene);
+
+        // Check if already examined (using state, not template)
+        if (state.ExaminedPoints.Contains(point))
             return ObservationResult.Failed("This point has already been examined");
 
         // Check if hidden and not revealed
         if (point.IsHidden)
         {
             bool isRevealed = scene.ExaminationPoints.Any(p =>
-                scene.ExaminedPoints.Contains(p) &&
+                state.ExaminedPoints.Contains(p) &&
                 p.RevealsExaminationPoint == point); // Object reference, not ID string
 
             if (!isRevealed)
@@ -165,8 +184,8 @@ public class ObservationFacade
             _timeFacade.AdvanceSegments(point.TimeCost);
         }
 
-        // Mark as examined (add to object collection)
-        scene.ExaminedPoints.Add(point);
+        // Mark as examined (add to state's object collection, not template)
+        state.ExaminedPoints.Add(point);
         point.IsExamined = true;
 
         ObservationResult result = new ObservationResult
@@ -218,13 +237,13 @@ public class ObservationFacade
             _messageSystem.AddSystemMessage($"New examination point revealed: {point.RevealsExaminationPoint.Title}", SystemMessageTypes.Info);
         }
 
-        // Check if scene is fully examined
+        // Check if scene is fully examined (using state, not template)
         int totalAvailablePoints = scene.ExaminationPoints.Count(p => !p.IsHidden);
-        int totalExaminedPoints = scene.ExaminedPoints.Count;
+        int totalExaminedPoints = state.ExaminedPoints.Count;
 
         if (totalExaminedPoints >= totalAvailablePoints)
         {
-            scene.IsCompleted = true;
+            state.IsCompleted = true; // Mutate state, not template
             result.SceneCompleted = true;
             _messageSystem.AddSystemMessage("Scene investigation complete", SystemMessageTypes.Info);
         }
@@ -248,16 +267,21 @@ public class ObservationFacade
 
     /// <summary>
     /// Get all observation scenes available at a specific location
-    /// Checks location match, completion status, and knowledge requirements
+    /// Checks location match, completion status (from state), and knowledge requirements
+    /// HIGHLANDER: Checks state for completion, not template.
     /// </summary>
     public List<ObservationScene> GetAvailableScenesAtLocation(Location location)
     {
         Player player = _gameWorld.GetPlayer();
 
         return _gameWorld.ObservationScenes
-            .Where(s => s.Location == location)
-            .Where(s => !s.IsCompleted || s.IsRepeatable)
-            .Where(s => s.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
+            .Where(template => template.Location == location)
+            .Where(template =>
+            {
+                ObservationSceneState state = GetOrCreateState(template);
+                return !state.IsCompleted || template.IsRepeatable;
+            })
+            .Where(template => template.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
             .ToList();
     }
 }

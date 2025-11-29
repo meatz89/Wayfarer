@@ -71,11 +71,22 @@ public class KnownRouteEntry
 }
 
 /// <summary>
-/// Helper class for familiarity entries (replaces Dictionary<string, int>)
+/// Helper class for route familiarity entries (replaces Dictionary<string, int>)
+/// HIGHLANDER: Object reference, not string ID
 /// </summary>
-public class FamiliarityEntry
+public class RouteFamiliarityEntry
 {
-    public string EntityId { get; set; }
+    public RouteOption Route { get; set; }
+    public int Level { get; set; }
+}
+
+/// <summary>
+/// Helper class for location familiarity entries (replaces Dictionary<string, int>)
+/// HIGHLANDER: Object reference, not string ID
+/// </summary>
+public class LocationFamiliarityEntry
+{
+    public Location Location { get; set; }
     public int Level { get; set; }
 }
 

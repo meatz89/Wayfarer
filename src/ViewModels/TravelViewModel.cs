@@ -16,11 +16,13 @@ public class TravelViewModel
 
 /// <summary>
 /// ViewModel for travel status information
+/// BACKEND/FRONTEND SEPARATION: Backend provides domain values, frontend computes presentation
 /// </summary>
 public class TravelStatusViewModel
 {
     public int TotalWeight { get; init; }
-    public string FocusClass { get; init; }
+    // DELETED: FocusClass (presentation) - frontend computes from BaseStaminaPenalty
+    public int BaseStaminaPenalty { get; init; } // Domain value for frontend to style (0, 1, or 2)
     public string FocusStatus { get; init; }
     public int BaseStaminaCost { get; init; }
     public int CurrentStamina { get; init; }

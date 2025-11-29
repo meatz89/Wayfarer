@@ -2,6 +2,7 @@
 /// Public facade for emergency situation operations.
 /// Handles urgent situations that interrupt normal gameplay and demand immediate response.
 /// This is the public interface for the Emergency subsystem.
+/// HIGHLANDER: Mutable state (ActiveEmergencyState) separated from immutable templates (EmergencySituation).
 /// </summary>
 public class EmergencyFacade
 {
@@ -26,36 +27,54 @@ public class EmergencyFacade
     }
 
     /// <summary>
+    /// Get or create ActiveEmergencyState for a template.
+    /// HIGHLANDER: Mutable state separated from immutable template.
+    /// </summary>
+    private ActiveEmergencyState GetOrCreateState(EmergencySituation template)
+    {
+        ActiveEmergencyState state = _gameWorld.EmergencyStates.FirstOrDefault(s => s.Template == template);
+        if (state == null)
+        {
+            state = new ActiveEmergencyState { Template = template };
+            _gameWorld.EmergencyStates.Add(state);
+        }
+        return state;
+    }
+
+    /// <summary>
     /// Check for active emergencies that should trigger
     /// Called at sync points (time advancement, location entry)
-    /// HIGHLANDER: Use Location objects, not string IDs
+    /// HIGHLANDER: Use Location objects, not string IDs.
+    /// Returns ActiveEmergencyState which holds Template reference + mutable state.
     /// </summary>
-    public EmergencySituation CheckForActiveEmergency()
+    public ActiveEmergencyState CheckForActiveEmergency()
     {
         int currentDay = _gameWorld.CurrentDay;
         int currentSegment = _timeFacade.GetCurrentSegment();
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
 
-        foreach (EmergencySituation emergency in _gameWorld.EmergencySituations)
+        foreach (EmergencySituation template in _gameWorld.EmergencySituations)
         {
+            ActiveEmergencyState state = GetOrCreateState(template);
+
             // Skip if already resolved
-            if (emergency.IsResolved) continue;
+            if (state.IsResolved) continue;
 
             // Check if should trigger
-            if (!emergency.IsTriggered)
+            if (!state.IsTriggered)
             {
                 bool shouldTrigger = false;
 
                 // Check day trigger
-                if (emergency.TriggerDay.HasValue && currentDay == emergency.TriggerDay.Value)
+                if (template.TriggerDay.HasValue && currentDay == template.TriggerDay.Value)
                 {
                     // Check segment if specified
-                    if (!emergency.TriggerSegment.HasValue || currentSegment == emergency.TriggerSegment.Value)
+                    if (!template.TriggerSegment.HasValue || currentSegment == template.TriggerSegment.Value)
                     {
                         // Check location if specified (HIGHLANDER: object equality)
-                        if (emergency.TriggerLocations.Count == 0 ||
-                            emergency.TriggerLocations.Contains(currentLocation))
+                        if (template.TriggerLocations.Count == 0 ||
+                            template.TriggerLocations.Contains(currentLocation))
                         {
                             shouldTrigger = true;
                         }
@@ -64,26 +83,26 @@ public class EmergencyFacade
 
                 if (shouldTrigger)
                 {
-                    emergency.IsTriggered = true;
-                    emergency.TriggeredAtSegment = currentSegment;
-                    return emergency;
+                    state.IsTriggered = true;
+                    state.TriggeredAtSegment = currentSegment;
+                    return state;
                 }
             }
             else
             {
                 // Check if still active (within response window)
-                int segmentsPassed = currentSegment - (emergency.TriggeredAtSegment ?? 0);
-                if (segmentsPassed < emergency.ResponseWindowSegments)
+                int segmentsPassed = currentSegment - (state.TriggeredAtSegment ?? 0);
+                if (segmentsPassed < template.ResponseWindowSegments)
                 {
-                    return emergency; // Still active
+                    return state; // Still active
                 }
                 else
                 {
                     // Window expired - apply ignore outcome
-                    ApplyOutcome(emergency.IgnoreOutcome, emergency);
-                    emergency.IsResolved = true;
+                    ApplyOutcome(template.IgnoreOutcome, template);
+                    state.IsResolved = true;
                     _messageSystem.AddSystemMessage(
-                        "Emergency situation expired - " + (emergency.IgnoreOutcome?.NarrativeResult ?? "situation resolved without your involvement"),
+                        "Emergency situation expired - " + (template.IgnoreOutcome?.NarrativeResult ?? "situation resolved without your involvement"),
                         SystemMessageTypes.Warning);
                 }
             }
@@ -94,10 +113,11 @@ public class EmergencyFacade
 
     /// <summary>
     /// Create context for an emergency screen
+    /// HIGHLANDER: Accepts ActiveEmergencyState, accesses Template for immutable data.
     /// </summary>
-    public EmergencyContext CreateContext(EmergencySituation emergency)
+    public EmergencyContext CreateContext(ActiveEmergencyState emergencyState)
     {
-        if (emergency == null)
+        if (emergencyState == null)
         {
             return new EmergencyContext
             {
@@ -106,7 +126,7 @@ public class EmergencyFacade
             };
         }
 
-        if (!emergency.IsTriggered)
+        if (!emergencyState.IsTriggered)
         {
             return new EmergencyContext
             {
@@ -115,7 +135,7 @@ public class EmergencyFacade
             };
         }
 
-        if (emergency.IsResolved)
+        if (emergencyState.IsResolved)
         {
             return new EmergencyContext
             {
@@ -124,16 +144,17 @@ public class EmergencyFacade
             };
         }
 
+        EmergencySituation template = emergencyState.Template;
         Player player = _gameWorld.GetPlayer();
         int currentSegment = _timeFacade.GetCurrentSegment();
-        int triggeredAt = emergency.TriggeredAtSegment ?? currentSegment;
+        int triggeredAt = emergencyState.TriggeredAtSegment ?? currentSegment;
         int segmentsPassed = currentSegment - triggeredAt;
-        int segmentsRemaining = emergency.ResponseWindowSegments - segmentsPassed;
+        int segmentsRemaining = template.ResponseWindowSegments - segmentsPassed;
 
         return new EmergencyContext
         {
             IsValid = true,
-            Emergency = emergency,
+            Emergency = template,
             CurrentStamina = player.Stamina,
             MaxStamina = player.MaxStamina,
             CurrentHealth = player.Health,
@@ -142,7 +163,7 @@ public class EmergencyFacade
             CurrentFocus = player.Focus,
             MaxFocus = player.MaxFocus,
             CurrentSegment = currentSegment,
-            ResponseDeadlineSegment = triggeredAt + emergency.ResponseWindowSegments,
+            ResponseDeadlineSegment = triggeredAt + template.ResponseWindowSegments,
             SegmentsRemaining = Math.Max(0, segmentsRemaining),
             LocationName = _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown",
             TimeDisplay = _timeFacade.GetTimeString()
@@ -151,16 +172,17 @@ public class EmergencyFacade
 
     /// <summary>
     /// Select a response to an emergency situation
+    /// HIGHLANDER: Accepts ActiveEmergencyState, mutates state not template.
     /// </summary>
-    public EmergencyResult SelectResponse(EmergencySituation emergency, EmergencyResponse response)
+    public EmergencyResult SelectResponse(ActiveEmergencyState emergencyState, EmergencyResponse response)
     {
-        if (emergency == null)
+        if (emergencyState == null)
             return EmergencyResult.Failed("Emergency situation not found");
 
-        if (!emergency.IsTriggered)
+        if (!emergencyState.IsTriggered)
             return EmergencyResult.Failed("Emergency has not been triggered");
 
-        if (emergency.IsResolved)
+        if (emergencyState.IsResolved)
             return EmergencyResult.Failed("Emergency has already been resolved");
 
         if (response == null)
@@ -200,38 +222,41 @@ public class EmergencyFacade
         }
 
         // Apply outcome
-        ApplyOutcome(response.Outcome, emergency);
+        ApplyOutcome(response.Outcome, emergencyState.Template);
 
-        // Mark as resolved
-        emergency.IsResolved = true;
+        // Mark as resolved (mutate state, not template)
+        emergencyState.IsResolved = true;
 
         return EmergencyResult.Resolved(response.Outcome?.NarrativeResult ?? "Emergency resolved");
     }
 
     /// <summary>
     /// Ignore the emergency (apply ignore outcome)
+    /// HIGHLANDER: Accepts ActiveEmergencyState, mutates state not template.
     /// </summary>
-    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
+    public EmergencyResult IgnoreEmergency(ActiveEmergencyState emergencyState)
     {
-        if (emergency == null)
+        if (emergencyState == null)
             return EmergencyResult.Failed("Emergency situation not found");
 
-        if (!emergency.IsTriggered)
+        if (!emergencyState.IsTriggered)
             return EmergencyResult.Failed("Emergency has not been triggered");
 
-        if (emergency.IsResolved)
+        if (emergencyState.IsResolved)
             return EmergencyResult.Failed("Emergency has already been resolved");
 
+        EmergencySituation template = emergencyState.Template;
+
         // Apply ignore outcome
-        ApplyOutcome(emergency.IgnoreOutcome, emergency);
+        ApplyOutcome(template.IgnoreOutcome, template);
 
-        // Mark as resolved
-        emergency.IsResolved = true;
+        // Mark as resolved (mutate state, not template)
+        emergencyState.IsResolved = true;
 
-        return EmergencyResult.Resolved(emergency.IgnoreOutcome?.NarrativeResult ?? "You chose not to respond");
+        return EmergencyResult.Resolved(template.IgnoreOutcome?.NarrativeResult ?? "You chose not to respond");
     }
 
-    private void ApplyOutcome(EmergencyOutcome outcome, EmergencySituation emergency)
+    private void ApplyOutcome(EmergencyOutcome outcome, EmergencySituation template)
     {
         if (outcome == null) return;
 
