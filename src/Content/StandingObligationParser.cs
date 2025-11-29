@@ -28,10 +28,10 @@ public static class StandingObligationParser
             DeactivationThreshold = dto.DeactivationThreshold,
             IsThresholdBased = dto.IsThresholdBased,
             ActivatesAboveThreshold = dto.ActivatesAboveThreshold,
-            ScalingFactorBasisPoints = dto.ScalingFactorBasisPoints,
-            BaseValueBasisPoints = dto.BaseValueBasisPoints,
-            MinValueBasisPoints = dto.MinValueBasisPoints,
-            MaxValueBasisPoints = dto.MaxValueBasisPoints,
+            ScalingFactor = dto.ScalingFactor,
+            BaseValue = dto.BaseValue,
+            MinValue = dto.MinValue,
+            MaxValue = dto.MaxValue,
             SteppedThresholds = dto.SteppedThresholds
         };
 

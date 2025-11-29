@@ -110,6 +110,25 @@ public class SceneTemplateDTO
     public string SceneArchetypeId { get; set; }
 
     /// <summary>
+    /// Archetype category for procedural selection (CATALOGUE PATTERN).
+    /// Used when specific SceneArchetypeId is unknown - parser calls Catalogue to resolve.
+    /// Values: "Investigation", "Social", "Confrontation", "Crisis"
+    /// null = use explicit SceneArchetypeId (authored content)
+    /// PARSE-TIME RESOLUTION: Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time.
+    /// Combined with ExcludedArchetypes for anti-repetition.
+    /// </summary>
+    public string ArchetypeCategory { get; set; }
+
+    /// <summary>
+    /// Archetypes to exclude when resolving ArchetypeCategory (anti-repetition).
+    /// Only used when ArchetypeCategory is set.
+    /// Values: SceneArchetypeType enum names (PascalCase)
+    /// Example: ["InvestigateLocation", "GatherTestimony"] = avoid recently used archetypes
+    /// null or empty = no exclusions (any archetype from category valid)
+    /// </summary>
+    public List<string> ExcludedArchetypes { get; set; }
+
+    /// <summary>
     /// Service type for service_with_location_access archetype
     /// Values: "lodging", "bathing", "healing", "storage", "training"
     /// Ignored if SceneArchetypeId is null or not service-related

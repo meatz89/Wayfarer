@@ -12,7 +12,7 @@ public class MarketItem
     // Item property already exists below, no need for ItemId
 
     public int BuyPrice => Price;
-    public int SellPrice => (int)(Price * 0.7); // 70% of buy price
+    public int SellPrice => Math.Max(1, Price - 3); // DDR-007: Flat 3-coin spread
     public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
     public Item Item { get; set; } // Reference to actual item
 }

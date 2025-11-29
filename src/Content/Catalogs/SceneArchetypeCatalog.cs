@@ -120,6 +120,56 @@ public static class SceneArchetypeCatalog
     }
 
     /// <summary>
+    /// Resolve specific archetype from category with exclusions (CATALOGUE PATTERN - PARSE-TIME ONLY).
+    /// Called by Parser when DTO has ArchetypeCategory instead of explicit SceneArchetypeId.
+    /// Uses sequence-based deterministic selection (no Random) for consistent procedural generation.
+    ///
+    /// FAIL-FAST: Throws if category unknown or all archetypes excluded.
+    /// </summary>
+    /// <param name="category">Category name: "Investigation", "Social", "Confrontation", "Crisis"</param>
+    /// <param name="excludedArchetypes">List of archetype names to exclude (anti-repetition)</param>
+    /// <param name="sequence">Sequence number for deterministic selection</param>
+    /// <returns>Resolved SceneArchetypeType</returns>
+    public static SceneArchetypeType ResolveFromCategory(
+        string category,
+        List<string> excludedArchetypes,
+        int sequence)
+    {
+        List<SceneArchetypeType> candidates = GetArchetypesForCategory(category);
+
+        if (!candidates.Any())
+        {
+            throw new InvalidOperationException(
+                $"Cannot resolve archetype: Unknown category '{category}'. " +
+                $"Valid categories: Investigation, Social, Confrontation, Crisis.");
+        }
+
+        List<SceneArchetypeType> excluded = new List<SceneArchetypeType>();
+        if (excludedArchetypes != null)
+        {
+            foreach (string name in excludedArchetypes)
+            {
+                if (Enum.TryParse<SceneArchetypeType>(name, true, out SceneArchetypeType archetypeType))
+                {
+                    excluded.Add(archetypeType);
+                }
+            }
+        }
+
+        List<SceneArchetypeType> available = candidates
+            .Where(a => !excluded.Contains(a))
+            .ToList();
+
+        if (!available.Any())
+        {
+            available = candidates;
+        }
+
+        int selectionIndex = sequence % available.Count;
+        return available[selectionIndex];
+    }
+
+    /// <summary>
     /// Get all available narrative archetype types (for validation and procedural selection)
     /// Returns list of all implemented narrative archetypes (excludes service patterns)
     /// </summary>

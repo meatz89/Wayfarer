@@ -6,8 +6,8 @@
         "npcId": null,
         "flowMin": 0,
         "flowMax": 4,
-        "rapportMin": -50,
-        "rapportMax": 5
+        "rapportMin": -5,
+        "rapportMax": 0
       },
       "npcDialogue": "I'm not sure we have much to discuss right now.",
       "narrativeText": "The conversation feels strained, with careful words and guarded expressions.",
@@ -36,8 +36,8 @@
         "npcId": null,
         "flowMin": 0,
         "flowMax": 4,
-        "rapportMin": 6,
-        "rapportMax": 15
+        "rapportMin": 1,
+        "rapportMax": 2
       },
       "npcDialogue": "There are things I should probably handle on my own, but I appreciate your interest.",
       "narrativeText": "They seem torn between maintaining distance and accepting help.",
@@ -66,8 +66,8 @@
         "npcId": null,
         "flowMin": 5,
         "flowMax": 14,
-        "rapportMin": -50,
-        "rapportMax": 5
+        "rapportMin": -5,
+        "rapportMax": 0
       },
       "npcDialogue": "These are complicated times. Everyone has their own concerns to manage.",
       "narrativeText": "The conversation maintains a polite but impersonal distance.",
@@ -96,8 +96,8 @@
         "npcId": null,
         "flowMin": 5,
         "flowMax": 14,
-        "rapportMin": 6,
-        "rapportMax": 15
+        "rapportMin": 1,
+        "rapportMax": 2
       },
       "npcDialogue": "I've been dealing with some challenges lately. Perhaps you understand what that's like.",
       "narrativeText": "There's a growing sense of mutual understanding in the air.",
@@ -126,8 +126,8 @@
         "npcId": null,
         "flowMin": 5,
         "flowMax": 14,
-        "rapportMin": 16,
-        "rapportMax": 50
+        "rapportMin": 3,
+        "rapportMax": 5
       },
       "npcDialogue": "I feel like I can trust you with this. There's something I need help with.",
       "narrativeText": "The atmosphere is one of genuine trust and openness.",
@@ -156,8 +156,8 @@
         "npcId": null,
         "flowMin": 15,
         "flowMax": 19,
-        "rapportMin": -50,
-        "rapportMax": 5
+        "rapportMin": -5,
+        "rapportMax": 0
       },
       "npcDialogue": "Despite our differences, perhaps there's something we can work out.",
       "narrativeText": "There's a cautious openness, a willingness to explore possibilities.",
@@ -186,8 +186,8 @@
         "npcId": null,
         "flowMin": 15,
         "flowMax": 19,
-        "rapportMin": 6,
-        "rapportMax": 15
+        "rapportMin": 1,
+        "rapportMax": 2
       },
       "npcDialogue": "I've been thinking about what you said. Maybe we can help each other.",
       "narrativeText": "The conversation has reached a point of genuine engagement.",
@@ -216,8 +216,8 @@
         "npcId": null,
         "flowMin": 15,
         "flowMax": 19,
-        "rapportMin": 16,
-        "rapportMax": 50
+        "rapportMin": 3,
+        "rapportMax": 5
       },
       "npcDialogue": "I've come to value your perspective. What do you think we should do?",
       "narrativeText": "There's genuine respect and openness in the exchange.",
@@ -246,8 +246,8 @@
         "npcId": null,
         "flowMin": 20,
         "flowMax": 24,
-        "rapportMin": 6,
-        "rapportMax": 15
+        "rapportMin": 1,
+        "rapportMax": 2
       },
       "npcDialogue": "I need someone I can rely on. Can I count on you for this?",
       "narrativeText": "The moment feels significant, a turning point in your relationship.",
@@ -276,8 +276,8 @@
         "npcId": null,
         "flowMin": 20,
         "flowMax": 24,
-        "rapportMin": 16,
-        "rapportMax": 50
+        "rapportMin": 3,
+        "rapportMax": 5
       },
       "npcDialogue": "You're the only one I can trust with this. Will you help me?",
       "narrativeText": "The vulnerability and trust in this moment is palpable.",
@@ -306,8 +306,8 @@
         "npcId": null,
         "flowMin": 0,
         "flowMax": 24,
-        "rapportMin": -50,
-        "rapportMax": 50
+        "rapportMin": -5,
+        "rapportMax": 5
       },
       "npcDialogue": "Wait, before you go - there's something I need to tell you right now.",
       "narrativeText": "There's sudden urgency in their voice, demanding immediate response.",
@@ -336,8 +336,8 @@
         "npcId": null,
         "flowMin": 0,
         "flowMax": 24,
-        "rapportMin": -50,
-        "rapportMax": 50
+        "rapportMin": -5,
+        "rapportMax": 5
       },
       "npcDialogue": "I'm curious about your thoughts on something. Would you share your perspective?",
       "narrativeText": "They seem genuinely interested in hearing more from you.",

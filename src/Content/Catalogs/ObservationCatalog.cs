@@ -53,16 +53,17 @@ public static class ObservationCatalog
     }
 
     /// <summary>
-    /// Get item find chance modifier based on examination thoroughness
+    /// Get item find bonus based on examination thoroughness
+    /// Returns flat additive bonus (not percentage)
     /// </summary>
-    public static int GetFindChanceModifier(ExaminationDepth depth)
+    public static int GetFindBonus(ExaminationDepth depth)
     {
         return depth switch
         {
             ExaminationDepth.Glance => 0,      // No bonus for quick look
-            ExaminationDepth.Careful => 10,    // +10% for careful examination
-            ExaminationDepth.Exhaustive => 25, // +25% for exhaustive search
-            ExaminationDepth.Insight => 35,    // +35% with high insight
+            ExaminationDepth.Careful => 2,     // +2 bonus for careful examination
+            ExaminationDepth.Exhaustive => 5,  // +5 bonus for exhaustive search
+            ExaminationDepth.Insight => 8,     // +8 bonus with high insight
             _ => 0
         };
     }

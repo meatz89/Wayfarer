@@ -122,17 +122,17 @@ public class MomentumManager
     /// Apply momentum erosion during LISTEN (current doubt reduces momentum)
     /// </summary>
     /// <param name="session">The conversation session to modify</param>
-    /// <param name="personalityEnforcer">Personality enforcer to check for doubling effects</param>
+    /// <param name="personalityEnforcer">Personality enforcer to check for additive penalty effects</param>
     public void ApplyMomentumErosion(SocialSession session, PersonalityRuleEnforcer personalityEnforcer)
     {
         if (session.CurrentDoubt > 0)
         {
             int erosionAmount = session.CurrentDoubt;
 
-            // Apply Devoted personality doubling if applicable
-            if (personalityEnforcer.ShouldDoubleMomentumLoss())
+            // Apply Devoted personality additive penalty if applicable
+            if (personalityEnforcer.ShouldIncreaseMomentumLoss())
             {
-                erosionAmount *= 2;
+                erosionAmount += 2; // Add flat +2 penalty, not multiply
             }
 
             session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - erosionAmount);

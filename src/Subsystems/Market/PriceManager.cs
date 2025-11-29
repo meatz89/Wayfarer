@@ -9,10 +9,10 @@ public class PriceManager
     private readonly ItemRepository _itemRepository;
     private readonly MarketStateTracker _marketStateTracker;
 
-    // Price adjustment factors (basis points: 10000 = 1.0x)
-    private const int MIN_PRICE_MULTIPLIER_BP = 5000;  // 0.5x
-    private const int MAX_PRICE_MULTIPLIER_BP = 25000; // 2.5x
-    private const int BUY_SELL_SPREAD_PERCENT = 15;    // 15% spread between buy and sell prices
+    // Price adjustment limits (flat coin adjustments)
+    private const int MIN_TOTAL_ADJUSTMENT = -10;  // Maximum price reduction
+    private const int MAX_TOTAL_ADJUSTMENT = 20;   // Maximum price increase
+    private const int BUY_SELL_SPREAD = 3;         // Fixed 3-coin spread between buy and sell prices (DDR-007)
 
     public PriceManager(
         GameWorld gameWorld,
@@ -36,10 +36,10 @@ public class PriceManager
         public int BaseSellPrice { get; set; }
         public int AdjustedBuyPrice { get; set; }
         public int AdjustedSellPrice { get; set; }
-        public int SupplyModifierBP { get; set; }     // Basis points (10000 = 1.0x)
-        public int DemandModifierBP { get; set; }     // Basis points (10000 = 1.0x)
-        public int LocationModifierBP { get; set; }   // Basis points (10000 = 1.0x)
-        public int FinalModifierBP { get; set; }      // Basis points (10000 = 1.0x)
+        public int SupplyAdjustment { get; set; }     // Flat coin adjustment from supply
+        public int DemandAdjustment { get; set; }     // Flat coin adjustment from demand
+        public int LocationAdjustment { get; set; }   // Flat coin adjustment from location
+        public int TotalAdjustment { get; set; }      // Sum of all adjustments
         public bool IsAvailable { get; set; }
         public string PriceExplanation { get; set; }
     }
@@ -106,22 +106,21 @@ public class PriceManager
             IsAvailable = true
         };
 
-        // Calculate modifiers (in basis points)
-        pricing.SupplyModifierBP = CalculateSupplyModifier(item, location);
-        pricing.DemandModifierBP = CalculateDemandModifier(item, location);
-        pricing.LocationModifierBP = CalculateLocationModifier(item, location);
+        // Calculate adjustments (flat coin values)
+        pricing.SupplyAdjustment = CalculateSupplyAdjustment(item, location);
+        pricing.DemandAdjustment = CalculateDemandAdjustment(item, location);
+        pricing.LocationAdjustment = CalculateLocationAdjustment(item, location);
 
-        // Combine modifiers (multiply basis points: BP1 * BP2 / 10000, then * BP3 / 10000)
-        int combinedBP = pricing.SupplyModifierBP * pricing.DemandModifierBP / 10000;
-        combinedBP = combinedBP * pricing.LocationModifierBP / 10000;
-        pricing.FinalModifierBP = Math.Max(MIN_PRICE_MULTIPLIER_BP, Math.Min(MAX_PRICE_MULTIPLIER_BP, combinedBP));
+        // Combine adjustments additively (DDR-007 compliance)
+        int totalAdjustment = pricing.SupplyAdjustment + pricing.DemandAdjustment + pricing.LocationAdjustment;
+        pricing.TotalAdjustment = Math.Max(MIN_TOTAL_ADJUSTMENT, Math.Min(MAX_TOTAL_ADJUSTMENT, totalAdjustment));
 
-        // Apply modifiers to prices (basis points)
-        pricing.AdjustedBuyPrice = pricing.BaseBuyPrice * pricing.FinalModifierBP / 10000;
-        pricing.AdjustedSellPrice = pricing.BaseSellPrice * pricing.FinalModifierBP / 10000;
+        // Apply adjustments to prices (additive)
+        pricing.AdjustedBuyPrice = pricing.BaseBuyPrice + pricing.TotalAdjustment;
+        pricing.AdjustedSellPrice = pricing.BaseSellPrice + pricing.TotalAdjustment;
 
-        // Ensure buy price is always higher than sell price (add percentage spread)
-        int minBuyPrice = pricing.AdjustedSellPrice * (100 + BUY_SELL_SPREAD_PERCENT) / 100;
+        // Ensure buy price is always higher than sell price (DDR-007: fixed spread)
+        int minBuyPrice = pricing.AdjustedSellPrice + BUY_SELL_SPREAD;
         if (pricing.AdjustedBuyPrice < minBuyPrice)
         {
             pricing.AdjustedBuyPrice = minBuyPrice;
@@ -154,56 +153,56 @@ public class PriceManager
     }
 
     /// <summary>
-    /// Calculate supply-based price modifier (returns basis points: 10000 = 1.0x)
+    /// Calculate supply-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private int CalculateSupplyModifier(Item item, Location location)
+    private int CalculateSupplyAdjustment(Item item, Location location)
     {
         int supplyPercent = _marketStateTracker.GetSupplyLevel(item, location);
 
         // Low supply = higher prices, high supply = lower prices
-        // Supply 50% = 1.3x price (13000 BP), Supply 100% = 1.0x price (10000 BP), Supply 200% = 0.7x price (7000 BP)
+        // Supply 0% = +12 coins, Supply 50% = +6 coins, Supply 100% = 0 coins, Supply 200% = -6 coins
         if (supplyPercent < 100)
         {
-            // 10000 + (100 - supplyPercent) * 60 = range from 16000 BP (0%) to 10000 BP (100%)
-            return 10000 + (100 - supplyPercent) * 60;
+            // Linear interpolation: 0% = +12, 100% = 0
+            return (100 - supplyPercent) * 12 / 100;
         }
         else
         {
-            // 10000 - (supplyPercent - 100) * 15 = range from 10000 BP (100%) to 8500 BP (200%)
-            return Math.Max(7000, 10000 - (supplyPercent - 100) * 15);
+            // Linear interpolation: 100% = 0, 200% = -6
+            return Math.Max(-6, -(supplyPercent - 100) * 6 / 100);
         }
     }
 
     /// <summary>
-    /// Calculate demand-based price modifier (returns basis points: 10000 = 1.0x)
+    /// Calculate demand-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private int CalculateDemandModifier(Item item, Location location)
+    private int CalculateDemandAdjustment(Item item, Location location)
     {
         int demandPercent = _marketStateTracker.GetDemandLevel(item, location);
 
         // High demand = higher prices, low demand = lower prices
-        // Demand 50% = 0.85x price (8500 BP), Demand 100% = 1.0x price (10000 BP), Demand 200% = 1.2x price (12000 BP)
+        // Demand 0% = -6 coins, Demand 50% = -3 coins, Demand 100% = 0 coins, Demand 200% = +4 coins
         if (demandPercent < 100)
         {
-            // 10000 - (100 - demandPercent) * 30 = range from 7000 BP (0%) to 10000 BP (100%)
-            return 10000 - (100 - demandPercent) * 30;
+            // Linear interpolation: 0% = -6, 100% = 0
+            return -(100 - demandPercent) * 6 / 100;
         }
         else
         {
-            // 10000 + (demandPercent - 100) * 20 = range from 10000 BP (100%) to 12000 BP (200%)
-            return Math.Min(12000, 10000 + (demandPercent - 100) * 20);
+            // Linear interpolation: 100% = 0, 200% = +4
+            return Math.Min(4, (demandPercent - 100) * 4 / 100);
         }
     }
 
     /// <summary>
-    /// Calculate location-based price modifier based on Location properties (returns basis points: 10000 = 1.0x)
+    /// Calculate location-based price adjustment based on Location properties (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private int CalculateLocationModifier(Item item, Location location)
+    private int CalculateLocationAdjustment(Item item, Location location)
     {
-        int modifierBP = 10000; // 1.0x
+        int adjustment = 0; // 0 coins
 
         // Location purpose/role determine pricing (orthogonal properties replace capabilities)
         // Check in priority order (most specific first)
@@ -211,22 +210,22 @@ public class PriceManager
         // Market-purpose locations - higher prices for most goods
         if (location.Purpose == LocationPurpose.Commerce && location.Role == LocationRole.Hub)
         {
-            modifierBP = 11000; // 1.1x
+            adjustment = 2; // +2 coins
             // But lower prices for common items (food/materials)
             if (item.Categories.Contains(ItemCategory.Hunger) ||
                 item.Categories.Contains(ItemCategory.Materials))
             {
-                modifierBP = 9500; // 0.95x
+                adjustment = -1; // -1 coin
             }
         }
         // Rest-role locations (taverns/inns) - lower general prices, higher food prices
         else if (location.Role == LocationRole.Rest && location.Purpose == LocationPurpose.Commerce)
         {
-            modifierBP = 9000; // 0.9x
+            adjustment = -2; // -2 coins
             // Higher prices for food and drink
             if (item.Categories.Contains(ItemCategory.Hunger))
             {
-                modifierBP = 11500; // 1.15x
+                adjustment = 3; // +3 coins
             }
         }
         // Commercial-purpose locations (workshops, etc.) - good prices for tools/materials
@@ -236,11 +235,11 @@ public class PriceManager
             if (item.Categories.Contains(ItemCategory.Materials) ||
                 item.Categories.Contains(ItemCategory.Tools))
             {
-                modifierBP = 8500; // 0.85x
+                adjustment = -3; // -3 coins
             }
             else
             {
-                modifierBP = 10500; // 1.05x
+                adjustment = 1; // +1 coin
             }
         }
         // High-tier locations - higher prices for trade goods
@@ -250,17 +249,17 @@ public class PriceManager
             if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
                 item.Categories.Contains(ItemCategory.Valuables))
             {
-                modifierBP = 9000; // 0.9x
+                adjustment = -2; // -2 coins
             }
             else
             {
-                modifierBP = 10000; // 1.0x
+                adjustment = 0; // 0 coins
             }
         }
         // NOTE: Water-adjacent location pricing removed - LocationSetting doesn't include Water
         // Future: Could use LocationEnvironment or specific tags for water-adjacent locations
 
-        return modifierBP;
+        return adjustment;
     }
 
     /// <summary>
@@ -270,22 +269,22 @@ public class PriceManager
     {
         List<string> factors = new List<string>();
 
-        // Check supply (9000 BP = 0.9x, 11000 BP = 1.1x)
-        if (pricing.SupplyModifierBP < 9000)
+        // Check supply (negative = abundant, positive = scarce)
+        if (pricing.SupplyAdjustment < -2)
             factors.Add("abundant supply");
-        else if (pricing.SupplyModifierBP > 11000)
+        else if (pricing.SupplyAdjustment > 3)
             factors.Add("scarce supply");
 
-        // Check demand (9000 BP = 0.9x, 11000 BP = 1.1x)
-        if (pricing.DemandModifierBP < 9000)
+        // Check demand (negative = low, positive = high)
+        if (pricing.DemandAdjustment < -2)
             factors.Add("low demand");
-        else if (pricing.DemandModifierBP > 11000)
+        else if (pricing.DemandAdjustment > 2)
             factors.Add("high demand");
 
-        // Check location (9500 BP = 0.95x, 10500 BP = 1.05x)
-        if (pricing.LocationModifierBP < 9500)
+        // Check location (negative = favorable, positive = premium)
+        if (pricing.LocationAdjustment < -1)
             factors.Add("favorable location");
-        else if (pricing.LocationModifierBP > 10500)
+        else if (pricing.LocationAdjustment > 1)
             factors.Add("premium location");
 
         if (factors.Count == 0)
@@ -366,22 +365,22 @@ public class PriceManager
         // Get market conditions
         MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(location);
 
-        int trendModifierBP = 10000; // 1.0x
+        int trendAdjustment = 0; // 0 coins
 
-        // If item is trending, prices might increase (5% increase = 10500 BP)
+        // If item is trending, prices might increase
         if (conditions.TrendingItems.Contains(item))
         {
-            trendModifierBP = 10500; // 1.05x
+            trendAdjustment = 2; // +2 coins
         }
 
         // Apply trend to current price
         if (isBuyPrice)
         {
-            return current.AdjustedBuyPrice * trendModifierBP / 10000;
+            return current.AdjustedBuyPrice + trendAdjustment;
         }
         else
         {
-            return current.AdjustedSellPrice * trendModifierBP / 10000;
+            return current.AdjustedSellPrice + trendAdjustment;
         }
     }
 
@@ -443,7 +442,7 @@ public class PriceManager
     }
 
     /// <summary>
-    /// Calculate bulk discount for multiple purchases
+    /// Calculate bulk discount for multiple purchases (DDR-007: flat per-item discount)
     /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
     public int CalculateBulkPrice(Item item, Location location, int quantity)
@@ -451,12 +450,13 @@ public class PriceManager
         int singlePrice = GetBuyPrice(item, location);
         if (singlePrice <= 0) return -1;
 
-        int discountPercent = 100; // No discount (100%)
+        int perItemDiscount = 0; // No discount
         if (quantity >= 10)
-            discountPercent = 90;  // 10% discount for 10+ items
+            perItemDiscount = 2;  // -2 coins per item for 10+ items
         else if (quantity >= 5)
-            discountPercent = 95;  // 5% discount for 5+ items
+            perItemDiscount = 1;  // -1 coin per item for 5+ items
 
-        return singlePrice * quantity * discountPercent / 100;
+        int discountedPrice = Math.Max(1, singlePrice - perItemDiscount);
+        return discountedPrice * quantity;
     }
 }

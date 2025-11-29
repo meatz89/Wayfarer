@@ -64,6 +64,8 @@ No ending. The road goes on forever. Your story emerges through resource priorit
 - No random "you lose" events without player agency
 - Strategic layer shows everything; tactical layer tests execution
 
+Extended by DDR-007 (Intentional Numeric Design), which ensures the math itself is transparent and calculable.
+
 ### Pillar 3: Infinite Journey (Frieren Principle)
 
 **Why:** Eliminates the hardest design problem—satisfying endings. Removes pressure to rush. Creates permission to engage at your own pace. The A-story waits.

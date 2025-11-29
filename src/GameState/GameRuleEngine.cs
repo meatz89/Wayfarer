@@ -29,17 +29,17 @@ public class GameRuleEngine : IGameRuleEngine
     {
         int baseCost = _config.Travel.BaseStaminaCost;
 
-        // Apply terrain modifiers (basis points where 10000 = 1.0x)
+        // DDR-007: Apply terrain adjustments as flat stamina additions
         foreach (TerrainCategory terrain in route.TerrainCategories)
         {
             string terrainName = terrain.ToString();
-            if (_config.Travel.TerrainStaminaModifiers.TryGetValue(terrainName, out int modifier))
+            if (_config.Travel.TerrainStaminaAdjustments.TryGetValue(terrainName, out int adjustment))
             {
-                baseCost = baseCost * modifier / 10000;
+                baseCost = baseCost + adjustment;
             }
         }
 
-        return baseCost;
+        return Math.Max(1, baseCost);
     }
 
     public bool CanTravel(Player player, RouteOption route)

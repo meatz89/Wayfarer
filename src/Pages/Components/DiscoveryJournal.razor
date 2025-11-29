@@ -4,7 +4,7 @@
 <div class="discovery-journal">
     <div class="journal-header">
         <h2><Icon Name="open-book" CssClass="icon-neutral" /> Obligation Journal</h2>
-        <button class="close-btn" @onclick="CloseJournal">✕</button>
+        <button class="close-btn" @onclick="CloseJournal"><Icon Name="cancel" Size="14px" /></button>
     </div>
 
     <!-- Tabs -->
@@ -49,7 +49,7 @@
                                 @foreach (var completedPhase in GetCompletedPhases(activeInv))
                                 {
                                     <div class="situation-item">
-                                        <div class="situation-status completed">✓</div>
+                                        <div class="situation-status completed"><Icon Name="check-mark" CssClass="icon-positive" /></div>
                                         <div class="situation-text completed">@completedPhase.Name</div>
                                     </div>
                                 }
@@ -174,7 +174,7 @@
                             </div>
                             @if (GetFamiliarity(location) >= 3)
                             {
-                                <span class="complete-badge">✓ Fully Explored</span>
+                                <span class="complete-badge"><Icon Name="check-mark" CssClass="icon-positive" /> Fully Explored</span>
                             }
                         </div>
                     }

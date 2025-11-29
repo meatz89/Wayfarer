@@ -68,9 +68,9 @@ public class TokenMechanicsManager
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        // Apply equipment modifiers (basis points where 10000 = 1.0x)
-        int modifierBasisPoints = GetEquipmentTokenModifier(type);
-        int modifiedCount = (count * modifierBasisPoints + 9999) / 10000; // Round up
+        // Apply equipment bonuses (flat integer additions)
+        int equipmentBonus = GetEquipmentTokenBonus(type);
+        int modifiedCount = count + equipmentBonus;
 
         // Initialize NPC token tracking if needed
         // HIGHLANDER: Pass NPC object directly, not npc.ID
@@ -328,28 +328,28 @@ public class TokenMechanicsManager
     }
 
     /// <summary>
-    /// Get the token generation modifier from equipped items in basis points
+    /// Get the token generation bonus from equipped items (flat integer additions)
     /// </summary>
-    private int GetEquipmentTokenModifier(ConnectionType tokenType)
+    private int GetEquipmentTokenBonus(ConnectionType tokenType)
     {
-        if (_itemRepository == null) return 10000;
+        if (_itemRepository == null) return 0;
 
         Player player = _gameWorld.GetPlayer();
-        int totalModifierBasisPoints = 10000; // Start at 1.0x
+        int totalBonus = 0;
 
-        // Check all items in inventory for token modifiers
+        // Check all items in inventory for token bonuses
         foreach (Item item in player.Inventory.GetAllItems())
         {
             if (item == null) continue;
-            if (item.TokenGenerationModifiers != null &&
-                item.TokenGenerationModifiers.TryGetValue(tokenType, out int modifierBasisPoints))
+            if (item.TokenGenerationBonuses != null &&
+                item.TokenGenerationBonuses.TryGetValue(tokenType, out int bonus))
             {
-                // Multiply modifiers (e.g., 15000 * 12000 / 10000 = 18000 for 1.5x * 1.2x = 1.8x)
-                totalModifierBasisPoints = totalModifierBasisPoints * modifierBasisPoints / 10000;
+                // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+                totalBonus = totalBonus + bonus;
             }
         }
 
-        return totalModifierBasisPoints;
+        return totalBonus;
     }
 
 }

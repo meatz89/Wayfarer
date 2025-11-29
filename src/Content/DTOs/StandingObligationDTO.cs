@@ -19,11 +19,11 @@ public class StandingObligationDTO
     public bool IsThresholdBased { get; set; } = false;
     public bool ActivatesAboveThreshold { get; set; } = true;
 
-    // Dynamic scaling fields
+    // Dynamic scaling fields (flat integers)
     public string ScalingType { get; set; } = "None";
-    public int ScalingFactorBasisPoints { get; set; } = 10000;
-    public int BaseValueBasisPoints { get; set; } = 0;
-    public int MinValueBasisPoints { get; set; } = 0;
-    public int MaxValueBasisPoints { get; set; } = 1000000;
+    public int ScalingFactor { get; set; } = 1;
+    public int BaseValue { get; set; } = 0;
+    public int MinValue { get; set; } = 0;
+    public int MaxValue { get; set; } = 100;
     public List<SteppedThreshold> SteppedThresholds { get; set; } = new List<SteppedThreshold>();
 }

@@ -106,19 +106,21 @@ Entity properties (NPC demeanor, location quality, power dynamic) scale difficul
 
 Properties on entities modify base archetype values:
 
-**NPCDemeanor:** Friendly (0.8x costs) → Neutral (1.0x) → Suspicious (1.2x) → Hostile (1.5x)
+**NPCDemeanor:** Friendly (reduced costs) → Neutral (base costs) → Suspicious (increased costs) → Hostile (heavily increased costs)
 
-**Quality:** Poor (0.7x) → Standard (1.0x) → Fine (1.3x) → Exceptional (1.6x)
+**Quality:** Poor (reduced costs) → Standard (base costs) → Fine (increased costs) → Exceptional (heavily increased costs)
 
-**PowerDynamic:** Subordinate (0.8x) → Equal (1.0x) → Superior (1.2x) → Authority (1.5x)
+**PowerDynamic:** Subordinate (reduced costs) → Equal (base costs) → Superior (increased costs) → Authority (heavily increased costs)
 
 ### Why This Enables AI Content
 
 AI authors can write compelling narrative without knowing game state:
 1. AI writes descriptive properties ("suspicious innkeeper", "fine quality inn")
-2. Catalog translates properties to multipliers
-3. Archetype applies multipliers to base costs
+2. Catalog translates properties to absolute adjustments
+3. Archetype applies adjustments to base costs
 4. Result: Balanced content without global knowledge
+
+This approach implements DDR-007 (Intentional Numeric Design): properties affect costs through absolute additions and subtractions, never through multipliers or percentages. This ensures players can mentally calculate final costs and maintain transparency in game math.
 
 ---
 

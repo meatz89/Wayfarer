@@ -156,7 +156,7 @@ public class MessageSystemManager
             message = $"{action}: Complete!";
             type = SystemMessageTypes.Success;
         }
-        else if (current > total * 0.75)
+        else if (total - current <= total / 4) // DDR-007: Integer division (25% or less remaining)
         {
             message = $"{action}: Nearly done ({current}/{total})";
         }

@@ -41,7 +41,7 @@ This section lists requirements constraining design and implementation decisions
 | Explicit types only | No `var`; type visible at declaration |
 | `List<T>` for collections | No Dictionary/HashSet; maintainability over micro-optimization |
 | Named methods | No anonymous delegates in backend; preserves stack traces |
-| `int` for numbers | Game values are discrete; no float/double |
+| `int` for numbers | Intentional Numeric Design (GDD DDR-007) requires absolute modifiers and small values; integer arithmetic implements this |
 | No entity instance IDs | Object references for relationships; categorical properties for queries |
 | JSON field names = C# property names | No JsonPropertyName attributes; DTO structure is JSON schema |
 
