@@ -41,8 +41,8 @@ public class PathfindingService
         // A* data structures
         PriorityQueue<AxialCoordinates> openSet = new PriorityQueue<AxialCoordinates>();
         Dictionary<AxialCoordinates, AxialCoordinates> cameFrom = new Dictionary<AxialCoordinates, AxialCoordinates>();
-        Dictionary<AxialCoordinates, float> gScore = new Dictionary<AxialCoordinates, float>();
-        Dictionary<AxialCoordinates, float> fScore = new Dictionary<AxialCoordinates, float>();
+        Dictionary<AxialCoordinates, int> gScore = new Dictionary<AxialCoordinates, int>();
+        Dictionary<AxialCoordinates, int> fScore = new Dictionary<AxialCoordinates, int>();
 
         // Initialize start node
         gScore[start] = 0;
@@ -58,7 +58,7 @@ public class PathfindingService
             if (current.Equals(goal))
             {
                 List<AxialCoordinates> path = ReconstructPath(cameFrom, current);
-                float totalCost = gScore[current];
+                int totalCost = gScore[current];
                 int dangerRating = CalculateDangerRating(path, hexMap);
 
                 return PathfindingResult.Success(path, totalCost, dangerRating);
@@ -79,8 +79,8 @@ public class PathfindingService
                     continue;
 
                 // Calculate movement cost to this neighbor
-                float movementCost = GetTerrainMovementCost(neighborHex.Terrain, transportType);
-                float tentativeGScore = gScore[current] + movementCost;
+                int movementCost = GetTerrainMovementCost(neighborHex.Terrain, transportType);
+                int tentativeGScore = gScore[current] + movementCost;
 
                 // If this path to neighbor is better than any previous one
                 if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
@@ -104,10 +104,11 @@ public class PathfindingService
 
     /// <summary>
     /// Heuristic cost estimate (hex distance) - admissible and consistent for A*
+    /// Scaled by 100 to match terrain cost scaling
     /// </summary>
-    private static float HeuristicCost(AxialCoordinates from, AxialCoordinates to)
+    private static int HeuristicCost(AxialCoordinates from, AxialCoordinates to)
     {
-        return from.DistanceTo(to);
+        return from.DistanceTo(to) * 100;
     }
 
     /// <summary>
@@ -151,34 +152,35 @@ public class PathfindingService
     /// Get terrain movement cost multiplier for pathfinding
     /// Lower values = faster movement (preferred paths)
     /// Based on specification terrain multipliers (line 181-187)
+    /// Scaled by 100 (e.g., 1.0 = 100, 1.5 = 150)
     /// </summary>
-    private static float GetTerrainMovementCost(TerrainType terrain, TransportType transportType)
+    private static int GetTerrainMovementCost(TerrainType terrain, TransportType transportType)
     {
-        // Base terrain costs
+        // Base terrain costs (scaled by 100)
         switch (terrain)
         {
             case TerrainType.Plains:
-                return 1.0f;
+                return 100;
 
             case TerrainType.Road:
-                return 0.8f; // Fastest
+                return 80; // Fastest
 
             case TerrainType.Forest:
                 // Cart struggles in forest
-                return transportType == TransportType.Cart ? 2.0f : 1.5f;
+                return transportType == TransportType.Cart ? 200 : 150;
 
             case TerrainType.Mountains:
-                return 2.0f;
+                return 200;
 
             case TerrainType.Swamp:
-                return 2.5f; // Slowest passable terrain
+                return 250; // Slowest passable terrain
 
             case TerrainType.Water:
                 // Only traversable by boat
-                return 0.9f;
+                return 90;
 
             case TerrainType.Impassable:
-                return float.PositiveInfinity; // Blocks path
+                return int.MaxValue; // Blocks path
 
             default:
                 throw new ArgumentException($"Unknown terrain type: {terrain}");
@@ -228,13 +230,12 @@ public class PathfindingService
 /// <summary>
 /// Result of pathfinding operation
 /// Contains path, cost metrics, or failure reason
-/// TYPE SYSTEM: Internal A* uses float for precision, public API converts to int
 /// </summary>
 public class PathfindingResult
 {
     public bool IsSuccess { get; private set; }
     public List<AxialCoordinates> Path { get; private set; }
-    public int TotalCost { get; private set; } // Converted from internal float at API boundary
+    public int TotalCost { get; private set; }
     public int DangerRating { get; private set; }
     public string FailureReason { get; private set; }
 
@@ -247,10 +248,9 @@ public class PathfindingResult
         FailureReason = failureReason;
     }
 
-    // Internal method accepts float from A* algorithm, converts to int at API boundary
-    public static PathfindingResult Success(List<AxialCoordinates> path, float totalCost, int dangerRating)
+    public static PathfindingResult Success(List<AxialCoordinates> path, int totalCost, int dangerRating)
     {
-        return new PathfindingResult(true, path, (int)Math.Ceiling(totalCost), dangerRating, null);
+        return new PathfindingResult(true, path, totalCost, dangerRating, null);
     }
 
     public static PathfindingResult NoPathFound(string reason)
@@ -268,9 +268,9 @@ internal class PriorityQueue<T>
     private struct Element
     {
         public T Item;
-        public float Priority;
+        public int Priority;
 
-        public Element(T item, float priority)
+        public Element(T item, int priority)
         {
             Item = item;
             Priority = priority;
@@ -281,7 +281,7 @@ internal class PriorityQueue<T>
 
     public int Count => _elements.Count;
 
-    public void Enqueue(T item, float priority)
+    public void Enqueue(T item, int priority)
     {
         _elements.Add(new Element(item, priority));
         // Bubble up

@@ -10,5 +10,4 @@
     public bool OffersExclusiveContract { get; internal set; }
     public bool ProvidesMarketRumors { get; internal set; }
     public bool CleansesContraband { get; internal set; }
-    public string Id { get; internal set; }
 }

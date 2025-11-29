@@ -39,7 +39,7 @@ public static class ItemParser
         }
 
         // Parse token generation modifiers - DTO has inline init, trust it
-        foreach (KeyValuePair<string, float> kvp in dto.TokenGenerationModifiers)
+        foreach (KeyValuePair<string, int> kvp in dto.TokenGenerationModifiers)
         {
             if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
             {

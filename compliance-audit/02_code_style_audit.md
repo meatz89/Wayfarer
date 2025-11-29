@@ -130,8 +130,8 @@
 - Line 89: `private double GetTransportModifier(...)`
 
 **Emergency System (EmergencyCatalog.cs):**
-- Line 43: `public static double GetCostScalingFactor(...)`
-- Line 59: `public static double GetRewardScalingFactor(...)`
+- ~~Line 43: `public static double GetCostScalingFactor(...)`~~ FIXED: Now returns int basis points
+- ~~Line 59: `public static double GetRewardScalingFactor(...)`~~ FIXED: Now returns int basis points
 
 **StandingObligation (DTOs and Domain):**
 - `/home/user/Wayfarer/src/Content/DTOs/StandingObligationDTO.cs`:
@@ -141,8 +141,8 @@
   - Line 27: `public float MaxValue { get; set; } = 100f;`
 
 **Game Constants:**
-- `/home/user/Wayfarer/src/GameState/Constants/GameConstants.cs:65`
-  - `public const float DEFAULT_ENCOUNTER_CHANCE = 0.3f;`
+- ~~`/home/user/Wayfarer/src/GameState/Constants/GameConstants.cs:65`~~
+  - ~~`public const float DEFAULT_ENCOUNTER_CHANCE = 0.3f;`~~ FIXED: Now int percentage (30 = 30%)
 
 #### ACCEPTABLE USES (Framework/External API):
 

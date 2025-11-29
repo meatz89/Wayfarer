@@ -200,7 +200,7 @@ public class MarketFacade
     /// Get supply level for an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
     /// </summary>
-    public float GetSupplyLevel(Item item, Location location)
+    public int GetSupplyLevel(Item item, Location location)
     {
         return _marketStateTracker.GetSupplyLevel(item, location);
     }
@@ -209,7 +209,7 @@ public class MarketFacade
     /// Get demand level for an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
     /// </summary>
-    public float GetDemandLevel(Item item, Location location)
+    public int GetDemandLevel(Item item, Location location)
     {
         return _marketStateTracker.GetDemandLevel(item, location);
     }

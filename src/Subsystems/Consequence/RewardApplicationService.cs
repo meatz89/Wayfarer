@@ -288,8 +288,6 @@ public class RewardApplicationService
         // Consequence uses negative values for costs, ChoiceReward uses separate Cost/Reward objects
         // This adapter bridges the gap until full refactoring
 
-        // For now, delegate to ApplyChoiceReward by converting Consequence → ChoiceReward
-        // TODO: Refactor all callers to use Consequence directly (HIGHLANDER)
         ChoiceReward legacyReward = new ChoiceReward
         {
             Coins = consequence.Coins > 0 ? consequence.Coins : 0,

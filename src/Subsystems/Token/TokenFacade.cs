@@ -237,9 +237,9 @@ public class TokenFacade
     }
 
     /// <summary>
-    /// Get all active token modifiers from equipment
+    /// Get all active token modifiers from equipment (basis points: 10000 = 1.0)
     /// </summary>
-    public Dictionary<ConnectionType, float> GetActiveModifiers()
+    public Dictionary<ConnectionType, int> GetActiveModifiers()
     {
         return _tokenEffectProcessor.GetActiveModifiers();
     }
@@ -359,7 +359,7 @@ public class TokenSummary
     public int TotalShadow { get; set; }
     public int NPCsWithRelationships { get; set; }
     public int TotalDebts { get; set; }
-    public Dictionary<ConnectionType, float> ActiveModifiers { get; set; }
+    public Dictionary<ConnectionType, int> ActiveModifiers { get; set; }
 }
 
 public class DebtInfo

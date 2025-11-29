@@ -32,8 +32,8 @@ public class MarketStateTracker
     {
         public Venue Venue { get; set; }
         public Item Item { get; set; }
-        public float SupplyLevel { get; set; } = 1.0f; // 0.5 = scarce, 1.0 = normal, 2.0 = abundant
-        public float DemandLevel { get; set; } = 1.0f; // 0.5 = low demand, 1.0 = normal, 2.0 = high demand
+        public int SupplyLevel { get; set; } = 100; // 50 = scarce, 100 = normal, 200 = abundant (percentage)
+        public int DemandLevel { get; set; } = 100; // 50 = low demand, 100 = normal, 200 = high demand (percentage)
         public int RecentPurchases { get; set; }
         public int RecentSales { get; set; }
         public DateTime LastTradeTime { get; set; }
@@ -74,27 +74,27 @@ public class MarketStateTracker
         public int HighDemandItems { get; set; }
         public int LowDemandItems { get; set; }
         public List<Item> TrendingItems { get; set; } = new List<Item>(); // Recently traded items
-        public float OverallSupplyIndex { get; set; } // Average supply level
-        public float OverallDemandIndex { get; set; } // Average demand level
+        public int OverallSupplyIndex { get; set; } // Average supply level (percentage)
+        public int OverallDemandIndex { get; set; } // Average demand level (percentage)
     }
 
     // ========== SUPPLY & DEMAND TRACKING ==========
 
     /// <summary>
-    /// Get supply level for an item at a venue
+    /// Get supply level for an item at a venue (returns percentage: 100 = normal)
     /// HIGHLANDER: Accept typed objects, use object references
     /// </summary>
-    public float GetSupplyLevel(Item item, Location location)
+    public int GetSupplyLevel(Item item, Location location)
     {
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         return metrics.SupplyLevel;
     }
 
     /// <summary>
-    /// Get demand level for an item at a venue
+    /// Get demand level for an item at a venue (returns percentage: 100 = normal)
     /// HIGHLANDER: Accept typed objects, use object references
     /// </summary>
-    public float GetDemandLevel(Item item, Location location)
+    public int GetDemandLevel(Item item, Location location)
     {
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         return metrics.DemandLevel;
@@ -110,13 +110,13 @@ public class MarketStateTracker
 
         if (tradeType == TradeType.Purchase)
         {
-            // Player bought item - supply decreases slightly
-            metrics.SupplyLevel = Math.Max(0.3f, metrics.SupplyLevel - 0.1f);
+            // Player bought item - supply decreases slightly (by 10 percentage points)
+            metrics.SupplyLevel = Math.Max(30, metrics.SupplyLevel - 10);
         }
         else if (tradeType == TradeType.Sale)
         {
-            // Player sold item - supply increases slightly
-            metrics.SupplyLevel = Math.Min(3.0f, metrics.SupplyLevel + 0.1f);
+            // Player sold item - supply increases slightly (by 10 percentage points)
+            metrics.SupplyLevel = Math.Min(300, metrics.SupplyLevel + 10);
         }
     }
 
@@ -130,13 +130,13 @@ public class MarketStateTracker
 
         if (tradeType == TradeType.Purchase)
         {
-            // Player bought item - demand increases (others might want it too)
-            metrics.DemandLevel = Math.Min(3.0f, metrics.DemandLevel + 0.05f);
+            // Player bought item - demand increases (others might want it too) (by 5 percentage points)
+            metrics.DemandLevel = Math.Min(300, metrics.DemandLevel + 5);
         }
         else if (tradeType == TradeType.Sale)
         {
-            // Player sold item - demand might decrease slightly
-            metrics.DemandLevel = Math.Max(0.3f, metrics.DemandLevel - 0.02f);
+            // Player sold item - demand might decrease slightly (by 2 percentage points)
+            metrics.DemandLevel = Math.Max(30, metrics.DemandLevel - 2);
         }
     }
 
@@ -247,13 +247,13 @@ public class MarketStateTracker
         if (venueMetrics.Count == 0)
         {
             // Return default conditions if no data
-            conditions.OverallSupplyIndex = 1.0f;
-            conditions.OverallDemandIndex = 1.0f;
+            conditions.OverallSupplyIndex = 100; // 100%
+            conditions.OverallDemandIndex = 100; // 100%
             return conditions;
         }
 
-        float totalSupply = 0;
-        float totalDemand = 0;
+        int totalSupply = 0;
+        int totalDemand = 0;
 
         foreach (MarketMetrics metrics in venueMetrics)
         {
@@ -261,10 +261,10 @@ public class MarketStateTracker
             totalSupply += metrics.SupplyLevel;
             totalDemand += metrics.DemandLevel;
 
-            if (metrics.SupplyLevel < 0.7f) conditions.ScarcityItems++;
-            if (metrics.SupplyLevel > 1.5f) conditions.AbundantItems++;
-            if (metrics.DemandLevel > 1.3f) conditions.HighDemandItems++;
-            if (metrics.DemandLevel < 0.7f) conditions.LowDemandItems++;
+            if (metrics.SupplyLevel < 70) conditions.ScarcityItems++;
+            if (metrics.SupplyLevel > 150) conditions.AbundantItems++;
+            if (metrics.DemandLevel > 130) conditions.HighDemandItems++;
+            if (metrics.DemandLevel < 70) conditions.LowDemandItems++;
 
             // Items traded in last hour are trending
             if (metrics.LastTradeTime > DateTime.Now.AddHours(-1))
@@ -280,8 +280,8 @@ public class MarketStateTracker
         }
         else
         {
-            conditions.OverallSupplyIndex = 1.0f;
-            conditions.OverallDemandIndex = 1.0f;
+            conditions.OverallSupplyIndex = 100; // 100%
+            conditions.OverallDemandIndex = 100; // 100%
         }
 
         return conditions;
@@ -296,7 +296,7 @@ public class MarketStateTracker
         Venue venue = location.Venue;
 
         return _marketMetrics
-            .Where(m => m.Venue == venue && m.DemandLevel > 1.2f && m.SupplyLevel < 0.8f)
+            .Where(m => m.Venue == venue && m.DemandLevel > 120 && m.SupplyLevel < 80)
             .OrderByDescending(m => m.DemandLevel / m.SupplyLevel)
             .Take(topN)
             .Select(m => m.Item)
@@ -312,7 +312,7 @@ public class MarketStateTracker
         Venue venue = location.Venue;
 
         return _marketMetrics
-            .Where(m => m.Venue == venue && m.SupplyLevel > 1.5f && m.DemandLevel < 1.0f)
+            .Where(m => m.Venue == venue && m.SupplyLevel > 150 && m.DemandLevel < 100)
             .Select(m => m.Item)
             .ToList();
     }
@@ -422,20 +422,20 @@ public class MarketStateTracker
     /// </summary>
     public void SimulateMarketEvolution()
     {
-        // Gradually normalize supply and demand levels
+        // Gradually normalize supply and demand levels toward 100%
         foreach (MarketMetrics metrics in _marketMetrics)
         {
-            // Supply trends toward normal
-            if (metrics.SupplyLevel > 1.0f)
-                metrics.SupplyLevel = Math.Max(1.0f, metrics.SupplyLevel - 0.02f);
-            else if (metrics.SupplyLevel < 1.0f)
-                metrics.SupplyLevel = Math.Min(1.0f, metrics.SupplyLevel + 0.02f);
+            // Supply trends toward normal (100%)
+            if (metrics.SupplyLevel > 100)
+                metrics.SupplyLevel = Math.Max(100, metrics.SupplyLevel - 2); // Decrease by 2 percentage points
+            else if (metrics.SupplyLevel < 100)
+                metrics.SupplyLevel = Math.Min(100, metrics.SupplyLevel + 2); // Increase by 2 percentage points
 
-            // Demand trends toward normal
-            if (metrics.DemandLevel > 1.0f)
-                metrics.DemandLevel = Math.Max(1.0f, metrics.DemandLevel - 0.01f);
-            else if (metrics.DemandLevel < 1.0f)
-                metrics.DemandLevel = Math.Min(1.0f, metrics.DemandLevel + 0.01f);
+            // Demand trends toward normal (100%)
+            if (metrics.DemandLevel > 100)
+                metrics.DemandLevel = Math.Max(100, metrics.DemandLevel - 1); // Decrease by 1 percentage point
+            else if (metrics.DemandLevel < 100)
+                metrics.DemandLevel = Math.Min(100, metrics.DemandLevel + 1); // Increase by 1 percentage point
         }
     }
 }

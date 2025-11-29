@@ -30,8 +30,8 @@ public class TokenEffectProcessor
     {
         if (baseAmount <= 0) return baseAmount;
 
-        float totalModifier = GetEquipmentTokenModifier(tokenType);
-        int modifiedAmount = (int)Math.Ceiling(baseAmount * totalModifier);
+        int totalModifierBasisPoints = GetEquipmentTokenModifier(tokenType);
+        int modifiedAmount = (baseAmount * totalModifierBasisPoints + 9999) / 10000; // Round up
 
         return modifiedAmount;
     }
@@ -80,19 +80,19 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Get all active token modifiers from equipment
+    /// Get all active token modifiers from equipment in basis points
     /// </summary>
-    public Dictionary<ConnectionType, float> GetActiveModifiers()
+    public Dictionary<ConnectionType, int> GetActiveModifiers()
     {
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, float> activeModifiers = new Dictionary<ConnectionType, float>();
+        Dictionary<ConnectionType, int> activeModifiers = new Dictionary<ConnectionType, int>();
 
-        // Initialize all types to 1.0 (no modifier)
+        // Initialize all types to 10000 (1.0x = no modifier)
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                activeModifiers[type] = 1.0f;
+                activeModifiers[type] = 10000;
             }
         }
 
@@ -102,10 +102,10 @@ public class TokenEffectProcessor
             // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.TokenGenerationModifiers != null)
             {
-                foreach (KeyValuePair<ConnectionType, float> modifier in item.TokenGenerationModifiers)
+                foreach (KeyValuePair<ConnectionType, int> modifier in item.TokenGenerationModifiers)
                 {
-                    // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
-                    activeModifiers[modifier.Key] *= modifier.Value;
+                    // Multiply modifiers (e.g., 15000 * 12000 / 10000 = 18000 for 1.5x * 1.2x = 1.8x)
+                    activeModifiers[modifier.Key] = activeModifiers[modifier.Key] * modifier.Value / 10000;
                 }
             }
         }
@@ -150,40 +150,41 @@ public class TokenEffectProcessor
     {
         if (currentTokens <= 0 || daysSinceInteraction < 7) return 0;
 
-        // Different token types decay at different rates
-        float decayRate = GetDecayRate(type);
+        // Different token types decay at different rates (basis points)
+        int decayRateBasisPoints = GetDecayRateBasisPoints(type);
 
         // Decay accelerates with time
         int weeksWithoutContact = daysSinceInteraction / 7;
-        float decayMultiplier = 1.0f + (weeksWithoutContact * 0.1f);
+        int decayMultiplierBasisPoints = 10000 + (weeksWithoutContact * 1000); // 1.0x + (weeks * 0.1x)
 
-        int decay = (int)Math.Ceiling(currentTokens * decayRate * decayMultiplier);
+        // Calculate decay: tokens * decayRate * decayMultiplier (all in basis points)
+        int decay = (currentTokens * decayRateBasisPoints / 10000 * decayMultiplierBasisPoints + 9999) / 10000; // Round up
 
         // Never decay more than half of current tokens in one go
         return Math.Min(decay, currentTokens / 2);
     }
 
     /// <summary>
-    /// Get equipment-based token generation modifier
+    /// Get equipment-based token generation modifier in basis points
     /// </summary>
-    private float GetEquipmentTokenModifier(ConnectionType tokenType)
+    private int GetEquipmentTokenModifier(ConnectionType tokenType)
     {
         Player player = _gameWorld.GetPlayer();
-        float totalModifier = 1.0f;
+        int totalModifierBasisPoints = 10000; // Start at 1.0x
 
         // Check all items in inventory for token modifiers
         foreach (Item item in player.Inventory.GetAllItems())
         {
             // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.TokenGenerationModifiers != null &&
-                item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
+                item.TokenGenerationModifiers.TryGetValue(tokenType, out int modifierBasisPoints))
             {
                 // Multiply modifiers
-                totalModifier *= modifier;
+                totalModifierBasisPoints = totalModifierBasisPoints * modifierBasisPoints / 10000;
             }
         }
 
-        return totalModifier;
+        return totalModifierBasisPoints;
     }
 
     /// <summary>
@@ -237,22 +238,22 @@ public class TokenEffectProcessor
     }
 
     /// <summary>
-    /// Get decay rate for token type
+    /// Get decay rate for token type in basis points
     /// </summary>
-    private float GetDecayRate(ConnectionType type)
+    private int GetDecayRateBasisPoints(ConnectionType type)
     {
         switch (type)
         {
             case ConnectionType.Trust:
-                return 0.05f; // Trust decays slowly (5% per week)
+                return 500; // Trust decays slowly (5% per week)
             case ConnectionType.Diplomacy:
-                return 0.03f; // Diplomacy is most stable (3% per week)
+                return 300; // Diplomacy is most stable (3% per week)
             case ConnectionType.Status:
-                return 0.08f; // Status decays faster (8% per week)
+                return 800; // Status decays faster (8% per week)
             case ConnectionType.Shadow:
-                return 0.10f; // Shadow decays fastest (10% per week)
+                return 1000; // Shadow decays fastest (10% per week)
             default:
-                return 0.05f;
+                return 500;
         }
     }
 }

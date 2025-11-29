@@ -39,32 +39,34 @@ public static class EmergencyCatalog
     /// <summary>
     /// Get cost scaling factor based on emergency severity
     /// More severe emergencies require more resources to handle
+    /// Returns basis points where 10000 = 1.0x
     /// </summary>
-    public static double GetCostScalingFactor(EmergencySeverity severity)
+    public static int GetCostScalingFactor(EmergencySeverity severity)
     {
         return severity switch
         {
-            EmergencySeverity.Minor => 1.0,    // Normal costs
-            EmergencySeverity.Moderate => 1.5, // 50% higher costs
-            EmergencySeverity.Urgent => 2.0,   // Double costs
-            EmergencySeverity.Critical => 3.0, // Triple costs
-            _ => 1.0
+            EmergencySeverity.Minor => 10000,    // Normal costs (1.0x)
+            EmergencySeverity.Moderate => 15000, // 50% higher costs (1.5x)
+            EmergencySeverity.Urgent => 20000,   // Double costs (2.0x)
+            EmergencySeverity.Critical => 30000, // Triple costs (3.0x)
+            _ => 10000
         };
     }
 
     /// <summary>
     /// Get reward scaling factor based on emergency severity
     /// More severe emergencies offer greater rewards
+    /// Returns basis points where 10000 = 1.0x
     /// </summary>
-    public static double GetRewardScalingFactor(EmergencySeverity severity)
+    public static int GetRewardScalingFactor(EmergencySeverity severity)
     {
         return severity switch
         {
-            EmergencySeverity.Minor => 1.0,    // Normal rewards
-            EmergencySeverity.Moderate => 1.5, // 50% higher rewards
-            EmergencySeverity.Urgent => 2.0,   // Double rewards
-            EmergencySeverity.Critical => 3.0, // Triple rewards
-            _ => 1.0
+            EmergencySeverity.Minor => 10000,    // Normal rewards (1.0x)
+            EmergencySeverity.Moderate => 15000, // 50% higher rewards (1.5x)
+            EmergencySeverity.Urgent => 20000,   // Double rewards (2.0x)
+            EmergencySeverity.Critical => 30000, // Triple rewards (3.0x)
+            _ => 10000
         };
     }
 

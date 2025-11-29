@@ -159,15 +159,6 @@ public class LeverageViewModel
     public int DisplacementCost { get; set; }
     public string Level { get; set; }
     public string Narrative { get; set; }
-
-    public string LeverageColor => TotalLeverage switch
-    {
-        >= 10 => "danger",
-        >= 5 => "warning",
-        >= 3 => "caution",
-        >= 1 => "info",
-        _ => "default"
-    };
 }
 
 // ============================================

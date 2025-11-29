@@ -163,7 +163,7 @@ public class HexRouteGenerator
         Location destination,
         List<AxialCoordinates> hexPath,
         int dangerRating,
-        float pathCost,
+        int pathCost,
         TransportType transportType)
     {
         // Calculate time segments based on path length and terrain
@@ -406,10 +406,10 @@ public class HexRouteGenerator
         else
         {
             // Distribute evenly
-            float spacing = (float)availableCount / encounterCount;
+            int spacing = availableCount / encounterCount;
             for (int i = 0; i < encounterCount; i++)
             {
-                int position = availableStart + (int)Math.Round(i * spacing + spacing / 2);
+                int position = availableStart + (i * spacing + spacing / 2);
                 // Ensure within bounds
                 position = Math.Max(availableStart, Math.Min(availableEnd - 1, position));
                 if (!positions.Contains(position))
@@ -593,13 +593,14 @@ public class HexRouteGenerator
     /// <summary>
     /// Calculate time segments from hex path
     /// Based on specification: TimeSegments = PathLength × TerrainMultipliers
+    /// Multipliers in basis points (10000 = 1.0x)
     /// </summary>
     private int CalculateTimeSegments(List<AxialCoordinates> hexPath, TransportType transportType)
     {
         if (hexPath == null || hexPath.Count == 0)
             return 1;
 
-        float totalTime = 0;
+        int totalTime = 0;
 
         foreach (AxialCoordinates coords in hexPath)
         {
@@ -610,32 +611,34 @@ public class HexRouteGenerator
             }
         }
 
-        // Convert to time segments (round up, minimum 1)
-        return Math.Max(1, (int)Math.Ceiling(totalTime / 3.0f)); // Divide by 3 for segment granularity
+        // Convert to time segments (divide by 30000 = 3.0 * 10000 basis points, round up, minimum 1)
+        return Math.Max(1, (totalTime + 29999) / 30000);
     }
 
     /// <summary>
     /// Calculate stamina cost based on terrain difficulty
+    /// Multipliers in basis points (10000 = 1.0x)
     /// </summary>
     private int CalculateStaminaCost(List<AxialCoordinates> hexPath, TransportType transportType)
     {
         if (hexPath == null || hexPath.Count == 0)
             return 1;
 
-        float totalStamina = 0;
+        int totalStamina = 0;
 
         foreach (AxialCoordinates coords in hexPath)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                // Base stamina from terrain difficulty
-                float terrainStamina = GetTerrainTimeMultiplier(hex.Terrain, transportType) * 0.5f;
+                // Base stamina from terrain difficulty (multiply by 0.5 = divide by 2)
+                int terrainStamina = GetTerrainTimeMultiplier(hex.Terrain, transportType) / 2;
                 totalStamina += terrainStamina;
             }
         }
 
-        return Math.Max(1, (int)Math.Ceiling(totalStamina));
+        // Convert from basis points to final value (divide by 10000, round up, minimum 1)
+        return Math.Max(1, (totalStamina + 9999) / 10000);
     }
 
     /// <summary>
@@ -659,27 +662,28 @@ public class HexRouteGenerator
     /// <summary>
     /// Get terrain time multiplier (same as pathfinding movement cost)
     /// From specification lines 181-187
+    /// Returns basis points (10000 = 1.0x)
     /// </summary>
-    private float GetTerrainTimeMultiplier(TerrainType terrain, TransportType transportType)
+    private int GetTerrainTimeMultiplier(TerrainType terrain, TransportType transportType)
     {
         switch (terrain)
         {
             case TerrainType.Plains:
-                return 1.0f;
+                return 10000;
             case TerrainType.Road:
-                return 0.8f;
+                return 8000;
             case TerrainType.Forest:
-                return transportType == TransportType.Cart ? 2.0f : 1.5f;
+                return transportType == TransportType.Cart ? 20000 : 15000;
             case TerrainType.Mountains:
-                return 2.0f;
+                return 20000;
             case TerrainType.Swamp:
-                return 2.5f;
+                return 25000;
             case TerrainType.Water:
-                return 0.9f;
+                return 9000;
             case TerrainType.Impassable:
-                return float.PositiveInfinity;
+                return int.MaxValue;
             default:
-                return 1.0f;
+                return 10000;
         }
     }
 

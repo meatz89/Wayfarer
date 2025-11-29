@@ -165,10 +165,12 @@ public class LocationActionManager
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Check coin cost
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
         if (action.Costs.Coins > 0)
         {
-            return player.Coins >= action.Costs.Coins;
+            Consequence cost = new Consequence { Coins = -action.Costs.Coins };
+            CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+            return resourceReq.IsAnySatisfied(player, _gameWorld);
         }
 
         return true;
@@ -247,14 +249,20 @@ public class LocationActionManager
 
     private bool CanBuyFood()
     {
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
         Player player = _gameWorld.GetPlayer();
-        return player.Coins >= 5;
+        Consequence cost = new Consequence { Coins = -5 };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        return resourceReq.IsAnySatisfied(player, _gameWorld);
     }
 
     private bool CanBuyDrink()
     {
+        // HIGHLANDER: Use CompoundRequirement for coin affordability check
         Player player = _gameWorld.GetPlayer();
-        return player.Coins >= 2;
+        Consequence cost = new Consequence { Coins = -2 };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        return resourceReq.IsAnySatisfied(player, _gameWorld);
     }
 
     private bool CanRest()
@@ -266,8 +274,12 @@ public class LocationActionManager
 
     private bool CanSeekTreatment()
     {
+        // HIGHLANDER: Use CompoundRequirement for resource affordability checks
         Player player = _gameWorld.GetPlayer();
-        return player.Coins >= 10 && player.Health < player.MaxHealth;
+        Consequence cost = new Consequence { Coins = -10, Health = 0 };
+        CompoundRequirement resourceReq = CompoundRequirement.CreateForConsequence(cost);
+        bool canAfford = resourceReq.IsAnySatisfied(player, _gameWorld);
+        return canAfford && player.Health < player.MaxHealth;
     }
 
     private bool CanRegister()

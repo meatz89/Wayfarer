@@ -94,10 +94,10 @@ public class GameRules
 
     public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)
 
-    // Conversation Flow Thresholds
-    public const double FLOW_MAINTAIN_THRESHOLD = 0.5;    // Flow ≥ Patience/2: Maintain relationship
-    public const double FLOW_LETTER_THRESHOLD = 1.0;      // Flow ≥ Patience: DeliveryObligation becomes available
-    public const double FLOW_PERFECT_THRESHOLD = 1.5;     // Flow ≥ Patience × 1.5: Perfect conversation bonus
+    // Conversation Flow Thresholds (basis points where 10000 = 1.0x)
+    public const int FLOW_MAINTAIN_THRESHOLD = 5000;    // Flow ≥ Patience × 0.5: Maintain relationship
+    public const int FLOW_LETTER_THRESHOLD = 10000;      // Flow ≥ Patience × 1.0: DeliveryObligation becomes available
+    public const int FLOW_PERFECT_THRESHOLD = 15000;     // Flow ≥ Patience × 1.5: Perfect conversation bonus
 
     // Attention Refresh System (Epic 9)
     public const int ATTENTION_REFRESH_QUICK_DRINK_COST = 1;  // Quick drink: 1 coin = +1 attention
