@@ -272,13 +272,12 @@ public class ExchangeHandler
 
         // Check if player has required minimum tokens with this NPC
         // HIGHLANDER: Pass NPC object directly, not npc.ID
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
+        // DOMAIN COLLECTION: GetTokensWithNPC returns List<TokenCount>
+        List<TokenCount> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         foreach (TokenCount tokenReq in card.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.ContainsKey(tokenReq.Type)
-                ? npcTokens[tokenReq.Type]
-                : 0;
+            int currentTokens = npcTokens.FirstOrDefault(t => t.Type == tokenReq.Type)?.Count ?? 0;
             if (currentTokens < tokenReq.Count)
                 return false;
         }

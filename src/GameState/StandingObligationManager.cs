@@ -177,8 +177,9 @@ public class StandingObligationManager
         if (obligation.RelatedNPC != null)
         {
             // Get tokens with specific NPC - HIGHLANDER: Object reference
-            Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(obligation.RelatedNPC);
-            return npcTokens.GetValueOrDefault(obligation.RelatedTokenType.Value, 0);
+            // DOMAIN COLLECTION: GetTokensWithNPC returns List<TokenCount>
+            List<TokenCount> npcTokens = _connectionTokenManager.GetTokensWithNPC(obligation.RelatedNPC);
+            return npcTokens.FirstOrDefault(t => t.Type == obligation.RelatedTokenType.Value)?.Count ?? 0;
         }
         else
         {

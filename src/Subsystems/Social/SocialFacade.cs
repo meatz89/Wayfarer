@@ -83,7 +83,8 @@ public class SocialFacade
 
         // Get NPC token counts for session initialization
         // HIGHLANDER: Pass NPC object directly, not npc.ID
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
+        // DOMAIN COLLECTION: GetTokensWithNPC returns List<TokenCount>
+        List<TokenCount> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         // Create session deck and get request cards from the request
         SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, situation);

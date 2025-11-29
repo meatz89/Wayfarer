@@ -561,11 +561,12 @@ public class DDR007ComplianceTests
 
         OrPath firstPath = requirement.OrPaths[0];
 
-        if (firstPath.InsightRequired > 0) return firstPath.InsightRequired;
-        if (firstPath.RapportRequired > 0) return firstPath.RapportRequired;
-        if (firstPath.AuthorityRequired > 0) return firstPath.AuthorityRequired;
-        if (firstPath.DiplomacyRequired > 0) return firstPath.DiplomacyRequired;
-        if (firstPath.CunningRequired > 0) return firstPath.CunningRequired;
+        // OrPath stat properties are nullable int - use null coalescing
+        if (firstPath.InsightRequired.HasValue && firstPath.InsightRequired.Value > 0) return firstPath.InsightRequired.Value;
+        if (firstPath.RapportRequired.HasValue && firstPath.RapportRequired.Value > 0) return firstPath.RapportRequired.Value;
+        if (firstPath.AuthorityRequired.HasValue && firstPath.AuthorityRequired.Value > 0) return firstPath.AuthorityRequired.Value;
+        if (firstPath.DiplomacyRequired.HasValue && firstPath.DiplomacyRequired.Value > 0) return firstPath.DiplomacyRequired.Value;
+        if (firstPath.CunningRequired.HasValue && firstPath.CunningRequired.Value > 0) return firstPath.CunningRequired.Value;
 
         return 0;
     }

@@ -246,12 +246,10 @@ public class TypeSystemComplianceTests
     [Fact]
     public void CostRewardClasses_UseIntValues()
     {
+        // HIGHLANDER: Consequence is the ONLY class for resource outcomes
+        // ActionCosts, ActionRewards, ChoiceCost, ChoiceReward deleted
         List<Type> costRewardTypes = new List<Type>
         {
-            typeof(ActionCosts),
-            typeof(ActionRewards),
-            typeof(ChoiceCost),
-            typeof(ChoiceReward),
             typeof(Consequence)
         };
 

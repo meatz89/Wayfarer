@@ -158,9 +158,9 @@ Core Loop: Consumes DayEndReport data structure from TimeFacade.EndDay()
 
     private DayEndReport Summary { get; set; } = new DayEndReport();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Call TimeFacade.EndDay() to get complete day-end evaluation
-        Summary = await TimeFacade.EndDay();
+        Summary = TimeFacade.EndDay();
     }
 }

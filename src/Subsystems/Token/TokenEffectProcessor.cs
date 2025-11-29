@@ -60,8 +60,9 @@ public class TokenEffectProcessor
     {
         if (npc == null) return 0;
 
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
-        int relevantTokens = tokens.GetValueOrDefault(actionType, 0);
+        // DOMAIN COLLECTION: Use List with LINQ queries
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npc);
+        int relevantTokens = tokens.FirstOrDefault(t => t.Type == actionType)?.Count ?? 0;
 
         // Negative tokens (debt) apply penalties
         if (relevantTokens < 0)
@@ -209,21 +210,21 @@ public class TokenEffectProcessor
 
     /// <summary>
     /// Calculate synergy bonus from having multiple token types
+    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
-    private int CalculateSynergyBonus(Dictionary<ConnectionType, int> tokens)
+    private int CalculateSynergyBonus(List<TokenCount> tokens)
     {
         int typesWithTokens = 0;
         int totalTokens = 0;
 
-        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        foreach (TokenCount tokenCount in tokens)
         {
-            if (type == ConnectionType.None) continue;
+            if (tokenCount.Type == ConnectionType.None) continue;
 
-            int count = tokens.GetValueOrDefault(type, 0);
-            if (count > 0)
+            if (tokenCount.Count > 0)
             {
                 typesWithTokens++;
-                totalTokens += count;
+                totalTokens += tokenCount.Count;
             }
         }
 
