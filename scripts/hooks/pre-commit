@@ -1,84 +1,354 @@
 #!/bin/bash
-# DDR-007 Pre-Commit Hook
-# Prevents commits that violate DDR-007 (Intentional Numeric Design)
+# Comprehensive Architecture Compliance Pre-Commit Hook
+# Enforces: DDR-007, HIGHLANDER, Type Restrictions, Code Quality, and more
 #
 # Install: ./scripts/hooks/install.sh
-# Or manually: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Bypass:  git commit --no-verify (NOT RECOMMENDED)
+#
+# Reference: arc42/08_crosscutting_concepts.md, gdd/06_design_discipline.md, CLAUDE.md
 
 set -e
 
-echo "DDR-007 Compliance Check..."
+echo "=== Architecture Compliance Check ==="
+echo ""
 
-# Get staged .cs files (excluding UI rendering files)
-STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' || true)
+# Get staged .cs files (excluding UI rendering files and tests)
+STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' | grep -v 'Tests\.' || true)
+STAGED_CS_ALL=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' || true)
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM | grep 'arc42/.*\.md$' || true)
 
-if [ -z "$STAGED_CS" ]; then
-    echo "No C# files staged, skipping DDR-007 check"
+if [ -z "$STAGED_CS_ALL" ] && [ -z "$STAGED_MD" ]; then
+    echo "No relevant files staged, skipping checks"
     exit 0
 fi
 
 VIOLATIONS=0
+WARNINGS=0
 
-# Check 1: Decimal multipliers (* 0.X or * 1.X)
-echo "  Checking for decimal multipliers..."
-for file in $STAGED_CS; do
-    if [ -f "$file" ]; then
-        # Get only the staged content
-        MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\* [01]\.[0-9]' | grep -v '^\s*//' | grep -v 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom' || true)
-        if [ -n "$MATCHES" ]; then
-            echo "  ERROR: Decimal multiplier in $file:"
-            echo "$MATCHES"
-            VIOLATIONS=1
-        fi
-    fi
-done
+# ============================================================
+# SECTION 1: DDR-007 - INTENTIONAL NUMERIC DESIGN
+# ============================================================
+echo "[DDR-007] Intentional Numeric Design..."
 
-# Check 2: Basis points patterns
-echo "  Checking for basis points patterns..."
-for file in $STAGED_CS; do
-    if [ -f "$file" ]; then
-        MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'BasisPoint\|[^a-zA-Z]BP[A-Z]' | grep -v '^\s*//' || true)
-        if [ -n "$MATCHES" ]; then
-            echo "  ERROR: Basis point pattern in $file:"
-            echo "$MATCHES"
-            VIOLATIONS=1
+# 1.1 Decimal multipliers (* 0.X or * 1.X)
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\* [01]\.[0-9]' | grep -iv 'milliseconds\|timeout\|delay\|animation\|opacity\|alpha\|scale\|zoom\|hex.*spacing' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DDR-007]: Decimal multiplier in $file:"
+                echo "$MATCHES" | head -5
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
         fi
-    fi
-done
+    done
+fi
 
-# Check 3: Percentage calculations (warning only)
-echo "  Checking for percentage calculations..."
-for file in $STAGED_CS; do
-    if [ -f "$file" ]; then
-        if echo "$file" | grep -qE 'Parser|DTO'; then
-            continue  # Skip parsing layer
+# 1.2 Basis points patterns
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'BasisPoint\|[^a-zA-Z]BP[A-Z]\|/ *10000\|bp *=' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DDR-007]: Basis point pattern in $file:"
+                echo "$MATCHES" | head -5
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
         fi
-        MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\* *100 */\| */ *100[^0-9]' | grep -v '^\s*//' || true)
-        if [ -n "$MATCHES" ]; then
-            echo "  WARNING: Percentage pattern in $file (review manually):"
-            echo "$MATCHES"
-        fi
-    fi
-done
+    done
+fi
 
-if [ $VIOLATIONS -eq 1 ]; then
+# 1.3 float/double in domain code
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\bfloat\b\|\bdouble\b' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DDR-007]: float/double type in $file:"
+                echo "$MATCHES" | head -5
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 2: TYPE RESTRICTIONS (CLAUDE.md)
+# ============================================================
+echo "[TYPE] Type Restrictions..."
+
+# 2.1 Dictionary in domain code (excluding DTOs, external)
+DOMAIN_CS=$(echo "$STAGED_CS" | grep -v 'DTO\|External\|Framework\|Config' || true)
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'Dictionary<' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [TYPE]: Dictionary in domain code $file (use List<T>):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 2.2 HashSet in domain code
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'HashSet<' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [TYPE]: HashSet in domain code $file (use List<T>):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 2.3 var keyword (warning - high false positives with LINQ)
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '^\s*var\s' | grep -v 'anonymous\|new {' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [TYPE]: 'var' keyword in $file (prefer explicit types):"
+                echo "$MATCHES" | head -3
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 3: HIGHLANDER - NO ENTITY INSTANCE IDs
+# ============================================================
+echo "[HIGHLANDER] Entity Identity Model..."
+
+# 3.1 Instance ID properties on domain entities
+ENTITY_FILES=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services' | grep -v 'Template\|DTO' || true)
+if [ -n "$ENTITY_FILES" ]; then
+    for file in $ENTITY_FILES; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'public.*\(string\|int\|Guid\).*Id\s*{' | grep -v 'TemplateId\|PackageId' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [HIGHLANDER]: Instance ID property in $file:"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 4: FAIL-FAST PHILOSOPHY
+# ============================================================
+echo "[FAIL-FAST] Fail-Fast Philosophy..."
+
+# 4.1 Null coalescing operators hiding missing data
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\?\?' | grep -v '^\s*//' | grep -v 'parameter\|argument' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [FAIL-FAST]: Null coalescing (??) in $file (may hide errors):"
+                echo "$MATCHES" | head -3
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# 4.2 TryGetValue patterns
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'TryGetValue\|TryParse' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [FAIL-FAST]: TryGetValue/TryParse in $file (prefer fail-fast):"
+                echo "$MATCHES" | head -3
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 5: BACKEND/FRONTEND SEPARATION
+# ============================================================
+echo "[SEPARATION] Backend/Frontend Separation..."
+
+# 5.1 CssClass in backend
+SERVICE_FILES=$(echo "$STAGED_CS" | grep -E 'Service|Manager|Facade|Engine' || true)
+if [ -n "$SERVICE_FILES" ]; then
+    for file in $SERVICE_FILES; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'CssClass\|ClassName.*string' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [SEPARATION]: CssClass/ClassName in backend $file:"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 5.2 IconName in backend
+if [ -n "$SERVICE_FILES" ]; then
+    for file in $SERVICE_FILES; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'IconName\|public.*Icon.*{' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [SEPARATION]: IconName/Icon in backend $file:"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 6: CODE QUALITY
+# ============================================================
+echo "[QUALITY] Code Quality..."
+
+# 6.1 TODO/FIXME/HACK comments
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'TODO\|FIXME\|HACK\|XXX' | grep -v 'completed\|done\|removed' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [QUALITY]: TODO/FIXME comment in $file (finish before commit):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 6.2 .Wait() or .Result (async violations)
+if [ -n "$STAGED_CS" ]; then
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '\.Wait()\|\.Result[;,)]\|GetAwaiter.*GetResult' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [QUALITY]: Blocking async call in $file:"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 6.3 Extension methods
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'public static.*this ' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [QUALITY]: Extension method in domain code $file:"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 7: NAMESPACE RULES
+# ============================================================
+echo "[NAMESPACE] Namespace Rules..."
+
+# 7.1 Domain code with namespace (should be global)
+DOMAIN_CORE=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services|Subsystems' | grep -v 'Pages\|Components' || true)
+if [ -n "$DOMAIN_CORE" ]; then
+    for file in $DOMAIN_CORE; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '^namespace' | grep -v 'Wayfarer\.Tests\|Wayfarer\.Pages' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [NAMESPACE]: Namespace in domain code $file (use global):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 8: RANDOM IN STRATEGIC SYSTEMS
+# ============================================================
+echo "[DETERMINISM] Strategic Determinism..."
+
+# 8.1 Random usage (only allowed in Pile.cs)
+STRATEGIC_CS=$(echo "$STAGED_CS" | grep -v 'Pile\.cs\|Test' || true)
+if [ -n "$STRATEGIC_CS" ]; then
+    for file in $STRATEGIC_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'new Random\|Random()\|\.Next(' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DETERMINISM]: Random in strategic code $file (only Pile.cs allowed):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 9: ARC42 DOCUMENTATION RULES
+# ============================================================
+if [ -n "$STAGED_MD" ]; then
+    echo "[ARC42] Documentation Rules..."
+
+    # 9.1 Code blocks in arc42
+    for file in $STAGED_MD; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '```csharp\|```c#\|```json' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [ARC42]: Code block in $file (arc42 describes WHAT, not HOW):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+
+    # 9.2 Specific numbers in arc42 (warning)
+    for file in $STAGED_MD; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[0-9]\+ coins\|[0-9]\+ stamina\|[0-9]\+x\|[0-9]\+%' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [ARC42]: Specific numbers in $file (use conceptual language):"
+                echo "$MATCHES" | head -3
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SUMMARY
+# ============================================================
+echo ""
+echo "=== Summary ==="
+
+if [ $VIOLATIONS -gt 0 ]; then
     echo ""
-    echo "DDR-007 VIOLATION DETECTED!"
+    echo "COMMIT BLOCKED: $VIOLATIONS violation(s) found"
     echo ""
-    echo "DDR-007 (Intentional Numeric Design) requires:"
-    echo "  1. Mental Math Design - Values small enough for head calculation"
-    echo "  2. Deterministic Arithmetic - No randomness in strategic outcomes"
-    echo "  3. Absolute Modifiers - Bonuses stack additively, never multiplicatively"
-    echo ""
-    echo "Fix: Replace decimal multipliers with flat integer adjustments"
-    echo "     Replace percentages with categorical thresholds or integer division"
-    echo ""
-    echo "See: gdd/06_design_discipline.md DDR-007"
-    echo "     compliance-audit/ddr007/00_MASTER_SUMMARY.md"
+    echo "Reference Documentation:"
+    echo "  - DDR-007: gdd/06_design_discipline.md, arc42/08_crosscutting_concepts.md #8.22"
+    echo "  - HIGHLANDER: arc42/08_crosscutting_concepts.md #8.1, #8.3"
+    echo "  - Type Rules: CLAUDE.md (USER CODE PREFERENCES)"
+    echo "  - Fail-Fast: arc42/08_crosscutting_concepts.md #8.5"
+    echo "  - Separation: arc42/08_crosscutting_concepts.md #8.6"
     echo ""
     echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
     exit 1
 fi
 
-echo "DDR-007 check passed"
+if [ $WARNINGS -gt 0 ]; then
+    echo "$WARNINGS warning(s) found (commit allowed)"
+fi
+
+echo "All checks passed!"
 exit 0

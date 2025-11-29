@@ -283,3 +283,29 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 - ALL logic changes require unit tests BEFORE committing
 - Build: `cd src && dotnet build`
 - Test: `cd src && dotnet test`
+
+---
+
+# PRE-COMMIT HOOK (REQUIRED)
+
+**Installation (run once per clone):**
+```bash
+./scripts/hooks/install.sh
+```
+
+**What it enforces:**
+| Category | Checks |
+|----------|--------|
+| DDR-007 | Decimal multipliers, basis points, float/double types |
+| TYPE | Dictionary, HashSet, `var` keyword |
+| HIGHLANDER | Entity instance ID properties |
+| FAIL-FAST | Null coalescing (??), TryGetValue/TryParse |
+| SEPARATION | CssClass/IconName in backend services |
+| QUALITY | TODO/FIXME comments, .Wait()/.Result, extension methods |
+| NAMESPACE | Namespace declarations in domain code |
+| DETERMINISM | Random usage outside Pile.cs |
+| ARC42 | Code blocks in architecture docs |
+
+**Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
+
+**Reference:** `arc42/08_crosscutting_concepts.md` for architectural rationale
