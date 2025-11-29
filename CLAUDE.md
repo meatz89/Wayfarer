@@ -378,7 +378,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 | NAMESPACE | Namespace declarations in domain code |
 | DETERMINISM | Random usage outside Pile.cs |
 | CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
-| ARC42 | Code blocks in architecture docs |
+| DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 

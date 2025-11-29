@@ -166,11 +166,29 @@ jobs:
         fi
         echo "Pass"
 
-    - name: "[ARC42] Code Blocks in Architecture Docs"
+    - name: "[DOC-PURITY] Code Blocks in arc42/gdd"
       run: |
-        echo "Checking for code blocks in arc42 documents..."
-        if grep -rn '```csharp\|```c#\|```json' arc42/*.md 2>/dev/null; then
-          echo "ERROR: Code block in arc42! Arc42 describes WHAT, not HOW."
+        echo "Checking for code blocks in principles documentation..."
+        if grep -rn '```csharp\|```c#\|```json\|```cs' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY'; then
+          echo "ERROR: Code block in arc42/gdd! Describe concepts, not implementation."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DOC-PURITY] JSON Structures in arc42/gdd"
+      run: |
+        echo "Checking for JSON structures in principles documentation..."
+        if grep -rn '"[a-zA-Z]*":\s*["{0-9\[]' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY' | grep -v 'Example:\|example:'; then
+          echo "ERROR: JSON structure in arc42/gdd! Use conceptual tables instead."
+          exit 1
+        fi
+        echo "Pass"
+
+    - name: "[DOC-PURITY] File Paths in arc42/gdd"
+      run: |
+        echo "Checking for file paths in principles documentation..."
+        if grep -rn '[a-zA-Z]*\.cs:[0-9]\|src/.*\.cs' arc42/*.md gdd/*.md 2>/dev/null | grep -v 'BASELINE_ECONOMY'; then
+          echo "ERROR: File path in arc42/gdd! Describe patterns, not locations."
           exit 1
         fi
         echo "Pass"

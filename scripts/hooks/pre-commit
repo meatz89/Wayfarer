@@ -15,9 +15,14 @@ echo ""
 # Get staged .cs files (excluding UI rendering files and tests)
 STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' | grep -v 'Tests\.' || true)
 STAGED_CS_ALL=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' || true)
-STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM | grep 'arc42/.*\.md$' || true)
 
-if [ -z "$STAGED_CS_ALL" ] && [ -z "$STAGED_MD" ]; then
+# Get staged documentation files (arc42, gdd, CLAUDE.md)
+STAGED_ARC42=$(git diff --cached --name-only --diff-filter=ACM | grep 'arc42/.*\.md$' || true)
+STAGED_GDD=$(git diff --cached --name-only --diff-filter=ACM | grep 'gdd/.*\.md$' | grep -v 'BASELINE_ECONOMY' || true)
+STAGED_CLAUDE=$(git diff --cached --name-only --diff-filter=ACM | grep '^CLAUDE\.md$' || true)
+STAGED_PRINCIPLES_DOCS="$STAGED_ARC42 $STAGED_GDD"
+
+if [ -z "$STAGED_CS_ALL" ] && [ -z "$STAGED_ARC42" ] && [ -z "$STAGED_GDD" ] && [ -z "$STAGED_CLAUDE" ]; then
     echo "No relevant files staged, skipping checks"
     exit 0
 fi
@@ -315,31 +320,91 @@ if [ -n "$RUNTIME_CS" ]; then
 fi
 
 # ============================================================
-# SECTION 10: ARC42 DOCUMENTATION RULES
+# SECTION 10: DOCUMENTATION PURITY (arc42, gdd, CLAUDE.md)
 # ============================================================
-if [ -n "$STAGED_MD" ]; then
-    echo "[ARC42] Documentation Rules..."
+# Principles documentation describes WHAT and WHY, not HOW.
+# No code examples, JSON structures, or concrete implementation details.
 
-    # 9.1 Code blocks in arc42
-    for file in $STAGED_MD; do
+# 10.1 Code blocks in arc42/gdd (ERROR - blocks commit)
+if [ -n "$STAGED_PRINCIPLES_DOCS" ]; then
+    echo "[DOC-PURITY] Principles Documentation Rules..."
+
+    for file in $STAGED_PRINCIPLES_DOCS; do
         if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '```csharp\|```c#\|```json' || true)
+            # Check for code blocks (C#, JSON, etc.)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '```csharp\|```c#\|```json\|```cs\|```typescript\|```javascript' || true)
             if [ -n "$MATCHES" ]; then
-                echo "  ERROR [ARC42]: Code block in $file (arc42 describes WHAT, not HOW):"
+                echo "  ERROR [DOC-PURITY]: Code block in $file (describe concepts, not implementation):"
                 echo "$MATCHES" | head -3
                 VIOLATIONS=$((VIOLATIONS+1))
             fi
         fi
     done
 
-    # 9.2 Specific numbers in arc42 (warning)
-    for file in $STAGED_MD; do
+    # 10.2 JSON structure patterns in arc42/gdd (ERROR - blocks commit)
+    for file in $STAGED_PRINCIPLES_DOCS; do
         if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[0-9]\+ coins\|[0-9]\+ stamina\|[0-9]\+x\|[0-9]\+%' || true)
+            # Check for JSON object patterns: lines with "key": value format
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '"[a-zA-Z]*":\s*["{0-9\[]' | grep -v 'Example:\|example:\|e\.g\.' || true)
             if [ -n "$MATCHES" ]; then
-                echo "  WARNING [ARC42]: Specific numbers in $file (use conceptual language):"
+                echo "  ERROR [DOC-PURITY]: JSON structure in $file (use conceptual tables instead):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+
+    # 10.3 Enum value lists in arc42/gdd (ERROR - blocks commit)
+    for file in $STAGED_PRINCIPLES_DOCS; do
+        if [ -f "$file" ]; then
+            # Check for "Values: Foo, Bar, Baz" or "Valid values: A, B, C" patterns
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -in 'values:\s*[A-Z][a-zA-Z]*,\s*[A-Z]' | grep -v 'Categorical' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [DOC-PURITY]: Enum value list in $file (describe categories, not values):"
                 echo "$MATCHES" | head -3
                 WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+
+    # 10.4 File paths with line numbers (ERROR - blocks commit)
+    for file in $STAGED_PRINCIPLES_DOCS; do
+        if [ -f "$file" ]; then
+            # Check for file.cs:123 or /path/to/file.cs patterns
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[a-zA-Z]*\.cs:[0-9]\|src/.*\.cs' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DOC-PURITY]: File path/line number in $file (describe patterns, not locations):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+
+    # 10.5 Specific game values in arc42/gdd (WARNING - allows commit)
+    for file in $STAGED_PRINCIPLES_DOCS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[0-9]\+ coins\|[0-9]\+ stamina\|[0-9]\+ health\|[0-9]\+x\s' | grep -v 'range\|threshold\|conceptual' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [DOC-PURITY]: Specific game value in $file (use ranges or conceptual language):"
+                echo "$MATCHES" | head -3
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# 10.6 CLAUDE.md specific checks (lighter rules - can have process instructions)
+if [ -n "$STAGED_CLAUDE" ]; then
+    echo "[DOC-PURITY] CLAUDE.md Rules..."
+
+    for file in $STAGED_CLAUDE; do
+        if [ -f "$file" ]; then
+            # Check for game logic code (but allow process commands like ./scripts, dotnet build)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '```csharp\|```c#\|```json' | grep -v 'razor' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [DOC-PURITY]: Game logic code block in CLAUDE.md (only process instructions allowed):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
             fi
         fi
     done
