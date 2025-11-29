@@ -238,7 +238,15 @@
                                     @foreach (var stateApp in choice.StateApplications)
                                     {
                                         <div class="consequence-item consequence-state">
-                                            @(stateApp.Apply ? "✅ Gain" : "❌ Remove") State: @stateApp.StateName
+                                            @if (stateApp.Apply)
+                                            {
+                                                <Icon Name="check-mark" CssClass="icon-positive" /> <text>Gain</text>
+                                            }
+                                            else
+                                            {
+                                                <Icon Name="cancel" CssClass="icon-negative" /> <text>Remove</text>
+                                            }
+                                            <text> State: @stateApp.StateName</text>
                                             @if (!string.IsNullOrEmpty(stateApp.Reason))
                                             {
                                                 <div class="consequence-reason">@stateApp.Reason</div>

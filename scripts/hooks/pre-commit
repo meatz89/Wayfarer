@@ -411,6 +411,48 @@ if [ -n "$STAGED_CLAUDE" ]; then
 fi
 
 # ============================================================
+# SECTION 11: ICON SYSTEM (NO EMOJIS)
+# ============================================================
+# Emojis forbidden in game content - use SVG icons from game-icons.net
+
+STAGED_RAZOR=$(git diff --cached --name-only --diff-filter=ACM | grep '\.razor$' || true)
+if [ -n "$STAGED_RAZOR" ]; then
+    echo "[ICONS] No Emojis in UI..."
+
+    for file in $STAGED_RAZOR; do
+        if [ -f "$file" ]; then
+            # Check for common emoji patterns (checkmarks, crosses, arrows, etc.)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[✓✔✗✘❌✅⚡⭐🔥💀⚠️🎯📍🏠👤💰🗡️🛡️❤️💚💙🟢🔴🟡]' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [ICONS]: Emoji in $file (use <Icon> component):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 12: EXPLICIT PROPERTY PRINCIPLE
+# ============================================================
+# No string-based generic property modification patterns
+
+if [ -n "$STAGED_CS" ]; then
+    echo "[EXPLICIT] Explicit Property Principle..."
+
+    for file in $STAGED_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'ModifyProperty\|SetProperty\|GetProperty' | grep 'string' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [EXPLICIT]: String-based property pattern in $file (use explicit properties):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
 # SUMMARY
 # ============================================================
 echo ""

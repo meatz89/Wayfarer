@@ -164,7 +164,7 @@ namespace Wayfarer.Pages.Components.Shared
             int currentCount = Session.GetStatementCount(reqStat);
 
             bool requirementMet = currentCount >= reqCount;
-            string status = requirementMet ? "✓" : "✗";
+            string status = requirementMet ? "[OK]" : "[X]";
 
             return $"{status} Requires {reqCount} {reqStat} Statements (Current: {currentCount})";
         }

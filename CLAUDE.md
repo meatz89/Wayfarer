@@ -299,8 +299,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 - Enforcement: DDR007ComplianceTests.cs (CI), pre-commit hook (`scripts/hooks/install.sh`)
 
 **Lambdas:**
-- FORBIDDEN: Backend event handlers, DI registration lambdas
-- ALLOWED: LINQ queries, Blazor event handlers, framework configuration
+- FORBIDDEN: Custom backend event handlers, DI registration code
+- ALLOWED: LINQ queries, Blazor event handlers, framework extension methods (IServiceCollection)
 
 **Structure:**
 - Domain Services and Entities only (no Helper/Utility classes)
@@ -379,6 +379,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 | DETERMINISM | Random usage outside Pile.cs |
 | CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
 | DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
+| ICONS | Emojis in .razor files (use `<Icon>` component) |
+| EXPLICIT | String-based property modification patterns |
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 
