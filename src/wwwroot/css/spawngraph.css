@@ -756,3 +756,55 @@
     background-color: rgba(156, 163, 175, 0.3);
     color: #d1d5db;
 }
+
+/* Link Resolution Labels */
+.entity-link-group {
+    pointer-events: none;
+}
+
+.link-resolution-label {
+    pointer-events: auto;
+    cursor: default;
+}
+
+.link-label-bg {
+    fill: rgba(30, 30, 50, 0.95);
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1;
+}
+
+.link-label-bg.bg-discovered {
+    fill: rgba(22, 101, 52, 0.95);
+    stroke: rgba(34, 197, 94, 0.6);
+}
+
+.link-label-bg.bg-created {
+    fill: rgba(88, 28, 135, 0.95);
+    stroke: rgba(139, 92, 246, 0.6);
+}
+
+.link-label-bg.bg-route-dest {
+    fill: rgba(133, 77, 14, 0.95);
+    stroke: rgba(234, 179, 8, 0.6);
+}
+
+.link-label-text {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    fill: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Link resolution class modifiers for the whole link group */
+.entity-link-group.link-discovered path {
+    stroke: #22c55e !important;
+}
+
+.entity-link-group.link-created path {
+    stroke: #8b5cf6 !important;
+}
+
+.entity-link-group.link-route-dest path {
+    stroke: #eab308 !important;
+}

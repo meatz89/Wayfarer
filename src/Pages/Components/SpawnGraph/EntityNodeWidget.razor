@@ -5,17 +5,9 @@
     <div class="node-header">
         <Icon Name="@GetIconName()" Size="14px" CssClass="node-icon" />
         <div class="node-badge">@GetBadgeText()</div>
-        @if (Node.Resolution != null)
-        {
-            <div class="resolution-badge @GetResolutionClass()">@GetResolutionText()</div>
-        }
     </div>
     <div class="node-label">@Node.EntityName</div>
     <div class="node-info">@GetInfoText()</div>
-    @if (!string.IsNullOrEmpty(GetFilterPropertiesText()))
-    {
-        <div class="node-filter-props">@GetFilterPropertiesText()</div>
-    }
 </div>
 
 @code {
@@ -73,45 +65,5 @@
     private string GetHighlightedClass()
     {
         return Node.IsHighlighted ? "highlighted" : "";
-    }
-
-    private string GetResolutionText()
-    {
-        if (Node.Resolution == null) return "";
-
-        return Node.Resolution.Outcome switch
-        {
-            EntityResolutionOutcome.Discovered => "Found",
-            EntityResolutionOutcome.Created => "Created",
-            EntityResolutionOutcome.RouteDestination => "Via Route",
-            _ => ""
-        };
-    }
-
-    private string GetResolutionClass()
-    {
-        if (Node.Resolution == null) return "";
-
-        return Node.Resolution.Outcome switch
-        {
-            EntityResolutionOutcome.Discovered => "resolution-discovered",
-            EntityResolutionOutcome.Created => "resolution-created",
-            EntityResolutionOutcome.RouteDestination => "resolution-route-dest",
-            _ => ""
-        };
-    }
-
-    private string GetFilterPropertiesText()
-    {
-        if (Node.Resolution == null) return "";
-
-        return Node.Resolution.Outcome switch
-        {
-            EntityResolutionOutcome.Discovered when Node.Resolution.MatchedProperties.Count > 0 =>
-                string.Join(", ", Node.Resolution.MatchedProperties),
-            EntityResolutionOutcome.Created when Node.Resolution.FilterProvidedProperties.Count > 0 =>
-                string.Join(", ", Node.Resolution.FilterProvidedProperties),
-            _ => ""
-        };
     }
 }
