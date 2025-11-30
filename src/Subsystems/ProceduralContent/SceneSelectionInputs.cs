@@ -9,8 +9,13 @@
 /// - Same DTO structure regardless of source
 ///
 /// CURRENT IMPLEMENTATION:
-/// - Uses: Sequence (rotation), MaxSafeIntensity (player readiness), TargetCategory, ExcludedCategories
-/// - Populated but reserved for future: Location context, intensity history, rhythm phase, anti-repetition
+/// - Uses: Sequence (rotation), TargetCategory (authored override), ExcludedCategories
+/// - Populated but reserved for future: MaxSafeIntensity, Location context, intensity history, rhythm phase, anti-repetition
+///
+/// ORTHOGONAL SYSTEMS (arc42 §8.26):
+/// Category selection is DECOUPLED from ArchetypeIntensity filtering.
+/// MaxSafeIntensity was intentionally removed from category selection.
+/// Intensity filtering happens at ARCHETYPE level, not category level.
 ///
 /// This DTO makes selection deterministic and testable.
 /// </summary>
@@ -101,12 +106,14 @@ public class SceneSelectionInputs
     /// </summary>
     public List<string> RecentCategories { get; set; } = new List<string>();
 
-    // ==================== CURRENTLY USED ====================
+    // ==================== PLAYER STATE (Future: Archetype-level filtering) ====================
+    // Populated by BuildSelectionInputs, reserved for archetype-level intensity filtering
 
     /// <summary>
     /// Maximum archetype intensity safe for current player state.
-    /// USED: Filters categories by player Resolve level.
+    /// FUTURE USE: Will filter archetypes (not categories) by player Resolve level.
     /// Derived from PlayerReadinessService.GetMaxSafeIntensity().
+    /// ORTHOGONAL: Category selection is decoupled from intensity (arc42 §8.26).
     /// </summary>
     public ArchetypeIntensity MaxSafeIntensity { get; set; } = ArchetypeIntensity.Standard;
 
@@ -115,7 +122,7 @@ public class SceneSelectionInputs
     /// <summary>
     /// AUTHORED CONTENT: Explicit target category.
     /// USED: When set, selector returns this category directly.
-    /// When null/empty, selector uses rotation logic with player readiness filtering.
+    /// When null/empty, selector uses rotation logic (pure sequence-based).
     /// </summary>
     public string TargetCategory { get; set; }
 

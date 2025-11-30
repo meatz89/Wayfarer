@@ -97,12 +97,12 @@ public class ProceduralAStoryService
     /// Select archetype category from SceneSelectionInputs.
     /// CONTEXT INJECTION: Same code path for authored and procedural.
     /// - If TargetCategory set: use it directly (authored override)
-    /// - If not set: use rotation logic with player readiness filtering (procedural)
+    /// - If not set: use rotation logic (procedural)
     ///
-    /// PLAYER READINESS FILTERING:
-    /// - Exhausted (Recovery only): Forces Peaceful category
-    /// - Normal (up to Standard): Allows Investigation, Social; downgrades Confrontation/Crisis
-    /// - Capable (up to Demanding): Allows all categories including Crisis
+    /// ORTHOGONAL SYSTEMS (arc42 §8.26):
+    /// - Category selection determines NARRATIVE TYPE (Investigation, Social, etc.)
+    /// - ArchetypeIntensity filtering happens at ARCHETYPE level, not category level
+    /// - These systems remain decoupled - "correlation, not dependency"
     /// </summary>
     private string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
@@ -112,10 +112,10 @@ public class ProceduralAStoryService
             return inputs.TargetCategory;
         }
 
-        // PROCEDURAL PATH: Compute from inputs with player readiness filtering
+        // PROCEDURAL PATH: Pure rotation
         // Base rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
         int cyclePosition = (inputs.Sequence - 1) % 4;
-        string desiredCategory = cyclePosition switch
+        string category = cyclePosition switch
         {
             0 => "Investigation",
             1 => "Social",
@@ -124,72 +124,22 @@ public class ProceduralAStoryService
             _ => "Investigation"
         };
 
-        // Map category to intensity level
-        ArchetypeIntensity categoryIntensity = desiredCategory switch
+        // Check if category is excluded
+        if (inputs.ExcludedCategories.Contains(category))
         {
-            "Crisis" => ArchetypeIntensity.Demanding,
-            "Confrontation" => ArchetypeIntensity.Demanding,
-            "Investigation" => ArchetypeIntensity.Standard,
-            "Social" => ArchetypeIntensity.Standard,
-            "Peaceful" => ArchetypeIntensity.Recovery,
-            _ => ArchetypeIntensity.Standard
-        };
-
-        // Player readiness filtering
-        string selectedCategory;
-        if (categoryIntensity <= inputs.MaxSafeIntensity)
-        {
-            // Player can handle desired category
-            selectedCategory = desiredCategory;
-        }
-        else if (inputs.MaxSafeIntensity == ArchetypeIntensity.Recovery)
-        {
-            // Exhausted player - force Peaceful category
-            selectedCategory = "Peaceful";
-        }
-        else
-        {
-            // Standard intensity - downgrade Confrontation/Crisis to safe alternatives
-            selectedCategory = cyclePosition switch
+            // Find first non-excluded category from rotation
+            List<string> rotation = new List<string> { "Investigation", "Social", "Confrontation", "Crisis" };
+            foreach (string cat in rotation)
             {
-                0 => "Investigation",
-                1 => "Social",
-                2 => "Investigation", // Downgrade Confrontation → Investigation
-                3 => "Social",        // Downgrade Crisis → Social
-                _ => "Investigation"
-            };
-        }
-
-        // Check if selected category is excluded
-        if (inputs.ExcludedCategories.Contains(selectedCategory))
-        {
-            // Find first non-excluded category from safe options
-            List<string> safeCategories = GetSafeCategoriesForIntensity(inputs.MaxSafeIntensity);
-            foreach (string category in safeCategories)
-            {
-                if (!inputs.ExcludedCategories.Contains(category))
+                if (!inputs.ExcludedCategories.Contains(cat))
                 {
-                    return category;
+                    return cat;
                 }
             }
             return "Investigation"; // Final fallback
         }
 
-        return selectedCategory;
-    }
-
-    /// <summary>
-    /// Get list of categories safe for given intensity level, ordered by preference.
-    /// </summary>
-    private List<string> GetSafeCategoriesForIntensity(ArchetypeIntensity maxIntensity)
-    {
-        return maxIntensity switch
-        {
-            ArchetypeIntensity.Recovery => new List<string> { "Peaceful" },
-            ArchetypeIntensity.Standard => new List<string> { "Investigation", "Social", "Peaceful" },
-            ArchetypeIntensity.Demanding => new List<string> { "Investigation", "Social", "Confrontation", "Crisis", "Peaceful" },
-            _ => new List<string> { "Investigation" }
-        };
+        return category;
     }
 
     /// <summary>
