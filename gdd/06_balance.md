@@ -49,9 +49,11 @@ All stat distributions must have viable paths. If content only works for one bui
 
 ---
 
-## 6.3 The Four-Choice Balance Pattern
+## 6.3 The Four-Choice Balance Pattern (For Mixed Situations)
 
-Every A-story situation balances across four path types:
+**Note:** This pattern applies to MIXED situations where trade-offs exist. Building situations offer all-positive choices. Crisis situations offer all-negative choices with stat-based severity. See §6.4 for situation types.
+
+For Mixed situations, balance across four path types:
 
 | Path | Requirement | Cost | Target Player |
 |------|-------------|------|---------------|
@@ -60,12 +62,35 @@ Every A-story situation balances across four path types:
 | **Challenge** | Moderate stat | Session entry + time | Skill-expressive players |
 | **Fallback** | None | Time + social cost | Anyone (guaranteed) |
 
-### Balance Verification
+### Balance Verification (Mixed Situations)
 
 ✓ Specialists find their optimal path (stat-gated)
 ✓ Generalists have viable alternatives (resource/fallback)
 ✓ No single path dominates all situations
 ✓ Fallback always exists (no soft-locks)
+
+### Building Situation Pattern
+
+All choices positive, differentiated by WHAT you gain:
+
+| Choice | Gains | Target Build |
+|--------|-------|--------------|
+| Studious | +Insight | Investigators |
+| Social | +Rapport | Diplomats |
+| Assertive | +Authority | Enforcers |
+| Restful | +Resources | Anyone |
+
+### Crisis Situation Pattern
+
+All choices negative, stats determine SEVERITY:
+
+| Stat Level | Outcome |
+|------------|---------|
+| Exceeds threshold | Minor loss (damage mitigated) |
+| Meets threshold | Moderate loss (expected) |
+| Below threshold | Major loss (punished for underinvestment) |
+
+OR-type requirements let multiple stats qualify for damage mitigation.
 
 ---
 
@@ -84,20 +109,55 @@ Two resource systems create competing pressures:
 
 **The Dilemma:** Spend resolve NOW to unlock stat-building choices (invest in future), or save resolve for future crises (preserve options). This tension is NEVER fully resolved - it IS the game.
 
-### The Progression Rhythm
+### Situation Types (NOT Uniform Structure)
 
-Situations alternate between two phases:
+Situations are NOT all the same. Three distinct types exist:
 
-**Stat-Building Phase:** Choices that GRANT stats (but cost resolve or other resources)
-- "Stand your ground" → +1 Authority, costs resolve
-- "Study the documents" → +1 Insight, costs time
-- "Help the stranger" → +1 Rapport, -1 Coins
+| Type | Choice Outcomes | Player Experience | Example |
+|------|-----------------|-------------------|---------|
+| **Building** | ALL positive (different flavors) | Accumulating progress | Peaceful inn evening - study, socialize, plan, or rest |
+| **Crisis** | ALL negative (varying severity) | Minimizing damage | Bandit ambush - fight, flee, bribe, or surrender |
+| **Mixed** | Trade-offs | Strategic decisions | Negotiation - each path gains something, loses something |
 
-**Stat-Gating Phase:** Choices that REQUIRE stats (free if qualified, costly otherwise)
-- "Intimidate the guard" → Free if Authority ≥ threshold, otherwise pay coins OR accept penalty
-- "Notice the hidden clue" → Free if Insight ≥ threshold, otherwise miss opportunity
+**Building Situations:** Every choice leads to GAINS. The decision is WHAT to gain:
+- "Study" → +1 Insight
+- "Socialize" → +1 Rapport
+- "Plan" → +1 Cunning
+- "Rest" → Full recovery
 
-**The Rhythm:** Build stats early → face stat-gates later → build more stats → face harder gates. Every point gained in stat-building becomes immediately relevant in upcoming stat-gates.
+No wrong answers. Player invests in their preferred direction.
+
+**Crisis Situations:** Every choice leads to LOSSES. Stats determine severity:
+- High Authority → Minor loss ("You intimidate them, lose only 2 coins")
+- Low Authority → Major loss ("They take everything, lose 10 coins and -1 reputation")
+
+The player is being TESTED. Prior stat investment pays off.
+
+**Mixed Situations:** Trade-off territory where gains and losses coexist.
+
+### The Pacing Rhythm (Must Be Tracked)
+
+The game must TRACK where the player is in the rhythm:
+
+| Phase | What Happens | Procedural Decision |
+|-------|--------------|---------------------|
+| **Accumulation** | 2-4 building situations | Grant opportunities to grow |
+| **Test** | 1 crisis situation | Challenge based on expected stats |
+| **Recovery** | 1-2 building situations | Restore after crisis |
+| **Repeat** | Cycle continues | Escalate thresholds each cycle |
+
+**Procedural Context Questions:**
+- How many building situations since last crisis?
+- Is player stat accumulation near expected threshold?
+- Did player just survive a crisis? (recovery needed)
+- Is this an appropriate moment to test?
+
+**Anti-Patterns:**
+- Crisis → Crisis → Crisis = Unfair, no accumulation time
+- Building → Building → Building forever = No tension, no testing
+- Crisis when player is far below expected stats = Punishment without fairness
+
+**The Feeling:** Player senses the rhythm. "I've been gaining stats... something bad is coming." The anticipation creates tension even in peaceful moments.
 
 ### OR-Type Requirements (Multiple Valid Paths)
 
