@@ -640,7 +640,69 @@ With unified application:
 
 ---
 
-## 8.23 DDR-007: Intentional Numeric Design
+## 8.23 Archetype Reusability (No Tutorial Hardcoding)
+
+**"Archetypes are context-agnostic mechanical patterns."**
+
+Every scene archetype must produce appropriate experiences across ALL contexts through categorical property scaling. No archetype may contain context-specific code paths.
+
+### The Problem
+
+Tutorial scenes and procedural scenes need different difficulty levels. A naive implementation might check story sequence:
+
+```
+if (AStorySequence == 1) { /* easy tutorial path */ }
+else { /* harder standard path */ }
+```
+
+This violates reusability: the archetype becomes unusable in new contexts, tutorial behavior is buried in code, and the same archetype produces fundamentally different experiences based on hidden branching.
+
+### The Solution
+
+Categorical properties drive ALL variation. The archetype code is identical regardless of context.
+
+| Categorical Property | Effect on Archetype |
+|---------------------|---------------------|
+| **Tier** | Base difficulty level (0-4) |
+| **NPCDemeanor** | Stat requirement adjustment (Friendly -2, Hostile +2) |
+| **Quality** | Cost adjustment (Basic -3, Premium +5, Luxury +10) |
+| **PowerDynamic** | Threshold adjustment (Dominant -2, Submissive +2) |
+
+### Tutorial as Context, Not Code
+
+Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical context:
+
+| Scene | Archetype | Context | Result |
+|-------|-----------|---------|--------|
+| A1 Inn | InnLodging | Tier 0, Friendly, Basic | Easy negotiation, cheap room, modest recovery |
+| A50 Inn | InnLodging | Tier 3, Hostile, Premium | Hard negotiation, expensive room, excellent recovery |
+
+Both use identical InnLodging archetype code. Categorical scaling produces different player experiences.
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| `if (AStorySequence == N)` | Tutorial hardcoding |
+| `if (context.IsTutorial)` | Hidden branching |
+| Different choice structures per context | Non-reusable archetype |
+| Hardcoded reward/cost values | No categorical scaling |
+
+### Required Patterns
+
+| Pattern | Implementation |
+|---------|----------------|
+| Categorical property access | `context.NPCDemeanor`, `context.Quality`, `context.Power` |
+| Scaled formulas | `baseThreshold + demeanorAdjustment + powerAdjustment` |
+| Consistent structure | Same 4-choice pattern regardless of context |
+
+### Enforcement
+
+Archetypes are validated at parse-time. Any archetype that produces different STRUCTURES (not just values) based on context is a design error.
+
+---
+
+## 8.24 DDR-007: Intentional Numeric Design
 
 **"If you can't do it in your head, the design is wrong."**
 
@@ -710,6 +772,48 @@ Players can perform all calculations mentally:
 No calculator, no percentage math, no multiplicative confusion.
 
 **Reference:** `gdd/06_design_discipline.md` DDR-007, `compliance-audit/ddr007/00_MASTER_SUMMARY.md`
+
+---
+
+## 8.25 Scene Archetype Unification
+
+**"One archetype, one implementation, infinite contexts."**
+
+Scene archetypes are NOT divided into "service" vs "narrative" categories. ALL archetypes are reusable throughout the game for any story category (A/B/C).
+
+### The Anti-Pattern (FORBIDDEN)
+
+```
+Service Archetypes: InnLodging, DeliveryContract, RouteTravel → Used only in tutorial
+Narrative Archetypes: Investigation, Confrontation, Crisis → Used only in procedural
+```
+
+This creates two parallel systems that cannot share content. Tutorial becomes "special" instead of "first instantiation."
+
+### The Correct Pattern (REQUIRED)
+
+```
+Universal Archetypes: InnLodging, DeliveryContract, RouteTravel, Investigation, Confrontation, Crisis
+├── Tutorial uses: Any archetype with tutorial-appropriate context
+└── Procedural uses: Any archetype with procedural context
+```
+
+ALL archetypes are available to ALL story categories. Context (Tier, NPCDemeanor, Quality) creates appropriate difficulty.
+
+### Scene Archetype Categories (Functional, Not Usage-Based)
+
+Archetypes are categorized by FUNCTION, not by where they're used:
+
+| Category | Archetypes | Function |
+|----------|-----------|----------|
+| **Travel** | RouteTravel | Moving between places |
+| **Service** | InnLodging, DeliveryContract | Transactional interactions |
+| **Information** | Investigation, GatherTestimony, SeekAudience | Learning and discovery |
+| **Social** | MeetContact, BuildRelationship | Relationships and connections |
+| **Conflict** | Confrontation, UrgentDecision | Opposition and stakes |
+| **Reflection** | MoralChoice, ConsequenceReflection | Processing and deciding |
+
+Any category can appear in tutorial OR procedural content. The category describes WHAT the scene does, not WHEN it appears.
 
 ---
 

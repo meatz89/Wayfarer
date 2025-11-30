@@ -453,6 +453,30 @@ if [ -n "$STAGED_CS" ]; then
 fi
 
 # ============================================================
+# SECTION 13: ARCHETYPE REUSABILITY (NO TUTORIAL HARDCODING)
+# ============================================================
+# Archetypes must be context-agnostic - no story sequence checks
+# See arc42/08_crosscutting_concepts.md #8.23
+
+CATALOG_CS=$(echo "$STAGED_CS" | grep -E 'Catalog|Catalogue|Archetype' || true)
+if [ -n "$CATALOG_CS" ]; then
+    echo "[ARCHETYPE] Archetype Reusability..."
+
+    for file in $CATALOG_CS; do
+        if [ -f "$file" ]; then
+            # Check for AStorySequence checks (tutorial hardcoding)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'AStorySequence\|\.IsTutorial\|== 1\).*tutorial\|== 2\).*tutorial\|== 3\).*tutorial' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [ARCHETYPE]: Tutorial hardcoding in $file (use categorical properties):"
+                echo "$MATCHES" | head -5
+                echo "  Reference: arc42/08_crosscutting_concepts.md #8.23"
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
 # SUMMARY
 # ============================================================
 echo ""
@@ -463,11 +487,12 @@ if [ $VIOLATIONS -gt 0 ]; then
     echo "COMMIT BLOCKED: $VIOLATIONS violation(s) found"
     echo ""
     echo "Reference Documentation:"
-    echo "  - DDR-007: gdd/06_design_discipline.md, arc42/08_crosscutting_concepts.md #8.22"
+    echo "  - DDR-007: gdd/06_design_discipline.md, arc42/08_crosscutting_concepts.md #8.24"
     echo "  - HIGHLANDER: arc42/08_crosscutting_concepts.md #8.1, #8.3"
     echo "  - Type Rules: CLAUDE.md (USER CODE PREFERENCES)"
     echo "  - Fail-Fast: arc42/08_crosscutting_concepts.md #8.5"
     echo "  - Separation: arc42/08_crosscutting_concepts.md #8.6"
+    echo "  - Archetype Reusability: arc42/08_crosscutting_concepts.md #8.23"
     echo ""
     echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
     exit 1

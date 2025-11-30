@@ -12,16 +12,20 @@ This document explains HOW content is organized and WHY the archetype-based syst
 
 The primary narrative spine that never ends:
 
-**Phase 1: Authored Tutorial (A1-A10)**
-- Hand-crafted scenes teaching mechanics
+**Phase 1: Tutorial Instantiation (A1-A10)**
+- Uses the SAME reusable archetypes as procedural content
+- Tutorial experience emerges from categorical context (Tier 0, Friendly NPC, Basic quality)
 - Fixed sequence establishing gameplay patterns
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Scene archetypes selected from catalog
+- Uses the SAME reusable archetypes as tutorial
+- Higher tiers, varied NPC demeanors, varied quality levels
 - AI narrative generation connecting to player history
 - Escalating scope over time (local → regional → continental)
 - Never resolves, always deepens
+
+**Critical Principle:** Tutorial and procedural content use IDENTICAL archetype templates. The difference is categorical context, not different code paths. An InnLodging scene in tutorial (Tier 0, Friendly, Basic) uses the same archetype as InnLodging in late-game (Tier 3, Hostile, Premium). Categorical properties scale the experience.
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
@@ -97,6 +101,26 @@ Entity properties (NPC demeanor, location quality, power dynamic) scale difficul
 ### Mathematical Variety
 
 21 situation archetypes × 4 NPC demeanors × 4 quality tiers × 3 power dynamics = **1,008 mechanically distinct variations** from finite patterns.
+
+### Archetype Reusability Principle
+
+**Every archetype must work in ANY context through categorical scaling.**
+
+| Context | Same Archetype Produces |
+|---------|------------------------|
+| Tutorial (Tier 0, Friendly, Basic) | Easy requirements, low costs, modest rewards |
+| Mid-game (Tier 2, Neutral, Standard) | Medium requirements, balanced costs/rewards |
+| Late-game (Tier 3, Hostile, Premium) | Hard requirements, high costs, high rewards |
+
+**Forbidden:**
+- Checking story sequence (`AStorySequence == N`) in archetypes
+- Different code paths for tutorial vs non-tutorial
+- Hardcoded values that don't scale with context
+
+**Required:**
+- All difficulty scaling via categorical properties (NPCDemeanor, Quality, PowerDynamic)
+- Same four-choice structure regardless of context
+- Context-agnostic archetype code
 
 ---
 
