@@ -64,12 +64,14 @@ public class ProceduralAStoryServiceTests
     }
 
     [Fact]
-    public void Catalog_UnknownCategory_ReturnsEmptyList()
+    public void Catalog_UnknownCategory_ThrowsInvalidOperationException()
     {
-        // Document catalog behavior for unknown categories
-        // SelectArchetype validates this case and throws clear error
-        List<SceneArchetypeType> unknownArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory");
-        Assert.Empty(unknownArchetypes);
+        // FAIL-FAST: Unknown category should throw immediately, not silently return empty
+        // This prevents division by zero in SelectArchetype
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => SceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory"));
+
+        Assert.Contains("Unknown archetype category", exception.Message);
     }
 
     [Theory]
@@ -154,5 +156,117 @@ public class ProceduralAStoryServiceTests
 
         Assert.Contains(SceneArchetypeType.UrgentDecision, archetypes);
         Assert.Contains(SceneArchetypeType.MoralCrossroads, archetypes);
+    }
+
+    // ==================== PEACEFUL CATEGORY TESTS ====================
+    // Regression tests for player readiness filtering gaps
+
+    [Fact]
+    public void Catalog_PeacefulCategory_ReturnsNonEmptyList()
+    {
+        // CRITICAL: Peaceful category must return archetypes for exhausted players
+        // If empty, player with low Resolve gets stuck with no valid scenes
+        List<SceneArchetypeType> peacefulArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
+
+        Assert.NotEmpty(peacefulArchetypes);
+    }
+
+    [Fact]
+    public void Catalog_PeacefulArchetypes_ContainsExpectedTypes()
+    {
+        // All 3 peaceful scene archetypes must be present
+        List<SceneArchetypeType> archetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
+
+        Assert.Contains(SceneArchetypeType.QuietReflection, archetypes);
+        Assert.Contains(SceneArchetypeType.CasualEncounter, archetypes);
+        Assert.Contains(SceneArchetypeType.ScholarlyPursuit, archetypes);
+    }
+
+    [Fact]
+    public void Catalog_AllFiveCategories_HaveNonEmptyArchetypes()
+    {
+        // CRITICAL: ALL five rotation categories must return valid archetypes
+        // Including Peaceful for exhausted players
+        List<string> categories = new List<string>
+        {
+            "Investigation",
+            "Social",
+            "Confrontation",
+            "Crisis",
+            "Peaceful"
+        };
+
+        foreach (string category in categories)
+        {
+            List<SceneArchetypeType> archetypes = SceneArchetypeCatalog.GetArchetypesForCategory(category);
+            Assert.True(archetypes.Count > 0, $"Category '{category}' must have at least one archetype");
+        }
+    }
+
+    // ==================== PLAYER READINESS TESTS ====================
+
+    [Theory]
+    [InlineData(0, ArchetypeIntensity.Peaceful)]   // Exhausted (0 Resolve)
+    [InlineData(1, ArchetypeIntensity.Peaceful)]   // Exhausted (1 Resolve)
+    [InlineData(2, ArchetypeIntensity.Peaceful)]   // Exhausted (2 Resolve)
+    [InlineData(3, ArchetypeIntensity.Testing)]    // Normal (exactly at threshold)
+    [InlineData(10, ArchetypeIntensity.Testing)]   // Normal
+    [InlineData(15, ArchetypeIntensity.Testing)]   // Normal (at threshold)
+    [InlineData(16, ArchetypeIntensity.Crisis)]    // Capable (above threshold)
+    [InlineData(30, ArchetypeIntensity.Crisis)]    // Capable (well above)
+    public void PlayerReadiness_GetMaxSafeIntensity_ReturnsCorrectLevel(int resolve, ArchetypeIntensity expectedIntensity)
+    {
+        // CRITICAL: Player readiness determines which archetypes are safe
+        // Exhausted players (Resolve < 3) must ONLY get Peaceful archetypes
+        PlayerReadinessService service = new PlayerReadinessService();
+        Player player = new Player { Resolve = resolve };
+
+        ArchetypeIntensity actualIntensity = service.GetMaxSafeIntensity(player);
+
+        Assert.Equal(expectedIntensity, actualIntensity);
+    }
+
+    [Fact]
+    public void PlayerReadiness_ExhaustedPlayer_OnlyPeacefulSafe()
+    {
+        // CRITICAL: Exhausted player must ONLY have Peaceful in safe list
+        PlayerReadinessService service = new PlayerReadinessService();
+        Player exhaustedPlayer = new Player { Resolve = 1 };
+
+        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(exhaustedPlayer);
+
+        Assert.Single(safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
+    }
+
+    [Fact]
+    public void PlayerReadiness_NormalPlayer_IncludesPeacefulBuildingTesting()
+    {
+        // Normal player should have access to Peaceful, Building, and Testing
+        PlayerReadinessService service = new PlayerReadinessService();
+        Player normalPlayer = new Player { Resolve = 10 };
+
+        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(normalPlayer);
+
+        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Building, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Testing, safeIntensities);
+        Assert.DoesNotContain(ArchetypeIntensity.Crisis, safeIntensities);
+    }
+
+    [Fact]
+    public void PlayerReadiness_CapablePlayer_IncludesAllIntensities()
+    {
+        // Capable player should have access to all intensity levels
+        PlayerReadinessService service = new PlayerReadinessService();
+        Player capablePlayer = new Player { Resolve = 20 };
+
+        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(capablePlayer);
+
+        Assert.Equal(4, safeIntensities.Count);
+        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Building, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Testing, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Crisis, safeIntensities);
     }
 }

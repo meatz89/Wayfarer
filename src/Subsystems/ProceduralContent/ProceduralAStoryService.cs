@@ -239,6 +239,7 @@ public class ProceduralAStoryService
     /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
     ///
     /// Pattern selection:
+    /// - Peaceful category → Building rhythm (all positive, recovery for exhausted players)
     /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
     /// - First scene after Crisis → Building rhythm (recovery, stat grants)
     /// - Other categories → Mixed rhythm (standard trade-offs)
@@ -247,6 +248,12 @@ public class ProceduralAStoryService
     /// </summary>
     private string DetermineRhythmPattern(string archetypeCategory, int sequence, int tier)
     {
+        // Peaceful category always uses Building rhythm (all positive for exhausted players)
+        if (archetypeCategory == "Peaceful")
+        {
+            return "Building";
+        }
+
         // Crisis category always uses Crisis rhythm (test investments)
         if (archetypeCategory == "Crisis")
         {

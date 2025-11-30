@@ -17,7 +17,7 @@
 /// JSON specifies SceneArchetypeType enum → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// SCENE ARCHETYPES (13 total - All HIGHLANDER-compliant):
+/// SCENE ARCHETYPES (16 total - All HIGHLANDER-compliant):
 ///
 /// HIGHLANDER: All archetypes use SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext()
 /// RhythmPattern (Building/Crisis/Mixed) determines choice structure, not archetype category.
@@ -75,6 +75,11 @@ public static class SceneArchetypeCatalog
             SceneArchetypeType.UrgentDecision => GenerateUrgentDecision(tier, context),
             SceneArchetypeType.MoralCrossroads => GenerateMoralCrossroads(tier, context),
 
+            // Peaceful patterns (3)
+            SceneArchetypeType.QuietReflection => GenerateQuietReflection(tier, context),
+            SceneArchetypeType.CasualEncounter => GenerateCasualEncounter(tier, context),
+            SceneArchetypeType.ScholarlyPursuit => GenerateScholarlyPursuit(tier, context),
+
             _ => throw new InvalidOperationException($"Unhandled scene archetype type: {archetypeType}")
         };
     }
@@ -116,7 +121,15 @@ public static class SceneArchetypeCatalog
                 SceneArchetypeType.UrgentDecision,
                 SceneArchetypeType.MoralCrossroads
             },
-            _ => new List<SceneArchetypeType>() // Empty list for unknown category
+            "Peaceful" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.QuietReflection,
+                SceneArchetypeType.CasualEncounter,
+                SceneArchetypeType.ScholarlyPursuit
+            },
+            _ => throw new InvalidOperationException(
+                $"Unknown archetype category '{category}'. " +
+                $"Valid categories: Investigation, Social, Confrontation, Crisis, Peaceful.")
         };
     }
 
@@ -1925,6 +1938,308 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    // ===================================================================
+    // PEACEFUL SCENE ARCHETYPES (3)
+    // Recovery-focused patterns for exhausted players (Resolve less than 3)
+    // All choices positive, no requirements, stat grants only
+    // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+    // ===================================================================
+
+    /// <summary>
+    /// QUIET_REFLECTION archetype
+    ///
+    /// FICTIONAL CONTEXT: Player finds a quiet moment for meditation and mental recovery
+    /// STORY PURPOSE: Recovery for exhausted players, identity formation through contemplation
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (settle → reflect)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateQuietReflection(int tier, GenerationContext context)
+    {
+        string sceneId = "quiet_reflection";
+
+        // SITUATION 1: SETTLE IN
+        SituationArchetype settleArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
+        List<ChoiceTemplate> settleChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            settleArchetype,
+            $"{sceneId}_settle",
+            context);
+
+        SituationTemplate settleSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_settle",
+            Type = SituationType.Normal,
+            ChoiceTemplates = settleChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "calm",
+                Theme = "settling",
+                Context = "finding_peace",
+                Style = "gentle"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Activity = LocationActivity.Quiet,
+                Safety = LocationSafety.Safe
+            },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: DEEP REFLECTION
+        SituationArchetype reflectArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
+        List<ChoiceTemplate> reflectChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            reflectArchetype,
+            $"{sceneId}_reflect",
+            context);
+
+        SituationTemplate reflectSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_reflect",
+            Type = SituationType.Normal,
+            ChoiceTemplates = reflectChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "contemplative",
+                Theme = "self_discovery",
+                Context = "meditation",
+                Style = "introspective"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_settle",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_settle",
+                    DestinationSituationId = $"{sceneId}_reflect",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                settleSituation,
+                reflectSituation
+            },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// CASUAL_ENCOUNTER archetype
+    ///
+    /// FICTIONAL CONTEXT: Player has casual social interaction with locals
+    /// STORY PURPOSE: Social recovery for exhausted players, Rapport building
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (encounter → converse)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateCasualEncounter(int tier, GenerationContext context)
+    {
+        string sceneId = "casual_encounter";
+
+        // SITUATION 1: ENCOUNTER
+        SituationArchetype encounterArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.LocalConversation);
+        List<ChoiceTemplate> encounterChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            encounterArchetype,
+            $"{sceneId}_encounter",
+            context);
+
+        SituationTemplate encounterSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_encounter",
+            Type = SituationType.Normal,
+            ChoiceTemplates = encounterChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "friendly",
+                Theme = "meeting",
+                Context = "casual_hello",
+                Style = "warm"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Activity = LocationActivity.Social,
+                Safety = LocationSafety.Safe
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                Demeanor = NPCDemeanor.Friendly
+            },
+            RouteFilter = null
+        };
+
+        // SITUATION 2: CONVERSATION
+        SituationArchetype converseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.LocalConversation);
+        List<ChoiceTemplate> converseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            converseArchetype,
+            $"{sceneId}_converse",
+            context);
+
+        SituationTemplate converseSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_converse",
+            Type = SituationType.Normal,
+            ChoiceTemplates = converseChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "pleasant",
+                Theme = "connection",
+                Context = "friendly_chat",
+                Style = "relaxed"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_encounter",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_encounter",
+                    DestinationSituationId = $"{sceneId}_converse",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                encounterSituation,
+                converseSituation
+            },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// SCHOLARLY_PURSUIT archetype
+    ///
+    /// FICTIONAL CONTEXT: Player studies in a library or scholarly setting
+    /// STORY PURPOSE: Mental recovery for exhausted players, Insight building
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (browse → study)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateScholarlyPursuit(int tier, GenerationContext context)
+    {
+        string sceneId = "scholarly_pursuit";
+
+        // SITUATION 1: BROWSE
+        SituationArchetype browseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.StudyInLibrary);
+        List<ChoiceTemplate> browseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            browseArchetype,
+            $"{sceneId}_browse",
+            context);
+
+        SituationTemplate browseSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_browse",
+            Type = SituationType.Normal,
+            ChoiceTemplates = browseChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "curious",
+                Theme = "exploration",
+                Context = "browsing_knowledge",
+                Style = "intellectual"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purpose = LocationPurpose.Study,
+                Activity = LocationActivity.Quiet
+            },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: STUDY
+        SituationArchetype studyArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.StudyInLibrary);
+        List<ChoiceTemplate> studyChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            studyArchetype,
+            $"{sceneId}_study",
+            context);
+
+        SituationTemplate studySituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_study",
+            Type = SituationType.Normal,
+            ChoiceTemplates = studyChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "focused",
+                Theme = "learning",
+                Context = "deep_study",
+                Style = "scholarly"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_browse",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_browse",
+                    DestinationSituationId = $"{sceneId}_study",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                browseSituation,
+                studySituation
+            },
             SpawnRules = spawnRules
         };
     }

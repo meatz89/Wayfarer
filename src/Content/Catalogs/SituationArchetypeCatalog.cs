@@ -1142,6 +1142,7 @@ public static class SituationArchetypeCatalog
 
     /// <summary>
     /// Create consequence that grants a single stat point.
+    /// FAIL-FAST: Throws for None or unknown stats - archetypes must specify valid primary/secondary stats.
     /// </summary>
     private static Consequence CreateStatGrantConsequence(PlayerStatType stat, int amount)
     {
@@ -1152,7 +1153,9 @@ public static class SituationArchetypeCatalog
             PlayerStatType.Authority => new Consequence { Authority = amount },
             PlayerStatType.Diplomacy => new Consequence { Diplomacy = amount },
             PlayerStatType.Cunning => new Consequence { Cunning = amount },
-            _ => new Consequence()
+            _ => throw new InvalidOperationException(
+                $"Cannot create stat grant consequence for stat type '{stat}'. " +
+                $"Archetypes must specify valid primary/secondary stats (Insight, Rapport, Authority, Diplomacy, or Cunning).")
         };
     }
 
@@ -1167,6 +1170,9 @@ public static class SituationArchetypeCatalog
             SituationArchetypeType.Negotiation => "Engage diplomatically",
             SituationArchetypeType.Investigation => "Analyze the situation carefully",
             SituationArchetypeType.SocialManeuvering => "Build rapport warmly",
+            SituationArchetypeType.MeditationAndReflection => "Focus your mind",
+            SituationArchetypeType.LocalConversation => "Share a friendly word",
+            SituationArchetypeType.StudyInLibrary => "Study with focused attention",
             _ => "Approach with your primary skill"
         };
     }
@@ -1182,6 +1188,9 @@ public static class SituationArchetypeCatalog
             SituationArchetypeType.Negotiation => "Connect personally",
             SituationArchetypeType.Investigation => "Use cunning to deduce",
             SituationArchetypeType.SocialManeuvering => "Navigate with diplomacy",
+            SituationArchetypeType.MeditationAndReflection => "Let your thoughts settle",
+            SituationArchetypeType.LocalConversation => "Listen with genuine interest",
+            SituationArchetypeType.StudyInLibrary => "Explore with curiosity",
             _ => "Approach with your secondary skill"
         };
     }

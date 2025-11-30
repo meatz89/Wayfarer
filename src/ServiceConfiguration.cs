@@ -159,7 +159,8 @@ public static class ServiceConfiguration
         services.AddSingleton<ContentGenerationFacade>();
 
         // Infinite A-Story Generation (procedural main story continuation)
-        services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoader
+        services.AddSingleton<PlayerReadinessService>(); // Player readiness for archetype intensity filtering
+        services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoader, PlayerReadinessService
 
         // State Clearing System (needed by TimeFacade)
         services.AddSingleton<StateClearingResolver>();
