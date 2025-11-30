@@ -466,6 +466,39 @@ Procedural A-Story generation follows an 8-sequence cycle with Peaceful as earne
 - Crisis always uses Crisis rhythm (penalty on fallback)
 - Other categories use Mixed rhythm (standard trade-offs)
 
+### Target Design: Context-Aware Generation (NOT YET IMPLEMENTED)
+
+The 8-sequence rotation above is a **placeholder implementation**. The target design is a deterministic but context-aware system that considers multiple factors.
+
+**Scene Type Selection SHOULD Consider:**
+
+| Factor | Purpose | Current Status |
+|--------|---------|----------------|
+| Previous player choice | Consequence-driven storytelling | NOT IMPLEMENTED |
+| Current location context | Danger, atmosphere, purpose inform archetype | NOT IMPLEMENTED |
+| Natural ebb and flow | Recent challenge density, rhythm phase | PARTIAL (position in rotation) |
+| Story state | Encountered NPCs, collected artifacts, revelations | NOT IMPLEMENTED |
+| Player momentum | Recent wins/losses, stat accumulation phase | NOT IMPLEMENTED |
+
+**Choice Value Calculation SHOULD Consider:**
+
+| Factor | Calculation | Effect | Current Status |
+|--------|-------------|--------|----------------|
+| Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | NOT IMPLEMENTED |
+| Location Difficulty | Distance from world center hex | Further = higher requirements | NOT IMPLEMENTED (infrastructure exists) |
+| Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | PARTIAL (tier-based) |
+| NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
+| Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
+
+**Net Challenge Formula (Target):**
+
+The relationship between player capability and world position should determine how many choices are gated:
+- **Player Strength** (sum of stats) determines baseline capability
+- **World Difficulty** (hex distance) determines baseline challenge
+- **Net Challenge** (World - Player) determines gating frequency
+
+A player who invested well finds more choices available; a player who spread thin or overspent finds more choices locked. This creates natural difficulty scaling without artificial level gates.
+
 ### Intensity Categorization vs Choice Requirements (Orthogonal Systems)
 
 Two separate systems describe content, but only one gates player access:

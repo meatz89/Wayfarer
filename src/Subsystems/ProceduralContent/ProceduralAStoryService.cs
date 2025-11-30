@@ -4,6 +4,29 @@
 /// Works from ANY sequence - if tutorial is A1-A3, generates A4+
 /// If tutorial expands to A1-A10, generates A11+
 ///
+/// ========================================================================
+/// CURRENT STATE: PLACEHOLDER IMPLEMENTATION
+/// ========================================================================
+/// The current 8-cycle rotation is a SIMPLIFIED PLACEHOLDER, not the target design.
+/// Scene selection uses only sequence number (sequence % 8) with anti-repetition.
+/// Choice values use tier-based scaling without player/location context.
+///
+/// TARGET DESIGN (see gdd/06_balance.md §6.8 "Target Design: Context-Aware Generation"):
+/// Scene type selection SHOULD consider:
+/// - Previous player choice that triggered scene creation (consequence-driven)
+/// - Current location context (danger, atmosphere, purpose)
+/// - Natural ebb and flow (rhythm phase, recent challenge density)
+/// - Story state (encountered NPCs, collected artifacts, revelations)
+/// - Player momentum (recent wins/losses, stat accumulation phase)
+///
+/// Choice value calculation SHOULD consider:
+/// - Player strength (sum of all 5 stats as capability baseline)
+/// - Location difficulty (distance from world center hex)
+/// - Situation archetype (Investigation easier than Crisis)
+/// - NPC demeanor (Friendly/Neutral/Hostile scaling)
+/// - Environment quality (Basic/Standard/Premium/Luxury)
+/// ========================================================================
+///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
 /// 1. Select archetype based on sequence/tier/context
 /// 2. Generate SceneTemplateDTO with categorical properties
@@ -15,11 +38,11 @@
 /// Detection: scene.Category == MainStory && scene.MainStorySequence.HasValue
 /// Trigger: Generate MainStorySequence + 1 template if not already exists
 ///
-/// ARCHETYPE SELECTION STRATEGY:
-/// - Rotate through archetype categories (investigation → social → confrontation → discovery → crisis)
+/// CURRENT ARCHETYPE SELECTION (PLACEHOLDER):
+/// - 8-cycle rotation: Investigation → Social → Confrontation → Crisis → (repeat) → Peaceful
 /// - Avoid recent archetypes (5-scene anti-repetition window)
-/// - Match tier escalation (personal → local → regional, grounded character-driven)
-/// - Balance narrative variety and mechanical consistency
+/// - Match tier escalation (personal → local → regional)
+/// - Peaceful at position 8 provides structural respite
 ///
 /// GUARANTEED PROGRESSION:
 /// - All generated templates follow 4-choice pattern (stat/money/challenge/fallback)
