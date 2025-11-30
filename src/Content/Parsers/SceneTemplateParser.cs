@@ -125,8 +125,8 @@ public class SceneTemplateParser
         Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}, MainStorySequence={dto.MainStorySequence}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
-            dto.SceneArchetypeId,
-            dto.Tier,
+            sceneArchetypeType,
+            dto.Tier ?? 0,
             contextNPC,
             contextLocation,
             dto.MainStorySequence);
