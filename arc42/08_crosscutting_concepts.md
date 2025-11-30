@@ -817,6 +817,72 @@ Any category can appear in tutorial OR procedural content. The category describe
 
 ---
 
+## 8.26 Sir Brante Rhythm Pattern
+
+**"Building accumulates capability; Crisis tests it."**
+
+Procedural content generation must track player rhythm state to create satisfying pacing. The rhythm is internal authoring metadata, never exposed to players.
+
+### Situation Classification (Internal)
+
+Situations are classified by outcome structure, not content type:
+
+| Classification | Choice Outcomes | Design Purpose |
+|----------------|-----------------|----------------|
+| **Building** | All positive (different flavors) | Stat accumulation, resolve recovery |
+| **Crisis** | All negative (stat-mitigated severity) | Test investments, spend resolve |
+| **Mixed** | Trade-offs (gain X, lose Y) | Strategic decisions |
+
+**Classification determines choice generation patterns, not player-facing labels.**
+
+### Rhythm State Tracking
+
+ProceduralAStoryService must track:
+
+| State | Tracked Value | Decision Impact |
+|-------|---------------|-----------------|
+| **BuildingSinceCrisis** | Count of building situations | When count reaches threshold, Crisis appropriate |
+| **LastCrisisSequence** | A-story sequence of last crisis | Prevents back-to-back crises |
+| **PlayerResolve** | Current resolve pool | Low resolve → force recovery |
+| **ExpectedStatLevel** | Tier-based threshold | Crisis calibration |
+
+### Rhythm Anti-Patterns
+
+| Anti-Pattern | Detection | Consequence |
+|--------------|-----------|-------------|
+| **Crisis spam** | BuildingSinceCrisis < 2 | Player feels punished without chance to prepare |
+| **Endless building** | BuildingSinceCrisis > 5 | No tension, no testing |
+| **Exhausted crisis** | PlayerResolve < minimum | Player cannot take heroic options |
+
+### Resource Duality in Requirements
+
+Requirements and consequences use the SAME resources in different roles:
+
+| Resource | As Requirement | As Cost | As Reward |
+|----------|---------------|---------|-----------|
+| **Stats** | Authority ≥ 4 | Rare (crisis damage) | +1 Authority |
+| **Resolve** | Resolve ≥ 0 | -5 Resolve | +10 Resolve |
+| **Coins** | None typical | -10 Coins | +5 Coins |
+| **Relationships** | NPC: Grateful | NPC becomes Hostile | NPC becomes Grateful |
+
+A single choice may have: Stat requirement + Resolve requirement + Coin cost + Stat reward + Relationship change.
+
+### Compound Requirement Patterns
+
+OrPath supports multiple qualification routes:
+
+| Path Type | Implementation |
+|-----------|---------------|
+| **High stat only** | Single OrPath with stat threshold |
+| **Lower stat + resolve** | OrPath with reduced stat AND resolve requirement |
+| **Resource alternative** | OrPath with coin cost only |
+| **Relationship gate** | OrPath with NPC relationship status |
+| **Multiple OR** | Multiple OrPaths, any one qualifies |
+
+**Example:** "Negotiate" choice qualifies via: (Diplomacy ≥ 5) OR (Rapport ≥ 3 AND Resolve ≥ 5) OR (Pay 20 coins)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
