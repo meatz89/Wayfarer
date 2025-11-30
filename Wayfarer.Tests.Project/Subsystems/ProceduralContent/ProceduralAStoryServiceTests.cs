@@ -3,7 +3,18 @@ using Xunit;
 namespace Wayfarer.Tests.Subsystems.ProceduralContent;
 
 /// <summary>
-/// Tests for ProceduralAStoryService - archetype rotation, tier calculation, anti-repetition
+/// Tests for ProceduralAStoryService - catalog integrity, tier calculation, context tracking.
+///
+/// CONTEXT-AWARE SCENE SELECTION:
+/// The actual selection algorithm is in ArchetypeCategorySelector (see ArchetypeCategorySelectorTests).
+/// This file tests supporting components: catalog, context, tier calculation.
+///
+/// WEIGHTED SCORING (5 factors):
+/// 1. Base rotation (15 points) - tested here as formula verification
+/// 2. Location context (30+ points) - tested in ArchetypeCategorySelectorTests
+/// 3. Intensity balance (40+ points) - tested in ArchetypeCategorySelectorTests
+/// 4. Rhythm phase (20 points) - tested in ArchetypeCategorySelectorTests
+/// 5. Anti-repetition (-15 penalty) - tested in ArchetypeCategorySelectorTests
 ///
 /// UNIT TESTS ONLY: Integration tests were removed because:
 /// 1. Content/Core has authored A1-A3 templates using SERVICE patterns (InnLodging, DeliveryContract)
@@ -75,20 +86,26 @@ public class ProceduralAStoryServiceTests
     }
 
     [Theory]
-    [InlineData(1, "Investigation")]   // (1-1) % 4 = 0
-    [InlineData(2, "Social")]          // (2-1) % 4 = 1
-    [InlineData(3, "Confrontation")]   // (3-1) % 4 = 2
-    [InlineData(4, "Crisis")]          // (4-1) % 4 = 3
-    [InlineData(5, "Investigation")]   // (5-1) % 4 = 0 (cycle repeats)
-    [InlineData(9, "Investigation")]   // (9-1) % 4 = 0
-    [InlineData(10, "Social")]         // (10-1) % 4 = 1
-    [InlineData(11, "Confrontation")]  // (11-1) % 4 = 2
-    [InlineData(12, "Crisis")]         // (12-1) % 4 = 3
-    public void ArchetypeRotation_SequenceMapsToCorrectCategory(int sequence, string expectedCategory)
+    [InlineData(1, "Investigation")]   // (1-1) % 8 = 0
+    [InlineData(2, "Social")]          // (2-1) % 8 = 1
+    [InlineData(3, "Confrontation")]   // (3-1) % 8 = 2
+    [InlineData(4, "Crisis")]          // (4-1) % 8 = 3
+    [InlineData(5, "Investigation")]   // (5-1) % 8 = 4
+    [InlineData(6, "Social")]          // (6-1) % 8 = 5
+    [InlineData(7, "Confrontation")]   // (7-1) % 8 = 6
+    [InlineData(8, "Peaceful")]        // (8-1) % 8 = 7 (earned respite)
+    [InlineData(9, "Investigation")]   // (9-1) % 8 = 0 (cycle repeats)
+    [InlineData(16, "Peaceful")]       // (16-1) % 8 = 7
+    public void BaseRotation_SequenceMapsToCategory(int sequence, string expectedCategory)
     {
-        // This tests the rotation algorithm directly without generating templates
-        // Formula: (sequence - 1) % 4 maps to category
-        int cyclePosition = (sequence - 1) % 4;
+        // Tests the BASE ROTATION component of ArchetypeCategorySelector
+        // This is ONE of FIVE scoring factors (worth 15 points)
+        // Other factors (location context, intensity balance, rhythm phase, anti-repetition)
+        // can override this baseline when their scores are higher
+        //
+        // Formula: (sequence - 1) % 8 maps to category affinity
+        // Peaceful appears every 8th sequence as potential earned structural respite
+        int cyclePosition = (sequence - 1) % 8;
 
         string actualCategory = cyclePosition switch
         {
@@ -96,6 +113,10 @@ public class ProceduralAStoryServiceTests
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
+            4 => "Investigation",
+            5 => "Social",
+            6 => "Confrontation",
+            7 => "Peaceful",
             _ => throw new InvalidOperationException()
         };
 
@@ -159,13 +180,13 @@ public class ProceduralAStoryServiceTests
     }
 
     // ==================== PEACEFUL CATEGORY TESTS ====================
-    // Regression tests for player readiness filtering gaps
+    // Peaceful category provides earned structural respite every 8th sequence
 
     [Fact]
     public void Catalog_PeacefulCategory_ReturnsNonEmptyList()
     {
-        // CRITICAL: Peaceful category must return archetypes for exhausted players
-        // If empty, player with low Resolve gets stuck with no valid scenes
+        // CRITICAL: Peaceful category must return archetypes for 8-cycle rotation
+        // Appears every 8th sequence as earned structural respite
         List<SceneArchetypeType> peacefulArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
 
         Assert.NotEmpty(peacefulArchetypes);
@@ -186,7 +207,7 @@ public class ProceduralAStoryServiceTests
     public void Catalog_AllFiveCategories_HaveNonEmptyArchetypes()
     {
         // CRITICAL: ALL five rotation categories must return valid archetypes
-        // Including Peaceful for exhausted players
+        // 8-cycle rotation uses all five categories
         List<string> categories = new List<string>
         {
             "Investigation",
@@ -203,71 +224,4 @@ public class ProceduralAStoryServiceTests
         }
     }
 
-    // ==================== PLAYER READINESS TESTS ====================
-
-    [Theory]
-    [InlineData(0, ArchetypeIntensity.Recovery)]   // Exhausted (0 Resolve)
-    [InlineData(1, ArchetypeIntensity.Recovery)]   // Exhausted (1 Resolve)
-    [InlineData(2, ArchetypeIntensity.Recovery)]   // Exhausted (2 Resolve)
-    [InlineData(3, ArchetypeIntensity.Standard)]    // Normal (exactly at threshold)
-    [InlineData(10, ArchetypeIntensity.Standard)]   // Normal
-    [InlineData(15, ArchetypeIntensity.Standard)]   // Normal (at threshold)
-    [InlineData(16, ArchetypeIntensity.Demanding)]    // Capable (above threshold)
-    [InlineData(30, ArchetypeIntensity.Demanding)]    // Capable (well above)
-    public void PlayerReadiness_GetMaxSafeIntensity_ReturnsCorrectLevel(int resolve, ArchetypeIntensity expectedIntensity)
-    {
-        // CRITICAL: Player readiness determines which archetypes are safe
-        // Exhausted players (Resolve < 3) must ONLY get Recovery archetypes
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player player = new Player { Resolve = resolve };
-
-        ArchetypeIntensity actualIntensity = service.GetMaxSafeIntensity(player);
-
-        Assert.Equal(expectedIntensity, actualIntensity);
-    }
-
-    [Fact]
-    public void PlayerReadiness_ExhaustedPlayer_OnlyRecoverySafe()
-    {
-        // CRITICAL: Exhausted player must ONLY have Recovery in safe list
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player exhaustedPlayer = new Player { Resolve = 1 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(exhaustedPlayer);
-
-        Assert.Single(safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-    }
-
-    [Fact]
-    public void PlayerReadiness_NormalPlayer_IncludesRecoveryAndStandard()
-    {
-        // Normal player (Resolve 3-15) should have access to Recovery and Standard
-        // Three-level system: Recovery, Standard, Demanding
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player normalPlayer = new Player { Resolve = 10 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(normalPlayer);
-
-        Assert.Equal(2, safeIntensities.Count);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
-        Assert.DoesNotContain(ArchetypeIntensity.Demanding, safeIntensities);
-    }
-
-    [Fact]
-    public void PlayerReadiness_CapablePlayer_IncludesAllIntensities()
-    {
-        // Capable player (Resolve > 15) should have access to all intensity levels
-        // Three-level system: Recovery, Standard, Demanding
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player capablePlayer = new Player { Resolve = 20 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(capablePlayer);
-
-        Assert.Equal(3, safeIntensities.Count);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Demanding, safeIntensities);
-    }
 }

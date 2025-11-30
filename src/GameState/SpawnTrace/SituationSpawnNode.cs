@@ -73,16 +73,34 @@ public class SituationSpawnNode
     public LocationSnapshot Location { get; set; }
 
     /// <summary>
+    /// Resolution metadata for Location (how it was discovered/created)
+    /// Includes filter used, outcome, and property sources
+    /// </summary>
+    public EntityResolutionMetadata LocationResolution { get; set; }
+
+    /// <summary>
     /// NPC involved in situation (snapshot at spawn time)
     /// null if no NPC requirement
     /// </summary>
     public NPCSnapshot NPC { get; set; }
 
     /// <summary>
+    /// Resolution metadata for NPC (how it was discovered/created)
+    /// Includes filter used, outcome, and property sources
+    /// </summary>
+    public EntityResolutionMetadata NPCResolution { get; set; }
+
+    /// <summary>
     /// Route associated with situation (snapshot at spawn time)
     /// null if no route requirement
     /// </summary>
     public RouteSnapshot Route { get; set; }
+
+    /// <summary>
+    /// Resolution metadata for Route (how it was discovered)
+    /// Routes are currently find-only (not created)
+    /// </summary>
+    public EntityResolutionMetadata RouteResolution { get; set; }
 
     /// <summary>
     /// Specific segment index for route situations

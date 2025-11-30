@@ -359,7 +359,36 @@ public class LocationPlacementService
 
             // ATOMIC ASSIGNMENT: Set venue simultaneously with hex position
             location.AssignVenue(venue);
+
+            // Calculate difficulty from hex distance to world center (0,0)
+            // Formula: distance / 5 (integer division, DDR-007 compliant)
+            // World center = starting area, outer hexes = higher difficulty
+            CalculateLocationDifficulty(location);
         }
+    }
+
+    /// <summary>
+    /// Calculate Location.Difficulty from hex distance to world center.
+    /// Called after hex position assignment.
+    /// Formula: DistanceTo(0,0) / 5 (integer division, DDR-007 compliant)
+    /// HIGHLANDER: Single method for difficulty calculation, called from:
+    /// - PlaceLocationsInVenue() for authored locations
+    /// - PackageLoader.CreateSingleLocation() for scene-created locations
+    /// </summary>
+    public void CalculateLocationDifficulty(Location location)
+    {
+        if (!location.HexPosition.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"Cannot calculate difficulty for location '{location.Name}': HexPosition not set");
+        }
+
+        AxialCoordinates worldCenter = new AxialCoordinates(0, 0);
+        int hexDistance = location.HexPosition.Value.DistanceTo(worldCenter);
+        location.Difficulty = hexDistance / 5;
+
+        Console.WriteLine($"[LocationPlacement] Calculated difficulty for '{location.Name}': " +
+            $"distance={hexDistance} hexes from center, difficulty={location.Difficulty}");
     }
 
     /// <summary>

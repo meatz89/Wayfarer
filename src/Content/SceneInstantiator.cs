@@ -136,6 +136,11 @@ public class SceneInstantiator
             Situation situation = CreateSituationFromTemplate(sitTemplate, scene);
             Console.WriteLine($"[SceneInstantiator]   Created Situation '{situation.Name}' from template '{sitTemplate.Id}'");
 
+            // Resolution metadata for spawn graph visualization
+            EntityResolutionMetadata locationResolution = null;
+            EntityResolutionMetadata npcResolution = null;
+            EntityResolutionMetadata routeResolution = null;
+
             // Step 2: Resolve entities (find-or-create) - INTEGRATED, NOT SEPARATE
             // LOCATION: Find or create (with RouteDestination proximity support)
             if (situation.LocationFilter != null)
@@ -159,6 +164,7 @@ public class SceneInstantiator
                             $"Cannot resolve RouteDestination proximity for situation '{situation.Name}'.");
                     }
                     location = sceneRoute.DestinationLocation;
+                    locationResolution = EntityResolutionMetadata.ForRouteDestination();
                     Console.WriteLine($"[SceneInstantiator]     ✅ Using RouteDestination '{location.Name}' from route '{sceneRoute.Name}'");
                 }
                 else
@@ -182,10 +188,14 @@ public class SceneInstantiator
                             CreatedTimeBlock = _gameWorld.CurrentTimeBlock
                         };
 
+                        // Build resolution metadata for created location
+                        locationResolution = BuildLocationCreatedMetadata(situation.LocationFilter);
                         Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}' (SceneCreated)");
                     }
                     else
                     {
+                        // Build resolution metadata for discovered location
+                        locationResolution = BuildLocationDiscoveredMetadata(situation.LocationFilter, location);
                         string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
                             ? "SameLocation proximity"
                             : "categorical filter";
@@ -214,10 +224,15 @@ public class SceneInstantiator
                     // Not found - create via PackageLoader (HIGHLANDER single creation path)
                     NPCDTO dto = BuildNPCDTOFromFilter(situation.NpcFilter);
                     npc = _packageLoader.CreateSingleNpc(dto, situation.Location);
+
+                    // Build resolution metadata for created NPC
+                    npcResolution = BuildNPCCreatedMetadata(situation.NpcFilter);
                     Console.WriteLine($"[SceneInstantiator]     ✅ CREATED NPC '{npc.Name}'");
                 }
                 else
                 {
+                    // Build resolution metadata for discovered NPC
+                    npcResolution = BuildNPCDiscoveredMetadata(situation.NpcFilter, npc);
                     string npcResolutionType = situation.NpcFilter.Proximity == PlacementProximity.SameLocation
                         ? "SameLocation proximity"
                         : "categorical filter";
@@ -245,6 +260,8 @@ public class SceneInstantiator
                         $"Route creation not implemented - ensure routes are pre-authored.");
                 }
 
+                // Build resolution metadata for discovered route
+                routeResolution = BuildRouteDiscoveredMetadata(situation.RouteFilter, route);
                 string routeResolutionType = situation.RouteFilter.Proximity == PlacementProximity.SameLocation
                     ? "SameLocation proximity"
                     : "categorical filter";
@@ -267,7 +284,10 @@ public class SceneInstantiator
                     _gameWorld.ProceduralTracer.RecordSituationSpawn(
                         situation,
                         sceneNode,
-                        SituationSpawnTriggerType.InitialScene
+                        SituationSpawnTriggerType.InitialScene,
+                        locationResolution,
+                        npcResolution,
+                        routeResolution
                     );
                 }
             }
@@ -366,6 +386,163 @@ public class SceneInstantiator
             Role = "Generated NPC",
             Description = "A person you've encountered"
         };
+    }
+
+    // ==================== RESOLUTION METADATA BUILDERS ====================
+
+    /// <summary>
+    /// Build resolution metadata for a discovered location
+    /// Tracks which filter properties matched the found location
+    /// </summary>
+    private EntityResolutionMetadata BuildLocationDiscoveredMetadata(PlacementFilter filter, Location location)
+    {
+        PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
+        List<string> matchedProperties = new List<string>();
+
+        if (filter.LocationRole.HasValue && location.Role == filter.LocationRole.Value)
+            matchedProperties.Add("Role");
+        if (filter.Privacy.HasValue && location.Privacy == filter.Privacy.Value)
+            matchedProperties.Add("Privacy");
+        if (filter.Safety.HasValue && location.Safety == filter.Safety.Value)
+            matchedProperties.Add("Safety");
+        if (filter.Activity.HasValue && location.Activity == filter.Activity.Value)
+            matchedProperties.Add("Activity");
+        if (filter.Purpose.HasValue && location.Purpose == filter.Purpose.Value)
+            matchedProperties.Add("Purpose");
+
+        return EntityResolutionMetadata.ForDiscovered(filterSnapshot, matchedProperties);
+    }
+
+    /// <summary>
+    /// Build resolution metadata for a created location
+    /// Tracks which properties came from filter vs defaults
+    /// </summary>
+    private EntityResolutionMetadata BuildLocationCreatedMetadata(PlacementFilter filter)
+    {
+        PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
+        List<string> filterProvided = new List<string>();
+        List<string> generated = new List<string>();
+
+        // Role
+        if (filter.LocationRole.HasValue)
+            filterProvided.Add("Role");
+        else
+            generated.Add("Role");
+
+        // Privacy
+        if (filter.Privacy.HasValue)
+            filterProvided.Add("Privacy");
+        else
+            generated.Add("Privacy");
+
+        // Safety
+        if (filter.Safety.HasValue)
+            filterProvided.Add("Safety");
+        else
+            generated.Add("Safety");
+
+        // Activity
+        if (filter.Activity.HasValue)
+            filterProvided.Add("Activity");
+        else
+            generated.Add("Activity");
+
+        // Purpose
+        if (filter.Purpose.HasValue)
+            filterProvided.Add("Purpose");
+        else
+            generated.Add("Purpose");
+
+        return EntityResolutionMetadata.ForCreated(filterSnapshot, filterProvided, generated);
+    }
+
+    /// <summary>
+    /// Build resolution metadata for a discovered NPC
+    /// Tracks which filter properties matched the found NPC
+    /// </summary>
+    private EntityResolutionMetadata BuildNPCDiscoveredMetadata(PlacementFilter filter, NPC npc)
+    {
+        PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
+        List<string> matchedProperties = new List<string>();
+
+        if (filter.Profession.HasValue && npc.Profession == filter.Profession.Value)
+            matchedProperties.Add("Profession");
+        if (filter.PersonalityType.HasValue && npc.PersonalityType == filter.PersonalityType.Value)
+            matchedProperties.Add("PersonalityType");
+        if (filter.SocialStanding.HasValue && npc.SocialStanding == filter.SocialStanding.Value)
+            matchedProperties.Add("SocialStanding");
+        if (filter.StoryRole.HasValue && npc.StoryRole == filter.StoryRole.Value)
+            matchedProperties.Add("StoryRole");
+        if (filter.MinTier.HasValue && npc.Tier >= filter.MinTier.Value)
+            matchedProperties.Add("MinTier");
+        if (filter.MaxTier.HasValue && npc.Tier <= filter.MaxTier.Value)
+            matchedProperties.Add("MaxTier");
+
+        return EntityResolutionMetadata.ForDiscovered(filterSnapshot, matchedProperties);
+    }
+
+    /// <summary>
+    /// Build resolution metadata for a created NPC
+    /// Tracks which properties came from filter vs defaults
+    /// </summary>
+    private EntityResolutionMetadata BuildNPCCreatedMetadata(PlacementFilter filter)
+    {
+        PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
+        List<string> filterProvided = new List<string>();
+        List<string> generated = new List<string>();
+
+        // Profession
+        if (filter.Profession.HasValue)
+            filterProvided.Add("Profession");
+        else
+            generated.Add("Profession");
+
+        // PersonalityType
+        if (filter.PersonalityType.HasValue)
+            filterProvided.Add("PersonalityType");
+        else
+            generated.Add("PersonalityType");
+
+        // SocialStanding
+        if (filter.SocialStanding.HasValue)
+            filterProvided.Add("SocialStanding");
+        else
+            generated.Add("SocialStanding");
+
+        // StoryRole
+        if (filter.StoryRole.HasValue)
+            filterProvided.Add("StoryRole");
+        else
+            generated.Add("StoryRole");
+
+        // Tier (from MinTier)
+        if (filter.MinTier.HasValue)
+            filterProvided.Add("Tier");
+        else
+            generated.Add("Tier");
+
+        return EntityResolutionMetadata.ForCreated(filterSnapshot, filterProvided, generated);
+    }
+
+    /// <summary>
+    /// Build resolution metadata for a discovered route
+    /// Routes are always discovered (find-only, no creation)
+    /// </summary>
+    private EntityResolutionMetadata BuildRouteDiscoveredMetadata(PlacementFilter filter, RouteOption route)
+    {
+        PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
+        List<string> matchedProperties = new List<string>();
+
+        if (filter.Terrain.HasValue)
+            matchedProperties.Add("Terrain");
+        if (filter.RouteTier.HasValue && route.Tier == filter.RouteTier.Value)
+            matchedProperties.Add("Tier");
+        if (filter.MinDifficulty.HasValue)
+            matchedProperties.Add("MinDifficulty");
+        if (filter.MaxDifficulty.HasValue)
+            matchedProperties.Add("MaxDifficulty");
+
+        return EntityResolutionMetadata.ForDiscovered(filterSnapshot, matchedProperties);
     }
 
     /// <summary>

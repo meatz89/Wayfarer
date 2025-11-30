@@ -241,6 +241,37 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# CONTEXT INJECTION (SCENE GENERATION)
+
+**THE RULE:** Scene generation receives context as input. Generation NEVER reads context from GameWorld.
+
+**Problem solved:** Without context injection, authored tutorials can't control scene sequencing. A1 completing doesn't guarantee A2 will be Investigation—it depends on player's current state at generation time.
+
+**Solution:** Context is always injected by the caller:
+
+| Content Type | Context Source |
+|--------------|----------------|
+| **Authored (A1-A10)** | Author specifies exact context in spawn reward |
+| **Procedural (A11+)** | System reads GameWorld state, passes as context |
+
+Same generation code handles both. HIGHLANDER compliance achieved through context injection, not conditional branching.
+
+**FORBIDDEN:**
+- `_gameWorld.GetPlayer()` inside generation methods
+- `if (isAuthored) ... else ...` branching
+- Context discovery at generation time
+- Different code paths for tutorial vs procedural
+
+**Required:**
+- Context passed as parameter to generation methods
+- Generation is pure function: same context → same output
+- Caller (authored content or procedural system) constructs context
+- Context carried in spawn request DTO
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.28, `gdd/06_balance.md` §6.8
+
+---
+
 # FAIL-FAST PHILOSOPHY
 
 **THE RULE:** Missing data should fail loudly, not silently default.
@@ -388,33 +419,49 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
-# PRE-COMMIT HOOK (REQUIRED)
+# FILE SIZE LIMIT (1000 LINES MAX)
 
-**Installation (run once per clone):**
-```bash
-./scripts/hooks/install.sh
-```
+**THE RULE:** No source file may exceed 1000 lines. Files over this threshold are a code smell indicating the need for holistic refactoring.
 
-**What it enforces:**
-| Category | Checks |
-|----------|--------|
-| DDR-007 | Decimal multipliers, basis points, float/double types |
-| TYPE | Dictionary, HashSet, `var` keyword |
-| HIGHLANDER | Entity instance ID properties |
-| FAIL-FAST | Null coalescing (??), TryGetValue/TryParse |
-| SEPARATION | CssClass/IconName in backend services |
-| QUALITY | TODO/FIXME comments, .Wait()/.Result, extension methods |
-| NAMESPACE | Namespace declarations in domain code |
-| DETERMINISM | Random usage outside Pile.cs |
-| CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
-| DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
-| ICONS | Emojis in .razor files (use `<Icon>` component) |
-| EXPLICIT | String-based property modification patterns |
-| ARCHETYPE | Tutorial hardcoding (AStorySequence checks) in Catalog/Archetype files |
+**Why:** Large files indicate:
+- Too many responsibilities in one place (violates Single Responsibility)
+- Insufficient abstraction (concepts are tangled, not separated)
+- Cognitive overload (developers cannot hold the file in memory)
+- Refactoring debt accumulating silently
+
+**When a violation is detected:**
+
+| Step | Action |
+|------|--------|
+| 1 | **STOP** - Do not commit, do not proceed with tactical fixes |
+| 2 | **PLAN HOLISTICALLY** - Use agents to analyze the entire file and its dependencies |
+| 3 | **DEBATE ALTERNATIVES** - Consider multiple refactoring strategies before choosing |
+| 4 | **IMPLEMENT COMPLETELY** - Refactor in vertical slices, never leave partial work |
+
+**FORBIDDEN:**
+- "Quick split" into arbitrary files (tactical)
+- Adding more code to an already-large file
+- Bypassing the check without a refactoring plan
+- Partial refactoring ("I'll finish this later")
+
+**Holistic Refactoring Requirements:**
+1. Understand the file's complete responsibility graph
+2. Identify natural seams (distinct concepts, cohesive groups)
+3. Plan the target structure BEFORE any code changes
+4. Execute as vertical slices (each slice compiles and works)
+5. Verify no regressions after each slice
+
+**Enforcement:** Pre-commit hook blocks commits with files exceeding 1000 lines.
+
+---
+
+# PRE-COMMIT HOOK
+
+Pre-commit hooks are auto-installed at session start. They enforce the principles documented in CLAUDE.md by blocking commits with violations.
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 
-**Reference:** `arc42/08_crosscutting_concepts.md` for architectural rationale
+The hook is self-documenting - run it to see what it checks. Source: `scripts/hooks/pre-commit`
 
 ---
 

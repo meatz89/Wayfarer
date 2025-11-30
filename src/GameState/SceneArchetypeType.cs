@@ -87,8 +87,8 @@ public enum SceneArchetypeType
     MoralCrossroads,
 
     // ==================== PEACEFUL PATTERNS (3) ====================
-    // Recovery-focused patterns for exhausted players (Resolve less than 3)
-    // All choices positive, no requirements, stat grants only
+    // Recovery-focused patterns appearing every 8th sequence (earned structural respite)
+    // All choices positive, no requirements, stat grants only (Building rhythm)
 
     /// <summary>
     /// Quiet meditation and mental recovery scene.

@@ -144,11 +144,15 @@ public class ProceduralContentTracer
     /// <summary>
     /// Record situation spawn event
     /// Creates trace node, links to parent scene and situation (if cascade)
+    /// Optional resolution metadata captures how entities were discovered/created
     /// </summary>
     public SituationSpawnNode RecordSituationSpawn(
         Situation situation,
         SceneSpawnNode parentScene,
-        SituationSpawnTriggerType spawnTrigger)
+        SituationSpawnTriggerType spawnTrigger,
+        EntityResolutionMetadata locationResolution = null,
+        EntityResolutionMetadata npcResolution = null,
+        EntityResolutionMetadata routeResolution = null)
     {
         if (!IsEnabled) return null;
 
@@ -167,8 +171,11 @@ public class ProceduralContentTracer
                 SystemType = situation.SystemType,
                 InteractionType = situation.InteractionType,
                 Location = situation.Location != null ? SnapshotFactory.CreateLocationSnapshot(situation.Location) : null,
+                LocationResolution = locationResolution,
                 NPC = situation.Npc != null ? SnapshotFactory.CreateNPCSnapshot(situation.Npc) : null,
+                NPCResolution = npcResolution,
                 Route = situation.Route != null ? SnapshotFactory.CreateRouteSnapshot(situation.Route) : null,
+                RouteResolution = routeResolution,
                 SegmentIndex = situation.SegmentIndex > 0 ? situation.SegmentIndex : null,
                 LifecycleStatus = LifecycleStatus.Selectable
             };

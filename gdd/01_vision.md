@@ -120,6 +120,9 @@ No ticking clocks forcing rushed decisions. Time pressure comes from opportunity
 ### Not Guilt Manipulation
 The game never punishes you for not engaging with content. NPCs don't die because you ignored them. The world persists, patient.
 
+### Not Over-Forgiving
+The game does not rescue struggling players. Low Resolve is the player's consequence for overspending—the game respects that choice. Players must see greyed-out choices they cannot afford; this teaches planning. Fair rhythm (one crisis at a time, respite between) is not the same as automatic recovery. See gdd/06_balance.md §6.8 for detailed philosophy.
+
 ---
 
 ## 1.5 Foundational Principle: Requirement Inversion
@@ -149,7 +152,7 @@ This is WHY Wayfarer feels different from traditional RPGs. Progression is conti
 When design principles conflict, resolve by tier priority:
 
 ### TIER 1: Non-Negotiable (Never Compromise)
-1. **No Soft-Locks** — Player can ALWAYS make forward progress
+1. **No Soft-Locks (A-Story Only)** — Main story ALWAYS has fallback choices; B/C stories may fully gate
 2. **Single Source of Truth** — One owner per entity type (HIGHLANDER)
 
 ### TIER 2: Core Experience (Compromise Only for Tier 1)
@@ -242,5 +245,6 @@ The tutorial produces specific scenes NOT through overrides or bypasses, but bec
 - **Core Loops**: See [03_core_loop.md](03_core_loop.md) for how pillars manifest in gameplay
 - **Balance**: See [06_balance.md](06_balance.md) for how scarcity creates depth
 - **Rhythm System**: See [06_balance.md §6.4](06_balance.md) for Sir Brante rhythm implementation
+- **Challenge Philosophy**: See [06_balance.md §6.8](06_balance.md#68-challenge-and-consequence-philosophy) for fair-not-forgiving principle
 - **Psychological Laws**: See [design/13_player_experience_emergence_laws.md](../design/13_player_experience_emergence_laws.md) for player psychology
 - **Detailed Design**: See [design/01_design_vision.md](../design/01_design_vision.md) for exhaustive treatment

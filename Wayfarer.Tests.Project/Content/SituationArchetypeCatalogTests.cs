@@ -6,16 +6,17 @@ namespace Wayfarer.Tests.Content;
 /// Tests for SituationArchetypeCatalog - fail-fast validation, peaceful archetypes
 ///
 /// REGRESSION TESTS: Prevent gaps in peaceful archetype generation from recurring
-/// See ProceduralAStoryServiceTests for player readiness and category resolution tests
+/// Peaceful archetypes appear every 8th sequence as earned structural respite
 /// </summary>
 public class SituationArchetypeCatalogTests
 {
     // ==================== PEACEFUL SITUATION ARCHETYPES ====================
+    // Used in 8-cycle rotation every 8th sequence for earned respite
 
     [Fact]
     public void GetArchetype_MeditationAndReflection_ReturnsValidArchetype()
     {
-        // CRITICAL: Peaceful archetype must exist for exhausted player recovery
+        // CRITICAL: Peaceful archetype must exist for 8-cycle rotation
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
 
         Assert.NotNull(archetype);
@@ -26,7 +27,7 @@ public class SituationArchetypeCatalogTests
     [Fact]
     public void GetArchetype_LocalConversation_ReturnsValidArchetype()
     {
-        // CRITICAL: Peaceful archetype must exist for exhausted player recovery
+        // CRITICAL: Peaceful archetype must exist for 8-cycle rotation
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.LocalConversation);
 
         Assert.NotNull(archetype);
@@ -37,7 +38,7 @@ public class SituationArchetypeCatalogTests
     [Fact]
     public void GetArchetype_StudyInLibrary_ReturnsValidArchetype()
     {
-        // CRITICAL: Peaceful archetype must exist for exhausted player recovery
+        // CRITICAL: Peaceful archetype must exist for 8-cycle rotation
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.StudyInLibrary);
 
         Assert.NotNull(archetype);

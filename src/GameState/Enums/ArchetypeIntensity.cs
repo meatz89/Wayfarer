@@ -1,31 +1,35 @@
 
 /// <summary>
-/// Categorizes situation archetypes by their demand on player resources.
-/// Used by ProceduralAStoryService to filter archetype selection based on player readiness.
+/// Categorizes situation archetypes by their inherent challenge level.
+/// Content categorization ONLY - does NOT affect which situations display to players.
 ///
 /// THREE-LEVEL SYSTEM (named to avoid collision with RhythmPattern values):
-/// - Exhausted player (Resolve less than 3) → RECOVERY only
-/// - Normal player (Resolve 3-15) → RECOVERY, STANDARD
-/// - Capable player (Resolve greater than 15) → Any intensity including DEMANDING
+/// - RECOVERY: Restoration-focused archetypes (rest, study, casual encounters)
+/// - STANDARD: Moderate trade-off archetypes (investigation, social maneuvering)
+/// - DEMANDING: High-stakes archetypes (crisis, confrontation)
 ///
-/// ORTHOGONAL TO RHYTHM: ArchetypeIntensity controls WHICH archetypes are selected.
-/// RhythmPattern (Building/Crisis/Mixed) controls HOW choices within archetypes are structured.
-/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+/// CHALLENGE PHILOSOPHY: Player state does NOT filter situation visibility.
+/// All situations display regardless of player Resolve. Learning comes from seeing
+/// choices players cannot afford (greyed-out requirements), not hidden situations.
+///
+/// ORTHOGONAL TO RHYTHM: ArchetypeIntensity describes content challenge level.
+/// RhythmPattern (Building/Crisis/Mixed) controls HOW choices are structured.
+/// See arc42/08_crosscutting_concepts.md §8.26 and gdd/06_balance.md §6.8
 /// </summary>
 public enum ArchetypeIntensity
 {
     /// <summary>
     /// Lowest intensity - recovery-focused archetypes.
     /// No Resolve cost, no stat requirements, purely positive outcomes.
-    /// Used when player is exhausted and needs breathing room.
-    /// Examples: MeditationAndReflection, LocalConversation, StudyInLibrary
+    /// Generated as earned structural respite every 8th sequence (Peaceful category).
+    /// Examples: QuietReflection, CasualEncounter, ScholarlyPursuit
     /// </summary>
     Recovery,
 
     /// <summary>
     /// Standard intensity - normal trade-off archetypes.
     /// Standard Resolve cost, stat requirements present.
-    /// Used for normal gameplay progression.
+    /// Generated for Investigation and Social categories.
     /// Examples: Negotiation, Investigation, SocialManeuvering, Service transactions
     /// </summary>
     Standard,
@@ -33,7 +37,7 @@ public enum ArchetypeIntensity
     /// <summary>
     /// High intensity - demanding archetypes.
     /// High Resolve cost, significant stat requirements.
-    /// Only appropriate when player is well-resourced.
+    /// Generated for Crisis and Confrontation categories.
     /// Examples: Crisis, Confrontation, EmergencyAid
     /// </summary>
     Demanding

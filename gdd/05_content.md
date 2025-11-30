@@ -196,6 +196,29 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
 
+### Authored Scene Sequencing (Context Injection)
+
+When authored content spawns the next A-story scene, it specifies **generation context** to control the outcome:
+
+| Context Property | What It Controls |
+|------------------|------------------|
+| **TargetCategory** | Archetype category (Investigation, Social, Confrontation, Crisis, Peaceful) |
+| **LocationContext** | Safety/Purpose values that influence category selection |
+| **IntensityHint** | Override intensity balance scoring |
+| **RhythmPhase** | Building, Crisis, or Mixed rhythm for choice structure |
+| **Exclusions** | Archetypes to avoid (anti-repetition) |
+
+**Authored vs Procedural Context:**
+
+| Flow | Context Source |
+|------|----------------|
+| **Tutorial (A1-A10)** | Author specifies exact context in spawn reward: "next scene is Investigation at Safe location with Building rhythm" |
+| **Infinite (A11+)** | System reads current GameWorld state and passes as context |
+
+Same generation code handles both flows—no special tutorial code paths. Author control is achieved through context specification, not conditional logic.
+
+See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
+
 ### B/C Story Flexibility
 
 B and C stories have relaxed rules:

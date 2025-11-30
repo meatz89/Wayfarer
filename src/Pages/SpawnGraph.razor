@@ -235,6 +235,7 @@
         Diagram.RegisterComponent<SituationNodeModel, SituationNodeWidget>();
         Diagram.RegisterComponent<ChoiceNodeModel, ChoiceNodeWidget>();
         Diagram.RegisterComponent<EntityNodeModel, EntityNodeWidget>();
+        Diagram.RegisterComponent<SpawnGraphLinkModel, EntityLinkWidget>();
     }
 
     private async Task BuildGraphAsync()

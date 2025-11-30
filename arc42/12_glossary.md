@@ -8,7 +8,7 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
-| **ArchetypeIntensity** | Player readiness filter for procedural content: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Three-level system mapping player Resolve to safe archetypes. Named to avoid collision with RhythmPattern values. Determines WHICH archetypes are safe for current player state. Orthogonal to RhythmPattern. |
+| **ArchetypeIntensity** | Content categorization for procedural archetypes: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Describes inherent challenge level of content, NOT player eligibility. Named to avoid collision with RhythmPattern values. Orthogonal to RhythmPattern. |
 | **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
@@ -18,6 +18,7 @@ Domain and technical terms used throughout this documentation.
 | **Connection State** | NPC relationship level (Disconnected → Guarded → Neutral → Receptive → Trusting) |
 | **Fallback Choice** | Zero-requirement option ensuring forward progress; prevents soft-locks |
 | **Four-Choice Pattern** | Standard situation structure: stat-gated, money-gated, challenge, fallback |
+| **Net Challenge** | Query-time scaling factor: LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]. Negative = player overpowered, positive = underpowered. Applied to ALL stat requirements via ApplyStatAdjustment(), stacked with NPC demeanor. Creates RPG-like quest level scaling based on hex distance from world center. |
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |

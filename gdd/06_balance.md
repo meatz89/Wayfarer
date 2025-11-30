@@ -438,7 +438,203 @@ If late-game equipment trivializes challenges, tight margins philosophy breaks. 
 
 ---
 
-## 6.8 Sources and References
+## 6.8 Challenge and Consequence Philosophy
+
+### The Fundamental Tension
+
+Wayfarer must be **fair, not forgiving**. The game protects players from soft-locks while demanding they face consequences for their choices. These are orthogonal concerns:
+
+| Concern | Solution | Scope |
+|---------|----------|-------|
+| **Soft-lock prevention** | Fallback choices exist | A-story only |
+| **Consequence enforcement** | Requirements gate desirable choices | All content |
+
+### Story Tier Protection (Differentiated Safety)
+
+**A-Story (Main Path):** Every situation MUST have at least one fallback choice with no requirements. Players can ALWAYS advance the main story, though not always via their preferred path.
+
+**B/C Stories (Side Content):** No such guarantee. Players may find themselves locked out of side content entirely based on their resource state. This is intentional—side stories are earned through preparation, not guaranteed.
+
+| Story Tier | Soft-Lock Protection | Design Intent |
+|------------|---------------------|---------------|
+| **A-Story** | Fallback always available | Critical path must never block |
+| **B-Story** | Requirements may fully gate | Rewards prepared players |
+| **C-Story** | Requirements may fully gate | Optional depth for specialists |
+
+### Consequences Are Player Responsibility
+
+**The game does NOT coddle struggling players.**
+
+When players have low or negative Resolve, the game does not generate "nice" situations to help them recover. Low Resolve is the consequence of overspending—it's the player's fault, and the game respects that choice by not erasing its meaning.
+
+| Player State | Game Response | Rationale |
+|--------------|---------------|-----------|
+| Overspent Resolve | Face normal content | Consequences teach planning |
+| Underinvested stats | See greyed-out choices | Shows what they're missing |
+| Made poor trade-offs | Pay higher costs later | Choices must matter |
+
+**Anti-pattern:** Generating recovery situations whenever players struggle removes the meaning of resource management. If the game always saves you, spending recklessly becomes optimal.
+
+### Learning Through Visible Unmet Requirements
+
+Players MUST regularly see choices they WANT but CANNOT afford. This is not cruelty—it's pedagogy.
+
+When a player sees a greyed-out choice with "Requires Authority 4" and they have Authority 2, they learn:
+- What they could have done with different investments
+- What to prioritize in future building situations
+- That the choice they skipped three situations ago had consequences NOW
+
+**Design Principle:** Periodically generate situations where at least one attractive choice is gated by requirements the player doesn't meet. The fallback exists, but the player should FEEL that their past choices constrained their present options.
+
+### Difficulty Scaling: Player Strength vs World Position
+
+Difficulty emerges from the relationship between player capability and world challenge:
+
+| Factor | Calculation | Effect |
+|--------|-------------|--------|
+| **Player Strength** | Sum of all stats | Higher = more paths qualify |
+| **World Difficulty** | Distance from starting hex | Further = higher requirements |
+| **Net Challenge** | World - Player | Determines how many choices are gated |
+
+Requirements scale based on this relationship. A player who has invested well finds more choices available; a player who spread thin or overspent finds more choices locked.
+
+### Fair Rhythm, Not Forgiveness
+
+The game maintains fairness through rhythm, not rescue:
+
+| Principle | Implementation |
+|-----------|----------------|
+| **One crisis at a time** | Never stack multiple crisis situations |
+| **Respite exists** | Building situations appear between crises |
+| **Ebbs and flows** | Tension rises and falls naturally |
+| **Anticipation builds** | Player senses crisis approaching |
+
+**What this is NOT:**
+- Rescue mechanics that save overextended players
+- Difficulty reduction when player is struggling
+- Automatic recovery when Resolve is low
+- Removal of demanding content for unprepared players
+
+### 8-Sequence Rotation (Earned Structural Respite)
+
+Procedural A-Story generation follows an 8-sequence cycle with Peaceful as earned respite:
+
+| Position | Category | Intensity | Purpose |
+|----------|----------|-----------|---------|
+| 1 | Investigation | Standard | Information gathering |
+| 2 | Social | Standard | Relationship building |
+| 3 | Confrontation | Demanding | Rising tension |
+| 4 | Crisis | Demanding | Peak challenge |
+| 5 | Investigation | Standard | New thread |
+| 6 | Social | Standard | Consolidation |
+| 7 | Confrontation | Demanding | Building to climax |
+| 8 | **Peaceful** | **Recovery** | **Earned respite** |
+
+**Design rationale:**
+- Peaceful appears every 8th sequence (12.5% frequency) - uncommon but predictable
+- Replaces what would be a second Crisis - never two Crisis in a row
+- Peaceful is EARNED through story structure, not given when player struggles
+- Creates intensity flow: Standard → Standard → Demanding → Demanding → Standard → Standard → Demanding → Recovery
+
+**Rhythm pattern assignment:**
+- Peaceful always uses Building rhythm (all positive choices)
+- Investigation after Crisis/Peaceful uses Building rhythm (recovery)
+- Crisis always uses Crisis rhythm (penalty on fallback)
+- Other categories use Mixed rhythm (standard trade-offs)
+
+### Context-Aware Scene Selection (IMPLEMENTED)
+
+The 8-sequence rotation above serves as a **base rotation baseline**. The actual implementation uses a **weighted scoring algorithm** that considers multiple contextual factors while remaining fully deterministic.
+
+**Design Decisions:**
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Determinism | Same inputs always produce same output | Predictable for debugging, fair for players |
+| Player resources | NO influence on category selection | Challenge Philosophy - no coddling |
+| Location context | STRONG influence | Safety/Purpose drive narrative appropriateness |
+| Peaceful selection | Context-based, not fixed position | Earned through intensity history |
+
+**Scene Type Selection Factors:**
+
+| Factor | Influence | Implementation Status |
+|--------|-----------|----------------------|
+| Base rotation | Provides predictable baseline | IMPLEMENTED (weighted, not overriding) |
+| Location context | Safety and Purpose strongly bias categories | IMPLEMENTED |
+| Intensity balance | Prevents monotony, triggers recovery when needed | IMPLEMENTED |
+| Rhythm phase | Post-crisis favors lighter content | IMPLEMENTED |
+| Anti-repetition | Recent categories penalized | IMPLEMENTED |
+| Previous player choice | Consequence-driven storytelling | NOT YET IMPLEMENTED |
+| Story state | Encountered NPCs, collected artifacts | NOT YET IMPLEMENTED |
+
+**Key Principles:**
+
+- **Deterministic but Responsive:** Same game state always produces same selection, but selection adapts to context
+- **Location Drives Atmosphere:** Dangerous locations strongly favor Crisis/Confrontation; Safe locations favor Peaceful/Social
+- **Peaceful is Earned:** Heavy demanding history (multiple high-intensity scenes) triggers Peaceful selection via intensity balance scoring
+- **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection (Challenge Philosophy)
+- **Intensity Recording:** Each completed A-story scene records its intensity for future context-aware decisions
+- **Context Injection:** Generation never discovers context from world state; context is always injected by the caller
+
+**Context Injection Principle (HIGHLANDER Compliance):**
+
+Scene generation receives context as input, not by reading GameWorld. This enables:
+
+| Content Type | Context Source | Outcome |
+|--------------|----------------|---------|
+| **Procedural** | Caller reads GameWorld state, passes as context | Dynamic adaptation to current game state |
+| **Authored** | Content author specifies exact context | Deterministic sequence (A1→A2→A3 precisely) |
+
+Same generation code handles both — no special cases for tutorial vs infinite progression.
+
+**Why this matters:**
+- Authored tutorial sequences (A1-A10) need predictable outcomes
+- Without context injection, authored A1 can't guarantee A2 will be Investigation category
+- Context at generation time depends on player's current state, not author's intent
+- Context injection lets authors specify "generate with Investigation context" regardless of player state
+
+See arc42/08 §8.28 for technical implementation pattern.
+
+**Choice Value Calculation SHOULD Consider:**
+
+| Factor | Calculation | Effect | Current Status |
+|--------|-------------|--------|----------------|
+| Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | IMPLEMENTED (Player.TotalStatStrength) |
+| Location Difficulty | Hex distance from (0,0) / 5 | Further = higher requirements | IMPLEMENTED (LocationPlacementService) |
+| Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | PARTIAL (tier-based) |
+| NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
+| Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
+
+**Net Challenge Formula (FULLY IMPLEMENTED):**
+
+The relationship between player capability and world position determines stat requirement difficulty:
+- **Player Strength** (sum of stats) determines baseline capability
+- **Location Difficulty** (hex distance / 5) determines baseline challenge
+- **Net Challenge** = LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]
+
+RuntimeScalingContext.NetChallengeAdjustment is calculated at query-time and applied to ALL stat requirements via ApplyStatAdjustment(). Combined with NPC demeanor adjustment:
+- **Total Stat Adjustment** = StatRequirementAdjustment (NPC) + NetChallengeAdjustment (Location vs Player)
+- Example: Hostile NPC (+2) + Underpowered player (+2) = +4 to all stat thresholds
+- Example: Friendly NPC (-2) + Overpowered player (-3) = -5 to all stat thresholds (floored at 0)
+
+A player who invested well finds more choices available; a player who spread thin or overspent finds more choices locked. This creates natural difficulty scaling without artificial level gates.
+
+### Intensity Categorization vs Choice Requirements (Orthogonal Systems)
+
+Two separate systems describe content, but only one gates player access:
+
+| System | Purpose | Effect on Player |
+|--------|---------|------------------|
+| **ArchetypeIntensity** | Content categorization | Describes challenge level; does NOT filter visibility |
+| **Choice Requirements** | Access gating | Stats/resources gate individual choices |
+
+**Critical distinction:** ALL situations display regardless of player state. ArchetypeIntensity (Recovery/Standard/Demanding) describes inherent content difficulty but never hides situations from struggling players. Learning happens when players SEE demanding situations but find their attractive choices greyed-out due to unmet requirements.
+
+A crisis situation displays even when the player is exhausted. The fallback exists, but the player sees what they COULD have done with better resource management. This teaches consequence through visible limitation, not through hidden content.
+
+---
+
+## 6.9 Sources and References
 
 ### The Life and Suffering of Sir Brante
 
@@ -455,6 +651,8 @@ Key design insight from developer: "The protagonist ain't almighty and his inner
 
 ## Cross-References
 
+- **Vision**: See [01_vision.md §1.4](01_vision.md#14-anti-goals-what-wayfarer-is-not) for "Not Over-Forgiving" anti-goal
+- **Tier Hierarchy**: See [01_vision.md §1.6](01_vision.md#16-design-principle-tier-hierarchy) for soft-lock scope (A-story only)
 - **Numeric Values**: See [design/BASELINE_ECONOMY.md](../design/BASELINE_ECONOMY.md) for exact costs/rewards
 - **Detailed Philosophy**: See [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for exhaustive treatment
 - **Design Methodology**: See [design/DESIGN_GUIDE.md](../design/DESIGN_GUIDE.md) for practical balance workflow

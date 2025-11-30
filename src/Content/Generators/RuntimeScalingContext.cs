@@ -43,6 +43,15 @@ public class RuntimeScalingContext
     public int TimeCostAdjustment { get; init; }
 
     /// <summary>
+    /// Net Challenge adjustment based on player strength vs location difficulty.
+    /// Formula: LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]
+    /// Negative = player overpowered for area (easier challenges)
+    /// Positive = player underpowered for area (harder challenges)
+    /// Zero = balanced match between player and location
+    /// </summary>
+    public int NetChallengeAdjustment { get; init; }
+
+    /// <summary>
     /// Create no-op scaling context (no adjustments).
     /// Used when no entities are available for derivation.
     /// </summary>
@@ -53,7 +62,8 @@ public class RuntimeScalingContext
             StatRequirementAdjustment = 0,
             CoinCostAdjustment = 0,
             ResolveCostAdjustment = 0,
-            TimeCostAdjustment = 0
+            TimeCostAdjustment = 0,
+            NetChallengeAdjustment = 0
         };
     }
 
@@ -76,7 +86,8 @@ public class RuntimeScalingContext
             StatRequirementAdjustment = DeriveStatAdjustment(npc),
             CoinCostAdjustment = DeriveCoinAdjustment(location),
             ResolveCostAdjustment = DeriveResolveAdjustment(npc, player),
-            TimeCostAdjustment = DeriveTimeAdjustment(location, player)
+            TimeCostAdjustment = DeriveTimeAdjustment(location, player),
+            NetChallengeAdjustment = DeriveNetChallengeAdjustment(location, player)
         };
     }
 
@@ -177,12 +188,45 @@ public class RuntimeScalingContext
     }
 
     /// <summary>
+    /// Derive Net Challenge adjustment from player strength vs location difficulty.
+    /// Formula: LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]
+    /// DDR-007: Integer division only, no floats/multipliers.
+    ///
+    /// Interpretation:
+    /// - Negative values: Player overpowered for area (could reduce stat requirements)
+    /// - Positive values: Player underpowered for area (could increase stat requirements)
+    /// - Zero: Balanced match between player and location
+    /// </summary>
+    private static int DeriveNetChallengeAdjustment(Location location, Player player)
+    {
+        if (location == null || player == null) return 0;
+
+        int locationDifficulty = location.Difficulty;
+        int playerStrength = player.TotalStatStrength;
+
+        // Formula: LocationDifficulty - (PlayerStrength / 5)
+        // Integer division ensures DDR-007 compliance
+        int netChallenge = locationDifficulty - (playerStrength / 5);
+
+        // Clamp to [-3, +3] range to prevent extreme swings
+        if (netChallenge < -3) return -3;
+        if (netChallenge > 3) return 3;
+        return netChallenge;
+    }
+
+    /// <summary>
     /// Apply stat requirement adjustment to a base value.
+    /// Combines NPC demeanor adjustment (StatRequirementAdjustment) with
+    /// player-vs-location scaling (NetChallengeAdjustment).
     /// Ensures result is never negative.
+    ///
+    /// Total adjustment = StatRequirementAdjustment + NetChallengeAdjustment
+    /// - StatRequirementAdjustment: Hostile +2, Neutral 0, Friendly -2
+    /// - NetChallengeAdjustment: Underpowered +1 to +3, Overpowered -1 to -3
     /// </summary>
     public int ApplyStatAdjustment(int baseValue)
     {
-        int adjusted = baseValue + StatRequirementAdjustment;
+        int adjusted = baseValue + StatRequirementAdjustment + NetChallengeAdjustment;
         return adjusted < 0 ? 0 : adjusted;
     }
 
