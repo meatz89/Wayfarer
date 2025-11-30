@@ -362,7 +362,99 @@ If late-game equipment trivializes challenges, tight margins philosophy breaks. 
 
 ---
 
-## 6.8 Sources and References
+## 6.8 Challenge and Consequence Philosophy
+
+### The Fundamental Tension
+
+Wayfarer must be **fair, not forgiving**. The game protects players from soft-locks while demanding they face consequences for their choices. These are orthogonal concerns:
+
+| Concern | Solution | Scope |
+|---------|----------|-------|
+| **Soft-lock prevention** | Fallback choices exist | A-story only |
+| **Consequence enforcement** | Requirements gate desirable choices | All content |
+
+### Story Tier Protection (Differentiated Safety)
+
+**A-Story (Main Path):** Every situation MUST have at least one fallback choice with no requirements. Players can ALWAYS advance the main story, though not always via their preferred path.
+
+**B/C Stories (Side Content):** No such guarantee. Players may find themselves locked out of side content entirely based on their resource state. This is intentional—side stories are earned through preparation, not guaranteed.
+
+| Story Tier | Soft-Lock Protection | Design Intent |
+|------------|---------------------|---------------|
+| **A-Story** | Fallback always available | Critical path must never block |
+| **B-Story** | Requirements may fully gate | Rewards prepared players |
+| **C-Story** | Requirements may fully gate | Optional depth for specialists |
+
+### Consequences Are Player Responsibility
+
+**The game does NOT coddle struggling players.**
+
+When players have low or negative Resolve, the game does not generate "nice" situations to help them recover. Low Resolve is the consequence of overspending—it's the player's fault, and the game respects that choice by not erasing its meaning.
+
+| Player State | Game Response | Rationale |
+|--------------|---------------|-----------|
+| Overspent Resolve | Face normal content | Consequences teach planning |
+| Underinvested stats | See greyed-out choices | Shows what they're missing |
+| Made poor trade-offs | Pay higher costs later | Choices must matter |
+
+**Anti-pattern:** Generating recovery situations whenever players struggle removes the meaning of resource management. If the game always saves you, spending recklessly becomes optimal.
+
+### Learning Through Visible Unmet Requirements
+
+Players MUST regularly see choices they WANT but CANNOT afford. This is not cruelty—it's pedagogy.
+
+When a player sees a greyed-out choice with "Requires Authority 4" and they have Authority 2, they learn:
+- What they could have done with different investments
+- What to prioritize in future building situations
+- That the choice they skipped three situations ago had consequences NOW
+
+**Design Principle:** Periodically generate situations where at least one attractive choice is gated by requirements the player doesn't meet. The fallback exists, but the player should FEEL that their past choices constrained their present options.
+
+### Difficulty Scaling: Player Strength vs World Position
+
+Difficulty emerges from the relationship between player capability and world challenge:
+
+| Factor | Calculation | Effect |
+|--------|-------------|--------|
+| **Player Strength** | Sum of all stats | Higher = more paths qualify |
+| **World Difficulty** | Distance from starting hex | Further = higher requirements |
+| **Net Challenge** | World - Player | Determines how many choices are gated |
+
+Requirements scale based on this relationship. A player who has invested well finds more choices available; a player who spread thin or overspent finds more choices locked.
+
+### Fair Rhythm, Not Forgiveness
+
+The game maintains fairness through rhythm, not rescue:
+
+| Principle | Implementation |
+|-----------|----------------|
+| **One crisis at a time** | Never stack multiple crisis situations |
+| **Respite exists** | Building situations appear between crises |
+| **Ebbs and flows** | Tension rises and falls naturally |
+| **Anticipation builds** | Player senses crisis approaching |
+
+**What this is NOT:**
+- Rescue mechanics that save overextended players
+- Difficulty reduction when player is struggling
+- Automatic recovery when Resolve is low
+- Removal of demanding content for unprepared players
+
+### Intensity Filtering vs Choice Requirements (Orthogonal Systems)
+
+Two separate systems control player experience:
+
+| System | Controls | Mechanism |
+|--------|----------|-----------|
+| **Intensity Filtering** | WHICH situations appear | Exhausted players see Recovery situations |
+| **Choice Requirements** | WHICH choices are available | Stats/resources gate individual choices |
+
+**Critical distinction:** Intensity filtering determines situation DISPLAY. Within ANY situation—even Recovery—choices can still have requirements that players cannot meet. A peaceful evening at the inn still offers choices that reward high Rapport while the Fallback merely provides basic recovery.
+
+The intensity system prevents exhausted players from facing Demanding situations (crisis, confrontation). It does NOT make the available situations trivially easy.
+
+---
+
+## 6.9 Sources and References
 
 ### The Life and Suffering of Sir Brante
 
@@ -379,6 +471,8 @@ Key design insight from developer: "The protagonist ain't almighty and his inner
 
 ## Cross-References
 
+- **Vision**: See [01_vision.md §1.4](01_vision.md#14-anti-goals-what-wayfarer-is-not) for "Not Over-Forgiving" anti-goal
+- **Tier Hierarchy**: See [01_vision.md §1.6](01_vision.md#16-design-principle-tier-hierarchy) for soft-lock scope (A-story only)
 - **Numeric Values**: See [design/BASELINE_ECONOMY.md](../design/BASELINE_ECONOMY.md) for exact costs/rewards
 - **Detailed Philosophy**: See [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for exhaustive treatment
 - **Design Methodology**: See [design/DESIGN_GUIDE.md](../design/DESIGN_GUIDE.md) for practical balance workflow
