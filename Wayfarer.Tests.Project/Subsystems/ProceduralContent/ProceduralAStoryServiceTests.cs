@@ -159,7 +159,7 @@ public class ProceduralAStoryServiceTests
     }
 
     // ==================== PEACEFUL CATEGORY TESTS ====================
-    // Regression tests for player readiness filtering gaps
+    // Peaceful category exists for Recovery-intensity situations
 
     [Fact]
     public void Catalog_PeacefulCategory_ReturnsNonEmptyList()
@@ -203,71 +203,4 @@ public class ProceduralAStoryServiceTests
         }
     }
 
-    // ==================== PLAYER READINESS TESTS ====================
-
-    [Theory]
-    [InlineData(0, ArchetypeIntensity.Recovery)]   // Exhausted (0 Resolve)
-    [InlineData(1, ArchetypeIntensity.Recovery)]   // Exhausted (1 Resolve)
-    [InlineData(2, ArchetypeIntensity.Recovery)]   // Exhausted (2 Resolve)
-    [InlineData(3, ArchetypeIntensity.Standard)]    // Normal (exactly at threshold)
-    [InlineData(10, ArchetypeIntensity.Standard)]   // Normal
-    [InlineData(15, ArchetypeIntensity.Standard)]   // Normal (at threshold)
-    [InlineData(16, ArchetypeIntensity.Demanding)]    // Capable (above threshold)
-    [InlineData(30, ArchetypeIntensity.Demanding)]    // Capable (well above)
-    public void PlayerReadiness_GetMaxSafeIntensity_ReturnsCorrectLevel(int resolve, ArchetypeIntensity expectedIntensity)
-    {
-        // CRITICAL: Player readiness determines which archetypes are safe
-        // Exhausted players (Resolve < 3) must ONLY get Recovery archetypes
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player player = new Player { Resolve = resolve };
-
-        ArchetypeIntensity actualIntensity = service.GetMaxSafeIntensity(player);
-
-        Assert.Equal(expectedIntensity, actualIntensity);
-    }
-
-    [Fact]
-    public void PlayerReadiness_ExhaustedPlayer_OnlyRecoverySafe()
-    {
-        // CRITICAL: Exhausted player must ONLY have Recovery in safe list
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player exhaustedPlayer = new Player { Resolve = 1 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(exhaustedPlayer);
-
-        Assert.Single(safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-    }
-
-    [Fact]
-    public void PlayerReadiness_NormalPlayer_IncludesRecoveryAndStandard()
-    {
-        // Normal player (Resolve 3-15) should have access to Recovery and Standard
-        // Three-level system: Recovery, Standard, Demanding
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player normalPlayer = new Player { Resolve = 10 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(normalPlayer);
-
-        Assert.Equal(2, safeIntensities.Count);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
-        Assert.DoesNotContain(ArchetypeIntensity.Demanding, safeIntensities);
-    }
-
-    [Fact]
-    public void PlayerReadiness_CapablePlayer_IncludesAllIntensities()
-    {
-        // Capable player (Resolve > 15) should have access to all intensity levels
-        // Three-level system: Recovery, Standard, Demanding
-        PlayerReadinessService service = new PlayerReadinessService();
-        Player capablePlayer = new Player { Resolve = 20 };
-
-        List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(capablePlayer);
-
-        Assert.Equal(3, safeIntensities.Count);
-        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Demanding, safeIntensities);
-    }
 }

@@ -28,7 +28,6 @@ public class LocationFacade
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
     private readonly PackageLoader _packageLoader;
-    private readonly PlayerReadinessService _playerReadinessService;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -50,8 +49,7 @@ public class LocationFacade
         SceneFacade sceneFacade,
         SceneInstantiator sceneInstantiator,
         ContentGenerationFacade contentGenerationFacade,
-        PackageLoader packageLoader,
-        PlayerReadinessService playerReadinessService)
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -73,7 +71,6 @@ public class LocationFacade
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
-        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     /// <summary>
@@ -1002,10 +999,6 @@ public class LocationFacade
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
-        // INTENSITY FILTERING: Get player readiness to filter out demanding situations for exhausted players
-        Player player = _gameWorld.GetPlayer();
-        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
-
         // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
         List<Scene> scenesAtLocation = _gameWorld.Scenes
@@ -1019,13 +1012,12 @@ public class LocationFacade
             .SelectMany(scene => scene.Situations)
             .ToList();
 
-        // Filter to this system type only
-        // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
-        // INTENSITY FILTERING: Only show situations player can safely handle based on Resolve
+        // Filter to this system type only - ALL intensity levels included
+        // Player state does NOT filter situation visibility (Challenge and Consequence Philosophy)
+        // Learning comes from seeing choices they can't afford, not hidden situations
         List<Situation> systemSituations = allVisibleSituations
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
-            .Where(g => g.Intensity <= maxSafeIntensity)
             .ToList();
 
         // Group situations by scene (ambient situations have no scene parent)

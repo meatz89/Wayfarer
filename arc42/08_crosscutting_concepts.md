@@ -850,39 +850,26 @@ RhythmPattern flows through GenerationContext at runtime. AI determines appropri
 
 ### Orthogonal Concept: ArchetypeIntensity
 
-Two independent systems control procedural content: RhythmPattern (choice structure) and ArchetypeIntensity (archetype selection). Named distinctly to avoid collision.
+Two independent systems describe procedural content: RhythmPattern (choice structure) and ArchetypeIntensity (content categorization). Named distinctly to avoid collision.
 
-| Concept | Purpose | Values | Controls |
-|---------|---------|--------|----------|
+| Concept | Purpose | Values | Describes |
+|---------|---------|--------|-----------|
 | **RhythmPattern** | Choice generation | Building / Crisis / Mixed | HOW choices are structured |
-| **ArchetypeIntensity** | Player readiness filter | Recovery / Standard / Demanding | WHICH archetypes can be selected |
+| **ArchetypeIntensity** | Content categorization | Recovery / Standard / Demanding | Inherent challenge level of content |
 
-**ArchetypeIntensity maps player resource state to safe archetypes:**
+**ArchetypeIntensity categorizes content challenge level:**
 
-| Player State | Resource Level | Max Safe Intensity | Allowed Archetypes |
-|--------------|----------------|-------------------|-------------------|
-| Exhausted | Very Low | Recovery | Only recovery-focused archetypes |
-| Normal | Medium | Standard | Recovery + standard trade-off archetypes |
-| Capable | High | Demanding | All archetypes including high-stakes |
+| Intensity | Content Focus | Typical Archetypes |
+|-----------|--------------|-------------------|
+| Recovery | Restoration, reflection | Peaceful archetypes (rest, study, casual) |
+| Standard | Moderate trade-offs | Investigation, Social archetypes |
+| Demanding | High-stakes tests | Crisis, Confrontation archetypes |
 
-**Practical correlation (not dependency):**
+**Challenge and Consequence Philosophy:**
 
-| Category | Typical Intensity | Typical Rhythm | Why |
-|----------|------------------|----------------|-----|
-| Peaceful | Recovery | Building | Exhausted players need recovery |
-| Investigation/Social | Standard | Mixed | Normal gameplay trade-offs |
-| Crisis/Confrontation | Demanding | Crisis | Tests require capable players |
+Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from story structure (archetype rotation cycle), not from player state filtering.
 
-These correlations emerge from design intent, not system coupling. The systems remain orthogonal.
-
-**Intensity flows through TWO timing points:**
-
-| Timing | Where | Purpose |
-|--------|-------|---------|
-| Generation-time | ProceduralAStoryService | Limits WHICH archetypes generate scenes for exhausted players |
-| Runtime | Facades (GameFacade, LocationFacade) | Limits WHICH situations display to exhausted players |
-
-The dual filtering ensures exhausted players never see demanding situations, whether procedurally generated or authored in JSON. Intensity propagates: Archetype → SituationTemplate → Situation (copied at spawn time).
+Intensity propagates at parse-time: Archetype → SituationTemplate → Situation (copied at spawn). Runtime uses intensity only for descriptive purposes, never for filtering visibility.
 
 ### HIGHLANDER Compliance
 

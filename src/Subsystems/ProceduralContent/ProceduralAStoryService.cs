@@ -31,39 +31,36 @@ public class ProceduralAStoryService
     private readonly GameWorld _gameWorld;
     private readonly ContentGenerationFacade _contentFacade;
     private readonly PackageLoader _packageLoader;
-    private readonly PlayerReadinessService _readinessService;
 
     public ProceduralAStoryService(
         GameWorld gameWorld,
         ContentGenerationFacade contentFacade,
-        PackageLoader packageLoader,
-        PlayerReadinessService readinessService)
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _contentFacade = contentFacade ?? throw new ArgumentNullException(nameof(contentFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
-        _readinessService = readinessService ?? throw new ArgumentNullException(nameof(readinessService));
     }
 
     /// <summary>
-    /// Generate next A-story template for given sequence
-    /// Called when previous A-scene completes
-    /// Returns generated template ID (for tracking)
+    /// Generate next A-story template for given sequence.
+    /// Called when previous A-scene completes.
+    /// Returns generated template ID (for tracking).
     ///
     /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
     /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
     /// NO runtime catalogue calls - all resolution through Parser pipeline.
+    ///
+    /// CHALLENGE PHILOSOPHY: Player state does NOT affect what situations generate.
+    /// Fair rhythm comes from story structure (rotation cycle), not player-state filtering.
+    /// Learning comes from seeing choices they can't afford, not hidden situations.
+    /// See gdd/06_balance.md §6.8 for Challenge and Consequence Philosophy.
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        // 1. Get player readiness for intensity filtering
-        Player player = _gameWorld.GetPlayer();
-        ArchetypeIntensity maxSafeIntensity = _readinessService.GetMaxSafeIntensity(player);
-
-        // 2. Get archetype CATEGORY (categorical property, not specific archetype)
-        // Parser will resolve to specific archetype via Catalogue
-        // Filtered by player readiness to avoid overwhelming exhausted players
-        string archetypeCategory = GetArchetypeCategory(sequence, maxSafeIntensity);
+        // Get archetype CATEGORY based on rotation cycle (story rhythm)
+        // Player state does NOT affect category selection - fair rhythm from structure
+        string archetypeCategory = GetArchetypeCategory(sequence);
 
         // 2. Get excluded archetypes for anti-repetition (categorical property)
         List<string> excludedArchetypes = GetExcludedArchetypes(context);
@@ -89,64 +86,31 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get archetype category for given sequence based on rotation cycle and player readiness.
+    /// Get archetype category for given sequence based on rotation cycle.
     /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
-    /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
-    /// Works from ANY sequence (flexible number of authored scenes)
+    /// Rotation strategy: Investigation → Social → Confrontation → Crisis (repeat)
+    /// Works from ANY sequence (flexible number of authored scenes).
     ///
-    /// PLAYER READINESS FILTERING:
-    /// - Exhausted (Recovery only): Forces Peaceful category archetypes
-    /// - Normal (up to Standard): Allows Investigation, Social, Confrontation
-    /// - Capable (up to Demanding): Allows all including Crisis
+    /// CHALLENGE PHILOSOPHY: Player state does NOT affect category selection.
+    /// Fair rhythm emerges from story structure (rotation cycle), not player-state filtering.
+    /// Players face Crisis/Confrontation even when exhausted - learning from unaffordable choices.
+    /// See gdd/06_balance.md §6.8 for Challenge and Consequence Philosophy.
     ///
     /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
     /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
     /// </summary>
-    private string GetArchetypeCategory(int sequence, ArchetypeIntensity maxSafeIntensity)
+    private string GetArchetypeCategory(int sequence)
     {
         int cyclePosition = (sequence - 1) % 4;
 
         // Standard rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
-        string desiredCategory = cyclePosition switch
+        // NO player state filtering - fair rhythm from story structure
+        return cyclePosition switch
         {
             0 => "Investigation",
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
-            _ => "Investigation"
-        };
-
-        // Map category to intensity level
-        ArchetypeIntensity categoryIntensity = desiredCategory switch
-        {
-            "Crisis" => ArchetypeIntensity.Demanding,
-            "Confrontation" => ArchetypeIntensity.Demanding,
-            "Investigation" => ArchetypeIntensity.Standard,
-            "Social" => ArchetypeIntensity.Standard,
-            "Peaceful" => ArchetypeIntensity.Recovery,
-            _ => ArchetypeIntensity.Standard
-        };
-
-        // If player can handle the desired category, use it
-        if (categoryIntensity <= maxSafeIntensity)
-        {
-            return desiredCategory;
-        }
-
-        // Player readiness too low - downgrade to safe category
-        if (maxSafeIntensity == ArchetypeIntensity.Recovery)
-        {
-            return "Peaceful";
-        }
-
-        // Standard intensity - avoid Crisis/Confrontation, prefer Investigation/Social
-        // Three-level system: Recovery, Standard, Demanding (avoids RhythmPattern collision)
-        return cyclePosition switch
-        {
-            0 => "Investigation",
-            1 => "Social",
-            2 => "Investigation", // Downgrade Confrontation → Investigation
-            3 => "Social",        // Downgrade Crisis → Social
             _ => "Investigation"
         };
     }

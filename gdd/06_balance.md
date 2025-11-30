@@ -439,18 +439,18 @@ The game maintains fairness through rhythm, not rescue:
 - Automatic recovery when Resolve is low
 - Removal of demanding content for unprepared players
 
-### Intensity Filtering vs Choice Requirements (Orthogonal Systems)
+### Intensity Categorization vs Choice Requirements (Orthogonal Systems)
 
-Two separate systems control player experience:
+Two separate systems describe content, but only one gates player access:
 
-| System | Controls | Mechanism |
-|--------|----------|-----------|
-| **Intensity Filtering** | WHICH situations appear | Exhausted players see Recovery situations |
-| **Choice Requirements** | WHICH choices are available | Stats/resources gate individual choices |
+| System | Purpose | Effect on Player |
+|--------|---------|------------------|
+| **ArchetypeIntensity** | Content categorization | Describes challenge level; does NOT filter visibility |
+| **Choice Requirements** | Access gating | Stats/resources gate individual choices |
 
-**Critical distinction:** Intensity filtering determines situation DISPLAY. Within ANY situation—even Recovery—choices can still have requirements that players cannot meet. A peaceful evening at the inn still offers choices that reward high Rapport while the Fallback merely provides basic recovery.
+**Critical distinction:** ALL situations display regardless of player state. ArchetypeIntensity (Recovery/Standard/Demanding) describes inherent content difficulty but never hides situations from struggling players. Learning happens when players SEE demanding situations but find their attractive choices greyed-out due to unmet requirements.
 
-The intensity system prevents exhausted players from facing Demanding situations (crisis, confrontation). It does NOT make the available situations trivially easy.
+A crisis situation displays even when the player is exhausted. The fallback exists, but the player sees what they COULD have done with better resource management. This teaches consequence through visible limitation, not through hidden content.
 
 ---
 

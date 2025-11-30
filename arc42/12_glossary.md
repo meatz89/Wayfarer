@@ -8,7 +8,7 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
-| **ArchetypeIntensity** | Player readiness filter for procedural content: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Three-level system mapping player Resolve to safe archetypes. Named to avoid collision with RhythmPattern values. Determines WHICH archetypes are safe for current player state. Orthogonal to RhythmPattern. |
+| **ArchetypeIntensity** | Content categorization for procedural archetypes: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Describes inherent challenge level of content, NOT player eligibility. Named to avoid collision with RhythmPattern values. Orthogonal to RhythmPattern. |
 | **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |

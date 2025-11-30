@@ -1,16 +1,20 @@
 
 /// <summary>
-/// Categorizes situation archetypes by their demand on player resources.
-/// Used by ProceduralAStoryService to filter archetype selection based on player readiness.
+/// Categorizes situation archetypes by their inherent challenge level.
+/// Content categorization ONLY - does NOT affect which situations display to players.
 ///
 /// THREE-LEVEL SYSTEM (named to avoid collision with RhythmPattern values):
-/// - Exhausted player (Resolve less than 3) → RECOVERY only
-/// - Normal player (Resolve 3-15) → RECOVERY, STANDARD
-/// - Capable player (Resolve greater than 15) → Any intensity including DEMANDING
+/// - RECOVERY: Restoration-focused archetypes (rest, study, casual encounters)
+/// - STANDARD: Moderate trade-off archetypes (investigation, social maneuvering)
+/// - DEMANDING: High-stakes archetypes (crisis, confrontation)
 ///
-/// ORTHOGONAL TO RHYTHM: ArchetypeIntensity controls WHICH archetypes are selected.
-/// RhythmPattern (Building/Crisis/Mixed) controls HOW choices within archetypes are structured.
-/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+/// CHALLENGE PHILOSOPHY: Player state does NOT filter situation visibility.
+/// All situations display regardless of player Resolve. Learning comes from seeing
+/// choices players cannot afford (greyed-out requirements), not hidden situations.
+///
+/// ORTHOGONAL TO RHYTHM: ArchetypeIntensity describes content challenge level.
+/// RhythmPattern (Building/Crisis/Mixed) controls HOW choices are structured.
+/// See arc42/08_crosscutting_concepts.md §8.26 and gdd/06_balance.md §6.8
 /// </summary>
 public enum ArchetypeIntensity
 {

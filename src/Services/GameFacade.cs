@@ -45,7 +45,6 @@ public class GameFacade
     private readonly PackageLoader _packageLoader;
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
-    private readonly PlayerReadinessService _playerReadinessService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -78,8 +77,7 @@ public class GameFacade
         SceneInstantiator sceneInstantiator,
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
-        ContentGenerationFacade contentGenerationFacade,
-        PlayerReadinessService playerReadinessService)
+        ContentGenerationFacade contentGenerationFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -111,7 +109,6 @@ public class GameFacade
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
-        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1567,51 +1564,33 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Get all Situations available at a specific location
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// Scene-embedded Situations inherit placement from parent Scene
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
-    /// PLAYER READINESS FILTERING: Filters by Situation.Intensity based on player Resolve
+    /// Get all Situations available at a specific location.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
-        // PLAYABILITY VALIDATION: Location must exist
         if (location == null)
             throw new InvalidOperationException($"Location is null - cannot query situations!");
 
-        // Get player readiness for intensity filtering
-        Player player = _gameWorld.GetPlayer();
-        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
-
-        // Query all Situations (both legacy and Scene-embedded) at this location
-        // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
-        // INTENSITY FILTERING: Only show situations player can safely handle
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Location == location)
-            .Where(sit => sit.Intensity <= maxSafeIntensity)
             .ToList();
     }
 
     /// <summary>
-    /// Get all Situations available for a specific NPC
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
-    /// PLAYER READINESS FILTERING: Filters by Situation.Intensity based on player Resolve
+    /// Get all Situations available for a specific NPC.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
         if (npc == null) return new List<Situation>();
 
-        // Get player readiness for intensity filtering
-        Player player = _gameWorld.GetPlayer();
-        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
-
-        // Query all Situations (both legacy and Scene-embedded) for this NPC
-        // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
-        // INTENSITY FILTERING: Only show situations player can safely handle
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Npc == npc)
-            .Where(sit => sit.Intensity <= maxSafeIntensity)
             .ToList();
     }
 
