@@ -46,6 +46,31 @@ public class Player
     public int Diplomacy { get; set; } = 0;
     public int Cunning { get; set; } = 0;
 
+    /// <summary>
+    /// Total stat strength: sum of all five stats.
+    /// Used for Net Challenge calculation: WorldDifficulty - (TotalStatStrength / 5)
+    /// Higher values = stronger player = easier challenges relative to world difficulty
+    /// </summary>
+    public int TotalStatStrength => Insight + Rapport + Authority + Diplomacy + Cunning;
+
+    /// <summary>
+    /// Get stat value by type. Helper for generic stat operations.
+    /// FAIL-FAST: Throws for None stat type (not a valid lookup).
+    /// </summary>
+    public int GetStatValue(PlayerStatType statType)
+    {
+        return statType switch
+        {
+            PlayerStatType.Insight => Insight,
+            PlayerStatType.Rapport => Rapport,
+            PlayerStatType.Authority => Authority,
+            PlayerStatType.Diplomacy => Diplomacy,
+            PlayerStatType.Cunning => Cunning,
+            PlayerStatType.None => throw new InvalidOperationException("Cannot get stat value for PlayerStatType.None"),
+            _ => throw new InvalidOperationException($"Unknown PlayerStatType: {statType}")
+        };
+    }
+
     // Hex-first architecture: Player position is hex coordinates
     // Location derived via: hexMap.GetHex(player.CurrentPosition)?.LocationId
     public AxialCoordinates CurrentPosition { get; set; }

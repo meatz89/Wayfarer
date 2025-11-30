@@ -484,18 +484,20 @@ The 8-sequence rotation above is a **placeholder implementation**. The target de
 
 | Factor | Calculation | Effect | Current Status |
 |--------|-------------|--------|----------------|
-| Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | NOT IMPLEMENTED |
-| Location Difficulty | Distance from world center hex | Further = higher requirements | NOT IMPLEMENTED (infrastructure exists) |
+| Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | IMPLEMENTED (Player.TotalStatStrength) |
+| Location Difficulty | Hex distance from (0,0) / 5 | Further = higher requirements | IMPLEMENTED (LocationPlacementService) |
 | Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | PARTIAL (tier-based) |
 | NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
 | Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
 
-**Net Challenge Formula (Target):**
+**Net Challenge Formula (IMPLEMENTED):**
 
-The relationship between player capability and world position should determine how many choices are gated:
+The relationship between player capability and world position determines how many choices are gated:
 - **Player Strength** (sum of stats) determines baseline capability
-- **World Difficulty** (hex distance) determines baseline challenge
-- **Net Challenge** (World - Player) determines gating frequency
+- **Location Difficulty** (hex distance / 5) determines baseline challenge
+- **Net Challenge** = LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]
+
+RuntimeScalingContext.NetChallengeAdjustment is calculated at query-time and can be used to adjust stat requirements. Negative values = player overpowered (easier), positive = underpowered (harder).
 
 A player who invested well finds more choices available; a player who spread thin or overspent finds more choices locked. This creates natural difficulty scaling without artificial level gates.
 

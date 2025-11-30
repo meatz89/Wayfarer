@@ -34,6 +34,20 @@ public class GenerationContext
     public int PlayerCoins { get; set; }
     public int PlayerHealth { get; set; }
 
+    /// <summary>
+    /// Player total stat strength (sum of all five stats).
+    /// Used for Net Challenge calculation.
+    /// Higher values = stronger player = easier challenges relative to world difficulty.
+    /// </summary>
+    public int PlayerStrength { get; set; }
+
+    /// <summary>
+    /// Location difficulty (hex distance from world center / 5).
+    /// Set during location placement based on hex distance to (0,0).
+    /// Higher values = more difficult area = harder challenges.
+    /// </summary>
+    public int LocationDifficulty { get; set; }
+
     // Location Context (orthogonal categorical dimensions)
     public LocationRole? LocationRole { get; set; }
     public LocationPurpose? LocationPurpose { get; set; }
@@ -69,7 +83,9 @@ public class GenerationContext
             NpcPersonality = null,
             NpcName = "",
             PlayerCoins = 0,
-            PlayerHealth = 100
+            PlayerHealth = 100,
+            PlayerStrength = 0,
+            LocationDifficulty = 0
         };
     }
 
@@ -118,6 +134,10 @@ public class GenerationContext
             // Player context
             PlayerCoins = player?.Coins ?? 0,
             PlayerHealth = player?.Health ?? 100,
+            PlayerStrength = player?.TotalStatStrength ?? 0,
+
+            // Location context (difficulty calculated at placement time)
+            LocationDifficulty = location?.Difficulty ?? 0,
 
             // Location context
             LocationRole = location?.Role,
