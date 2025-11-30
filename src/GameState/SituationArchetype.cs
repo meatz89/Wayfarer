@@ -88,4 +88,11 @@ public class SituationArchetype
     /// Fallback always available but wastes time or incurs penalty
     /// </summary>
     public int FallbackTimeCost { get; init; }
+
+    /// <summary>
+    /// Intensity level of this archetype - determines player readiness filtering.
+    /// Peaceful = exhausted player safe, Crisis = only for well-resourced players.
+    /// Used by ProceduralAStoryService to filter archetype selection.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; init; }
 }

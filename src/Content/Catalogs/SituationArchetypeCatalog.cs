@@ -59,6 +59,9 @@ public static class SituationArchetypeCatalog
             SituationArchetypeType.ServiceNegotiation => CreateServiceNegotiation(),
             SituationArchetypeType.ServiceExecutionRest => CreateServiceExecutionRest(),
             SituationArchetypeType.ServiceDeparture => CreateServiceDeparture(),
+            SituationArchetypeType.MeditationAndReflection => CreateMeditationAndReflection(),
+            SituationArchetypeType.LocalConversation => CreateLocalConversation(),
+            SituationArchetypeType.StudyInLibrary => CreateStudyInLibrary(),
             _ => throw new InvalidOperationException($"Unhandled situation archetype type: {archetypeType}")
         };
     }
@@ -84,13 +87,14 @@ public static class SituationArchetypeCatalog
             Name = "Confrontation",
             Domain = Domain.Authority,
             PrimaryStat = PlayerStatType.Authority,
-            SecondaryStat = PlayerStatType.Authority, // Using Authority for both (Intimidation not in PlayerStatType)
+            SecondaryStat = PlayerStatType.Authority,
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Crisis
         };
     }
 
@@ -120,8 +124,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -151,8 +156,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -182,8 +188,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -206,15 +213,16 @@ public static class SituationArchetypeCatalog
         {
             Type = SituationArchetypeType.Crisis,
             Name = "Crisis",
-            Domain = Domain.Physical, // Can appear in any domain, but Physical for default
-            PrimaryStat = PlayerStatType.Authority, // Leadership in crisis
-            SecondaryStat = PlayerStatType.Insight, // Alternative: Understanding the situation
-            StatThreshold = 4, // Higher requirement for crisis
-            CoinCost = 25, // Very expensive
-            ChallengeType = TacticalSystemType.Physical, // Often physical danger
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.Authority,
+            SecondaryStat = PlayerStatType.Insight,
+            StatThreshold = 4,
+            CoinCost = 25,
+            ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 10,  // Sir Brante pattern: -10 for high-impact Crisis
-            FallbackTimeCost = 2 // Worse penalty
+            ResolveCost = 10,
+            FallbackTimeCost = 2,
+            Intensity = ArchetypeIntensity.Crisis
         };
     }
 
@@ -244,8 +252,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Building
         };
     }
 
@@ -275,8 +284,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -306,8 +316,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -337,8 +348,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -368,8 +380,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Crisis
         };
     }
 
@@ -399,8 +412,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 20,
             ChallengeType = TacticalSystemType.Physical,
             DeckId = "physical_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Crisis
         };
     }
 
@@ -430,8 +444,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 2
+            ResolveCost = 5,
+            FallbackTimeCost = 2,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -461,8 +476,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -492,8 +508,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "desperate_request",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -523,8 +540,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "desperate_request",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Testing
         };
     }
 
@@ -554,8 +572,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Building
         };
     }
 
@@ -586,8 +605,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 1
+            ResolveCost = 5,
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Building
         };
     }
 
@@ -610,8 +630,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 2
+            ResolveCost = 5,
+            FallbackTimeCost = 2,
+            Intensity = ArchetypeIntensity.Building
         };
     }
 
@@ -646,8 +667,9 @@ public static class SituationArchetypeCatalog
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Social,
             DeckId = "friendly_chat",
-            ResolveCost = 5,  // Sir Brante pattern: -5 standard cost
-            FallbackTimeCost = 0
+            ResolveCost = 5,
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Building
         };
     }
 
@@ -681,10 +703,11 @@ public static class SituationArchetypeCatalog
             SecondaryStat = PlayerStatType.None,
             StatThreshold = 0,
             CoinCost = 0,
-            ChallengeType = TacticalSystemType.Physical,  // Rest is Physical domain (no actual challenge)
-            DeckId = string.Empty,  // No challenge deck - all rest choices succeed
+            ChallengeType = TacticalSystemType.Physical,
+            DeckId = string.Empty,
             ResolveCost = 0,
-            FallbackTimeCost = 0
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Peaceful
         };
     }
 
@@ -721,7 +744,108 @@ public static class SituationArchetypeCatalog
             ChallengeType = TacticalSystemType.Mental,
             DeckId = "mental_challenge",
             ResolveCost = 0,
-            FallbackTimeCost = 1
+            FallbackTimeCost = 1,
+            Intensity = ArchetypeIntensity.Peaceful
+        };
+    }
+
+    // ==================== PEACEFUL ARCHETYPES (3) ====================
+    // Recovery-focused archetypes for exhausted players
+    // No Resolve cost, no stat requirements, purely positive outcomes
+
+    /// <summary>
+    /// MEDITATION AND REFLECTION archetype
+    ///
+    /// When Used: Player needs mental recovery, quiet contemplation
+    /// Common In: Temples, gardens, private spaces, natural settings
+    /// Player Learns: "Stillness restores the mind"
+    ///
+    /// Choice Pattern (4 choices, all positive):
+    /// 1. Focus inward → Gain Focus restoration + Insight
+    /// 2. Contemplate relationships → Gain Focus restoration + Rapport
+    /// 3. Review past decisions → Gain Focus restoration + Cunning
+    /// 4. Simple rest → Basic Focus restoration
+    /// </summary>
+    private static SituationArchetype CreateMeditationAndReflection()
+    {
+        return new SituationArchetype
+        {
+            Type = SituationArchetypeType.MeditationAndReflection,
+            Name = "Meditation and Reflection",
+            Domain = Domain.Mental,
+            PrimaryStat = PlayerStatType.None,
+            SecondaryStat = PlayerStatType.None,
+            StatThreshold = 0,
+            CoinCost = 0,
+            ChallengeType = TacticalSystemType.Mental,
+            DeckId = string.Empty,
+            ResolveCost = 0,
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Peaceful
+        };
+    }
+
+    /// <summary>
+    /// LOCAL CONVERSATION archetype
+    ///
+    /// When Used: Player needs social recovery, casual interaction
+    /// Common In: Taverns, markets, public squares, community spaces
+    /// Player Learns: "Connection restores the spirit"
+    ///
+    /// Choice Pattern (4 choices, all positive):
+    /// 1. Share stories → Gain Rapport + social connection
+    /// 2. Listen attentively → Gain Rapport + Insight
+    /// 3. Offer encouragement → Gain Rapport + Diplomacy
+    /// 4. Simply enjoy company → Basic Rapport gain
+    /// </summary>
+    private static SituationArchetype CreateLocalConversation()
+    {
+        return new SituationArchetype
+        {
+            Type = SituationArchetypeType.LocalConversation,
+            Name = "Local Conversation",
+            Domain = Domain.Social,
+            PrimaryStat = PlayerStatType.None,
+            SecondaryStat = PlayerStatType.None,
+            StatThreshold = 0,
+            CoinCost = 0,
+            ChallengeType = TacticalSystemType.Social,
+            DeckId = string.Empty,
+            ResolveCost = 0,
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Peaceful
+        };
+    }
+
+    /// <summary>
+    /// STUDY IN LIBRARY archetype
+    ///
+    /// When Used: Player needs intellectual recovery, knowledge acquisition
+    /// Common In: Libraries, archives, scholarly institutions, private studies
+    /// Player Learns: "Knowledge empowers the prepared mind"
+    ///
+    /// Choice Pattern (4 choices, all positive):
+    /// 1. Study history → Gain Insight + Authority (historical precedent)
+    /// 2. Read philosophy → Gain Insight + Diplomacy (rhetorical skill)
+    /// 3. Research mysteries → Gain Insight + Cunning (hidden patterns)
+    /// 4. Browse casually → Basic Insight gain
+    /// </summary>
+    private static SituationArchetype CreateStudyInLibrary()
+    {
+        return new SituationArchetype
+        {
+            Type = SituationArchetypeType.StudyInLibrary,
+            Name = "Study in Library",
+            Domain = Domain.Mental,
+            PrimaryStat = PlayerStatType.None,
+            SecondaryStat = PlayerStatType.None,
+            StatThreshold = 0,
+            CoinCost = 0,
+            ChallengeType = TacticalSystemType.Mental,
+            DeckId = string.Empty,
+            ResolveCost = 0,
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Peaceful
         };
     }
 

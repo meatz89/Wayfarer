@@ -119,5 +119,27 @@ public enum SituationArchetypeType
     /// <summary>
     /// Service departure: leaving service venue
     /// </summary>
-    ServiceDeparture
+    ServiceDeparture,
+
+    // ==================== PEACEFUL (3) ====================
+    // Recovery-focused archetypes for exhausted players
+    // No Resolve cost, no stat requirements, purely positive outcomes
+
+    /// <summary>
+    /// Quiet reflection and mental recovery
+    /// Grants Focus restoration and stat points
+    /// </summary>
+    MeditationAndReflection,
+
+    /// <summary>
+    /// Casual conversation with locals
+    /// Grants Rapport and social stat points
+    /// </summary>
+    LocalConversation,
+
+    /// <summary>
+    /// Studying in a library or scholarly setting
+    /// Grants Insight and knowledge-based stat points
+    /// </summary>
+    StudyInLibrary
 }
