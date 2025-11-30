@@ -197,6 +197,85 @@ public class Player
     /// </summary>
     public int CurrentMainStorySequence { get; set; } = 0;
 
+    // ============================================
+    // SCENE INTENSITY TRACKING (Context-Aware Generation)
+    // ============================================
+
+    /// <summary>
+    /// Rolling history of recent A-story scene intensities for rhythm tracking.
+    /// Used by context-aware scene selection to:
+    /// - Calculate recent intensity balance (Recovery/Standard/Demanding ratio)
+    /// - Determine when Peaceful is contextually appropriate
+    /// - Track rhythm phase (accumulating vs testing vs recovering)
+    ///
+    /// CHALLENGE PHILOSOPHY: Tracks STORY structure, NOT player resources.
+    /// Peaceful is earned through intensity history, not granted when player struggles.
+    /// Window size: 8 scenes (one full rotation cycle for pattern analysis)
+    /// </summary>
+    public List<SceneIntensityRecord> SceneIntensityHistory { get; set; } = new List<SceneIntensityRecord>();
+
+    /// <summary>
+    /// Record completed scene intensity for rhythm tracking.
+    /// Called when A-story scene completes.
+    /// Maintains rolling window of 8 scenes (one rotation cycle).
+    /// </summary>
+    public void RecordSceneIntensity(SceneIntensityRecord record)
+    {
+        SceneIntensityHistory.Add(record);
+
+        // Maintain rolling window of 8 scenes
+        while (SceneIntensityHistory.Count > 8)
+        {
+            SceneIntensityHistory.RemoveAt(0);
+        }
+    }
+
+    /// <summary>
+    /// Count scenes of given intensity in recent history.
+    /// Used for intensity balance calculations.
+    /// </summary>
+    public int GetRecentIntensityCount(ArchetypeIntensity intensity)
+    {
+        return SceneIntensityHistory.Count(r => r.Intensity == intensity);
+    }
+
+    /// <summary>
+    /// Count scenes since last scene of given intensity.
+    /// Returns 0 if most recent was that intensity, 8+ if none in history.
+    /// </summary>
+    public int GetScenesSinceIntensity(ArchetypeIntensity intensity)
+    {
+        for (int i = SceneIntensityHistory.Count - 1; i >= 0; i--)
+        {
+            if (SceneIntensityHistory[i].Intensity == intensity)
+            {
+                return SceneIntensityHistory.Count - 1 - i;
+            }
+        }
+        return SceneIntensityHistory.Count + 1; // None found, return beyond window
+    }
+
+    /// <summary>
+    /// Check if recent history is heavily weighted toward demanding content.
+    /// Returns true if 3+ Demanding scenes in last 5, indicating need for respite.
+    /// </summary>
+    public bool IsIntensityHeavy()
+    {
+        List<SceneIntensityRecord> recent = SceneIntensityHistory.TakeLast(5).ToList();
+        return recent.Count(r => r.Intensity == ArchetypeIntensity.Demanding) >= 3;
+    }
+
+    /// <summary>
+    /// Check if player is in recovery phase (just completed Crisis or Peaceful).
+    /// Used for Building rhythm assignment.
+    /// </summary>
+    public bool IsInRecoveryPhase()
+    {
+        if (SceneIntensityHistory.Count == 0) return false;
+        SceneIntensityRecord last = SceneIntensityHistory.Last();
+        return last.WasCrisisRhythm || last.Intensity == ArchetypeIntensity.Recovery;
+    }
+
     /// <summary>
     /// Resolve - willpower gate resource (Sir Brante pattern)
     /// Starts at 0 (must earn before spending), can go negative (min -10)

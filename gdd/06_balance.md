@@ -466,19 +466,38 @@ Procedural A-Story generation follows an 8-sequence cycle with Peaceful as earne
 - Crisis always uses Crisis rhythm (penalty on fallback)
 - Other categories use Mixed rhythm (standard trade-offs)
 
-### Target Design: Context-Aware Generation (NOT YET IMPLEMENTED)
+### Context-Aware Scene Selection (IMPLEMENTED)
 
-The 8-sequence rotation above is a **placeholder implementation**. The target design is a deterministic but context-aware system that considers multiple factors.
+The 8-sequence rotation above serves as a **base rotation baseline**. The actual implementation uses a **weighted scoring algorithm** that considers multiple contextual factors while remaining fully deterministic.
 
-**Scene Type Selection SHOULD Consider:**
+**Design Decisions:**
 
-| Factor | Purpose | Current Status |
-|--------|---------|----------------|
-| Previous player choice | Consequence-driven storytelling | NOT IMPLEMENTED |
-| Current location context | Danger, atmosphere, purpose inform archetype | NOT IMPLEMENTED |
-| Natural ebb and flow | Recent challenge density, rhythm phase | PARTIAL (position in rotation) |
-| Story state | Encountered NPCs, collected artifacts, revelations | NOT IMPLEMENTED |
-| Player momentum | Recent wins/losses, stat accumulation phase | NOT IMPLEMENTED |
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Determinism | Same inputs always produce same output | Predictable for debugging, fair for players |
+| Player resources | NO influence on category selection | Challenge Philosophy - no coddling |
+| Location context | STRONG influence | Safety/Purpose drive narrative appropriateness |
+| Peaceful selection | Context-based, not fixed position | Earned through intensity history |
+
+**Scene Type Selection Factors:**
+
+| Factor | Influence | Implementation Status |
+|--------|-----------|----------------------|
+| Base rotation | Provides predictable baseline | IMPLEMENTED (weighted, not overriding) |
+| Location context | Safety and Purpose strongly bias categories | IMPLEMENTED |
+| Intensity balance | Prevents monotony, triggers recovery when needed | IMPLEMENTED |
+| Rhythm phase | Post-crisis favors lighter content | IMPLEMENTED |
+| Anti-repetition | Recent categories penalized | IMPLEMENTED |
+| Previous player choice | Consequence-driven storytelling | NOT YET IMPLEMENTED |
+| Story state | Encountered NPCs, collected artifacts | NOT YET IMPLEMENTED |
+
+**Key Principles:**
+
+- **Deterministic but Responsive:** Same game state always produces same selection, but selection adapts to context
+- **Location Drives Atmosphere:** Dangerous locations strongly favor Crisis/Confrontation; Safe locations favor Peaceful/Social
+- **Peaceful is Earned:** Heavy demanding history (multiple high-intensity scenes) triggers Peaceful selection via intensity balance scoring
+- **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection (Challenge Philosophy)
+- **Intensity Recording:** Each completed A-story scene records its intensity for future context-aware decisions
 
 **Choice Value Calculation SHOULD Consider:**
 
