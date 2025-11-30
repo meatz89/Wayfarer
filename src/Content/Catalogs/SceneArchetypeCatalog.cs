@@ -1978,7 +1978,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = settleChoices,
             Priority = 100,
-            Intensity = settleArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "calm",
@@ -2009,7 +2009,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = reflectChoices,
             Priority = 90,
-            Intensity = reflectArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "contemplative",
@@ -2077,7 +2077,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = encounterChoices,
             Priority = 100,
-            Intensity = encounterArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "friendly",
@@ -2111,7 +2111,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = converseChoices,
             Priority = 90,
-            Intensity = converseArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "pleasant",
@@ -2179,7 +2179,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = browseChoices,
             Priority = 100,
-            Intensity = browseArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "curious",
@@ -2210,7 +2210,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = studyChoices,
             Priority = 90,
-            Intensity = studyArchetype.Intensity,
+            Intensity = ArchetypeIntensity.Recovery,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "focused",
