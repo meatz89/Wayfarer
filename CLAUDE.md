@@ -359,6 +359,42 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
+# FILE SIZE LIMIT (1000 LINES MAX)
+
+**THE RULE:** No source file may exceed 1000 lines. Files over this threshold are a code smell indicating the need for holistic refactoring.
+
+**Why:** Large files indicate:
+- Too many responsibilities in one place (violates Single Responsibility)
+- Insufficient abstraction (concepts are tangled, not separated)
+- Cognitive overload (developers cannot hold the file in memory)
+- Refactoring debt accumulating silently
+
+**When a violation is detected:**
+
+| Step | Action |
+|------|--------|
+| 1 | **STOP** - Do not commit, do not proceed with tactical fixes |
+| 2 | **PLAN HOLISTICALLY** - Use agents to analyze the entire file and its dependencies |
+| 3 | **DEBATE ALTERNATIVES** - Consider multiple refactoring strategies before choosing |
+| 4 | **IMPLEMENT COMPLETELY** - Refactor in vertical slices, never leave partial work |
+
+**FORBIDDEN:**
+- "Quick split" into arbitrary files (tactical)
+- Adding more code to an already-large file
+- Bypassing the check without a refactoring plan
+- Partial refactoring ("I'll finish this later")
+
+**Holistic Refactoring Requirements:**
+1. Understand the file's complete responsibility graph
+2. Identify natural seams (distinct concepts, cohesive groups)
+3. Plan the target structure BEFORE any code changes
+4. Execute as vertical slices (each slice compiles and works)
+5. Verify no regressions after each slice
+
+**Enforcement:** Pre-commit hook blocks commits with files exceeding 1000 lines.
+
+---
+
 # PRE-COMMIT HOOK (REQUIRED)
 
 **Installation (run once per clone):**
@@ -381,6 +417,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 | DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
 | ICONS | Emojis in .razor files (use `<Icon>` component) |
 | EXPLICIT | String-based property modification patterns |
+| FILE-SIZE | Files exceeding 1000 lines (requires holistic refactoring) |
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 
