@@ -72,6 +72,10 @@ public class PackageLoader
 
         location.HexPosition = availableHex.Value;
 
+        // Calculate difficulty from hex distance to world center
+        // HIGHLANDER: Same calculation as PlaceLocationsInVenue
+        _locationPlacementService.CalculateLocationDifficulty(location);
+
         // Register in GameWorld
         _gameWorld.Locations.Add(location);
 

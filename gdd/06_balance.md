@@ -490,14 +490,17 @@ The 8-sequence rotation above is a **placeholder implementation**. The target de
 | NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
 | Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
 
-**Net Challenge Formula (IMPLEMENTED):**
+**Net Challenge Formula (FULLY IMPLEMENTED):**
 
-The relationship between player capability and world position determines how many choices are gated:
+The relationship between player capability and world position determines stat requirement difficulty:
 - **Player Strength** (sum of stats) determines baseline capability
 - **Location Difficulty** (hex distance / 5) determines baseline challenge
 - **Net Challenge** = LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]
 
-RuntimeScalingContext.NetChallengeAdjustment is calculated at query-time and can be used to adjust stat requirements. Negative values = player overpowered (easier), positive = underpowered (harder).
+RuntimeScalingContext.NetChallengeAdjustment is calculated at query-time and applied to ALL stat requirements via ApplyStatAdjustment(). Combined with NPC demeanor adjustment:
+- **Total Stat Adjustment** = StatRequirementAdjustment (NPC) + NetChallengeAdjustment (Location vs Player)
+- Example: Hostile NPC (+2) + Underpowered player (+2) = +4 to all stat thresholds
+- Example: Friendly NPC (-2) + Overpowered player (-3) = -5 to all stat thresholds (floored at 0)
 
 A player who invested well finds more choices available; a player who spread thin or overspent finds more choices locked. This creates natural difficulty scaling without artificial level gates.
 

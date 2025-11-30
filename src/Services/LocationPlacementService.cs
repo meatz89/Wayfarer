@@ -371,8 +371,11 @@ public class LocationPlacementService
     /// Calculate Location.Difficulty from hex distance to world center.
     /// Called after hex position assignment.
     /// Formula: DistanceTo(0,0) / 5 (integer division, DDR-007 compliant)
+    /// HIGHLANDER: Single method for difficulty calculation, called from:
+    /// - PlaceLocationsInVenue() for authored locations
+    /// - PackageLoader.CreateSingleLocation() for scene-created locations
     /// </summary>
-    private void CalculateLocationDifficulty(Location location)
+    public void CalculateLocationDifficulty(Location location)
     {
         if (!location.HexPosition.HasValue)
         {

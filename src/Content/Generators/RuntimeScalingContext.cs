@@ -216,11 +216,17 @@ public class RuntimeScalingContext
 
     /// <summary>
     /// Apply stat requirement adjustment to a base value.
+    /// Combines NPC demeanor adjustment (StatRequirementAdjustment) with
+    /// player-vs-location scaling (NetChallengeAdjustment).
     /// Ensures result is never negative.
+    ///
+    /// Total adjustment = StatRequirementAdjustment + NetChallengeAdjustment
+    /// - StatRequirementAdjustment: Hostile +2, Neutral 0, Friendly -2
+    /// - NetChallengeAdjustment: Underpowered +1 to +3, Overpowered -1 to -3
     /// </summary>
     public int ApplyStatAdjustment(int baseValue)
     {
-        int adjusted = baseValue + StatRequirementAdjustment;
+        int adjusted = baseValue + StatRequirementAdjustment + NetChallengeAdjustment;
         return adjusted < 0 ? 0 : adjusted;
     }
 

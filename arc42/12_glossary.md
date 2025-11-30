@@ -18,7 +18,7 @@ Domain and technical terms used throughout this documentation.
 | **Connection State** | NPC relationship level (Disconnected → Guarded → Neutral → Receptive → Trusting) |
 | **Fallback Choice** | Zero-requirement option ensuring forward progress; prevents soft-locks |
 | **Four-Choice Pattern** | Standard situation structure: stat-gated, money-gated, challenge, fallback |
-| **Net Challenge** | Query-time scaling factor: LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]. Negative = player overpowered, positive = underpowered. Used by RuntimeScalingContext to adjust stat requirements. |
+| **Net Challenge** | Query-time scaling factor: LocationDifficulty - (PlayerStrength / 5), clamped to [-3, +3]. Negative = player overpowered, positive = underpowered. Applied to ALL stat requirements via ApplyStatAdjustment(), stacked with NPC demeanor. Creates RPG-like quest level scaling based on hex distance from world center. |
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
