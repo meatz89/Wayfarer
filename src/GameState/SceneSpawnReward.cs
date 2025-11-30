@@ -4,9 +4,14 @@
 /// Part of Scene-Situation architecture where Choices can spawn new Scenes dynamically.
 ///
 /// CONTEXT INJECTION (HIGHLANDER, arc42 §8.28):
-/// - Authored content: Sets explicit context fields to specify next scene
-/// - Procedural content: Context computed from GameWorld at spawn time
-/// - Same code path: fields → SceneSelectionInputs → selector → generation
+/// - Authored content: Sets categorical properties that flow through selection logic
+/// - Procedural content: Properties derived from GameWorld history and location
+/// - SAME selection logic processes both - no overrides, no bypasses
+///
+/// HISTORY-DRIVEN GENERATION (gdd/01 §1.8):
+/// - No TargetCategory override - authored content uses categorical inputs
+/// - Selection based on rhythm phase + location context + history
+/// - Current player state NEVER influences selection
 /// </summary>
 public class SceneSpawnReward
 {
@@ -26,55 +31,100 @@ public class SceneSpawnReward
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    // ==================== CONTEXT SPECIFICATION (AUTHORED) ====================
-    // When set by authored content, these fields specify EXACTLY what the next scene should be.
-    // When null, procedural generation computes values from GameWorld state.
+    // ==================== CATEGORICAL INPUTS (AUTHORED) ====================
+    // When set by authored content, these flow through SAME selection logic as procedural.
+    // Selection logic produces appropriate category+intensity from these inputs.
+    // NO OVERRIDES - same deterministic logic for authored and procedural.
 
     /// <summary>
-    /// Explicit target category: Investigation, Social, Confrontation, Crisis, Peaceful.
-    /// When set, selector uses this category directly (deterministic authored sequence).
-    /// When null, selector uses weighted scoring from computed inputs.
-    /// </summary>
-    public string TargetCategory { get; set; }
-
-    /// <summary>
-    /// Explicit location safety context for selection.
-    /// When set, overrides computed value from target location.
+    /// Location safety context for selection.
+    /// Dangerous favors Confrontation/Crisis; Safe favors Social/Investigation.
+    /// When null, derived from target location at spawn time.
     /// </summary>
     public LocationSafety? LocationSafetyContext { get; set; }
 
     /// <summary>
-    /// Explicit location purpose context for selection.
-    /// When set, overrides computed value from target location.
+    /// Location purpose context for selection.
+    /// Governance favors political archetypes; Commerce favors negotiation.
+    /// When null, derived from target location at spawn time.
     /// </summary>
     public LocationPurpose? LocationPurposeContext { get; set; }
 
     /// <summary>
-    /// Categories to exclude from selection.
+    /// Location privacy context for selection.
+    /// Public locations have witnesses; Private enables different options.
+    /// When null, derived from target location at spawn time.
     /// </summary>
-    public List<string> ExcludedCategories { get; set; } = new List<string>();
+    public LocationPrivacy? LocationPrivacyContext { get; set; }
 
     /// <summary>
-    /// Build SceneSelectionInputs from this reward's explicit context.
-    /// Returns inputs with authored values set; caller fills in remaining fields from GameWorld.
+    /// Location activity context for selection.
+    /// Busy favors social encounters; Quiet favors investigation.
+    /// When null, derived from target location at spawn time.
     /// </summary>
-    public SceneSelectionInputs BuildAuthoredInputs(int sequence)
+    public LocationActivity? LocationActivityContext { get; set; }
+
+    /// <summary>
+    /// Explicit rhythm phase for selection.
+    /// Accumulation grants growth; Test challenges; Recovery restores.
+    /// When null, computed from intensity history at spawn time.
+    /// </summary>
+    public RhythmPhase? RhythmPhaseContext { get; set; }
+
+    /// <summary>
+    /// Story tier for selection.
+    /// Higher tiers enable more demanding intensity options.
+    /// When null, computed from story sequence at spawn time.
+    /// </summary>
+    public int? TierContext { get; set; }
+
+    /// <summary>
+    /// Build SceneSelectionInputs from this reward's categorical inputs.
+    /// Returns inputs with authored values set; caller fills in remaining fields from history.
+    /// HIGHLANDER: These inputs flow through SAME selection logic as procedural.
+    /// </summary>
+    public SceneSelectionInputs BuildAuthoredInputs()
     {
         return new SceneSelectionInputs
         {
-            Sequence = sequence,
-            TargetCategory = TargetCategory,
+            // Location context - use authored or defaults
             LocationSafety = LocationSafetyContext ?? LocationSafety.Safe,
             LocationPurpose = LocationPurposeContext ?? LocationPurpose.Civic,
-            ExcludedCategories = ExcludedCategories ?? new List<string>()
+            LocationPrivacy = LocationPrivacyContext ?? LocationPrivacy.Public,
+            LocationActivity = LocationActivityContext ?? LocationActivity.Moderate,
+
+            // Rhythm phase - use authored or default to Accumulation
+            RhythmPhase = RhythmPhaseContext ?? RhythmPhase.Accumulation,
+
+            // Tier - use authored or default to 0
+            Tier = TierContext ?? 0,
+
+            // History fields default to empty (game start scenario)
+            // Caller can override with actual history if available
+            RecentDemandingCount = 0,
+            RecentRecoveryCount = 0,
+            RecentStandardCount = 0,
+            ScenesSinceRecovery = 0,
+            ScenesSinceDemanding = 0,
+            IsIntensityHeavy = false,
+            TotalIntensityHistoryCount = 0,
+            LastSceneWasCrisisRhythm = false,
+            LastSceneIntensity = null,
+            ConsecutiveStandardCount = 0,
+            RecentCategories = new List<string>(),
+            RecentArchetypes = new List<string>()
         };
     }
 
     /// <summary>
-    /// Check if this reward has authored context (explicit specification).
+    /// Check if this reward has authored context (explicit categorical inputs).
+    /// Even one authored property means we use authored inputs as base.
     /// </summary>
-    public bool HasAuthoredContext => !string.IsNullOrEmpty(TargetCategory)
-        || LocationSafetyContext.HasValue
+    public bool HasAuthoredContext =>
+        LocationSafetyContext.HasValue
         || LocationPurposeContext.HasValue
-        || (ExcludedCategories != null && ExcludedCategories.Count > 0);
+        || LocationPrivacyContext.HasValue
+        || LocationActivityContext.HasValue
+        || RhythmPhaseContext.HasValue
+        || TierContext.HasValue;
 }

@@ -778,7 +778,8 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse SceneSpawnRewards from DTOs
     /// NO ID STRINGS - uses SpawnNextMainStoryScene boolean flag
-    /// CONTEXT INJECTION: Parses explicit context fields for authored sequencing
+    /// CONTEXT INJECTION: Parses categorical inputs for selection logic
+    /// HIGHLANDER: Same selection logic processes authored and procedural
     /// </summary>
     private List<SceneSpawnReward> ParseSceneSpawnRewards(List<SceneSpawnRewardDTO> dtos)
     {
@@ -791,10 +792,13 @@ public class SceneTemplateParser
             SceneSpawnReward reward = new SceneSpawnReward
             {
                 SpawnNextMainStoryScene = dto.SpawnNextMainStoryScene,
-                TargetCategory = dto.TargetCategory,
+                // CATEGORICAL INPUTS - flow through same selection logic as procedural
                 LocationSafetyContext = ParseLocationSafety(dto.LocationSafetyContext),
                 LocationPurposeContext = ParseLocationPurpose(dto.LocationPurposeContext),
-                ExcludedCategories = ParseExcludedCategories(dto.ExcludedCategories)
+                LocationPrivacyContext = ParseLocationPrivacy(dto.LocationPrivacyContext),
+                LocationActivityContext = ParseLocationActivity(dto.LocationActivityContext),
+                RhythmPhaseContext = ParseRhythmPhase(dto.RhythmPhaseContext),
+                TierContext = dto.TierContext
             };
             rewards.Add(reward);
         }
@@ -844,17 +848,57 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse excluded categories from comma-separated string.
+    /// Parse location privacy from string.
+    /// Returns null if string is null/empty.
     /// </summary>
-    private List<string> ParseExcludedCategories(string value)
+    private LocationPrivacy? ParseLocationPrivacy(string value)
     {
-        if (string.IsNullOrEmpty(value))
-            return new List<string>();
+        if (string.IsNullOrEmpty(value)) return null;
 
-        return value.Split(',')
-            .Select(s => s.Trim())
-            .Where(s => !string.IsNullOrEmpty(s))
-            .ToList();
+        return value.ToLowerInvariant() switch
+        {
+            "public" => LocationPrivacy.Public,
+            "semipublic" => LocationPrivacy.SemiPublic,
+            "private" => LocationPrivacy.Private,
+            _ => throw new InvalidOperationException(
+                $"Unknown LocationPrivacy '{value}' - valid values: Public, SemiPublic, Private")
+        };
+    }
+
+    /// <summary>
+    /// Parse location activity from string.
+    /// Returns null if string is null/empty.
+    /// </summary>
+    private LocationActivity? ParseLocationActivity(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        return value.ToLowerInvariant() switch
+        {
+            "quiet" => LocationActivity.Quiet,
+            "moderate" => LocationActivity.Moderate,
+            "busy" => LocationActivity.Busy,
+            _ => throw new InvalidOperationException(
+                $"Unknown LocationActivity '{value}' - valid values: Quiet, Moderate, Busy")
+        };
+    }
+
+    /// <summary>
+    /// Parse rhythm phase from string.
+    /// Returns null if string is null/empty.
+    /// </summary>
+    private RhythmPhase? ParseRhythmPhase(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        return value.ToLowerInvariant() switch
+        {
+            "accumulation" => RhythmPhase.Accumulation,
+            "test" => RhythmPhase.Test,
+            "recovery" => RhythmPhase.Recovery,
+            _ => throw new InvalidOperationException(
+                $"Unknown RhythmPhase '{value}' - valid values: Accumulation, Test, Recovery")
+        };
     }
 
     /// <summary>

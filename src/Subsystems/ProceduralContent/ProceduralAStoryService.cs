@@ -5,7 +5,7 @@
 /// If tutorial expands to A1-A10, generates A11+
 ///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
-/// 1. Select archetype based on sequence/tier/context
+/// 1. Select archetype based on rhythm phase + location context + history
 /// 2. Generate SceneTemplateDTO with categorical properties
 /// 3. Serialize to JSON package
 /// 4. Load via PackageLoaderFacade (JSON → PackageLoader → Parser → Entity)
@@ -15,11 +15,11 @@
 /// Detection: scene.Category == MainStory && scene.MainStorySequence.HasValue
 /// Trigger: Generate MainStorySequence + 1 template if not already exists
 ///
-/// ARCHETYPE SELECTION STRATEGY:
-/// - Rotate through archetype categories (investigation → social → confrontation → discovery → crisis)
-/// - Avoid recent archetypes (5-scene anti-repetition window)
+/// ARCHETYPE SELECTION STRATEGY (HISTORY-DRIVEN, gdd/01 §1.8):
+/// - Selection based on intensity history, rhythm phase, location context
+/// - Avoid recent archetypes (anti-repetition window)
 /// - Match tier escalation (personal → local → regional, grounded character-driven)
-/// - Balance narrative variety and mechanical consistency
+/// - Current player state (Resolve, stats) NEVER influences selection
 ///
 /// GUARANTEED PROGRESSION:
 /// - All generated templates follow 4-choice pattern (stat/money/challenge/fallback)
@@ -51,10 +51,10 @@ public class ProceduralAStoryService
     /// Returns generated template ID (for tracking).
     ///
     /// CONTEXT INJECTION (HIGHLANDER, arc42 §8.28):
-    /// - Receives SceneSelectionInputs (complete inputs, no GameWorld reads inside)
-    /// - If inputs.TargetCategory set (authored): use it directly
-    /// - If inputs.TargetCategory null (procedural): compute from selection logic
-    /// - Same code path: inputs → category selection → DTO → PackageLoader → Parser
+    /// - Receives SceneSelectionInputs (complete categorical inputs)
+    /// - SAME selection logic for authored and procedural
+    /// - Selection based on rhythm phase + location context + history
+    /// - Current player state NEVER influences selection
     ///
     /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
     /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
@@ -66,8 +66,8 @@ public class ProceduralAStoryService
         SceneSelectionInputs selectionInputs)
     {
         // Get archetype CATEGORY from selection inputs
-        // CONTEXT INJECTION: If authored content set TargetCategory, use it directly
-        // Otherwise compute from selection logic (procedural path)
+        // HIGHLANDER: Same selection logic for authored and procedural
+        // Selection based on rhythm phase + location context
         string archetypeCategory = SelectArchetypeCategory(selectionInputs);
 
         // Get excluded archetypes for anti-repetition (categorical property)

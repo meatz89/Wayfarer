@@ -292,9 +292,12 @@ public class RewardApplicationService
 
     /// <summary>
     /// Build SceneSelectionInputs for procedural generation.
-    /// CONTEXT INJECTION (HIGHLANDER): Same code path for authored and procedural.
-    /// - If SceneSpawnReward has authored context: use explicit values
-    /// - If not: derive from GameWorld state including intensity history
+    /// HIGHLANDER: Same selection logic for authored and procedural.
+    /// Only difference is WHERE inputs come from, not HOW they're processed.
+    ///
+    /// HISTORY-DRIVEN (gdd/01 §1.8):
+    /// - Selection based on intensity history + location context + rhythm phase
+    /// - Current player state (Resolve, stats) NEVER influences selection
     /// </summary>
     private SceneSelectionInputs BuildSelectionInputs(
         int sequence,
@@ -302,42 +305,54 @@ public class RewardApplicationService
         Player player,
         Location currentLocation)
     {
-        // Start with base inputs
-        SceneSelectionInputs inputs = new SceneSelectionInputs
-        {
-            Sequence = sequence,
-            MaxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player)
-        };
+        SceneSelectionInputs inputs;
 
-        // CONTEXT INJECTION: Use authored context if available
+        // HIGHLANDER: Same selection logic, different input source
         if (sceneSpawn.HasAuthoredContext)
         {
-            // Authored path: use explicit values from content
-            inputs.TargetCategory = sceneSpawn.TargetCategory;
-            inputs.LocationSafety = sceneSpawn.LocationSafetyContext ?? LocationSafety.Safe;
-            inputs.LocationPurpose = sceneSpawn.LocationPurposeContext ?? LocationPurpose.Civic;
-            inputs.ExcludedCategories = sceneSpawn.ExcludedCategories ?? new List<string>();
+            // Authored path: use explicit categorical inputs from content
+            // These flow through SAME selection logic as procedural
+            inputs = sceneSpawn.BuildAuthoredInputs();
         }
         else
         {
-            // Procedural path: derive from GameWorld state
-            inputs.TargetCategory = null; // Will use rotation logic
+            // Procedural path: derive categorical inputs from GameWorld state
+            inputs = SceneSelectionInputs.CreateDefault();
+
+            // Location context from current location
             inputs.LocationSafety = currentLocation?.Safety ?? LocationSafety.Safe;
             inputs.LocationPurpose = currentLocation?.Purpose ?? LocationPurpose.Civic;
-            inputs.ExcludedCategories = new List<string>();
+            inputs.LocationPrivacy = currentLocation?.Privacy ?? LocationPrivacy.Public;
+            inputs.LocationActivity = currentLocation?.Activity ?? LocationActivity.Moderate;
+
+            // Tier computed from sequence
+            inputs.Tier = ComputeTierFromSequence(sequence);
         }
 
-        // Populate intensity tracking fields from completed A-story scene history
-        PopulateIntensityHistory(inputs);
+        // Populate intensity history and compute RhythmPhase from GameWorld
+        // Both authored and procedural get actual history (unless authored overrides RhythmPhase)
+        PopulateIntensityHistory(inputs, sceneSpawn.RhythmPhaseContext);
 
         return inputs;
     }
 
     /// <summary>
-    /// Populate intensity tracking fields from completed A-story scenes.
-    /// Computes recent intensity counts, scene gaps, and rhythm state from GameWorld history.
+    /// Compute story tier from A-story sequence.
     /// </summary>
-    private void PopulateIntensityHistory(SceneSelectionInputs inputs)
+    private int ComputeTierFromSequence(int sequence)
+    {
+        if (sequence <= 10) return 0; // Tutorial
+        if (sequence <= 30) return 1; // Early
+        if (sequence <= 50) return 2; // Mid
+        return 3; // Late
+    }
+
+    /// <summary>
+    /// Populate intensity tracking fields from completed A-story scenes.
+    /// Computes recent intensity counts, scene gaps, rhythm phase from GameWorld history.
+    /// If rhythmPhaseOverride is provided (authored content), use that instead of computing.
+    /// </summary>
+    private void PopulateIntensityHistory(SceneSelectionInputs inputs, RhythmPhase? rhythmPhaseOverride)
     {
         // Get completed A-story scenes ordered by sequence
         List<Scene> completedScenes = _gameWorld.Scenes
@@ -349,13 +364,15 @@ public class RewardApplicationService
 
         if (!completedScenes.Any())
         {
-            // No history - use defaults (already initialized in DTO)
+            // No history - use authored override if provided, else default to Accumulation
+            inputs.RhythmPhase = rhythmPhaseOverride ?? RhythmPhase.Accumulation;
             return;
         }
 
-        // Extract intensity from each scene's situations (use highest intensity in scene)
+        // Extract intensity, category, archetype, rhythm from each scene
         List<ArchetypeIntensity> intensityHistory = new List<ArchetypeIntensity>();
         List<string> categoryHistory = new List<string>();
+        List<string> archetypeHistory = new List<string>();
         List<RhythmPattern> rhythmHistory = new List<RhythmPattern>();
 
         foreach (Scene scene in completedScenes)
@@ -368,12 +385,11 @@ public class RewardApplicationService
             }
             intensityHistory.Add(sceneIntensity);
 
-            // Track category from template's archetype (SceneArchetypeType maps to category)
+            // Track category and archetype from template
             if (scene.Template != null)
             {
                 categoryHistory.Add(MapArchetypeToCategory(scene.Template.SceneArchetype));
-
-                // Track rhythm from template's rhythm pattern
+                archetypeHistory.Add(scene.Template.SceneArchetype.ToString());
                 rhythmHistory.Add(scene.Template.RhythmPattern);
             }
         }
@@ -412,10 +428,53 @@ public class RewardApplicationService
             inputs.LastSceneWasCrisisRhythm = rhythmHistory.Last() == RhythmPattern.Crisis;
         }
 
-        // Recent categories (last 2 for anti-repetition)
-        inputs.RecentCategories = categoryHistory
-            .TakeLast(2)
-            .ToList();
+        // Anti-repetition: recent categories and archetypes
+        inputs.RecentCategories = categoryHistory.TakeLast(2).ToList();
+        inputs.RecentArchetypes = archetypeHistory.TakeLast(3).ToList();
+
+        // Compute RhythmPhase from history (unless authored override)
+        if (rhythmPhaseOverride.HasValue)
+        {
+            inputs.RhythmPhase = rhythmPhaseOverride.Value;
+        }
+        else
+        {
+            inputs.RhythmPhase = ComputeRhythmPhase(inputs, rhythmHistory);
+        }
+    }
+
+    /// <summary>
+    /// Compute rhythm phase from intensity history.
+    /// Determines if player should accumulate, be tested, or recover.
+    /// </summary>
+    private RhythmPhase ComputeRhythmPhase(SceneSelectionInputs inputs, List<RhythmPattern> rhythmHistory)
+    {
+        // Just after Crisis rhythm → Recovery phase
+        if (inputs.LastSceneWasCrisisRhythm)
+        {
+            return RhythmPhase.Recovery;
+        }
+
+        // Intensity heavy (more Demanding than Recovery) → needs Recovery
+        if (inputs.IsIntensityHeavy && inputs.ScenesSinceRecovery >= 2)
+        {
+            return RhythmPhase.Recovery;
+        }
+
+        // Long time since Demanding → time for Test
+        if (inputs.ScenesSinceDemanding >= 4)
+        {
+            return RhythmPhase.Test;
+        }
+
+        // Many consecutive Standard scenes → time for variety (Test)
+        if (inputs.ConsecutiveStandardCount >= 3)
+        {
+            return RhythmPhase.Test;
+        }
+
+        // Default: Accumulation (building phase)
+        return RhythmPhase.Accumulation;
     }
 
     /// <summary>
