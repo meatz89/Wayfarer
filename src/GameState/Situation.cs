@@ -61,6 +61,14 @@ public class Situation
     public SituationType Type { get; set; } = SituationType.Normal;
 
     /// <summary>
+    /// Intensity level of this situation - content categorization only.
+    /// Describes inherent challenge level: Recovery, Standard, or Demanding.
+    /// Copied from SituationTemplate.Intensity at spawn time.
+    /// Does NOT affect visibility - all situations display regardless of player state.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; set; } = ArchetypeIntensity.Standard;
+
+    /// <summary>
     /// Challenge deck for Mental/Physical/Social challenges
     /// PHASE 4: Object reference instead of DeckId string
     /// Type: MentalChallengeDeck | PhysicalChallengeDeck | SocialChallengeDeck (polymorphic)

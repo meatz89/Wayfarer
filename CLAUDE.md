@@ -241,6 +241,37 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# CONTEXT INJECTION (SCENE GENERATION)
+
+**THE RULE:** Scene generation receives context as input. Generation NEVER reads context from GameWorld.
+
+**Problem solved:** Without context injection, authored tutorials can't control scene sequencing. A1 completing doesn't guarantee A2 will be Investigation—it depends on player's current state at generation time.
+
+**Solution:** Context is always injected by the caller:
+
+| Content Type | Context Source |
+|--------------|----------------|
+| **Authored (A1-A10)** | Author specifies exact context in spawn reward |
+| **Procedural (A11+)** | System reads GameWorld state, passes as context |
+
+Same generation code handles both. HIGHLANDER compliance achieved through context injection, not conditional branching.
+
+**FORBIDDEN:**
+- `_gameWorld.GetPlayer()` inside generation methods
+- `if (isAuthored) ... else ...` branching
+- Context discovery at generation time
+- Different code paths for tutorial vs procedural
+
+**Required:**
+- Context passed as parameter to generation methods
+- Generation is pure function: same context → same output
+- Caller (authored content or procedural system) constructs context
+- Context carried in spawn request DTO
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.28, `gdd/06_balance.md` §6.8
+
+---
+
 # FAIL-FAST PHILOSOPHY
 
 **THE RULE:** Missing data should fail loudly, not silently default.

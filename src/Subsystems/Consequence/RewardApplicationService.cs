@@ -224,9 +224,10 @@ public class RewardApplicationService
                 if (template == null)
                 {
                     // No authored template exists - generate procedurally
+                    // Context-aware selection uses player intensity history and location context
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
                     AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
-                    await _proceduralAStoryService.GenerateNextATemplate(currentSequence + 1, aStoryContext);
+                    await _proceduralAStoryService.GenerateNextATemplate(currentSequence + 1, aStoryContext, player);
 
                     // ZERO NULL TOLERANCE: Template must exist after generation
                     template = _gameWorld.GetNextMainStoryTemplate(currentSequence);

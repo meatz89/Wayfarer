@@ -107,6 +107,30 @@ public class SituationCompletionHandler
                     Player player = _gameWorld.GetPlayer();
                     player.CurrentMainStorySequence = scene.MainStorySequence.Value;
                     Console.WriteLine($"[SituationCompletionHandler] MainStory scene '{scene.DisplayName}' complete - advanced player sequence to {player.CurrentMainStorySequence}");
+
+                    // INTENSITY RECORDING: Track rhythm for context-aware scene selection
+                    // Records intensity history for ArchetypeCategorySelector's weighted scoring
+                    if (scene.Template != null)
+                    {
+                        SceneArchetypeType archetype = scene.Template.SceneArchetype;
+                        string category = ArchetypeCategorySelector.MapArchetypeToCategory(archetype);
+                        ArchetypeIntensity intensity = ArchetypeCategorySelector.MapArchetypeToIntensity(archetype);
+                        bool wasCrisisRhythm = scene.Template.RhythmPattern == RhythmPattern.Crisis;
+
+                        SceneIntensityRecord record = new SceneIntensityRecord
+                        {
+                            Intensity = intensity,
+                            Category = category,
+                            Sequence = scene.MainStorySequence.Value,
+                            CompletedDay = _gameWorld.CurrentDay,
+                            WasCrisisRhythm = wasCrisisRhythm,
+                            LocationSafety = situation.Location?.Safety ?? LocationSafety.Safe,
+                            LocationPurpose = situation.Location?.Purpose ?? LocationPurpose.Civic
+                        };
+
+                        player.RecordSceneIntensity(record);
+                        Console.WriteLine($"[SituationCompletionHandler] Recorded intensity: {intensity}, Category: {category}, WasCrisis: {wasCrisisRhythm}");
+                    }
                 }
 
                 // HIGHLANDER: Player position NEVER changes via scene completion

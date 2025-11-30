@@ -63,6 +63,14 @@ public class SituationTemplate
     /// </summary>
     public int Priority { get; init; } = 0;
 
+    /// <summary>
+    /// Intensity level of this situation template - content categorization only.
+    /// Recovery = earned respite, Standard = normal trade-offs, Demanding = high-stakes.
+    /// Set at parse-time from SituationArchetype.Intensity via Catalogue pattern.
+    /// Does NOT affect visibility - all situations display regardless of player state.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; init; } = ArchetypeIntensity.Standard;
+
     // ==================== EXPLICIT PLACEMENT FILTERS ====================
     // Each situation must specify explicit filters - NO inheritance from scene
     // null = no entity needed (solo situation, not route-based, etc.)

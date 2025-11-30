@@ -1012,8 +1012,9 @@ public class LocationFacade
             .SelectMany(scene => scene.Situations)
             .ToList();
 
-        // Filter to this system type only
-        // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
+        // Filter to this system type only - ALL intensity levels included
+        // Player state does NOT filter situation visibility (Challenge and Consequence Philosophy)
+        // Learning comes from seeing choices they can't afford, not hidden situations
         List<Situation> systemSituations = allVisibleSituations
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)

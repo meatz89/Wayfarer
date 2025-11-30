@@ -1564,35 +1564,31 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Get all Situations available at a specific location
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// Scene-embedded Situations inherit placement from parent Scene
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// Get all Situations available at a specific location.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
-        // PLAYABILITY VALIDATION: Location must exist
         if (location == null)
             throw new InvalidOperationException($"Location is null - cannot query situations!");
 
-        // Query all Situations (both legacy and Scene-embedded) at this location
-        // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Location == location)
             .ToList();
     }
 
     /// <summary>
-    /// Get all Situations available for a specific NPC
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// Get all Situations available for a specific NPC.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
         if (npc == null) return new List<Situation>();
 
-        // Query all Situations (both legacy and Scene-embedded) for this NPC
-        // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Npc == npc)
             .ToList();

@@ -90,9 +90,9 @@ public class SituationArchetype
     public int FallbackTimeCost { get; init; }
 
     /// <summary>
-    /// Intensity level of this archetype - determines player readiness filtering.
-    /// Recovery = exhausted player safe, Demanding = only for well-resourced players.
-    /// Used by ProceduralAStoryService to filter archetype selection.
+    /// Intensity level of this archetype - content categorization only.
+    /// Recovery = earned respite (Peaceful), Standard = normal (Investigation/Social), Demanding = high-stakes (Crisis/Confrontation).
+    /// Does NOT affect visibility - propagates to SituationTemplate for descriptive purposes.
     /// </summary>
     public ArchetypeIntensity Intensity { get; init; }
 }
