@@ -129,13 +129,19 @@ public class LocationAction
     public CompoundRequirement ScaledRequirement { get; set; }
 
     /// <summary>
-    /// Entity-derived scaled consequence for display (query-time scaling).
+    /// Entity-derived scaled consequence for BOTH display AND execution.
     /// TWO-PHASE SCALING MODEL (arc42 §8.26):
     /// Costs adjusted based on Location quality and NPC power dynamic.
     ///
+    /// PERFECT INFORMATION: Display = Execution
+    /// Player sees exactly what they will pay. ScaledConsequence used for:
+    /// - UI display (showing adjusted costs)
+    /// - Execution validation (checking affordability)
+    /// - Cost application (applying adjusted amounts)
+    ///
     /// PATTERN: For scene-based actions (ChoiceTemplate != null):
     /// - ScaledConsequence = scaled version of ChoiceTemplate.Consequence
-    /// - Use this for display, original for execution (scaling is UI hint)
+    /// - Use this for BOTH display AND execution
     ///
     /// For atmospheric actions (ChoiceTemplate == null):
     /// - Consequence property is used directly (already scaled at parse-time)
