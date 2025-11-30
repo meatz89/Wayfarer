@@ -1765,7 +1765,15 @@ public class GameFacade
             if (situation == null)
                 return IntentResult.Failed();
 
-            plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+            // TWO-PHASE SCALING: Pass pre-scaled values from action (populated by SceneFacade)
+            // Perfect Information compliance: display = execution (arc42 §8.26)
+            plan = _situationChoiceExecutor.ValidateAndExtract(
+                action.ChoiceTemplate,
+                action.Name,
+                player,
+                _gameWorld,
+                action.ScaledRequirement,    // Pre-scaled by SceneFacade
+                action.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {
@@ -1876,7 +1884,14 @@ public class GameFacade
         }
 
         // STEP 1: Validate and extract execution plan (all NPC actions use SituationChoiceExecutor)
-        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+        // TWO-PHASE SCALING: Pass pre-scaled values from action (populated by SceneFacade)
+        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(
+            action.ChoiceTemplate,
+            action.Name,
+            player,
+            _gameWorld,
+            action.ScaledRequirement,    // Pre-scaled by SceneFacade
+            action.ScaledConsequence);   // Pre-scaled by SceneFacade
 
         if (!plan.IsValid)
         {
@@ -1975,7 +1990,15 @@ public class GameFacade
             if (situation == null)
                 return IntentResult.Failed();
 
-            plan = _situationChoiceExecutor.ValidateAndExtract(card.ChoiceTemplate, card.Name, player, _gameWorld);
+            // TWO-PHASE SCALING: Pass pre-scaled values from PathCard (populated by SceneFacade)
+            // Perfect Information compliance: display = execution (arc42 §8.26)
+            plan = _situationChoiceExecutor.ValidateAndExtract(
+                card.ChoiceTemplate,
+                card.Name,
+                player,
+                _gameWorld,
+                card.ScaledRequirement,    // Pre-scaled by SceneFacade
+                card.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {

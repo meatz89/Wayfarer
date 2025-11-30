@@ -908,7 +908,19 @@ Entity-derived scaling happens in two phases, enabling AI generation at parse-ti
 **Why Two Phases?**
 - Parse-time: Entities don't exist yet (procedural generation)
 - Query-time: Entities are resolved, relationships known
-- Player sees adjusted requirements reflecting current NPC relationship
+- Player sees AND receives adjusted requirements reflecting current NPC relationship
+
+**Perfect Information Compliance**
+
+Scaling MUST affect both display AND execution. The player sees adjusted costs, and execution applies those same adjusted costs.
+
+| Principle | Requirement |
+|-----------|------------|
+| **Display = Execution** | ScaledRequirement used for both UI display and requirement checking |
+| **No Hidden Mechanics** | Player can calculate exact costs before selecting action |
+| **Relationship Matters** | Friendly NPC visibly AND mechanically reduces difficulty |
+
+**Forbidden:** Display showing scaled values while execution uses original values. This violates Perfect Information.
 
 **RuntimeScalingContext Adjustments (Query-Time)**
 
@@ -923,9 +935,11 @@ Entity-derived scaling happens in two phases, enabling AI generation at parse-ti
 2. Catalogue generates choices with tier-based values (parse-time)
 3. Scene activates, entities resolved (activation-time)
 4. SceneFacade derives RuntimeScalingContext from entities (query-time)
-5. Player sees scaled requirements and costs (display-time)
+5. SceneFacade creates ScaledRequirement and ScaledConsequence
+6. UI displays scaled values (display-time)
+7. Executor uses scaled values for requirement checking and cost application (execution-time)
 
-**HIGHLANDER Compliance:** Original templates immutable. Scaling creates new instances for display only.
+**HIGHLANDER Compliance:** Original templates immutable. Scaling creates new instances used for both display AND execution.
 
 ---
 

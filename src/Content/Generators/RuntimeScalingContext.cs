@@ -310,18 +310,17 @@ public class RuntimeScalingContext
 
             // Copy non-resource consequences
             BondChanges = original.BondChanges,
-            ScaleChanges = original.ScaleChanges,
-            StatesToApply = original.StatesToApply,
-            StatesToRemove = original.StatesToRemove,
-            AchievementsToGrant = original.AchievementsToGrant,
-            LocationsToUnlock = original.LocationsToUnlock,
-            LocationsToLock = original.LocationsToLock,
-            RoutesToUnlock = original.RoutesToUnlock,
-            RoutesToLock = original.RoutesToLock,
-            ItemsToGrant = original.ItemsToGrant,
+            ScaleShifts = original.ScaleShifts,
+            StateApplications = original.StateApplications,
+            Achievements = original.Achievements,
+            Items = original.Items,
             ItemsToRemove = original.ItemsToRemove,
             ScenesToSpawn = original.ScenesToSpawn,
-            TimeSegments = original.TimeSegments
+            TimeSegments = original.TimeSegments,
+            AdvanceToBlock = original.AdvanceToBlock,
+            AdvanceToDay = original.AdvanceToDay,
+            FullRecovery = original.FullRecovery,
+            Understanding = original.Understanding
         };
     }
 }
