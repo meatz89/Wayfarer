@@ -9,6 +9,7 @@ public class SceneTemplateValidatorTests
         return new SceneTemplate
         {
             Id = "test_scene",
+            SceneArchetype = SceneArchetypeType.InnLodging,
             Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {

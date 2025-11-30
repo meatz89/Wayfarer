@@ -121,7 +121,7 @@ public static class SceneArchetypeCatalog
 
     /// <summary>
     /// Resolve specific archetype from category with exclusions (CATALOGUE PATTERN - PARSE-TIME ONLY).
-    /// Called by Parser when DTO has ArchetypeCategory instead of explicit SceneArchetypeId.
+    /// Called by Parser when DTO has ArchetypeCategory instead of explicit SceneArchetype.
     /// Uses sequence-based deterministic selection (no Random) for consistent procedural generation.
     ///
     /// FAIL-FAST: Throws if category unknown or all archetypes excluded.

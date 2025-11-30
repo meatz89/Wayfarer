@@ -23,12 +23,17 @@ public class SceneTemplate
     public SpawnPattern Archetype { get; init; }
 
     /// <summary>
-    /// Scene archetype type used for generation.
+    /// Scene archetype type - the mechanical pattern for this scene.
     /// HIGHLANDER: ONE enum for ALL scene archetypes (service + narrative patterns).
     /// Used for anti-repetition tracking and narrative generation context.
-    /// null for manually-authored scenes (not generated from catalogue).
+    ///
+    /// PRINCIPLE: This is a TYPE discriminator, not an ID (arc42 §8.3).
+    /// All scenes have an archetype - it defines structure (situation count, transitions).
+    /// Archetype is selected either explicitly (authored) or categorically (procedural).
+    ///
+    /// Distinct from SpawnPattern "Archetype" property which describes transition patterns.
     /// </summary>
-    public SceneArchetypeType? SceneArchetypeId { get; init; }
+    public SceneArchetypeType SceneArchetype { get; init; }
 
     /// <summary>
     /// Display name template for this Scene

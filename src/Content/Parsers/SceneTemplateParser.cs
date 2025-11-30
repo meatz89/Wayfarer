@@ -79,18 +79,19 @@ public class SceneTemplateParser
             }
         }
 
-        // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetypeId (HIGHLANDER: ONE path)
+        // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetype (HIGHLANDER: ONE path)
         // Scene archetype defines BOTH structure (how many situations) AND content (which situation types)
         // NO special handling for Standalone vs Multi-situation - catalogue handles all variation
+        // PRINCIPLE: SceneArchetype is a TYPE discriminator, not an ID (arc42 §8.3)
         SceneArchetypeType sceneArchetypeType;
 
-        if (!string.IsNullOrEmpty(dto.SceneArchetypeId))
+        if (!string.IsNullOrEmpty(dto.SceneArchetype))
         {
             // EXPLICIT ARCHETYPE: Parse SceneArchetypeType enum with fail-fast validation
-            if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetypeId, true, out sceneArchetypeType))
+            if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetype, true, out sceneArchetypeType))
             {
                 throw new InvalidDataException(
-                    $"SceneTemplate '{dto.Id}' has invalid SceneArchetypeId: '{dto.SceneArchetypeId}'. " +
+                    $"SceneTemplate '{dto.Id}' has invalid SceneArchetype: '{dto.SceneArchetype}'. " +
                     $"Valid values: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
             }
         }
@@ -110,7 +111,7 @@ public class SceneTemplateParser
         {
             throw new InvalidDataException(
                 $"SceneTemplate '{dto.Id}' missing required archetype. " +
-                $"Provide either 'sceneArchetypeId' (explicit) or 'archetypeCategory' (categorical resolution).");
+                $"Provide either 'sceneArchetype' (explicit) or 'archetypeCategory' (categorical resolution).");
         }
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{sceneArchetypeType}'");
@@ -160,7 +161,7 @@ public class SceneTemplateParser
         {
             Id = dto.Id,
             Archetype = archetype,
-            SceneArchetypeId = sceneArchetypeType,
+            SceneArchetype = sceneArchetypeType,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             // Activation filter: Parse trigger for scene activation (Deferred → Active)
             // Scenes activate via LOCATION ONLY (player enters location matching filter)

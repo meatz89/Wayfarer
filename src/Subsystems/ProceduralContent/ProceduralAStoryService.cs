@@ -156,7 +156,7 @@ public class ProceduralAStoryService
             Id = sceneId,
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
-            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetypeId
+            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetype
             // Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time
             ArchetypeCategory = archetypeCategory,
             ExcludedArchetypes = excludedArchetypes,
@@ -418,13 +418,9 @@ public class ProceduralAStoryService
                     $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
                     $"All scenes must have valid Template reference.");
             }
-            if (!scene.Template.SceneArchetypeId.HasValue)
-            {
-                throw new InvalidOperationException(
-                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null SceneArchetypeId. " +
-                    $"All A-story scenes must have archetype.");
-            }
-            context.RecentArchetypes.Add(scene.Template.SceneArchetypeId.Value);
+            // SceneArchetype is now non-nullable (all scenes have an archetype)
+            // PRINCIPLE: Archetype is a TYPE discriminator, not an ID (arc42 §8.3)
+            context.RecentArchetypes.Add(scene.Template.SceneArchetype);
 
             // Validate and extract region from LAST COMPLETED situation
             if (!scene.Situations.Any())

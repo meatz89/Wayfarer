@@ -12,7 +12,7 @@
       {
         "id": "tutorial_secure_lodging",
         "archetype": "Linear",
-        "sceneArchetypeId": "InnLodging",
+        "sceneArchetype": "InnLodging",
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": false,
@@ -29,7 +29,7 @@
       {
         "id": "tutorial_rough_morning",
         "archetype": "Standalone",
-        "sceneArchetypeId": "ConsequenceReflection",
+        "sceneArchetype": "ConsequenceReflection",
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": false,

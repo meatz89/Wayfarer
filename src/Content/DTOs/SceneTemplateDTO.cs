@@ -97,23 +97,26 @@ public class SceneTemplateDTO
     public string ProgressionMode { get; set; }
 
     /// <summary>
-    /// Scene archetype ID for procedural scene generation.
+    /// Scene archetype type for procedural scene generation.
     /// String value validated at parse-time against SceneArchetypeType enum (PascalCase).
     /// HIGHLANDER: ONE SceneArchetypeCatalog generates SituationTemplates at PARSE TIME.
-    /// null = no archetype-based generation (uses explicit SituationTemplates from JSON).
+    ///
+    /// PRINCIPLE: This is a TYPE discriminator, not an ID (arc42 §8.3).
+    /// All scenes have an archetype - it defines structure (situation count, transitions).
+    ///
     /// Scene archetype defines WHAT the scene contains (design).
     /// PlacementFilter defines WHERE/WHEN it appears (configuration).
     /// Valid values: InnLodging, ConsequenceReflection, DeliveryContract, RouteSegmentTravel,
     ///               SeekAudience, InvestigateLocation, GatherTestimony, ConfrontAntagonist,
     ///               MeetOrderMember, DiscoverArtifact, UncoverConspiracy, UrgentDecision, MoralCrossroads
     /// </summary>
-    public string SceneArchetypeId { get; set; }
+    public string SceneArchetype { get; set; }
 
     /// <summary>
     /// Archetype category for procedural selection (CATALOGUE PATTERN).
-    /// Used when specific SceneArchetypeId is unknown - parser calls Catalogue to resolve.
+    /// Used when specific SceneArchetype is unknown - parser calls Catalogue to resolve.
     /// Values: "Investigation", "Social", "Confrontation", "Crisis"
-    /// null = use explicit SceneArchetypeId (authored content)
+    /// null = use explicit SceneArchetype (authored content)
     /// PARSE-TIME RESOLUTION: Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time.
     /// Combined with ExcludedArchetypes for anti-repetition.
     /// </summary>
@@ -131,7 +134,7 @@ public class SceneTemplateDTO
     /// <summary>
     /// Service type for service_with_location_access archetype
     /// Values: "lodging", "bathing", "healing", "storage", "training"
-    /// Ignored if SceneArchetypeId is null or not service-related
+    /// Ignored if SceneArchetype is null or not service-related
     /// Used to generate service-specific rewards and narrative hints
     /// </summary>
     public string ServiceType { get; set; }
