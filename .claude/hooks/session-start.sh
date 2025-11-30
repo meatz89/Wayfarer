@@ -1,6 +1,16 @@
 #!/bin/bash
 # SessionStart Hook: Ensure documentation context before any work
 
+# Auto-install pre-commit hooks silently
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+GIT_HOOKS_DIR="$REPO_ROOT/.git/hooks"
+
+if [ -d "$GIT_HOOKS_DIR" ] && [ -f "$REPO_ROOT/scripts/hooks/pre-commit" ]; then
+    cp "$REPO_ROOT/scripts/hooks/pre-commit" "$GIT_HOOKS_DIR/pre-commit" 2>/dev/null
+    chmod +x "$GIT_HOOKS_DIR/pre-commit" 2>/dev/null
+fi
+
 cat << 'EOF'
 WAYFARER SESSION START
 

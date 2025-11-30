@@ -395,33 +395,13 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
-# PRE-COMMIT HOOK (REQUIRED)
+# PRE-COMMIT HOOK
 
-**Installation (run once per clone):**
-```bash
-./scripts/hooks/install.sh
-```
-
-**What it enforces:**
-| Category | Checks |
-|----------|--------|
-| DDR-007 | Decimal multipliers, basis points, float/double types |
-| TYPE | Dictionary, HashSet, `var` keyword |
-| HIGHLANDER | Entity instance ID properties |
-| FAIL-FAST | Null coalescing (??), TryGetValue/TryParse |
-| SEPARATION | CssClass/IconName in backend services |
-| QUALITY | TODO/FIXME comments, .Wait()/.Result, extension methods |
-| NAMESPACE | Namespace declarations in domain code |
-| DETERMINISM | Random usage outside Pile.cs |
-| CATALOGUE | Catalogue calls in Services/Subsystems (must be in Parsers) |
-| DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
-| ICONS | Emojis in .razor files (use `<Icon>` component) |
-| EXPLICIT | String-based property modification patterns |
-| FILE-SIZE | Files exceeding 1000 lines (requires holistic refactoring) |
+Pre-commit hooks are auto-installed at session start. They enforce the principles documented in CLAUDE.md by blocking commits with violations.
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 
-**Reference:** `arc42/08_crosscutting_concepts.md` for architectural rationale
+The hook is self-documenting - run it to see what it checks. Source: `scripts/hooks/pre-commit`
 
 ---
 
