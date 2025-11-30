@@ -17,24 +17,25 @@
 /// JSON specifies SceneArchetypeType enum → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// SCENE ARCHETYPES (13 total - Reusable patterns):
+/// SCENE ARCHETYPES (13 total - All HIGHLANDER-compliant):
 ///
-/// SERVICE PATTERNS (4):
+/// HIGHLANDER: All archetypes use SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext()
+/// RhythmPattern (Building/Crisis/Mixed) determines choice structure, not archetype category.
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+///
 /// - InnLodging: 3-situation inn lodging flow (negotiate → rest → depart)
 /// - ConsequenceReflection: Single-situation consequence acknowledgment
 /// - DeliveryContract: Contract acceptance and delivery flow
-/// - RouteSegmentTravel: Travel between locations
-///
-/// NARRATIVE PATTERNS (9):
-/// - SeekAudience: Player seeks audience with authority figure (negotiate_access → audience)
-/// - InvestigateLocation: Player investigates location for clues (search → analyze → conclude)
-/// - GatherTestimony: Player gathers testimony from witnesses (approach → interview)
-/// - ConfrontAntagonist: Player confronts antagonist (accuse → resolve)
-/// - MeetOrderMember: Player meets order member (contact → negotiate → revelation)
-/// - DiscoverArtifact: Player discovers artifact (locate → acquire)
-/// - UncoverConspiracy: Player uncovers conspiracy (suspect → proof → expose → consequence)
-/// - UrgentDecision: Player faces urgent decision (crisis → decision)
-/// - MoralCrossroads: Player faces moral dilemma (dilemma → choice → consequence)
+/// - RouteSegmentTravel: 5-situation travel flow (3 obstacles → approach → arrival)
+/// - SeekAudience: Player seeks audience with authority figure
+/// - InvestigateLocation: Player investigates location for clues
+/// - GatherTestimony: Player gathers testimony from witnesses
+/// - ConfrontAntagonist: Player confronts antagonist
+/// - MeetOrderMember: Player meets order member
+/// - DiscoverArtifact: Player discovers artifact
+/// - UncoverConspiracy: Player uncovers conspiracy
+/// - UrgentDecision: Player faces urgent decision
+/// - MoralCrossroads: Player faces moral dilemma
 ///
 /// Each archetype defines:
 /// - Specific situation count and structure (intentional design)
@@ -169,28 +170,10 @@ public static class SceneArchetypeCatalog
         return available[selectionIndex];
     }
 
-    /// <summary>
-    /// Get all available narrative archetype types (for validation and procedural selection)
-    /// Returns list of all implemented narrative archetypes (excludes service patterns)
-    /// </summary>
-    public static List<SceneArchetypeType> GetAllNarrativeArchetypes()
-    {
-        return new List<SceneArchetypeType>
-        {
-            SceneArchetypeType.SeekAudience,
-            SceneArchetypeType.InvestigateLocation,
-            SceneArchetypeType.GatherTestimony,
-            SceneArchetypeType.ConfrontAntagonist,
-            SceneArchetypeType.MeetOrderMember,
-            SceneArchetypeType.DiscoverArtifact,
-            SceneArchetypeType.UncoverConspiracy,
-            SceneArchetypeType.UrgentDecision,
-            SceneArchetypeType.MoralCrossroads
-        };
-    }
-
     // ===================================================================
-    // SERVICE PATTERNS (4) - Transactional C-story content
+    // SCENE ARCHETYPES - All archetypes use HIGHLANDER-compliant generation
+    // RhythmPattern determines choice structure, not archetype category
+    // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     // ===================================================================
 
     /// <summary>
@@ -894,10 +877,6 @@ public static class SceneArchetypeCatalog
             SpawnRules = spawnRules
         };
     }
-
-    // ===================================================================
-    // NARRATIVE PATTERNS (9) - A-story and B-story content
-    // ===================================================================
 
     /// <summary>
     /// SEEK_AUDIENCE archetype

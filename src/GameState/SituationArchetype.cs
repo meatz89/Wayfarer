@@ -1,19 +1,5 @@
 
 /// <summary>
-/// Archetype category marker - HIGHLANDER COMPLIANT.
-/// All archetypes are Standard. No routing, no special cases.
-/// RhythmPattern (Building/Crisis/Mixed) determines choice structure.
-/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
-/// </summary>
-public enum ArchetypeCategory
-{
-    /// <summary>
-    /// All archetypes use standard rhythm-aware 4-choice generation.
-    /// </summary>
-    Standard
-}
-
-/// <summary>
 /// SituationArchetype - mechanical template for procedural situation generation
 /// Defines the 4-choice structure pattern that players learn to recognize and prepare for
 ///
@@ -22,12 +8,15 @@ public enum ArchetypeCategory
 /// - Defines stat requirements, costs, and challenge types for each archetype
 /// - Catalogue generates 4 ChoiceTemplates from archetype structure
 /// - Domain associations create learnable patterns (Economic → Negotiation/Diplomacy)
+/// - RhythmPattern (Building/Crisis/Mixed) determines choice structure at generation time
 ///
 /// THE FOUR CHOICE PATTERN (Always):
 /// 1. Stat-Gated: Best outcome, free if stat requirement met
 /// 2. Money: Guaranteed success, expensive
 /// 3. Challenge: Variable outcome, risky
 /// 4. Fallback: Poor outcome, always available
+///
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
 /// </summary>
 public class SituationArchetype
 {
@@ -41,13 +30,6 @@ public class SituationArchetype
     /// Display name for this archetype
     /// </summary>
     public string Name { get; init; }
-
-    /// <summary>
-    /// Archetype category marker - all archetypes are Standard.
-    /// RhythmPattern determines choice structure, not category.
-    /// See arc42/08_crosscutting_concepts.md §8.26
-    /// </summary>
-    public ArchetypeCategory Category { get; init; } = ArchetypeCategory.Standard;
 
     /// <summary>
     /// Primary domain where this archetype commonly appears

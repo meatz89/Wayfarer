@@ -1,9 +1,13 @@
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///
-/// Defines 21 situation archetypes (5 core, 10 expanded, 6 specialized) for procedural choice generation.
+/// Defines 21 situation archetypes for procedural choice generation.
 /// Creates learnable mechanical patterns players recognize and prepare for.
 /// Uses strongly-typed enums for compile-time validation.
+///
+/// HIGHLANDER: ALL archetypes use ONE generation path.
+/// RhythmPattern (Building/Crisis/Mixed) determines choice structure.
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
 ///
 /// CATALOGUE PATTERN COMPLIANCE:
 /// - Called ONLY from SceneTemplateParser at PARSE TIME
@@ -16,14 +20,6 @@
 /// Parser reads SituationArchetypeType enum from DTO → Calls GetArchetype() → Receives archetype structure
 /// → Parser generates 4 ChoiceTemplates from archetype → Stores in SituationTemplate
 /// → Runtime queries Scene.Situations (situations embedded in scenes), NO catalogue calls
-///
-/// ARCHETYPE LIBRARY (21 patterns - see SituationArchetypeType enum):
-/// Core (5): Confrontation, Negotiation, Investigation, SocialManeuvering, Crisis
-/// Expanded (10): ServiceTransaction, AccessControl, InformationGathering, SkillDemonstration,
-///                ReputationChallenge, EmergencyAid, AdministrativeProcedure, TradeDispute,
-///                CulturalFauxPas, Recruitment
-/// Specialized (6): RestPreparation, EnteringPrivateSpace, DepartingPrivateSpace,
-///                  ServiceNegotiation, ServiceExecutionRest, ServiceDeparture
 ///
 /// Each archetype defines:
 /// - Which stats are tested (learnable patterns)
@@ -643,7 +639,6 @@ public static class SituationArchetypeCatalog
         {
             Type = SituationArchetypeType.ServiceNegotiation,
             Name = "Service Negotiation",
-            Category = ArchetypeCategory.Standard,  // All archetypes use rhythm-aware generation
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.Rapport,
             SecondaryStat = PlayerStatType.Diplomacy,
@@ -681,7 +676,6 @@ public static class SituationArchetypeCatalog
         {
             Type = SituationArchetypeType.ServiceExecutionRest,
             Name = "Service Execution (Rest)",
-            Category = ArchetypeCategory.Standard,  // All archetypes use rhythm-aware generation
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.None,
             SecondaryStat = PlayerStatType.None,
@@ -719,7 +713,6 @@ public static class SituationArchetypeCatalog
         {
             Type = SituationArchetypeType.ServiceDeparture,
             Name = "Service Departure",
-            Category = ArchetypeCategory.Standard,  // All archetypes use rhythm-aware generation
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
             SecondaryStat = PlayerStatType.Cunning,

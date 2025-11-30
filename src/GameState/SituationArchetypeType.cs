@@ -89,7 +89,7 @@ public enum SituationArchetypeType
     /// </summary>
     Recruitment,
 
-    // ==================== SPECIALIZED (6) ====================
+    // ==================== SERVICE & TRANSITION (6) ====================
 
     /// <summary>
     /// Rest preparation: choosing how to rest
@@ -108,19 +108,16 @@ public enum SituationArchetypeType
 
     /// <summary>
     /// Service negotiation: securing services (inn booking, etc.)
-    /// Specialized choice generation for commerce contexts
     /// </summary>
     ServiceNegotiation,
 
     /// <summary>
     /// Service execution rest: using secured service (staying at inn)
-    /// Different recovery approaches
     /// </summary>
     ServiceExecutionRest,
 
     /// <summary>
     /// Service departure: leaving service venue
-    /// Organize belongings, return key, etc.
     /// </summary>
     ServiceDeparture
 }
