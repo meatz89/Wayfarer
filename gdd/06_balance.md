@@ -69,7 +69,92 @@ Every A-story situation balances across four path types:
 
 ---
 
-## 6.4 Difficulty Scaling Mechanisms
+## 6.4 The Sir Brante Rhythm (Reference Model)
+
+Wayfarer's progression draws from "The Life and Suffering of Sir Brante" - a game where every stat point matters immediately, creating a satisfying rhythm of building and testing capabilities.
+
+### The Core Tension
+
+Two resource systems create competing pressures:
+
+| Resource | Nature | Spent By | Gained By |
+|----------|--------|----------|-----------|
+| **Permanent Stats** | Accumulate over time | Never lost (rarely decreased) | Stat-building choices |
+| **Resolve** | Fluctuating pool | Unlocking hard choices | Passive/safe decisions |
+
+**The Dilemma:** Spend resolve NOW to unlock stat-building choices (invest in future), or save resolve for future crises (preserve options). This tension is NEVER fully resolved - it IS the game.
+
+### The Progression Rhythm
+
+Situations alternate between two phases:
+
+**Stat-Building Phase:** Choices that GRANT stats (but cost resolve or other resources)
+- "Stand your ground" → +1 Authority, costs resolve
+- "Study the documents" → +1 Insight, costs time
+- "Help the stranger" → +1 Rapport, -1 Coins
+
+**Stat-Gating Phase:** Choices that REQUIRE stats (free if qualified, costly otherwise)
+- "Intimidate the guard" → Free if Authority ≥ threshold, otherwise pay coins OR accept penalty
+- "Notice the hidden clue" → Free if Insight ≥ threshold, otherwise miss opportunity
+
+**The Rhythm:** Build stats early → face stat-gates later → build more stats → face harder gates. Every point gained in stat-building becomes immediately relevant in upcoming stat-gates.
+
+### OR-Type Requirements (Multiple Valid Paths)
+
+Major choices offer multiple qualification paths:
+
+| Path Type | Example | Player Served |
+|-----------|---------|---------------|
+| **High Stat** | Authority ≥ 5 | Specialists who invested |
+| **Stat Combination** | Cunning ≥ 3 AND ally relationship | Networkers |
+| **Resolve Flex** | Authority ≥ 3 AND spend resolve | Almost-qualified, burn reserve |
+| **Resource Alternative** | Pay 10 coins | Resource-rich players |
+| **Fallback** | Accept poor outcome | Anyone (guaranteed) |
+
+**Design Principle:** Everyone can progress, but not in the same way. Different builds experience different optimal paths through the same content.
+
+### Trade-Off Consequences
+
+Every significant choice involves SIMULTANEOUS gains and losses:
+
+| Choice Pattern | Example | Creates |
+|----------------|---------|---------|
+| **Stat vs Stat** | +1 Authority, -1 Rapport | Specialization pressure |
+| **Stat vs Resource** | +1 Insight, -5 Coins | Investment decision |
+| **Stat vs Relationship** | +1 Cunning, NPC disapproves | Social consequences |
+| **Resource vs Time** | -10 Coins OR wait 2 days | Urgency trade-off |
+
+**Philosophy:** The game refuses to give "all wins." Prioritization IS the gameplay.
+
+### Every Point Matters (Tight Margins)
+
+Stat thresholds are calibrated so players are ALWAYS near the edge:
+
+| Tier | Expected Primary Stat | Typical Threshold | Margin |
+|------|----------------------|-------------------|--------|
+| 0 (Tutorial) | 1-2 | 2-3 | ±1 point decides |
+| 1 (Early) | 3-4 | 4-5 | ±1 point decides |
+| 2 (Mid) | 5-6 | 6-7 | ±1 point decides |
+| 3 (Late) | 7-8 | 8-9 | ±1 point decides |
+
+**The Feeling:** A single stat point gained three situations ago determines whether you qualify for the free path NOW. Choices compound. Nothing is wasted.
+
+### Categorical Scaling Preserves Rhythm
+
+The SAME rhythm operates at every tier - categorical properties scale VALUES, not STRUCTURE:
+
+| What Scales | How It Scales |
+|-------------|---------------|
+| Stat thresholds | Tier base + NPC demeanor adjustment |
+| Resource costs | Tier base + quality adjustment |
+| Stat rewards | Tier base (higher tiers grant more per choice) |
+| Trade-off severity | Tier scales both gains AND losses |
+
+**Critical:** Tutorial at Tier 0 and late-game at Tier 3 feel equally tight because margins scale proportionally. The rhythm is preserved; only the numbers change.
+
+---
+
+## 6.5 Difficulty Scaling Mechanisms
 
 ### Categorical Properties, Not Level Gates
 
@@ -95,7 +180,7 @@ As A-story advances, expected player state increases:
 
 ---
 
-## 6.5 Build Diversity
+## 6.6 Build Diversity
 
 ### Why All Builds Must Work
 
@@ -122,7 +207,7 @@ If only one stat distribution succeeds, the game becomes a puzzle with a correct
 
 ---
 
-## 6.6 Balance Anti-Patterns
+## 6.7 Balance Anti-Patterns
 
 ### Avoid: Single Resource Dominance
 If everything costs coins, coin-rich players trivialize content. Ensure orthogonal costs.
