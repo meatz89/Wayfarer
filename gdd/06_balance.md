@@ -498,6 +498,26 @@ The 8-sequence rotation above serves as a **base rotation baseline**. The actual
 - **Peaceful is Earned:** Heavy demanding history (multiple high-intensity scenes) triggers Peaceful selection via intensity balance scoring
 - **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection (Challenge Philosophy)
 - **Intensity Recording:** Each completed A-story scene records its intensity for future context-aware decisions
+- **Context Injection:** Generation never discovers context from world state; context is always injected by the caller
+
+**Context Injection Principle (HIGHLANDER Compliance):**
+
+Scene generation receives context as input, not by reading GameWorld. This enables:
+
+| Content Type | Context Source | Outcome |
+|--------------|----------------|---------|
+| **Procedural** | Caller reads GameWorld state, passes as context | Dynamic adaptation to current game state |
+| **Authored** | Content author specifies exact context | Deterministic sequence (A1→A2→A3 precisely) |
+
+Same generation code handles both — no special cases for tutorial vs infinite progression.
+
+**Why this matters:**
+- Authored tutorial sequences (A1-A10) need predictable outcomes
+- Without context injection, authored A1 can't guarantee A2 will be Investigation category
+- Context at generation time depends on player's current state, not author's intent
+- Context injection lets authors specify "generate with Investigation context" regardless of player state
+
+See arc42/08 §8.28 for technical implementation pattern.
 
 **Choice Value Calculation SHOULD Consider:**
 

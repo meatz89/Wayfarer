@@ -1019,6 +1019,66 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 ---
 
+## 8.28 Context Injection Pattern (HIGHLANDER-Compliant Scene Generation)
+
+**Problem:** Scene generation that discovers context from GameWorld creates two incompatible code paths:
+- Procedural scenes: Read current GameWorld state, select category based on live context
+- Authored scenes: Need to specify exact outcome, but context at generation time is unpredictable
+
+This violates HIGHLANDER — authored content would require special cases bypassing the procedural algorithm.
+
+**Solution:** Context is always INJECTED into generation, never discovered at generation time.
+
+| Component | Responsibility |
+|-----------|----------------|
+| **Caller** (authored or procedural) | Constructs context and passes to generation |
+| **Generator** | Uses injected context to produce deterministic output |
+| **Same code path** | Both authored and procedural use identical generation logic |
+
+**Two Context Sources, One Generation Path:**
+
+| Source | How Context is Populated | Example |
+|--------|--------------------------|---------|
+| **Procedural** | Read current GameWorld state (player intensity, location, anti-repetition) | After A3 completes, read Player.SceneIntensityHistory and current location |
+| **Authored** | Specify exact context in content definition | A1 defines "next spawn uses Investigation category, Safe location, Building rhythm" |
+
+**Consequences:**
+- Generation algorithm remains pure function: same context → same output
+- Authored content achieves deterministic sequencing without special cases
+- Procedural content achieves dynamic adaptation without separate code paths
+- Testing simplified: inject test context, verify output
+
+**Implementation Pattern:**
+
+The spawn request (DTO or parameter object) carries all context needed for generation:
+- Target archetype category (or factors that determine it)
+- Intensity history snapshot (or pre-computed intensity balance)
+- Location context (Safety, Purpose) or explicit category override
+- Rhythm phase indicators
+- Anti-repetition exclusions
+
+Generator NEVER calls GameWorld directly. All state arrives via injected context.
+
+**Forbidden:**
+- Generation logic reading GameWorld.GetPlayer() or similar
+- Conditional paths based on "is this authored vs procedural"
+- Context discovery inside generation methods
+- Different generation code for tutorial vs infinite progression
+
+**Correct Pattern:**
+- Caller (RewardApplicationService for procedural, authored content for explicit) builds context
+- Context passed as parameter to GenerateNextATemplate or equivalent
+- Generation uses ONLY the provided context
+- Output is deterministic function of input context
+
+**Cross-References:**
+- §8.1 HIGHLANDER: One code path for all scene generation
+- §8.2 Catalogue Pattern: Context properties translate at parse-time
+- §8.23 Archetype Reusability: No tutorial hardcoding in archetypes
+- §8.26 Sir Brante Rhythm: RhythmPattern as contextual property
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
