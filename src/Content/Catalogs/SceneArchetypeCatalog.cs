@@ -629,29 +629,27 @@ public static class SceneArchetypeCatalog
     }
 
     /// <summary>
-    /// ROUTE_SEGMENT_TRAVEL archetype
+    /// ROUTE_SEGMENT_TRAVEL archetype - HIGHLANDER COMPLIANT
     ///
     /// FICTIONAL CONTEXT: Player traveling multi-segment route, encountering obstacles
     /// REUSABLE: Works for any route travel scene throughout game
     ///
     /// Situation Count: 5
-    /// Pattern: Linear (4 route obstacles → arrival)
+    /// Pattern: Linear (3 route obstacles → approach → arrival)
     ///
-    /// Situations 1-4: Route obstacles at SegmentIndex 0-3
-    ///   - Each uses 4-choice pattern (stat-gated/money-gated/challenge/fallback)
-    ///   - Different challenge types (Physical, Mental, Social, simple)
-    ///   - Geographic placement via RouteFilter with SegmentIndex
+    /// HIGHLANDER: ALL situations use SituationArchetypeCatalog with RhythmPattern.
+    /// NO inline choices, NO isCrisis branching.
     ///
-    /// Situation 5: Arrival at destination location
-    ///   - Single choice to complete travel
-    ///   - Rewards: Completion bonus (tutorial: +10 coins when sequence == 3)
-    ///   - Tutorial: Spawns next A-story scene
+    /// Situations 1-3: Route obstacles using domain-appropriate archetypes
+    ///   - Obstacle 1 (Physical): Confrontation archetype (Authority-based)
+    ///   - Obstacle 2 (Mental): Investigation archetype (Insight-based)
+    ///   - Obstacle 3 (Social): SocialManeuvering archetype (Rapport-based)
     ///
-    /// No Dependent Resources: Uses existing world routes/locations
+    /// Situation 4: Final Approach using RestPreparation archetype
+    /// Situation 5: Arrival using ServiceTransaction archetype
     ///
-    /// VERISIMILITUDE: Route travel involves sequential progression through route segments,
-    /// encountering obstacles that require decisions, before arriving at destination.
-    /// Reusable for any multi-segment route travel throughout game.
+    /// RhythmPattern determines choice structure for ALL situations uniformly.
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     private static SceneArchetypeDefinition GenerateRouteSegmentTravel(int tier, GenerationContext context)
     {
@@ -662,78 +660,23 @@ public static class SceneArchetypeCatalog
         string approachSitId = $"{sceneId}_approach";
         string arrivalSitId = $"{sceneId}_arrival";
 
-        // HIGHLANDER: ONE path - RhythmPattern determines crisis vs standard behavior
-        // Crisis rhythm: Requirements gate safe outcome, fallback has penalty
-        // Mixed rhythm: Requirements gate best outcome, fallback has time cost
-        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
-        bool isCrisis = context?.Rhythm == RhythmPattern.Crisis;
-
         // SITUATION 1: PHYSICAL OBSTACLE (Segment 0)
-        CompoundRequirement obstacle1AuthorityReq = new CompoundRequirement();
-        Consequence obstacle1FallbackReward;
-
-        if (isCrisis)
-        {
-            // CRISIS: Authority 3 required, fallback causes damage
-            obstacle1AuthorityReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Authority, 3)
-            };
-            obstacle1FallbackReward = new Consequence { Health = -10 };
-        }
-        else
-        {
-            obstacle1FallbackReward = new Consequence();
-        }
+        // HIGHLANDER: Uses Confrontation archetype - Authority-based, Physical challenge
+        // RhythmPattern determines: Building=stat grants, Crisis=penalty avoidance, Mixed=trade-offs
+        SituationArchetype obstacle1Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
+        List<ChoiceTemplate> obstacle1Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle1Archetype,
+            obstacle1SitId,
+            context);
 
         SituationTemplate obstacle1Situation = new SituationTemplate
         {
             Id = obstacle1SitId,
             Name = "Forest Obstacle",
             Type = SituationType.Normal,
-            NarrativeTemplate = null,  // AI generates from hints
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_authority",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Direct locals to clear path",
-                    RequirementFormula = obstacle1AuthorityReq,
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay locals to clear it",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -5 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Clear obstacle yourself",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/stamina costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1
-                    OnFailureConsequence = new Consequence(),  // Health -10
-                    ChallengeType = TacticalSystemType.Physical,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Take longer detour",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle1FallbackReward,  // A3: Health -10 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            SystemType = obstacle1Archetype.ChallengeType,
+            NarrativeTemplate = null,
+            ChoiceTemplates = obstacle1Choices,
             Priority = 100,
             NarrativeHints = new NarrativeHints
             {
@@ -745,7 +688,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 0  // First segment
+                SegmentIndex = 0
             },
             LocationFilter = new PlacementFilter
             {
@@ -756,71 +699,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: MENTAL OBSTACLE (Segment 1)
-        CompoundRequirement obstacle2InsightReq = new CompoundRequirement();
-        Consequence obstacle2FallbackReward;
-
-        if (isCrisis)
-        {
-            // CRISIS: Insight 3 required, fallback causes stamina loss
-            obstacle2InsightReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Insight, 3)
-            };
-            obstacle2FallbackReward = new Consequence { Stamina = -10 };
-        }
-        else
-        {
-            obstacle2FallbackReward = new Consequence();
-        }
+        // HIGHLANDER: Uses Investigation archetype - Insight-based, Mental challenge
+        SituationArchetype obstacle2Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> obstacle2Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle2Archetype,
+            obstacle2SitId,
+            context);
 
         SituationTemplate obstacle2Situation = new SituationTemplate
         {
             Id = obstacle2SitId,
             Name = "River Crossing",
             Type = SituationType.Normal,
+            SystemType = obstacle2Archetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_insight",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Spot safe shallows through analysis",
-                    RequirementFormula = obstacle2InsightReq,
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay ferryman",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -8 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Study crossing carefully",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/focus costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1
-                    OnFailureConsequence = new Consequence(),  // Health -5
-                    ChallengeType = TacticalSystemType.Mental,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Wade across carefully",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle2FallbackReward,  // A3: Stamina -10 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = obstacle2Choices,
             Priority = 90,
             NarrativeHints = new NarrativeHints
             {
@@ -832,7 +725,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 1  // Second segment
+                SegmentIndex = 1
             },
             LocationFilter = new PlacementFilter
             {
@@ -843,71 +736,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 3: SOCIAL OBSTACLE (Segment 2)
-        CompoundRequirement obstacle3RapportReq = new CompoundRequirement();
-        Consequence obstacle3FallbackReward;
-
-        if (isCrisis)
-        {
-            // CRISIS: Rapport 3 required, fallback costs coins
-            obstacle3RapportReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Rapport, 3)
-            };
-            obstacle3FallbackReward = new Consequence { Coins = -5 };
-        }
-        else
-        {
-            obstacle3FallbackReward = new Consequence();
-        }
+        // HIGHLANDER: Uses SocialManeuvering archetype - Rapport-based, Social challenge
+        SituationArchetype obstacle3Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> obstacle3Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle3Archetype,
+            obstacle3SitId,
+            context);
 
         SituationTemplate obstacle3Situation = new SituationTemplate
         {
             Id = obstacle3SitId,
             Name = "Checkpoint Guard",
             Type = SituationType.Normal,
+            SystemType = obstacle3Archetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_rapport",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Friendly conversation about the road",
-                    RequirementFormula = obstacle3RapportReq,
-                    Consequence = new Consequence(),  // Guard bond +1
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay toll and inspection fee",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -10 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Persuade to waive toll",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/resolve costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1, Guard bond +2
-                    OnFailureConsequence = new Consequence(),  // Coins -12, Guard bond -1
-                    ChallengeType = TacticalSystemType.Social,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Wait patiently through thorough inspection",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle3FallbackReward,  // A3: Coins -5 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = obstacle3Choices,
             Priority = 80,
             NarrativeHints = new NarrativeHints
             {
@@ -919,7 +762,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 2  // Third segment
+                SegmentIndex = 2
             },
             LocationFilter = new PlacementFilter
             {
@@ -930,33 +773,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 4: FINAL APPROACH (Segment 3)
+        // HIGHLANDER: Uses RestPreparation archetype - preparation before arrival
+        SituationArchetype approachArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.RestPreparation);
+        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            approachArchetype,
+            approachSitId,
+            context);
+
         SituationTemplate approachSituation = new SituationTemplate
         {
             Id = approachSitId,
             Name = "Final Approach",
             Type = SituationType.Normal,
+            SystemType = approachArchetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{approachSitId}_continue",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Head to destination",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{approachSitId}_rest",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Catch breath before arrival",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Stamina +5, Focus +5
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = approachChoices,
             Priority = 70,
             NarrativeHints = new NarrativeHints
             {
@@ -968,7 +799,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 3  // Fourth segment
+                SegmentIndex = 3
             },
             LocationFilter = new PlacementFilter
             {
@@ -979,29 +810,19 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 5: ARRIVAL AT DESTINATION
-        // HIGHLANDER: Crisis rhythm provides completion bonus for surviving high-stakes journey
-        Consequence arrivalConsequence = isCrisis
-            ? new Consequence { Coins = 10 }
-            : new Consequence();
-
-        List<ChoiceTemplate> arrivalChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{arrivalSitId}_complete",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Accept completion bonus and conclude business",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = arrivalConsequence,
-                ActionType = ChoiceActionType.Instant
-            }
-        };
+        // HIGHLANDER: Uses ServiceTransaction archetype - completion of journey
+        SituationArchetype arrivalArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceTransaction);
+        List<ChoiceTemplate> arrivalChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            arrivalArchetype,
+            arrivalSitId,
+            context);
 
         SituationTemplate arrivalSituation = new SituationTemplate
         {
             Id = arrivalSitId,
             Name = "Delivery Complete",
             Type = SituationType.Normal,
+            SystemType = arrivalArchetype.ChallengeType,
             NarrativeTemplate = null,
             ChoiceTemplates = arrivalChoices,
             Priority = 60,
@@ -1012,8 +833,6 @@ public static class SceneArchetypeCatalog
                 Context = "delivery_success",
                 Style = "satisfying"
             },
-            // RouteDestination: Use route's destination location (resolved from earlier RouteFilter situations)
-            // Purpose remains as categorical validation hint
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
@@ -1025,7 +844,7 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.NPC,
                 Profession = Professions.Merchant
             },
-            RouteFilter = null      // At destination location, not on route
+            RouteFilter = null
         };
 
         // Linear spawn rules: Obstacle1 → Obstacle2 → Obstacle3 → Approach → Arrival
