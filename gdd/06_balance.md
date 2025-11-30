@@ -109,6 +109,59 @@ Two resource systems create competing pressures:
 
 **The Dilemma:** Spend resolve NOW to unlock stat-building choices (invest in future), or save resolve for future crises (preserve options). This tension is NEVER fully resolved - it IS the game.
 
+### Resource Duality Principle
+
+**Every resource serves THREE roles simultaneously:**
+
+| Role | Function | Example |
+|------|----------|---------|
+| **Gate (Requirement)** | Must have X to see/select option | Resolve ≥ 0 to attempt heroic action |
+| **Cost (Consequence)** | Spend Y when selecting | -5 Resolve when choosing |
+| **Reward (Consequence)** | Gain Z as outcome | +10 Resolve from peaceful moment |
+
+**Critical:** Stats, coins, relationships, and resolve ALL function as gates, costs, AND rewards depending on context. A choice might require Insight ≥ 3, cost 5 coins, and reward +1 Rapport and -5 Resolve.
+
+### Compound Requirement Types
+
+Choices can require multiple conditions combined:
+
+| Requirement Pattern | Example | Design Purpose |
+|--------------------|---------|----------------|
+| **Single Stat** | Authority ≥ 4 | Reward specialists |
+| **Stat + Resolve** | Insight ≥ 3 AND Resolve ≥ 0 | Require investment AND commitment |
+| **Stat + Relationship** | Rapport ≥ 3 AND NPC: Grateful | Reward networkers |
+| **Lower Stat + Higher Resolve** | Authority ≥ 2 AND Resolve ≥ 5 | Let near-qualified burn reserve |
+| **Resource Only** | 10 coins | Wealth alternative to skill |
+| **No Requirements** | Always available | Fallback guarantee |
+
+**OR-paths within choices:** A single choice can have MULTIPLE ways to qualify. "Negotiate" might unlock via Diplomacy ≥ 4 OR (Rapport ≥ 3 AND NPC relationship) OR (pay 15 coins).
+
+### Simultaneous Consequences
+
+Choices yield MULTIPLE effects at once, not single outcomes:
+
+| Choice | Effects |
+|--------|---------|
+| "Accept punishment" | -5 Resolve, +1 Relationship, NPC becomes Grateful |
+| "Defend your honor" | -10 Resolve, +1 Authority, -1 Rapport, NPC becomes Hostile |
+| "Study through the night" | +1 Insight, -1 Stamina, -5 Resolve |
+| "Accept unfavorable terms" | +5 Resolve (avoided stress), -10 Coins, -1 Reputation |
+
+**Key insight:** Even PASSIVE choices have consequences. Backing down might preserve resolve but cost reputation. There are no free choices.
+
+### Resolve as Rhythm Driver
+
+Resolve creates the natural rhythm through its gain/drain patterns:
+
+| Action Type | Resolve Effect | Creates |
+|-------------|---------------|---------|
+| **Heroic/Active choices** | Drain (-5 to -15) | Resource pressure |
+| **Passive/Safe choices** | Restore (+5 to +10) | Recovery opportunity |
+| **Going against disposition** | Heavy drain | Authenticity cost |
+| **Accepting circumstances** | Moderate restore | Compromise benefit |
+
+**The rhythm emerges naturally:** Players who spend heavily on building must recover before they can take more risks. Players who play safe accumulate resolve but miss growth opportunities. The tension between growth and safety IS the game.
+
 ### Situation Types (NOT Uniform Structure)
 
 Situations are NOT all the same. Three distinct types exist:
@@ -199,6 +252,32 @@ Stat thresholds are calibrated so players are ALWAYS near the edge:
 
 **The Feeling:** A single stat point gained three situations ago determines whether you qualify for the free path NOW. Choices compound. Nothing is wasted.
 
+### Stat Compounding (Early Choices Matter Most)
+
+In Sir Brante, childhood stats combine with adolescent stats to form adult stats. One childhood point contributes to THREE adult stats. Wayfarer applies this principle:
+
+| Game Phase | Stat Investment | Long-term Impact |
+|------------|-----------------|------------------|
+| **Tutorial (Tier 0)** | Foundation building | Defines viable paths for entire game |
+| **Early (Tier 1)** | Specialization begins | Locks in primary build identity |
+| **Mid (Tier 2)** | Refinement | Marginal improvements |
+| **Late (Tier 3+)** | Optimization | Fine-tuning established build |
+
+**Design consequence:** Tutorial choices are NOT throwaway. A player who invests in Insight early will find Investigation paths cheap throughout the game. A player who spreads points evenly will never get free paths but will have moderate access to everything.
+
+### Authoring vs Playing (Internal vs External View)
+
+The Building/Crisis/Mixed classification is for AUTHORS, not displayed to PLAYERS:
+
+| Internal (Author) | External (Player) |
+|-------------------|-------------------|
+| "This is a Building situation" | "I have four interesting choices" |
+| "Stats determine crisis severity" | "My Authority saved me from worse" |
+| "Rhythm requires recovery here" | "Finally a moment to breathe" |
+| "This choice costs resolve" | "This feels risky, do I commit?" |
+
+**The player never sees labels.** They experience the rhythm through resource pressure and relief. The tension emerges from mechanics, not exposition. Authors track rhythm; players feel it.
+
 ### Categorical Scaling Preserves Rhythm
 
 The SAME rhythm operates at every tier - categorical properties scale VALUES, not STRUCTURE:
@@ -280,6 +359,21 @@ If choosing "wrong" option leads to unrecoverable loss, players feel cheated. Ma
 
 ### Avoid: Power Creep
 If late-game equipment trivializes challenges, tight margins philosophy breaks. Keep incremental advantages small.
+
+---
+
+## 6.8 Sources and References
+
+### The Life and Suffering of Sir Brante
+
+The Sir Brante rhythm model draws from extensive analysis of this narrative RPG:
+
+- **Willpower System:** Fluctuating resource that gates heroic choices, restored by passive/safe decisions
+- **Stat Compounding:** Childhood stats (Determination, Perception) combine with adolescent stats (Nobility, Ingenuity, Spirituality) to form six adult stats - one early point equals three adult points
+- **Simultaneous Consequences:** Choices yield multiple effects (stats, relationships, willpower) simultaneously
+- **OR-Type Requirements:** Multiple qualification paths for the same choice
+
+Key design insight from developer: "The protagonist ain't almighty and his inner resources are limited. He needs to 'pay' for following his heart."
 
 ---
 
