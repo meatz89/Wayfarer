@@ -16,6 +16,7 @@ public class SpawnGraphLinkModel : LinkModel
     public SpawnGraphLinkType LinkType { get; }
     public string CssClass { get; }
     public string Label { get; }
+    public EntityResolutionMetadata Resolution { get; }
 
     public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType)
         : base(source, target)
@@ -24,6 +25,12 @@ public class SpawnGraphLinkModel : LinkModel
         Color = GetColorForLinkType(linkType);
         CssClass = GetCssClassForLinkType(linkType);
         Label = GetLabelForLinkType(linkType);
+    }
+
+    public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType, EntityResolutionMetadata resolution)
+        : this(source, target, linkType)
+    {
+        Resolution = resolution;
     }
 
     private string GetColorForLinkType(SpawnGraphLinkType linkType)
