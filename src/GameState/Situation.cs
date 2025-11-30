@@ -61,6 +61,14 @@ public class Situation
     public SituationType Type { get; set; } = SituationType.Normal;
 
     /// <summary>
+    /// Intensity level of this situation - determines player readiness filtering.
+    /// Recovery = safe for exhausted players, Demanding = only for well-resourced players.
+    /// Copied from SituationTemplate.Intensity at spawn time.
+    /// Used by facades to filter which situations to display based on player Resolve.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; set; } = ArchetypeIntensity.Standard;
+
+    /// <summary>
     /// Challenge deck for Mental/Physical/Social challenges
     /// PHASE 4: Object reference instead of DeckId string
     /// Type: MentalChallengeDeck | PhysicalChallengeDeck | SocialChallengeDeck (polymorphic)

@@ -999,6 +999,11 @@ public class LocationFacade
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
+        // INTENSITY FILTERING: Get player readiness to filter out demanding situations for exhausted players
+        Player player = _gameWorld.GetPlayer();
+        PlayerReadinessService readinessService = new PlayerReadinessService();
+        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+
         // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
         List<Scene> scenesAtLocation = _gameWorld.Scenes
@@ -1014,9 +1019,11 @@ public class LocationFacade
 
         // Filter to this system type only
         // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
+        // INTENSITY FILTERING: Only show situations player can safely handle based on Resolve
         List<Situation> systemSituations = allVisibleSituations
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
+            .Where(g => g.Intensity <= maxSafeIntensity)
             .ToList();
 
         // Group situations by scene (ambient situations have no scene parent)

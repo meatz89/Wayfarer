@@ -875,6 +875,15 @@ Two independent systems control procedural content: RhythmPattern (choice struct
 
 These correlations emerge from design intent, not system coupling. The systems remain orthogonal.
 
+**Intensity flows through TWO timing points:**
+
+| Timing | Where | Purpose |
+|--------|-------|---------|
+| Generation-time | ProceduralAStoryService | Limits WHICH archetypes generate scenes for exhausted players |
+| Runtime | Facades (GameFacade, LocationFacade) | Limits WHICH situations display to exhausted players |
+
+The dual filtering ensures exhausted players never see demanding situations, whether procedurally generated or authored in JSON. Intensity propagates: Archetype → SituationTemplate → Situation (copied at spawn time).
+
 ### HIGHLANDER Compliance
 
 ALL situation archetypes use ONE generation path. No routing, no special cases:

@@ -63,6 +63,14 @@ public class SituationTemplate
     /// </summary>
     public int Priority { get; init; } = 0;
 
+    /// <summary>
+    /// Intensity level of this situation template - determines player readiness filtering.
+    /// Recovery = safe for exhausted players, Demanding = only for well-resourced players.
+    /// Set at parse-time from SituationArchetype.Intensity via Catalogue pattern.
+    /// Used by facades to filter which situations to display based on player Resolve.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; init; } = ArchetypeIntensity.Standard;
+
     // ==================== EXPLICIT PLACEMENT FILTERS ====================
     // Each situation must specify explicit filters - NO inheritance from scene
     // null = no entity needed (solo situation, not route-based, etc.)

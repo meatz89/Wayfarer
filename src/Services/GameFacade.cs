@@ -1568,6 +1568,7 @@ public class GameFacade
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// Scene-embedded Situations inherit placement from parent Scene
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// PLAYER READINESS FILTERING: Filters by Situation.Intensity based on player Resolve
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
@@ -1575,10 +1576,17 @@ public class GameFacade
         if (location == null)
             throw new InvalidOperationException($"Location is null - cannot query situations!");
 
+        // Get player readiness for intensity filtering
+        Player player = _gameWorld.GetPlayer();
+        PlayerReadinessService readinessService = new PlayerReadinessService();
+        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+
         // Query all Situations (both legacy and Scene-embedded) at this location
         // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
+        // INTENSITY FILTERING: Only show situations player can safely handle
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Location == location)
+            .Where(sit => sit.Intensity <= maxSafeIntensity)
             .ToList();
     }
 
@@ -1586,15 +1594,23 @@ public class GameFacade
     /// Get all Situations available for a specific NPC
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// PLAYER READINESS FILTERING: Filters by Situation.Intensity based on player Resolve
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
         if (npc == null) return new List<Situation>();
 
+        // Get player readiness for intensity filtering
+        Player player = _gameWorld.GetPlayer();
+        PlayerReadinessService readinessService = new PlayerReadinessService();
+        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+        // INTENSITY FILTERING: Only show situations player can safely handle
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Npc == npc)
+            .Where(sit => sit.Intensity <= maxSafeIntensity)
             .ToList();
     }
 
