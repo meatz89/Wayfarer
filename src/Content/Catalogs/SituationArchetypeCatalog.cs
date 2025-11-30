@@ -737,92 +737,49 @@ public static class SituationArchetypeCatalog
         string situationTemplateId,
         GenerationContext context)
     {
-        // HIGHLANDER: ONE path for ALL archetypes
-        return GenerateChoiceTemplates(archetype, situationTemplateId, context);
-    }
-
-    /// <summary>
-    /// Generate 4 standard choices from archetype with UNIVERSAL PROPERTY SCALING.
-    ///
-    /// Context parameter enables universal scaling via categorical properties:
-    /// - StatThreshold scales by Tier (0: +0, 1: +1, 2: +2, 3+: +3)
-    /// - StatThreshold scales by PowerDynamic (Dominant: -2, Equal: 0, Submissive: +2)
-    /// - StatThreshold scales by NpcDemeanor (Friendly: -2, Neutral: 0, Hostile: +2)
-    /// - CoinCost scales by Quality (Basic: -3, Standard: 0, Premium: +5, Luxury: +10)
-    /// - CoinCost scales by Tier (each tier adds +2)
-    ///
-    /// Example results (base threshold 3):
-    /// - Tier 0 + Friendly: 3 + 0 - 2 = 1 (tutorial-appropriate)
-    /// - Tier 2 + Neutral: 3 + 2 + 0 = 5 (mid-game appropriate)
-    /// - Tier 3 + Hostile: 3 + 3 + 2 = 8 (late-game challenging)
-    ///
-    /// If context null, uses archetype base values (no scaling).
-    /// ALL archetypes benefit from universal scaling - NO TUTORIAL-SPECIFIC CODE PATHS.
-    /// </summary>
-    public static List<ChoiceTemplate> GenerateChoiceTemplates(
-        SituationArchetype archetype,
-        string situationTemplateId,
-        GenerationContext context = null)
-    {
-        // Scale by universal properties if context provided
-        int scaledStatThreshold = archetype.StatThreshold;
-        int scaledCoinCost = archetype.CoinCost;
-
-        if (context != null)
+        // HIGHLANDER: Context is REQUIRED. Fail-fast if not provided.
+        // Scale stat threshold by PowerDynamic (easier if dominant, harder if submissive)
+        int scaledStatThreshold = context.Power switch
         {
-            // Adjust stat threshold by PowerDynamic (easier if dominant, harder if submissive)
-            scaledStatThreshold = context.Power switch
-            {
-                PowerDynamic.Dominant => archetype.StatThreshold - 2,
-                PowerDynamic.Equal => archetype.StatThreshold,
-                PowerDynamic.Submissive => archetype.StatThreshold + 2,
-                _ => archetype.StatThreshold
-            };
+            PowerDynamic.Dominant => archetype.StatThreshold - 2,
+            PowerDynamic.Equal => archetype.StatThreshold,
+            PowerDynamic.Submissive => archetype.StatThreshold + 2,
+            _ => archetype.StatThreshold
+        };
 
-            // Adjust coin cost by Quality (cheaper if basic, expensive if luxury)
-            scaledCoinCost = context.Quality switch
-            {
-                Quality.Basic => archetype.CoinCost - 3,
-                Quality.Standard => archetype.CoinCost,
-                Quality.Premium => archetype.CoinCost + 5,
-                Quality.Luxury => archetype.CoinCost + 10,
-                _ => archetype.CoinCost
-            };
+        // Scale coin cost by Quality (cheaper if basic, expensive if luxury)
+        int scaledCoinCost = context.Quality switch
+        {
+            Quality.Basic => archetype.CoinCost - 3,
+            Quality.Standard => archetype.CoinCost,
+            Quality.Premium => archetype.CoinCost + 5,
+            Quality.Luxury => archetype.CoinCost + 10,
+            _ => archetype.CoinCost
+        };
 
-            // Adjust by NpcDemeanor for additional nuance
-            if (context.NpcDemeanor == NPCDemeanor.Hostile)
-            {
-                scaledStatThreshold = scaledStatThreshold + 2; // Hostile NPCs harder to influence
-            }
-            else if (context.NpcDemeanor == NPCDemeanor.Friendly)
-            {
-                scaledStatThreshold = scaledStatThreshold - 2; // Friendly NPCs easier
-            }
-
-            // TIER SCALING: Higher tiers have harder requirements
-            // Tier 0 (Tutorial): +0 - base difficulty
-            // Tier 1 (Early): +1 - slightly harder
-            // Tier 2 (Mid): +2 - moderately harder
-            // Tier 3+ (Late): +3 - significantly harder
-            // Combined with base threshold (3) and demeanor, produces:
-            // - Tier 0 + Friendly: 3 + 0 - 2 = 1 (achievable with 1-2 stats)
-            // - Tier 1 + Neutral: 3 + 1 + 0 = 4 (achievable with 3-4 stats)
-            // - Tier 2 + Neutral: 3 + 2 + 0 = 5 (achievable with 5-6 stats)
-            // - Tier 3 + Hostile: 3 + 3 + 2 = 8 (requires 7-8 stats)
-            int tierAdjustment = context.Tier switch
-            {
-                0 => 0,
-                1 => 1,
-                2 => 2,
-                >= 3 => 3,
-                _ => 0
-            };
-            scaledStatThreshold = scaledStatThreshold + tierAdjustment;
-
-            // Also scale coin costs by tier (higher tiers = more expensive economy)
-            // Tier 0: +0, Tier 1: +2, Tier 2: +4, Tier 3: +6
-            scaledCoinCost = scaledCoinCost + (context.Tier * 2);
+        // Adjust by NpcDemeanor for additional nuance
+        if (context.NpcDemeanor == NPCDemeanor.Hostile)
+        {
+            scaledStatThreshold = scaledStatThreshold + 2;
         }
+        else if (context.NpcDemeanor == NPCDemeanor.Friendly)
+        {
+            scaledStatThreshold = scaledStatThreshold - 2;
+        }
+
+        // TIER SCALING: Higher tiers have harder requirements
+        int tierAdjustment = context.Tier switch
+        {
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            >= 3 => 3,
+            _ => 0
+        };
+        scaledStatThreshold = scaledStatThreshold + tierAdjustment;
+
+        // Also scale coin costs by tier (higher tiers = more expensive economy)
+        scaledCoinCost = scaledCoinCost + (context.Tier * 2);
 
         // Ensure minimum threshold of 1 (never negative)
         scaledStatThreshold = Math.Max(1, scaledStatThreshold);
@@ -835,7 +792,7 @@ public static class SituationArchetypeCatalog
         // Crisis = Damage mitigation (requirements gate avoiding penalty, fallback takes penalty)
         // Mixed = Standard trade-offs (current behavior)
         // See arc42/08_crosscutting_concepts.md §8.26
-        RhythmPattern rhythm = context?.Rhythm ?? RhythmPattern.Mixed;
+        RhythmPattern rhythm = context.Rhythm;
 
         return rhythm switch
         {

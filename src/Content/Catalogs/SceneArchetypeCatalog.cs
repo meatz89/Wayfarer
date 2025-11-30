@@ -390,7 +390,7 @@ public static class SceneArchetypeCatalog
         string situationId = "consequence_reflection";
 
         SituationArchetype reflectionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             reflectionArchetype,
             situationId,
             context);  // Pass context for universal scaling
@@ -908,7 +908,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: NEGOTIATE ACCESS
         SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             $"{sceneId}_negotiate",
             context);
@@ -966,7 +966,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: AUDIENCE
         SituationArchetype audienceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             audienceArchetype,
             $"{sceneId}_audience",
             context);
@@ -1036,7 +1036,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: SEARCH LOCATION
         SituationArchetype searchArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> searchChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> searchChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             searchArchetype,
             $"{sceneId}_search",
             context);
@@ -1071,7 +1071,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: ANALYZE EVIDENCE
         SituationArchetype analyzeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> analyzeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> analyzeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             analyzeArchetype,
             $"{sceneId}_analyze",
             context);
@@ -1096,7 +1096,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: CONCLUDE INVESTIGATION
         SituationArchetype concludeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> concludeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> concludeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             concludeArchetype,
             $"{sceneId}_conclude",
             context);
@@ -1169,7 +1169,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: APPROACH WITNESS
         SituationArchetype approachArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             approachArchetype,
             $"{sceneId}_approach",
             context);
@@ -1194,7 +1194,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: INTERVIEW
         SituationArchetype interviewArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> interviewChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> interviewChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             interviewArchetype,
             $"{sceneId}_interview",
             context);
@@ -1260,7 +1260,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: ACCUSATION
         SituationArchetype accuseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> accuseChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> accuseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             accuseArchetype,
             $"{sceneId}_accuse",
             context);
@@ -1285,7 +1285,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: RESOLUTION
         SituationArchetype resolveArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> resolveChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> resolveChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             resolveArchetype,
             $"{sceneId}_resolve",
             context);
@@ -1351,7 +1351,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: INITIAL CONTACT
         SituationArchetype contactArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> contactChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> contactChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             contactArchetype,
             $"{sceneId}_contact",
             context);
@@ -1376,7 +1376,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: NEGOTIATE INFORMATION
         SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             $"{sceneId}_negotiate",
             context);
@@ -1401,7 +1401,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: REVELATION
         SituationArchetype revelationArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> revelationChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> revelationChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             revelationArchetype,
             $"{sceneId}_revelation",
             context);
@@ -1474,7 +1474,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: LOCATE ARTIFACT
         SituationArchetype locateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> locateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> locateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             locateArchetype,
             $"{sceneId}_locate",
             context);
@@ -1499,7 +1499,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: ACQUIRE ARTIFACT
         SituationArchetype acquireArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> acquireChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> acquireChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             acquireArchetype,
             $"{sceneId}_acquire",
             context);
@@ -1575,7 +1575,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: SUSPICION
         SituationArchetype suspectArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> suspectChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> suspectChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             suspectArchetype,
             $"{sceneId}_suspect",
             context);
@@ -1600,7 +1600,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: GATHER PROOF
         SituationArchetype proofArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> proofChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> proofChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             proofArchetype,
             $"{sceneId}_proof",
             context);
@@ -1625,7 +1625,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: EXPOSE
         SituationArchetype exposeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> exposeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> exposeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             exposeArchetype,
             $"{sceneId}_expose",
             context);
@@ -1650,7 +1650,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 4: CONSEQUENCE
         SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             consequenceArchetype,
             $"{sceneId}_consequence",
             context);
@@ -1730,7 +1730,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: CRISIS EMERGES
         SituationArchetype crisisArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> crisisChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> crisisChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             crisisArchetype,
             $"{sceneId}_crisis",
             context);
@@ -1755,7 +1755,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: DECISION
         SituationArchetype decisionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> decisionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> decisionChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             decisionArchetype,
             $"{sceneId}_decision",
             context);
@@ -1821,7 +1821,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: DILEMMA PRESENTED
         SituationArchetype dilemmaArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> dilemmaChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> dilemmaChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             dilemmaArchetype,
             $"{sceneId}_dilemma",
             context);
@@ -1846,7 +1846,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: MORAL CHOICE
         SituationArchetype choiceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> choiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> choiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             choiceArchetype,
             $"{sceneId}_choice",
             context);
@@ -1871,7 +1871,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: CONSEQUENCE
         SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             consequenceArchetype,
             $"{sceneId}_consequence",
             context);
