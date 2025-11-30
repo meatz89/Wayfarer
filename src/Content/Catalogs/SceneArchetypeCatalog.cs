@@ -1284,6 +1284,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = accuseChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "confrontational",
@@ -1309,6 +1310,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = resolveChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "decisive",
@@ -1754,6 +1756,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Crisis,
             ChoiceTemplates = crisisChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "urgent",
@@ -1779,6 +1782,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Crisis,
             ChoiceTemplates = decisionChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "desperate",
@@ -1845,6 +1849,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = dilemmaChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "conflicted",
@@ -1870,6 +1875,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = choiceChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "weighty",
@@ -1895,6 +1901,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = consequenceChoices,
             Priority = 80,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "reflective",
