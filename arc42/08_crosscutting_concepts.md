@@ -821,38 +821,40 @@ Any category can appear in tutorial OR procedural content. The category describe
 
 **"Building accumulates capability; Crisis tests it."**
 
-Procedural content generation must track player rhythm state to create satisfying pacing. The rhythm is internal authoring metadata, never exposed to players.
+Content rhythm controls how situations present choices to players. Rhythm is AUTHORED per scene template - content designers specify intended pacing, not derived from game state.
 
-### Situation Classification (Internal)
+### Rhythm as Authored Categorical Property
 
-Situations are classified by outcome structure, not content type:
+RhythmPattern follows the Catalogue Pattern: authored in JSON templates, transformed at parse-time into concrete choice structures. Scene templates declare their rhythm classification.
 
-| Classification | Choice Outcomes | Design Purpose |
-|----------------|-----------------|----------------|
-| **Building** | All positive (different flavors) | Stat accumulation, resolve recovery |
-| **Crisis** | All negative (stat-mitigated severity) | Test investments, spend resolve |
-| **Mixed** | Trade-offs (gain X, lose Y) | Strategic decisions |
+| Rhythm | Choice Generation | Player Experience |
+|--------|-------------------|-------------------|
+| **Building** | No requirements, choices GRANT different stats | Identity formation - "Who am I becoming?" |
+| **Crisis** | Requirements gate avoiding penalty, fallback takes damage | Test investments - "Can I avoid harm?" |
+| **Mixed** | Standard trade-offs with requirements and costs | Strategic decisions - "What do I value?" |
 
-**Classification determines choice generation patterns, not player-facing labels.**
+**Rhythm flows through the same parse-time generation as all categorical properties.**
 
-### Rhythm State Tracking
+### HIGHLANDER Compliance
 
-ProceduralAStoryService must track:
+All situation archetypes respect rhythm through ONE generation path:
 
-| State | Tracked Value | Decision Impact |
-|-------|---------------|-----------------|
-| **BuildingSinceCrisis** | Count of building situations | When count reaches threshold, Crisis appropriate |
-| **LastCrisisSequence** | A-story sequence of last crisis | Prevents back-to-back crises |
-| **PlayerResolve** | Current resolve pool | Low resolve → force recovery |
-| **ExpectedStatLevel** | Tier-based threshold | Crisis calibration |
+| Archetype | Building Produces | Crisis Produces | Mixed Produces |
+|-----------|-------------------|-----------------|----------------|
+| ServiceNegotiation | Stat grant choices | Penalty avoidance choices | Standard trade-off choices |
+| ServiceExecutionRest | High restoration + stat reflection | Low restoration, anxious night | Resource distribution choices |
+| ServiceDeparture | Both paths positive with stat grants | Quick exit safe, lingering has penalty | Standard departure options |
+
+**Same archetype + different rhythm = different choice structures. No tutorial hardcoding.**
 
 ### Rhythm Anti-Patterns
 
-| Anti-Pattern | Detection | Consequence |
-|--------------|-----------|-------------|
-| **Crisis spam** | BuildingSinceCrisis < 2 | Player feels punished without chance to prepare |
-| **Endless building** | BuildingSinceCrisis > 5 | No tension, no testing |
-| **Exhausted crisis** | PlayerResolve < minimum | Player cannot take heroic options |
+| Anti-Pattern | What It Looks Like | Why It's Wrong |
+|--------------|-------------------|----------------|
+| **Hardcoded sequence checks** | If MainStorySequence == 3 | Violates archetype reusability |
+| **Tutorial-specific branches** | If IsTutorial then... | Same scene should work anywhere |
+| **Crisis spam** | Crisis → Crisis → Crisis | Player never accumulates capability |
+| **Endless building** | Building × 10 | No tension, stakes feel fake |
 
 ### Resource Duality in Requirements
 

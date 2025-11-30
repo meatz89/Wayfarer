@@ -281,39 +281,16 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: EVENING IN ROOM
-        // HIGHLANDER: ONE path for all scenes - recovery with optional stat reflection
-        // RhythmPattern affects difficulty in negotiation; rest focuses on recovery
-        List<ChoiceTemplate> restChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_full_rest",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Rest through the night",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Health = 15,
-                    Stamina = 15,
-                    Focus = 10
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_light_rest",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Light rest",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Health = 8,
-                    Stamina = 8,
-                    Focus = 5
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines rest behavior
+        // Building rhythm = high restoration + stat grants (identity formation)
+        // Crisis rhythm = low restoration, anxious night (damage mitigation)
+        // Mixed rhythm = resource distribution choices (standard trade-offs)
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype restArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceExecutionRest);
+        List<ChoiceTemplate> restChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            restArchetype,
+            restSitId,
+            context);
 
         SituationTemplate restSituation = new SituationTemplate
         {
@@ -337,33 +314,17 @@ public static class SceneArchetypeCatalog
             RouteFilter = null
         };
 
-        // SITUATION 3: MORNING DEPARTURE (Identity Formation - Sir Brante A1)
-        // Two approaches to leaving, each building different stat
-        List<ChoiceTemplate> departChoices = new List<ChoiceTemplate>();
-
-        // Base consequences only - parser handles MainStory enrichment via EnrichMainStoryFinalChoices
-        Consequence earlyDepartureReward = new Consequence { Cunning = 1 };
-        Consequence socializeReward = new Consequence { Rapport = 1 };
-
-        departChoices.Add(new ChoiceTemplate
-        {
-            Id = $"{departSitId}_early",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Leave early",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = earlyDepartureReward,
-            ActionType = ChoiceActionType.Instant
-        });
-
-        departChoices.Add(new ChoiceTemplate
-        {
-            Id = $"{departSitId}_socialize",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Take time to socialize",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = socializeReward,
-            ActionType = ChoiceActionType.Instant
-        });
+        // SITUATION 3: MORNING DEPARTURE
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines departure behavior
+        // Building rhythm = both paths positive with stat grants (identity formation)
+        // Crisis rhythm = quick exit safe, lingering has penalty (damage mitigation)
+        // Mixed rhythm = standard 2-choice departure (trade-offs)
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceDeparture);
+        List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            departArchetype,
+            departSitId,
+            context);
 
         SituationTemplate departSituation = new SituationTemplate
         {

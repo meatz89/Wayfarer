@@ -1345,12 +1345,19 @@ public static class SituationArchetypeCatalog
     }
 
     /// <summary>
-    /// Generate service_negotiation choices with context-aware scaling.
+    /// Generate service_negotiation choices with context-aware scaling and RhythmPattern support.
     /// Uses SAME scaling formula as GenerateChoiceTemplates():
     /// - Tier scaling: 0: +0, 1: +1, 2: +2, 3+: +3
     /// - NpcDemeanor: Friendly: -2, Neutral: 0, Hostile: +2
     /// - Quality (coin cost): Basic: -3, Standard: 0, Premium: +5, Luxury: +10
+    ///
+    /// RhythmPattern changes choice structure:
+    /// - Building: No requirements, choices GRANT stats (identity formation)
+    /// - Crisis: Requirements gate avoiding penalty, fallback has penalty
+    /// - Mixed: Standard trade-offs (current behavior)
+    ///
     /// Returns 4 choices with EMPTY Consequence (SceneArchetypeCatalog enriches them).
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceNegotiationChoices(
         SituationArchetype archetype,
@@ -1360,9 +1367,9 @@ public static class SituationArchetypeCatalog
         // Adjust stat threshold by NPC demeanor
         int scaledStatThreshold = context.NpcDemeanor switch
         {
-            NPCDemeanor.Friendly => archetype.StatThreshold - 2,  // Easier
-            NPCDemeanor.Neutral => archetype.StatThreshold,       // Baseline
-            NPCDemeanor.Hostile => archetype.StatThreshold + 2,   // Harder
+            NPCDemeanor.Friendly => archetype.StatThreshold - 2,
+            NPCDemeanor.Neutral => archetype.StatThreshold,
+            NPCDemeanor.Hostile => archetype.StatThreshold + 2,
             _ => archetype.StatThreshold
         };
 
@@ -1377,57 +1384,160 @@ public static class SituationArchetypeCatalog
         };
         scaledStatThreshold = scaledStatThreshold + tierAdjustment;
 
-        // Adjust coin cost by quality (universal property)
+        // Adjust coin cost by quality
         int scaledCoinCost = context.Quality switch
         {
-            Quality.Basic => archetype.CoinCost - 3,    // 2 coins (5-3)
-            Quality.Standard => archetype.CoinCost,     // 5 coins
-            Quality.Premium => archetype.CoinCost + 5,  // 10 coins (5+5)
-            Quality.Luxury => archetype.CoinCost + 10,  // 15 coins (5+10)
+            Quality.Basic => archetype.CoinCost - 3,
+            Quality.Standard => archetype.CoinCost,
+            Quality.Premium => archetype.CoinCost + 5,
+            Quality.Luxury => archetype.CoinCost + 10,
             _ => archetype.CoinCost
         };
-
-        // Also scale coin costs by tier
         scaledCoinCost = scaledCoinCost + (context.Tier * 2);
 
         // Ensure minimums
         scaledStatThreshold = Math.Max(1, scaledStatThreshold);
         scaledCoinCost = Math.Max(1, scaledCoinCost);
 
-        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+        // SIR BRANTE RHYTHM PATTERN: Branch on rhythm for choice structure
+        return context.Rhythm switch
+        {
+            RhythmPattern.Building => GenerateServiceNegotiationBuildingChoices(archetype, situationTemplateId),
+            RhythmPattern.Crisis => GenerateServiceNegotiationCrisisChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
+            RhythmPattern.Mixed => GenerateServiceNegotiationMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
+            _ => GenerateServiceNegotiationMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost)
+        };
+    }
 
-        // Choice 1: Rapport-gated (free if you have relationship)
+    /// <summary>
+    /// Building rhythm: All choices lead to positive outcomes, no requirements.
+    /// Player chooses HOW to engage, each path grants different stat.
+    /// Used for: A1 identity formation, recovery scenes, positive momentum.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceNegotiationBuildingChoices(
+        SituationArchetype archetype,
+        string situationTemplateId)
+    {
+        return new List<ChoiceTemplate>
+        {
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_rapport",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Engage warmly and build connection",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Rapport = 1 },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_diplomacy",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Negotiate fair terms for both parties",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Diplomacy = 1 },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_cunning",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Seek an advantageous arrangement",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Cunning = 1 },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_authority",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Assert your needs directly",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Authority = 1 },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
+
+    /// <summary>
+    /// Crisis rhythm: Requirements gate avoiding penalty, fallback TAKES penalty.
+    /// Stats/money prevent negative outcome, failure means damage.
+    /// Used for: A3 crisis, high stakes negotiation, desperate situations.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceNegotiationCrisisChoices(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        int scaledStatThreshold,
+        int scaledCoinCost)
+    {
+        Consequence crisisPenalty = new Consequence { Rapport = -1, Coins = -5 };
+
         CompoundRequirement rapportReq = new CompoundRequirement();
         rapportReq.OrPaths.Add(CreateOrPathForStat(PlayerStatType.Rapport, scaledStatThreshold));
 
-        choices.Add(new ChoiceTemplate
+        return new List<ChoiceTemplate>
         {
-            Id = $"{situationTemplateId}_stat",
-            PathType = ChoicePathType.InstantSuccess,  // Stat-gated instant success
-            ActionTextTemplate = "Leverage your rapport",
-            RequirementFormula = rapportReq,
-            Consequence = new Consequence(),  // Empty, enriched by scene archetype
-            ActionType = ChoiceActionType.Instant
-        });
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_stat",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Use your rapport to defuse the situation",
+                RequirementFormula = rapportReq,
+                Consequence = new Consequence(),
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_money",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = $"Pay {scaledCoinCost} coins to make this go away",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Coins = -scaledCoinCost },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_challenge",
+                PathType = ChoicePathType.Challenge,
+                ActionTextTemplate = "Desperately try to negotiate",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Resolve = -archetype.ResolveCost },
+                OnSuccessConsequence = new Consequence(),
+                OnFailureConsequence = crisisPenalty,
+                ActionType = ChoiceActionType.StartChallenge,
+                ChallengeType = archetype.ChallengeType,
+                DeckId = archetype.DeckId
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_fallback",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Accept the harsh terms",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = crisisPenalty,
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
 
-        // Choice 2: Pay coins (scaled by quality)
-        choices.Add(new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_money",
-            PathType = ChoicePathType.InstantSuccess,  // Money-gated instant success
-            ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence { Coins = -scaledCoinCost },  // Empty, enriched by scene archetype
-            ActionType = ChoiceActionType.Instant
-        });
+    /// <summary>
+    /// Mixed rhythm: Standard trade-off gameplay.
+    /// Stat-gated best outcome, money guaranteed, challenge risky, fallback poor.
+    /// Used for: Normal gameplay, most procedural content.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceNegotiationMixedChoices(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        int scaledStatThreshold,
+        int scaledCoinCost)
+    {
+        CompoundRequirement rapportReq = new CompoundRequirement();
+        rapportReq.OrPaths.Add(CreateOrPathForStat(PlayerStatType.Rapport, scaledStatThreshold));
 
-        // Choice 3: Challenge (negotiate better terms)
-        // Create consequence first, then derive requirement from it (Sir Brante dual-nature encapsulated)
         Consequence negotiationChallengeConsequence = archetype.ResolveCost > 0
             ? new Consequence { Resolve = -archetype.ResolveCost }
             : new Consequence();
 
-        // HIGHLANDER: Build CompoundRequirement with OrPath directly - no factory method coupling
         CompoundRequirement negotiationReq = new CompoundRequirement();
         if (archetype.ResolveCost > 0)
         {
@@ -1435,43 +1545,260 @@ public static class SituationArchetypeCatalog
             negotiationReq.OrPaths.Add(resourcePath);
         }
 
-        choices.Add(new ChoiceTemplate
+        return new List<ChoiceTemplate>
         {
-            Id = $"{situationTemplateId}_challenge",
-            PathType = ChoicePathType.Challenge,
-            ActionTextTemplate = "Attempt to negotiate better terms",
-            RequirementFormula = negotiationReq,
-            Consequence = negotiationChallengeConsequence,
-            ActionType = ChoiceActionType.StartChallenge,
-            ChallengeType = archetype.ChallengeType,
-            DeckId = archetype.DeckId
-        });
-
-        // Choice 4: Decline
-        choices.Add(new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_fallback",
-            PathType = ChoicePathType.Fallback,  // Fallback path
-            ActionTextTemplate = "Politely decline",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence(),
-            ActionType = ChoiceActionType.Instant
-        });
-
-        return choices;
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_stat",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Leverage your rapport",
+                RequirementFormula = rapportReq,
+                Consequence = new Consequence(),
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_money",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Coins = -scaledCoinCost },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_challenge",
+                PathType = ChoicePathType.Challenge,
+                ActionTextTemplate = "Attempt to negotiate better terms",
+                RequirementFormula = negotiationReq,
+                Consequence = negotiationChallengeConsequence,
+                ActionType = ChoiceActionType.StartChallenge,
+                ChallengeType = archetype.ChallengeType,
+                DeckId = archetype.DeckId
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_fallback",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Politely decline",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence(),
+                ActionType = ChoiceActionType.Instant
+            }
+        };
     }
 
     /// <summary>
-    /// Generate service_execution_rest choices with context-aware restoration scaling.
+    /// Generate service_execution_rest choices with context-aware restoration scaling and RhythmPattern.
     /// Returns 4 rest choices that all advance to next morning.
     /// Restoration amounts scale by Environment.Quality using tier-based explicit values.
+    ///
+    /// RhythmPattern changes rest experience:
+    /// - Building: High restoration + stat grants (learning while resting)
+    /// - Crisis: Low restoration, risk of poor sleep (anxious night)
+    /// - Mixed: Standard trade-off choices
+    ///
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceExecutionRestChoices(
         string situationTemplateId,
         GenerationContext context)
     {
+        return context.Rhythm switch
+        {
+            RhythmPattern.Building => GenerateRestBuildingChoices(situationTemplateId, context),
+            RhythmPattern.Crisis => GenerateRestCrisisChoices(situationTemplateId, context),
+            RhythmPattern.Mixed => GenerateRestMixedChoices(situationTemplateId, context),
+            _ => GenerateRestMixedChoices(situationTemplateId, context)
+        };
+    }
+
+    /// <summary>
+    /// Building rest: High restoration + stat development opportunities.
+    /// Relaxed night allows learning and growth.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateRestBuildingChoices(
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        int baseHealth = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 20,
+            EnvironmentQuality.Standard => 35,
+            EnvironmentQuality.Premium => 50,
+            _ => 35
+        };
+        int baseStamina = baseHealth;
+        int baseFocus = baseHealth - 5;
+
+        return new List<ChoiceTemplate>
+        {
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_study",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Study and reflect before sleeping",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth,
+                    Stamina = baseStamina,
+                    Focus = baseFocus,
+                    Insight = 1,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_socialize",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Spend time in the common room",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth - 5,
+                    Stamina = baseStamina - 5,
+                    Focus = baseFocus,
+                    Rapport = 1,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_plan",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Plan tomorrow's activities",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth,
+                    Stamina = baseStamina,
+                    Focus = baseFocus + 10,
+                    Cunning = 1,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_rest",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Rest peacefully",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth + 10,
+                    Stamina = baseStamina + 10,
+                    Focus = baseFocus + 5,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
+
+    /// <summary>
+    /// Crisis rest: Reduced restoration, anxious night with risks.
+    /// Stress prevents proper recovery.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateRestCrisisChoices(
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        int baseHealth = context.Environment switch
+        {
+            EnvironmentQuality.Basic => 8,
+            EnvironmentQuality.Standard => 15,
+            EnvironmentQuality.Premium => 25,
+            _ => 15
+        };
+        int baseStamina = baseHealth;
+        int baseFocus = baseHealth - 3;
+
+        return new List<ChoiceTemplate>
+        {
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_vigilant",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Stay alert through the night",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth - 5,
+                    Stamina = baseStamina - 5,
+                    Focus = baseFocus + 5,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_barricade",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Secure the room before sleeping",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth,
+                    Stamina = baseStamina,
+                    Focus = baseFocus,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_restless",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Try to sleep despite anxiety",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth + 5,
+                    Stamina = baseStamina + 5,
+                    Focus = baseFocus - 5,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_nightmare",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Collapse from exhaustion",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = baseHealth - 10,
+                    Stamina = baseStamina - 10,
+                    Focus = baseFocus - 10,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
+
+    /// <summary>
+    /// Mixed rest: Standard trade-off choices (current behavior).
+    /// Different rest strategies with different resource distributions.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateRestMixedChoices(
+        string situationTemplateId,
+        GenerationContext context)
+    {
         // Tier-based restoration values (Basic/Standard/Premium)
-        // Balanced restoration: moderate recovery for all resources
         int balancedHealth = context.Environment switch
         {
             EnvironmentQuality.Basic => 15,
@@ -1479,13 +1806,7 @@ public static class SituationArchetypeCatalog
             EnvironmentQuality.Premium => 45,
             _ => 30
         };
-        int balancedStamina = context.Environment switch
-        {
-            EnvironmentQuality.Basic => 15,
-            EnvironmentQuality.Standard => 30,
-            EnvironmentQuality.Premium => 45,
-            _ => 30
-        };
+        int balancedStamina = balancedHealth;
         int balancedFocus = context.Environment switch
         {
             EnvironmentQuality.Basic => 10,
@@ -1494,7 +1815,6 @@ public static class SituationArchetypeCatalog
             _ => 21
         };
 
-        // Physical focus: high health, low focus
         int physicalHealth = context.Environment switch
         {
             EnvironmentQuality.Basic => 25,
@@ -1517,7 +1837,6 @@ public static class SituationArchetypeCatalog
             _ => 7
         };
 
-        // Mental focus: low health, high focus
         int mentalHealth = context.Environment switch
         {
             EnvironmentQuality.Basic => 5,
@@ -1540,7 +1859,6 @@ public static class SituationArchetypeCatalog
             _ => 35
         };
 
-        // Special: balanced + slight bonus + buff
         int specialHealth = context.Environment switch
         {
             EnvironmentQuality.Basic => 13,
@@ -1548,13 +1866,7 @@ public static class SituationArchetypeCatalog
             EnvironmentQuality.Premium => 40,
             _ => 27
         };
-        int specialStamina = context.Environment switch
-        {
-            EnvironmentQuality.Basic => 13,
-            EnvironmentQuality.Standard => 27,
-            EnvironmentQuality.Premium => 40,
-            _ => 27
-        };
+        int specialStamina = specialHealth;
         int specialFocus = context.Environment switch
         {
             EnvironmentQuality.Basic => 10,
@@ -1563,140 +1875,203 @@ public static class SituationArchetypeCatalog
             _ => 21
         };
 
-        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
-
-        // Choice 1: Balanced restoration
-        choices.Add(new ChoiceTemplate
+        return new List<ChoiceTemplate>
         {
-            Id = $"{situationTemplateId}_balanced",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Sleep peacefully",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence
+            new ChoiceTemplate
             {
-                Health = balancedHealth,
-                Stamina = balancedStamina,
-                Focus = balancedFocus,
-                AdvanceToDay = DayAdvancement.NextDay,
-                AdvanceToBlock = TimeBlocks.Morning
-            },
-            ActionType = ChoiceActionType.Instant
-        });
-
-        // Choice 2: Physical focus
-        choices.Add(new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_physical",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Rest deeply",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence
-            {
-                Health = physicalHealth,
-                Stamina = physicalStamina,
-                Focus = physicalFocus,
-                AdvanceToDay = DayAdvancement.NextDay,
-                AdvanceToBlock = TimeBlocks.Morning
-            },
-            ActionType = ChoiceActionType.Instant
-        });
-
-        // Choice 3: Mental focus
-        choices.Add(new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_mental",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Meditate before sleeping",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence
-            {
-                Health = mentalHealth,
-                Stamina = mentalStamina,
-                Focus = mentalFocus,
-                AdvanceToDay = DayAdvancement.NextDay,
-                AdvanceToBlock = TimeBlocks.Morning
-            },
-            ActionType = ChoiceActionType.Instant
-        });
-
-        // Choice 4: Special (balanced + buff)
-        choices.Add(new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_special",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Dream vividly",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence
-            {
-                Health = specialHealth,
-                Stamina = specialStamina,
-                Focus = specialFocus,
-                AdvanceToDay = DayAdvancement.NextDay,
-                AdvanceToBlock = TimeBlocks.Morning,
-                StateApplications = new List<StateApplication>
-            {
-                new StateApplication
+                Id = $"{situationTemplateId}_balanced",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Sleep peacefully",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
                 {
-                    StateType = StateType.Inspired,
-                    Apply = true,
-                    DurationSegments = 4
-                }
-            }
+                    Health = balancedHealth,
+                    Stamina = balancedStamina,
+                    Focus = balancedFocus,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
             },
-            ActionType = ChoiceActionType.Instant
-        });
-
-        return choices;
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_physical",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Rest deeply",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = physicalHealth,
+                    Stamina = physicalStamina,
+                    Focus = physicalFocus,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_mental",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Meditate before sleeping",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = mentalHealth,
+                    Stamina = mentalStamina,
+                    Focus = mentalFocus,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning
+                },
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_special",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Dream vividly",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    Health = specialHealth,
+                    Stamina = specialStamina,
+                    Focus = specialFocus,
+                    AdvanceToDay = DayAdvancement.NextDay,
+                    AdvanceToBlock = TimeBlocks.Morning,
+                    StateApplications = new List<StateApplication>
+                    {
+                        new StateApplication
+                        {
+                            StateType = StateType.Inspired,
+                            Apply = true,
+                            DurationSegments = 4
+                        }
+                    }
+                },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
     }
 
     /// <summary>
-    /// Generate service_departure choices (only 2, not 4).
-    /// Universal buff granted for careful departure (Focused).
+    /// Generate service_departure choices with RhythmPattern support.
+    /// Returns 2-4 choices depending on rhythm:
+    /// - Building: Both paths positive with stat grants
+    /// - Crisis: Quick departure matters, lingering has risk
+    /// - Mixed: Standard 2-choice (current behavior)
+    ///
     /// Returns choices with PARTIAL Consequence (SceneArchetypeCatalog adds cleanup).
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceDepartureChoices(
         string situationTemplateId,
         GenerationContext context)
     {
-        // Universal buff for careful preparation (applies to all activity types)
-        StateType buffType = StateType.Focused;
-
-        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
-
-        // Choice 1: Leave immediately (no cost, no buff)
-        choices.Add(new ChoiceTemplate
+        return context.Rhythm switch
         {
-            Id = $"{situationTemplateId}_immediate",
-            PathType = ChoicePathType.Fallback,  // Quick exit, minimal benefit
-            ActionTextTemplate = "Leave immediately",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence(),  // Empty, enriched with cleanup by scene archetype
-            ActionType = ChoiceActionType.Instant
-        });
+            RhythmPattern.Building => GenerateDepartureBuildingChoices(situationTemplateId),
+            RhythmPattern.Crisis => GenerateDepartureCrisisChoices(situationTemplateId),
+            RhythmPattern.Mixed => GenerateDepartureMixedChoices(situationTemplateId),
+            _ => GenerateDepartureMixedChoices(situationTemplateId)
+        };
+    }
 
-        // Choice 2: Gather carefully (costs 1 segment, grants buff)
-        choices.Add(new ChoiceTemplate
+    /// <summary>
+    /// Building departure: All paths lead to positive outcomes with different stat gains.
+    /// Relaxed departure allows reflection and growth.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateDepartureBuildingChoices(string situationTemplateId)
+    {
+        return new List<ChoiceTemplate>
         {
-            Id = $"{situationTemplateId}_careful",
-            PathType = ChoicePathType.InstantSuccess,  // Careful preparation, grants buff
-            ActionTextTemplate = "Gather your belongings carefully",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence
+            new ChoiceTemplate
             {
-                TimeSegments = 1,
-                StateApplications = new List<StateApplication>
-            {
-                new StateApplication
-                {
-                    StateType = buffType,
-                    Apply = true,
-                    DurationSegments = 4
-                }
-            }
+                Id = $"{situationTemplateId}_early",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Leave early with purpose",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Cunning = 1 },
+                ActionType = ChoiceActionType.Instant
             },
-            ActionType = ChoiceActionType.Instant
-        });
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_socialize",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Take time to say goodbye properly",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Rapport = 1 },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
 
-        return choices;
+    /// <summary>
+    /// Crisis departure: Quick exit is safer, lingering has penalty.
+    /// Urgency makes delays costly.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateDepartureCrisisChoices(string situationTemplateId)
+    {
+        return new List<ChoiceTemplate>
+        {
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_escape",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Leave quickly and quietly",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence(),
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_linger",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Take time despite the urgency",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence { Coins = -3, Stamina = -5 },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
+    }
+
+    /// <summary>
+    /// Mixed departure: Standard trade-off (current behavior).
+    /// Quick exit vs careful preparation with buff.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateDepartureMixedChoices(string situationTemplateId)
+    {
+        return new List<ChoiceTemplate>
+        {
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_immediate",
+                PathType = ChoicePathType.Fallback,
+                ActionTextTemplate = "Leave immediately",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence(),
+                ActionType = ChoiceActionType.Instant
+            },
+            new ChoiceTemplate
+            {
+                Id = $"{situationTemplateId}_careful",
+                PathType = ChoicePathType.InstantSuccess,
+                ActionTextTemplate = "Gather your belongings carefully",
+                RequirementFormula = new CompoundRequirement(),
+                Consequence = new Consequence
+                {
+                    TimeSegments = 1,
+                    StateApplications = new List<StateApplication>
+                    {
+                        new StateApplication
+                        {
+                            StateType = StateType.Focused,
+                            Apply = true,
+                            DurationSegments = 4
+                        }
+                    }
+                },
+                ActionType = ChoiceActionType.Instant
+            }
+        };
     }
 }
