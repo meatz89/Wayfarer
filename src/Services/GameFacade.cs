@@ -45,6 +45,7 @@ public class GameFacade
     private readonly PackageLoader _packageLoader;
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly PlayerReadinessService _playerReadinessService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -77,7 +78,8 @@ public class GameFacade
         SceneInstantiator sceneInstantiator,
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
-        ContentGenerationFacade contentGenerationFacade)
+        ContentGenerationFacade contentGenerationFacade,
+        PlayerReadinessService playerReadinessService)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -109,6 +111,7 @@ public class GameFacade
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1578,8 +1581,7 @@ public class GameFacade
 
         // Get player readiness for intensity filtering
         Player player = _gameWorld.GetPlayer();
-        PlayerReadinessService readinessService = new PlayerReadinessService();
-        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
@@ -1602,8 +1604,7 @@ public class GameFacade
 
         // Get player readiness for intensity filtering
         Player player = _gameWorld.GetPlayer();
-        PlayerReadinessService readinessService = new PlayerReadinessService();
-        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)

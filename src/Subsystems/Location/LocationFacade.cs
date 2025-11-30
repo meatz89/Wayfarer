@@ -28,6 +28,7 @@ public class LocationFacade
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
     private readonly PackageLoader _packageLoader;
+    private readonly PlayerReadinessService _playerReadinessService;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -49,7 +50,8 @@ public class LocationFacade
         SceneFacade sceneFacade,
         SceneInstantiator sceneInstantiator,
         ContentGenerationFacade contentGenerationFacade,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        PlayerReadinessService playerReadinessService)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -71,6 +73,7 @@ public class LocationFacade
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     /// <summary>
@@ -1001,8 +1004,7 @@ public class LocationFacade
 
         // INTENSITY FILTERING: Get player readiness to filter out demanding situations for exhausted players
         Player player = _gameWorld.GetPlayer();
-        PlayerReadinessService readinessService = new PlayerReadinessService();
-        ArchetypeIntensity maxSafeIntensity = readinessService.GetMaxSafeIntensity(player);
+        ArchetypeIntensity maxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player);
 
         // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
