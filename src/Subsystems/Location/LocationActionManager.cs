@@ -90,12 +90,16 @@ public class LocationActionManager
             // Scene-created locations filtered out unless active scene's current situation is there
             // Authored locations always pass accessibility check (TIER 1 No Soft-Locks)
 
+            // TWO-PHASE SCALING: Use ScaledConsequence for scene-based actions
+            // Perfect Information: display = execution (arc42 §8.26)
+            Consequence effectiveConsequence = action.ScaledConsequence ?? action.Consequence;
+
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
                 ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
-                Cost = GetCostDisplayFromConsequence(action.Consequence),
+                Cost = GetCostDisplayFromConsequence(effectiveConsequence),
                 IsAvailable = isAvailable,
                 LockReason = lockReason,
                 EngagementType = action.EngagementType,
@@ -167,16 +171,21 @@ public class LocationActionManager
     /// <summary>
     /// Check if the player can perform this action.
     /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
+    /// TWO-PHASE SCALING: Uses ScaledConsequence for scene-based actions.
     /// </summary>
     private bool CanPerformAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
+        // TWO-PHASE SCALING: Use ScaledConsequence for scene-based actions
+        // Perfect Information: display = execution (arc42 §8.26)
+        Consequence effectiveConsequence = action.ScaledConsequence ?? action.Consequence;
+
         // HIGHLANDER: Consequence is the ONLY class for costs (negative = cost)
         // Check coin cost
-        if (action.Consequence.Coins < 0)
+        if (effectiveConsequence.Coins < 0)
         {
-            return player.Coins >= -action.Consequence.Coins;
+            return player.Coins >= -effectiveConsequence.Coins;
         }
 
         return true;

@@ -1,25 +1,42 @@
 /// <summary>
-/// Service for generating procedural A-story scene templates
-/// Creates infinite main story progression after authored tutorial completes
-/// Works from ANY sequence - if tutorial is A1-A3, generates A4+
-/// If tutorial expands to A1-A10, generates A11+
+/// Service for generating procedural A-story scene templates.
+/// Creates infinite main story progression after authored tutorial completes.
+/// Works from ANY sequence - if tutorial is A1-A3, generates A4+.
+///
+/// ========================================================================
+/// CONTEXT-AWARE SCENE SELECTION (IMPLEMENTED)
+/// ========================================================================
+/// Uses weighted scoring across multiple factors for archetype category selection.
+/// Deterministic: same inputs always produce same output.
+///
+/// SELECTION FACTORS (via ArchetypeCategorySelector):
+/// - Base rotation score (maintains some sequence-based predictability)
+/// - Location context (STRONG influence - Safety and Purpose drive category)
+/// - Intensity balance (balances Recovery/Standard/Demanding in recent history)
+/// - Rhythm phase (accumulation → test → recovery narrative flow)
+/// - Anti-repetition (penalizes recently used categories)
+///
+/// CHALLENGE PHILOSOPHY: Player resources (Health, Stamina, Resolve) are NOT considered.
+/// Fair rhythm emerges from story structure and location context, not player state filtering.
+/// Peaceful is earned through intensity history, not granted when player struggles.
+///
+/// CHOICE VALUE SCALING (via RuntimeScalingContext):
+/// - Player strength (TotalStatStrength) vs Location difficulty (hex distance)
+/// - NPC demeanor (Friendly/Neutral/Hostile) scales stat requirements
+/// - Environment quality scales resource costs
+/// - Net Challenge = LocationDifficulty - (PlayerStrength / 5), clamped [-3, +3]
+/// ========================================================================
 ///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
-/// 1. Select archetype based on sequence/tier/context
+/// 1. Select archetype via ArchetypeCategorySelector (weighted scoring)
 /// 2. Generate SceneTemplateDTO with categorical properties
 /// 3. Serialize to JSON package
 /// 4. Load via PackageLoaderFacade (JSON → PackageLoader → Parser → Entity)
 /// 5. Template added to GameWorld.SceneTemplates, available for spawning
 ///
-/// INTEGRATION POINT: Called from SpawnFacade when A-story scene completes
+/// INTEGRATION POINT: Called from SpawnFacade when A-story scene completes.
 /// Detection: scene.Category == MainStory && scene.MainStorySequence.HasValue
-/// Trigger: Generate MainStorySequence + 1 template if not already exists
-///
-/// ARCHETYPE SELECTION STRATEGY:
-/// - Rotate through archetype categories (investigation → social → confrontation → discovery → crisis)
-/// - Avoid recent archetypes (5-scene anti-repetition window)
-/// - Match tier escalation (personal → local → regional, grounded character-driven)
-/// - Balance narrative variety and mechanical consistency
+/// Trigger: Generate MainStorySequence + 1 template if not already exists.
 ///
 /// GUARANTEED PROGRESSION:
 /// - All generated templates follow 4-choice pattern (stat/money/challenge/fallback)
@@ -43,37 +60,60 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Generate next A-story template for given sequence
-    /// Called when previous A-scene completes
-    /// Returns generated template ID (for tracking)
+    /// Generate next A-story template for given sequence.
+    /// Called when previous A-scene completes.
+    /// Returns generated template ID (for tracking).
+    ///
+    /// CONTEXT-AWARE SELECTION: Uses ArchetypeCategorySelector with weighted scoring.
+    /// Factors: location context (STRONG), intensity balance, rhythm phase, anti-repetition.
+    /// Deterministic: same inputs always produce same output.
     ///
     /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
     /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
     /// NO runtime catalogue calls - all resolution through Parser pipeline.
+    ///
+    /// CHALLENGE PHILOSOPHY: Player RESOURCES do NOT affect category selection.
+    /// Fair rhythm emerges from story structure and location context.
+    /// Peaceful is earned through intensity history, not granted when player struggles.
+    /// See gdd/06_balance.md §6.8 for Challenge and Consequence Philosophy.
     /// </summary>
-    public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
+    public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context, Player player)
     {
-        // 1. Get archetype CATEGORY (categorical property, not specific archetype)
-        // Parser will resolve to specific archetype via Catalogue
-        string archetypeCategory = GetArchetypeCategory(sequence);
-
-        // 2. Get excluded archetypes for anti-repetition (categorical property)
-        List<string> excludedArchetypes = GetExcludedArchetypes(context);
-
-        // 3. Calculate tier from sequence
+        // Calculate tier from sequence
         int tier = CalculateTier(sequence);
 
-        // 4. Build SceneTemplateDTO with categorical properties
-        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeCategory, excludedArchetypes, tier, context);
+        // Find target location for context (will be used for placement filter too)
+        Location targetLocation = FindTargetLocation(tier, context, player);
 
-        // 4. Serialize to JSON package
+        // Select archetype CATEGORY using context-aware weighted scoring
+        // Location context is STRONG influence, player resources are NOT considered
+        string archetypeCategory = ArchetypeCategorySelector.SelectCategory(
+            sequence,
+            player,
+            targetLocation,
+            context);
+
+        // Get excluded archetypes for anti-repetition (categorical property)
+        List<string> excludedArchetypes = GetExcludedArchetypes(context);
+
+        // Build SceneTemplateDTO with categorical properties
+        SceneTemplateDTO dto = BuildSceneTemplateDTO(
+            sequence,
+            archetypeCategory,
+            excludedArchetypes,
+            tier,
+            context,
+            player,
+            targetLocation);
+
+        // Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
         string packageId = $"a_story_{sequence}_template";
 
-        // 5. Write dynamic package file
+        // Write dynamic package file
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
 
-        // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
+        // Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
         // Result discarded - templates don't need post-load configuration
         _ = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
@@ -81,27 +121,44 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get archetype category for given sequence based on rotation cycle.
-    /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
-    /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
-    /// Works from ANY sequence (flexible number of authored scenes)
-    ///
-    /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
-    /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
+    /// Find target location for context-aware generation.
+    /// Uses tier and anti-repetition to select a location for placement.
+    /// Returns null if no suitable location found (fallback to categorical filter).
     /// </summary>
-    private string GetArchetypeCategory(int sequence)
+    private Location FindTargetLocation(int tier, AStoryContext context, Player player)
     {
-        int cyclePosition = (sequence - 1) % 4;
+        // Get player's current location as starting point
+        Location playerLocation = _gameWorld.Locations
+            .FirstOrDefault(l => l.HexPosition.HasValue &&
+                                 l.HexPosition.Value.Equals(player.CurrentPosition));
 
-        return cyclePosition switch
+        if (playerLocation != null)
         {
-            0 => "Investigation",
-            1 => "Social",
-            2 => "Confrontation",
-            3 => "Crisis",
-            _ => "Investigation"
-        };
+            return playerLocation;
+        }
+
+        // Fallback: find any tier-appropriate location
+        List<Location> tierAppropriateLocations = _gameWorld.Locations
+            .Where(l => l.Tier <= tier + 1)
+            .ToList();
+
+        if (tierAppropriateLocations.Any())
+        {
+            // Use sequence for deterministic selection
+            int index = context.CurrentSequence % tierAppropriateLocations.Count;
+            return tierAppropriateLocations[index];
+        }
+
+        return null;
     }
+
+    // NOTE: GetArchetypeCategory replaced by ArchetypeCategorySelector.SelectCategory()
+    // Context-aware selection uses weighted scoring across multiple factors:
+    // - Location context (STRONG influence)
+    // - Intensity balance (recent Recovery/Standard/Demanding history)
+    // - Rhythm phase (accumulation → test → recovery)
+    // - Anti-repetition (penalizes recently used categories)
+    // See ArchetypeCategorySelector.cs for implementation.
 
     /// <summary>
     /// Get excluded archetypes for anti-repetition (categorical properties).
@@ -129,34 +186,43 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Build SceneTemplateDTO for procedural A-story scene
-    /// Uses categorical properties (no concrete entity IDs at generation time)
-    /// PlacementFilter uses Generic relation for runtime resolution
+    /// Build SceneTemplateDTO for procedural A-story scene.
+    /// Uses categorical properties (no concrete entity IDs at generation time).
+    /// PlacementFilter uses Generic relation for runtime resolution.
     ///
     /// CATALOGUE PATTERN: Uses ArchetypeCategory + ExcludedArchetypes (categorical).
     /// Parser will resolve to specific SceneArchetypeType via Catalogue at parse-time.
+    ///
+    /// CONTEXT-AWARE: Uses player intensity history for rhythm pattern selection.
+    /// Location context influences placement filter.
     /// </summary>
     private SceneTemplateDTO BuildSceneTemplateDTO(
         int sequence,
         string archetypeCategory,
         List<string> excludedArchetypes,
         int tier,
-        AStoryContext context)
+        AStoryContext context,
+        Player player,
+        Location targetLocation)
     {
         string sceneId = $"a_story_{sequence}";
 
-        // Build categorical placement filter
+        // Build categorical placement filter (may use target location context)
         PlacementFilterDTO placementFilter = BuildPlacementFilter(sequence, tier, context);
 
         // Build spawn conditions (A-scenes spawn automatically via completion trigger)
         SpawnConditionsDTO spawnConditions = BuildSpawnConditions(sequence, context);
+
+        // Determine rhythm pattern based on archetype category and player intensity history
+        // Sir Brante Pattern: Building accumulates capability, Crisis tests it
+        string rhythmPattern = DetermineRhythmPattern(archetypeCategory, player);
 
         SceneTemplateDTO dto = new SceneTemplateDTO
         {
             Id = sceneId,
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
-            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetypeId
+            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetype
             // Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time
             ArchetypeCategory = archetypeCategory,
             ExcludedArchetypes = excludedArchetypes,
@@ -167,11 +233,51 @@ public class ProceduralAStoryService
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
+            IsStarter = false, // Procedural A-story spawns from reward, not at game start
             ExpirationDays = null, // A-story never expires
-            IntroNarrativeTemplate = null // AI generates from hints
+            IntroNarrativeTemplate = null, // AI generates from hints
+            RhythmPattern = rhythmPattern // Sir Brante rhythm (Building/Crisis/Mixed)
         };
 
         return dto;
+    }
+
+    /// <summary>
+    /// Determine rhythm pattern based on archetype category and player intensity history.
+    /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
+    ///
+    /// CONTEXT-AWARE RHYTHM SELECTION:
+    /// - Peaceful category → Building rhythm (all positive, earned structural respite)
+    /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
+    /// - After Crisis/Peaceful → Building rhythm (recovery, stat grants)
+    /// - Other categories → Mixed rhythm (standard trade-offs)
+    ///
+    /// Uses Player.SceneIntensityHistory to determine if we're in recovery phase.
+    /// This replaces the fixed cycle position check with actual intensity tracking.
+    /// </summary>
+    private string DetermineRhythmPattern(string archetypeCategory, Player player)
+    {
+        // Peaceful category always uses Building rhythm (earned respite, all positive)
+        if (archetypeCategory == "Peaceful")
+        {
+            return "Building";
+        }
+
+        // Crisis category always uses Crisis rhythm (test investments)
+        if (archetypeCategory == "Crisis")
+        {
+            return "Crisis";
+        }
+
+        // After Crisis or Peaceful, use Building rhythm (recovery)
+        // Uses player intensity history instead of fixed cycle position
+        if (player.IsInRecoveryPhase())
+        {
+            return "Building";
+        }
+
+        // All other categories use Mixed rhythm (standard trade-offs)
+        return "Mixed";
     }
 
     /// <summary>
@@ -418,13 +524,9 @@ public class ProceduralAStoryService
                     $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
                     $"All scenes must have valid Template reference.");
             }
-            if (!scene.Template.SceneArchetypeId.HasValue)
-            {
-                throw new InvalidOperationException(
-                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null SceneArchetypeId. " +
-                    $"All A-story scenes must have archetype.");
-            }
-            context.RecentArchetypes.Add(scene.Template.SceneArchetypeId.Value);
+            // SceneArchetype is now non-nullable (all scenes have an archetype)
+            // PRINCIPLE: Archetype is a TYPE discriminator, not an ID (arc42 §8.3)
+            context.RecentArchetypes.Add(scene.Template.SceneArchetype);
 
             // Validate and extract region from LAST COMPLETED situation
             if (!scene.Situations.Any())

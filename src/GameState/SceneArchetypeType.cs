@@ -84,5 +84,27 @@ public enum SceneArchetypeType
     /// Player faces a moral crossroads with no clear right answer.
     /// Pattern: dilemma → choice → consequence
     /// </summary>
-    MoralCrossroads
+    MoralCrossroads,
+
+    // ==================== PEACEFUL PATTERNS (3) ====================
+    // Recovery-focused patterns appearing every 8th sequence (earned structural respite)
+    // All choices positive, no requirements, stat grants only (Building rhythm)
+
+    /// <summary>
+    /// Quiet meditation and mental recovery scene.
+    /// Pattern: settle → reflect (all positive outcomes)
+    /// </summary>
+    QuietReflection,
+
+    /// <summary>
+    /// Casual social interaction with locals.
+    /// Pattern: encounter → converse (all positive outcomes)
+    /// </summary>
+    CasualEncounter,
+
+    /// <summary>
+    /// Scholarly study and knowledge gathering.
+    /// Pattern: browse → study (all positive outcomes)
+    /// </summary>
+    ScholarlyPursuit
 }

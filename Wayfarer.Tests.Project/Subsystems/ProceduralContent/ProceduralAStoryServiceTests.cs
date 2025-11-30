@@ -3,7 +3,18 @@ using Xunit;
 namespace Wayfarer.Tests.Subsystems.ProceduralContent;
 
 /// <summary>
-/// Tests for ProceduralAStoryService - archetype rotation, tier calculation, anti-repetition
+/// Tests for ProceduralAStoryService - catalog integrity, tier calculation, context tracking.
+///
+/// CONTEXT-AWARE SCENE SELECTION:
+/// The actual selection algorithm is in ArchetypeCategorySelector (see ArchetypeCategorySelectorTests).
+/// This file tests supporting components: catalog, context, tier calculation.
+///
+/// WEIGHTED SCORING (5 factors):
+/// 1. Base rotation (15 points) - tested here as formula verification
+/// 2. Location context (30+ points) - tested in ArchetypeCategorySelectorTests
+/// 3. Intensity balance (40+ points) - tested in ArchetypeCategorySelectorTests
+/// 4. Rhythm phase (20 points) - tested in ArchetypeCategorySelectorTests
+/// 5. Anti-repetition (-15 penalty) - tested in ArchetypeCategorySelectorTests
 ///
 /// UNIT TESTS ONLY: Integration tests were removed because:
 /// 1. Content/Core has authored A1-A3 templates using SERVICE patterns (InnLodging, DeliveryContract)
@@ -64,29 +75,37 @@ public class ProceduralAStoryServiceTests
     }
 
     [Fact]
-    public void Catalog_UnknownCategory_ReturnsEmptyList()
+    public void Catalog_UnknownCategory_ThrowsInvalidOperationException()
     {
-        // Document catalog behavior for unknown categories
-        // SelectArchetype validates this case and throws clear error
-        List<SceneArchetypeType> unknownArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory");
-        Assert.Empty(unknownArchetypes);
+        // FAIL-FAST: Unknown category should throw immediately, not silently return empty
+        // This prevents division by zero in SelectArchetype
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => SceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory"));
+
+        Assert.Contains("Unknown archetype category", exception.Message);
     }
 
     [Theory]
-    [InlineData(1, "Investigation")]   // (1-1) % 4 = 0
-    [InlineData(2, "Social")]          // (2-1) % 4 = 1
-    [InlineData(3, "Confrontation")]   // (3-1) % 4 = 2
-    [InlineData(4, "Crisis")]          // (4-1) % 4 = 3
-    [InlineData(5, "Investigation")]   // (5-1) % 4 = 0 (cycle repeats)
-    [InlineData(9, "Investigation")]   // (9-1) % 4 = 0
-    [InlineData(10, "Social")]         // (10-1) % 4 = 1
-    [InlineData(11, "Confrontation")]  // (11-1) % 4 = 2
-    [InlineData(12, "Crisis")]         // (12-1) % 4 = 3
-    public void ArchetypeRotation_SequenceMapsToCorrectCategory(int sequence, string expectedCategory)
+    [InlineData(1, "Investigation")]   // (1-1) % 8 = 0
+    [InlineData(2, "Social")]          // (2-1) % 8 = 1
+    [InlineData(3, "Confrontation")]   // (3-1) % 8 = 2
+    [InlineData(4, "Crisis")]          // (4-1) % 8 = 3
+    [InlineData(5, "Investigation")]   // (5-1) % 8 = 4
+    [InlineData(6, "Social")]          // (6-1) % 8 = 5
+    [InlineData(7, "Confrontation")]   // (7-1) % 8 = 6
+    [InlineData(8, "Peaceful")]        // (8-1) % 8 = 7 (earned respite)
+    [InlineData(9, "Investigation")]   // (9-1) % 8 = 0 (cycle repeats)
+    [InlineData(16, "Peaceful")]       // (16-1) % 8 = 7
+    public void BaseRotation_SequenceMapsToCategory(int sequence, string expectedCategory)
     {
-        // This tests the rotation algorithm directly without generating templates
-        // Formula: (sequence - 1) % 4 maps to category
-        int cyclePosition = (sequence - 1) % 4;
+        // Tests the BASE ROTATION component of ArchetypeCategorySelector
+        // This is ONE of FIVE scoring factors (worth 15 points)
+        // Other factors (location context, intensity balance, rhythm phase, anti-repetition)
+        // can override this baseline when their scores are higher
+        //
+        // Formula: (sequence - 1) % 8 maps to category affinity
+        // Peaceful appears every 8th sequence as potential earned structural respite
+        int cyclePosition = (sequence - 1) % 8;
 
         string actualCategory = cyclePosition switch
         {
@@ -94,6 +113,10 @@ public class ProceduralAStoryServiceTests
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
+            4 => "Investigation",
+            5 => "Social",
+            6 => "Confrontation",
+            7 => "Peaceful",
             _ => throw new InvalidOperationException()
         };
 
@@ -155,4 +178,50 @@ public class ProceduralAStoryServiceTests
         Assert.Contains(SceneArchetypeType.UrgentDecision, archetypes);
         Assert.Contains(SceneArchetypeType.MoralCrossroads, archetypes);
     }
+
+    // ==================== PEACEFUL CATEGORY TESTS ====================
+    // Peaceful category provides earned structural respite every 8th sequence
+
+    [Fact]
+    public void Catalog_PeacefulCategory_ReturnsNonEmptyList()
+    {
+        // CRITICAL: Peaceful category must return archetypes for 8-cycle rotation
+        // Appears every 8th sequence as earned structural respite
+        List<SceneArchetypeType> peacefulArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
+
+        Assert.NotEmpty(peacefulArchetypes);
+    }
+
+    [Fact]
+    public void Catalog_PeacefulArchetypes_ContainsExpectedTypes()
+    {
+        // All 3 peaceful scene archetypes must be present
+        List<SceneArchetypeType> archetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
+
+        Assert.Contains(SceneArchetypeType.QuietReflection, archetypes);
+        Assert.Contains(SceneArchetypeType.CasualEncounter, archetypes);
+        Assert.Contains(SceneArchetypeType.ScholarlyPursuit, archetypes);
+    }
+
+    [Fact]
+    public void Catalog_AllFiveCategories_HaveNonEmptyArchetypes()
+    {
+        // CRITICAL: ALL five rotation categories must return valid archetypes
+        // 8-cycle rotation uses all five categories
+        List<string> categories = new List<string>
+        {
+            "Investigation",
+            "Social",
+            "Confrontation",
+            "Crisis",
+            "Peaceful"
+        };
+
+        foreach (string category in categories)
+        {
+            List<SceneArchetypeType> archetypes = SceneArchetypeCatalog.GetArchetypesForCategory(category);
+            Assert.True(archetypes.Count > 0, $"Category '{category}' must have at least one archetype");
+        }
+    }
+
 }

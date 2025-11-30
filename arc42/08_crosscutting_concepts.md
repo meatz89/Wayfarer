@@ -640,7 +640,69 @@ With unified application:
 
 ---
 
-## 8.23 DDR-007: Intentional Numeric Design
+## 8.23 Archetype Reusability (No Tutorial Hardcoding)
+
+**"Archetypes are context-agnostic mechanical patterns."**
+
+Every scene archetype must produce appropriate experiences across ALL contexts through categorical property scaling. No archetype may contain context-specific code paths.
+
+### The Problem
+
+Tutorial scenes and procedural scenes need different difficulty levels. A naive implementation might check story sequence:
+
+```
+if (AStorySequence == 1) { /* easy tutorial path */ }
+else { /* harder standard path */ }
+```
+
+This violates reusability: the archetype becomes unusable in new contexts, tutorial behavior is buried in code, and the same archetype produces fundamentally different experiences based on hidden branching.
+
+### The Solution
+
+Categorical properties drive ALL variation. The archetype code is identical regardless of context.
+
+| Categorical Property | Effect on Archetype |
+|---------------------|---------------------|
+| **Tier** | Base difficulty level (0-4) |
+| **NPCDemeanor** | Stat requirement adjustment (Friendly -2, Hostile +2) |
+| **Quality** | Cost adjustment (Basic -3, Premium +5, Luxury +10) |
+| **PowerDynamic** | Threshold adjustment (Dominant -2, Submissive +2) |
+
+### Tutorial as Context, Not Code
+
+Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical context:
+
+| Scene | Archetype | Context | Result |
+|-------|-----------|---------|--------|
+| A1 Inn | InnLodging | Tier 0, Friendly, Basic | Easy negotiation, cheap room, modest recovery |
+| A50 Inn | InnLodging | Tier 3, Hostile, Premium | Hard negotiation, expensive room, excellent recovery |
+
+Both use identical InnLodging archetype code. Categorical scaling produces different player experiences.
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| `if (AStorySequence == N)` | Tutorial hardcoding |
+| `if (context.IsTutorial)` | Hidden branching |
+| Different choice structures per context | Non-reusable archetype |
+| Hardcoded reward/cost values | No categorical scaling |
+
+### Required Patterns
+
+| Pattern | Implementation |
+|---------|----------------|
+| Categorical property access | `context.NPCDemeanor`, `context.Quality`, `context.Power` |
+| Scaled formulas | `baseThreshold + demeanorAdjustment + powerAdjustment` |
+| Consistent structure | Same 4-choice pattern regardless of context |
+
+### Enforcement
+
+Archetypes are validated at parse-time. Any archetype that produces different STRUCTURES (not just values) based on context is a design error.
+
+---
+
+## 8.24 DDR-007: Intentional Numeric Design
 
 **"If you can't do it in your head, the design is wrong."**
 
@@ -710,6 +772,310 @@ Players can perform all calculations mentally:
 No calculator, no percentage math, no multiplicative confusion.
 
 **Reference:** `gdd/06_design_discipline.md` DDR-007, `compliance-audit/ddr007/00_MASTER_SUMMARY.md`
+
+---
+
+## 8.25 Scene Archetype Unification
+
+**"One archetype, one implementation, infinite contexts."**
+
+Scene archetypes are NOT divided into "service" vs "narrative" categories. ALL archetypes are reusable throughout the game for any story category (A/B/C).
+
+### The Anti-Pattern (FORBIDDEN)
+
+```
+Service Archetypes: InnLodging, DeliveryContract, RouteTravel → Used only in tutorial
+Narrative Archetypes: Investigation, Confrontation, Crisis → Used only in procedural
+```
+
+This creates two parallel systems that cannot share content. Tutorial becomes "special" instead of "first instantiation."
+
+### The Correct Pattern (REQUIRED)
+
+```
+Universal Archetypes: InnLodging, DeliveryContract, RouteTravel, Investigation, Confrontation, Crisis
+├── Tutorial uses: Any archetype with tutorial-appropriate context
+└── Procedural uses: Any archetype with procedural context
+```
+
+ALL archetypes are available to ALL story categories. Context (Tier, NPCDemeanor, Quality) creates appropriate difficulty.
+
+### Scene Archetype Categories (Functional, Not Usage-Based)
+
+Archetypes are categorized by FUNCTION, not by where they're used:
+
+| Category | Archetypes | Function |
+|----------|-----------|----------|
+| **Travel** | RouteTravel | Moving between places |
+| **Service** | InnLodging, DeliveryContract | Transactional interactions |
+| **Information** | Investigation, GatherTestimony, SeekAudience | Learning and discovery |
+| **Social** | MeetContact, BuildRelationship | Relationships and connections |
+| **Conflict** | Confrontation, UrgentDecision | Opposition and stakes |
+| **Reflection** | MoralChoice, ConsequenceReflection | Processing and deciding |
+
+Any category can appear in tutorial OR procedural content. The category describes WHAT the scene does, not WHEN it appears.
+
+---
+
+## 8.26 Sir Brante Rhythm Pattern
+
+**"Building accumulates capability; Crisis tests it."**
+
+Content rhythm controls how situations present choices to players. Rhythm is contextual - determined by current game state and story beat, enabling AI to generate appropriate content at runtime.
+
+### Design Vision: AI-Generated Procedural Content
+
+At runtime, AI generates scene structures procedurally for current context. SituationArchetypes are the vocabulary AI uses to compose scenes - the catalogue handles mechanics, AI handles structure.
+
+| Layer | Responsibility | Timing |
+|-------|---------------|--------|
+| **AI** | Decides scene structure (which archetypes in what order) | Runtime |
+| **Context** | Provides rhythm, tier, NPC demeanor, quality | Runtime |
+| **Catalogue** | Generates rhythm-aware choices from archetypes | Runtime |
+| **Game** | Executes choices with mechanical consistency | Runtime |
+
+**AI says "Negotiation → Confrontation → Crisis" with Building rhythm; catalogue generates stat-granting choices.**
+
+### Rhythm as Contextual Property
+
+RhythmPattern flows through GenerationContext at runtime. AI determines appropriate rhythm based on story state, player resources, and dramatic pacing.
+
+| Rhythm | Choice Generation | Player Experience |
+|--------|-------------------|-------------------|
+| **Building** | No requirements, choices GRANT different stats | Identity formation - "Who am I becoming?" |
+| **Crisis** | Requirements gate avoiding penalty, fallback takes damage | Test investments - "Can I avoid harm?" |
+| **Mixed** | Standard trade-offs with requirements and costs | Strategic decisions - "What do I value?" |
+
+**Rhythm flows through the same parse-time generation as all categorical properties.**
+
+### Orthogonal Concept: ArchetypeIntensity
+
+Two independent systems describe procedural content: RhythmPattern (choice structure) and ArchetypeIntensity (content categorization). Named distinctly to avoid collision.
+
+| Concept | Purpose | Values | Describes |
+|---------|---------|--------|-----------|
+| **RhythmPattern** | Choice generation | Building / Crisis / Mixed | HOW choices are structured |
+| **ArchetypeIntensity** | Content categorization | Recovery / Standard / Demanding | Inherent challenge level of content |
+
+**ArchetypeIntensity categorizes content challenge level:**
+
+| Intensity | Content Focus | Typical Archetypes |
+|-----------|--------------|-------------------|
+| Recovery | Restoration, reflection | Peaceful archetypes (rest, study, casual) |
+| Standard | Moderate trade-offs | Investigation, Social archetypes |
+| Demanding | High-stakes tests | Crisis, Confrontation archetypes |
+
+**Challenge and Consequence Philosophy:**
+
+Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from story structure (archetype rotation cycle), not from player state filtering.
+
+Intensity propagates at parse-time: Archetype → SituationTemplate → Situation (copied at spawn). Runtime uses intensity only for descriptive purposes, never for filtering visibility.
+
+### HIGHLANDER Compliance
+
+ALL situation archetypes use ONE generation path. No routing, no special cases:
+
+| Rhythm | All Archetypes Produce |
+|--------|----------------------|
+| **Building** | 4 choices with no requirements, each GRANTS a different stat |
+| **Crisis** | 4 choices where stat/coin requirements gate avoiding penalty; fallback takes penalty |
+| **Mixed** | 4 choices with standard trade-offs (requirements, costs, rewards) |
+
+**Same archetype + different rhythm = different choice structures. No category routing.**
+
+### Rhythm Anti-Patterns
+
+| Anti-Pattern | What It Looks Like | Why It's Wrong |
+|--------------|-------------------|----------------|
+| **Hardcoded sequence checks** | If MainStorySequence == 3 | Violates archetype reusability |
+| **Tutorial-specific branches** | If IsTutorial then... | Same scene should work anywhere |
+| **Crisis spam** | Crisis → Crisis → Crisis | Player never accumulates capability |
+| **Endless building** | Building × 10 | No tension, stakes feel fake |
+
+### Resource Duality in Requirements
+
+Requirements and consequences use the SAME resources in different roles:
+
+| Resource | As Requirement | As Cost | As Reward |
+|----------|---------------|---------|-----------|
+| **Stats** | Threshold gate | Rare (crisis damage) | Stat increase |
+| **Resolve** | Minimum threshold | Resolve drain | Resolve restoration |
+| **Coins** | None typical | Service payment | Payment received |
+| **Relationships** | NPC disposition | Relationship degradation | Relationship improvement |
+
+A single choice may have: Stat requirement + Resolve requirement + Coin cost + Stat reward + Relationship change.
+
+### Compound Requirement Patterns
+
+OrPath supports multiple qualification routes:
+
+| Path Type | Implementation |
+|-----------|---------------|
+| **High stat only** | Single OrPath with stat threshold |
+| **Lower stat + resolve** | OrPath with reduced stat AND resolve requirement |
+| **Resource alternative** | OrPath with coin cost only |
+| **Relationship gate** | OrPath with NPC relationship status |
+| **Multiple OR** | Multiple OrPaths, any one qualifies |
+
+**Example:** "Negotiate" choice qualifies via: (High Diplomacy) OR (Moderate Rapport AND Resolve) OR (Coin payment)
+
+### Two-Phase Scaling Model
+
+Entity-derived scaling happens in two phases, enabling AI generation at parse-time while respecting runtime entity relationships:
+
+| Phase | Timing | What Gets Scaled | Source |
+|-------|--------|-----------------|--------|
+| **Parse-Time** | Catalogue generation | Rhythm structure, tier-based values | GenerationContext.Tier, RhythmPattern |
+| **Query-Time** | Action instantiation | Stat requirements, costs | RuntimeScalingContext from current entities |
+
+**Why Two Phases?**
+- Parse-time: Entities don't exist yet (procedural generation)
+- Query-time: Entities are resolved, relationships known
+- Player sees AND receives adjusted requirements reflecting current NPC relationship
+
+**Perfect Information Compliance**
+
+Scaling MUST affect both display AND execution. The player sees adjusted costs, and execution applies those same adjusted costs.
+
+| Principle | Requirement |
+|-----------|------------|
+| **Display = Execution** | ScaledRequirement used for both UI display and requirement checking |
+| **No Hidden Mechanics** | Player can calculate exact costs before selecting action |
+| **Relationship Matters** | Friendly NPC visibly AND mechanically reduces difficulty |
+
+**Forbidden:** Display showing scaled values while execution uses original values. This violates Perfect Information.
+
+**RuntimeScalingContext Adjustments (Query-Time)**
+
+| Property | Source | Effect |
+|----------|--------|--------|
+| **StatRequirementAdjustment** | NPC demeanor | Hostile increases difficulty, Friendly reduces |
+| **CoinCostAdjustment** | Location quality | Basic reduces costs, Luxury increases |
+| **ResolveCostAdjustment** | Power dynamic | Dominant reduces cost, Submissive increases |
+
+**Flow:**
+1. AI generates scene structure with rhythm (parse-time)
+2. Catalogue generates choices with tier-based values (parse-time)
+3. Scene activates, entities resolved (activation-time)
+4. SceneFacade derives RuntimeScalingContext from entities (query-time)
+5. SceneFacade creates ScaledRequirement and ScaledConsequence
+6. UI displays scaled values (display-time)
+7. Executor uses scaled values for requirement checking and cost application (execution-time)
+
+**HIGHLANDER Compliance:** Original templates immutable. Scaling creates new instances used for both display AND execution.
+
+---
+
+## 8.27 Two-Phase Entity Creation
+
+**"Create mechanics first; finalize narrative after mechanical context is complete."**
+
+Procedural entities are created in two distinct phases. Names and descriptions persist to end of game.
+
+### Two-Phase Creation Model
+
+| Phase | Trigger | Output | Persistence |
+|-------|---------|--------|-------------|
+| **1. Mechanical** | Entity needed | Structure, references, categorical properties | Permanent |
+| **2. Narrative** | All references set | Names, descriptions, flavor text | Permanent |
+
+### Why Two Phases
+
+| Concern | Phase 1 (Mechanical) | Phase 2 (Narrative) |
+|---------|---------------------|---------------------|
+| **Object references** | Being established | All complete |
+| **Relationship context** | Partial | Full graph available |
+| **Naming coherence** | Impossible | Can name consistently across scope |
+| **When executed** | On generation | Once, after mechanical complete |
+
+**Principle:** Narrative finalization happens ONCE after mechanical creation, generating PERSISTENT names displayed consistently throughout the game.
+
+### Phase 1: Mechanical Creation (Complete)
+
+ProceduralAStoryService creates structure with generic identifiers:
+- ArchetypeCategory (categorical property for Catalogue resolution)
+- Tier (difficulty scaling)
+- RhythmPattern (choice generation pattern)
+- PlacementFilter (categorical entity resolution)
+- Object references (NPC, Location, Venue assignments)
+- Generic identifiers until Phase 2 completes
+
+### Phase 2: Narrative Finalization (Future Feature)
+
+After all object references are established, AI examines:
+- Complete mechanical structure with all relationships
+- Categorical properties of each entity
+- Game state (player resources, time, active scenes)
+- Event history (completed scenes, NPC interactions)
+- Relationship web (bonds, reputation, standing)
+
+Generates PERSISTENT names stored on entity properties. Names display consistently in UI for remainder of game.
+
+**Forbidden:**
+- Narrative generation during mechanical creation (context incomplete)
+- Per-entity naming without relationship awareness
+- Display-time regeneration (names must persist)
+- Placeholder syntax in templates (AI generates complete text)
+
+---
+
+## 8.28 Context Injection Pattern (HIGHLANDER-Compliant Scene Generation)
+
+**Problem:** Scene generation that discovers context from GameWorld creates two incompatible code paths:
+- Procedural scenes: Read current GameWorld state, select category based on live context
+- Authored scenes: Need to specify exact outcome, but context at generation time is unpredictable
+
+This violates HIGHLANDER — authored content would require special cases bypassing the procedural algorithm.
+
+**Solution:** Context is always INJECTED into generation, never discovered at generation time.
+
+| Component | Responsibility |
+|-----------|----------------|
+| **Caller** (authored or procedural) | Constructs context and passes to generation |
+| **Generator** | Uses injected context to produce deterministic output |
+| **Same code path** | Both authored and procedural use identical generation logic |
+
+**Two Context Sources, One Generation Path:**
+
+| Source | How Context is Populated | Example |
+|--------|--------------------------|---------|
+| **Procedural** | Read current GameWorld state (player intensity, location, anti-repetition) | After A3 completes, read Player.SceneIntensityHistory and current location |
+| **Authored** | Specify exact context in content definition | A1 defines "next spawn uses Investigation category, Safe location, Building rhythm" |
+
+**Consequences:**
+- Generation algorithm remains pure function: same context → same output
+- Authored content achieves deterministic sequencing without special cases
+- Procedural content achieves dynamic adaptation without separate code paths
+- Testing simplified: inject test context, verify output
+
+**Implementation Pattern:**
+
+The spawn request (DTO or parameter object) carries all context needed for generation:
+- Target archetype category (or factors that determine it)
+- Intensity history snapshot (or pre-computed intensity balance)
+- Location context (Safety, Purpose) or explicit category override
+- Rhythm phase indicators
+- Anti-repetition exclusions
+
+Generator NEVER calls GameWorld directly. All state arrives via injected context.
+
+**Forbidden:**
+- Generation logic reading GameWorld.GetPlayer() or similar
+- Conditional paths based on "is this authored vs procedural"
+- Context discovery inside generation methods
+- Different generation code for tutorial vs infinite progression
+
+**Correct Pattern:**
+- Caller (RewardApplicationService for procedural, authored content for explicit) builds context
+- Context passed as parameter to GenerateNextATemplate or equivalent
+- Generation uses ONLY the provided context
+- Output is deterministic function of input context
+
+**Cross-References:**
+- §8.1 HIGHLANDER: One code path for all scene generation
+- §8.2 Catalogue Pattern: Context properties translate at parse-time
+- §8.23 Archetype Reusability: No tutorial hardcoding in archetypes
+- §8.26 Sir Brante Rhythm: RhythmPattern as contextual property
 
 ---
 

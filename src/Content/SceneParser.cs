@@ -211,6 +211,10 @@ public static class SceneParser
                         $"Available templates: {string.Join(", ", template.SituationTemplates.Select(t => $"'{t.Id}'"))}. " +
                         $"This indicates Parser-JSON-Entity Triangle violation: JSON contains misaligned TemplateId.");
                 }
+
+                // Copy Intensity from template for runtime filtering
+                // CATALOGUE PATTERN: Intensity set at parse-time from archetype, copied here at spawn-time
+                situation.Intensity = situation.Template.Intensity;
             }
 
             scene.Situations.Add(situation);

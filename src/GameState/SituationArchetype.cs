@@ -1,35 +1,5 @@
 
 /// <summary>
-/// Categorizes situation archetypes by choice generation pattern.
-/// Used for routing to specialized choice generators instead of ID string matching.
-/// </summary>
-public enum ArchetypeCategory
-{
-    /// <summary>
-    /// Standard 4-choice archetype (stat-gated, money, challenge, fallback)
-    /// </summary>
-    Standard,
-
-    /// <summary>
-    /// Service negotiation archetype (inn booking, service contracts)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceNegotiation,
-
-    /// <summary>
-    /// Service execution archetype (rest at inn, consume service)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceExecutionRest,
-
-    /// <summary>
-    /// Service departure archetype (leaving service venue)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceDeparture
-}
-
-/// <summary>
 /// SituationArchetype - mechanical template for procedural situation generation
 /// Defines the 4-choice structure pattern that players learn to recognize and prepare for
 ///
@@ -38,12 +8,15 @@ public enum ArchetypeCategory
 /// - Defines stat requirements, costs, and challenge types for each archetype
 /// - Catalogue generates 4 ChoiceTemplates from archetype structure
 /// - Domain associations create learnable patterns (Economic → Negotiation/Diplomacy)
+/// - RhythmPattern (Building/Crisis/Mixed) determines choice structure at generation time
 ///
 /// THE FOUR CHOICE PATTERN (Always):
 /// 1. Stat-Gated: Best outcome, free if stat requirement met
 /// 2. Money: Guaranteed success, expensive
 /// 3. Challenge: Variable outcome, risky
 /// 4. Fallback: Poor outcome, always available
+///
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
 /// </summary>
 public class SituationArchetype
 {
@@ -57,12 +30,6 @@ public class SituationArchetype
     /// Display name for this archetype
     /// </summary>
     public string Name { get; init; }
-
-    /// <summary>
-    /// Archetype category for choice generation routing.
-    /// Enables enum-based switching instead of ID string matching.
-    /// </summary>
-    public ArchetypeCategory Category { get; init; } = ArchetypeCategory.Standard;
 
     /// <summary>
     /// Primary domain where this archetype commonly appears
@@ -121,4 +88,11 @@ public class SituationArchetype
     /// Fallback always available but wastes time or incurs penalty
     /// </summary>
     public int FallbackTimeCost { get; init; }
+
+    /// <summary>
+    /// Intensity level of this archetype - content categorization only.
+    /// Recovery = earned respite (Peaceful), Standard = normal (Investigation/Social), Demanding = high-stakes (Crisis/Confrontation).
+    /// Does NOT affect visibility - propagates to SituationTemplate for descriptive purposes.
+    /// </summary>
+    public ArchetypeIntensity Intensity { get; init; }
 }

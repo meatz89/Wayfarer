@@ -114,6 +114,42 @@ public class LocationAction
     public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
 
     /// <summary>
+    /// Entity-derived scaled requirement for display (query-time scaling).
+    /// TWO-PHASE SCALING MODEL (arc42 §8.26):
+    /// - Parse-time: Catalogue generates rhythm structure + tier-based values
+    /// - Query-time: Entity-derived adjustments from RuntimeScalingContext
+    ///
+    /// Created by SceneFacade when building LocationAction from ChoiceTemplate.
+    /// null = no scaling applied (use ChoiceTemplate.RequirementFormula directly)
+    /// non-null = scaled version reflecting current entity context
+    ///
+    /// HIGHLANDER: Original RequirementFormula stays on ChoiceTemplate (immutable).
+    /// This is a COPY with adjustments applied.
+    /// </summary>
+    public CompoundRequirement ScaledRequirement { get; set; }
+
+    /// <summary>
+    /// Entity-derived scaled consequence for BOTH display AND execution.
+    /// TWO-PHASE SCALING MODEL (arc42 §8.26):
+    /// Costs adjusted based on Location quality and NPC power dynamic.
+    ///
+    /// PERFECT INFORMATION: Display = Execution
+    /// Player sees exactly what they will pay. ScaledConsequence used for:
+    /// - UI display (showing adjusted costs)
+    /// - Execution validation (checking affordability)
+    /// - Cost application (applying adjusted amounts)
+    ///
+    /// PATTERN: For scene-based actions (ChoiceTemplate != null):
+    /// - ScaledConsequence = scaled version of ChoiceTemplate.Consequence
+    /// - Use this for BOTH display AND execution
+    ///
+    /// For atmospheric actions (ChoiceTemplate == null):
+    /// - Consequence property is used directly (already scaled at parse-time)
+    /// - ScaledConsequence is null
+    /// </summary>
+    public Consequence ScaledConsequence { get; set; }
+
+    /// <summary>
     /// Check if this action is available at a given location.
     /// Actions are bound to SourceLocation at generation time - no capability matching needed.
     /// </summary>

@@ -17,24 +17,25 @@
 /// JSON specifies SceneArchetypeType enum → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// SCENE ARCHETYPES (13 total - Reusable patterns):
+/// SCENE ARCHETYPES (16 total - All HIGHLANDER-compliant):
 ///
-/// SERVICE PATTERNS (4):
+/// HIGHLANDER: All archetypes use SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext()
+/// RhythmPattern (Building/Crisis/Mixed) determines choice structure, not archetype category.
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+///
 /// - InnLodging: 3-situation inn lodging flow (negotiate → rest → depart)
 /// - ConsequenceReflection: Single-situation consequence acknowledgment
 /// - DeliveryContract: Contract acceptance and delivery flow
-/// - RouteSegmentTravel: Travel between locations
-///
-/// NARRATIVE PATTERNS (9):
-/// - SeekAudience: Player seeks audience with authority figure (negotiate_access → audience)
-/// - InvestigateLocation: Player investigates location for clues (search → analyze → conclude)
-/// - GatherTestimony: Player gathers testimony from witnesses (approach → interview)
-/// - ConfrontAntagonist: Player confronts antagonist (accuse → resolve)
-/// - MeetOrderMember: Player meets order member (contact → negotiate → revelation)
-/// - DiscoverArtifact: Player discovers artifact (locate → acquire)
-/// - UncoverConspiracy: Player uncovers conspiracy (suspect → proof → expose → consequence)
-/// - UrgentDecision: Player faces urgent decision (crisis → decision)
-/// - MoralCrossroads: Player faces moral dilemma (dilemma → choice → consequence)
+/// - RouteSegmentTravel: 5-situation travel flow (3 obstacles → approach → arrival)
+/// - SeekAudience: Player seeks audience with authority figure
+/// - InvestigateLocation: Player investigates location for clues
+/// - GatherTestimony: Player gathers testimony from witnesses
+/// - ConfrontAntagonist: Player confronts antagonist
+/// - MeetOrderMember: Player meets order member
+/// - DiscoverArtifact: Player discovers artifact
+/// - UncoverConspiracy: Player uncovers conspiracy
+/// - UrgentDecision: Player faces urgent decision
+/// - MoralCrossroads: Player faces moral dilemma
 ///
 /// Each archetype defines:
 /// - Specific situation count and structure (intentional design)
@@ -73,6 +74,11 @@ public static class SceneArchetypeCatalog
             SceneArchetypeType.UncoverConspiracy => GenerateUncoverConspiracy(tier, context),
             SceneArchetypeType.UrgentDecision => GenerateUrgentDecision(tier, context),
             SceneArchetypeType.MoralCrossroads => GenerateMoralCrossroads(tier, context),
+
+            // Peaceful patterns (3)
+            SceneArchetypeType.QuietReflection => GenerateQuietReflection(tier, context),
+            SceneArchetypeType.CasualEncounter => GenerateCasualEncounter(tier, context),
+            SceneArchetypeType.ScholarlyPursuit => GenerateScholarlyPursuit(tier, context),
 
             _ => throw new InvalidOperationException($"Unhandled scene archetype type: {archetypeType}")
         };
@@ -115,13 +121,21 @@ public static class SceneArchetypeCatalog
                 SceneArchetypeType.UrgentDecision,
                 SceneArchetypeType.MoralCrossroads
             },
-            _ => new List<SceneArchetypeType>() // Empty list for unknown category
+            "Peaceful" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.QuietReflection,
+                SceneArchetypeType.CasualEncounter,
+                SceneArchetypeType.ScholarlyPursuit
+            },
+            _ => throw new InvalidOperationException(
+                $"Unknown archetype category '{category}'. " +
+                $"Valid categories: Investigation, Social, Confrontation, Crisis, Peaceful.")
         };
     }
 
     /// <summary>
     /// Resolve specific archetype from category with exclusions (CATALOGUE PATTERN - PARSE-TIME ONLY).
-    /// Called by Parser when DTO has ArchetypeCategory instead of explicit SceneArchetypeId.
+    /// Called by Parser when DTO has ArchetypeCategory instead of explicit SceneArchetype.
     /// Uses sequence-based deterministic selection (no Random) for consistent procedural generation.
     ///
     /// FAIL-FAST: Throws if category unknown or all archetypes excluded.
@@ -169,28 +183,10 @@ public static class SceneArchetypeCatalog
         return available[selectionIndex];
     }
 
-    /// <summary>
-    /// Get all available narrative archetype types (for validation and procedural selection)
-    /// Returns list of all implemented narrative archetypes (excludes service patterns)
-    /// </summary>
-    public static List<SceneArchetypeType> GetAllNarrativeArchetypes()
-    {
-        return new List<SceneArchetypeType>
-        {
-            SceneArchetypeType.SeekAudience,
-            SceneArchetypeType.InvestigateLocation,
-            SceneArchetypeType.GatherTestimony,
-            SceneArchetypeType.ConfrontAntagonist,
-            SceneArchetypeType.MeetOrderMember,
-            SceneArchetypeType.DiscoverArtifact,
-            SceneArchetypeType.UncoverConspiracy,
-            SceneArchetypeType.UrgentDecision,
-            SceneArchetypeType.MoralCrossroads
-        };
-    }
-
     // ===================================================================
-    // SERVICE PATTERNS (4) - Transactional C-story content
+    // SCENE ARCHETYPES - All archetypes use HIGHLANDER-compliant generation
+    // RhythmPattern determines choice structure, not archetype category
+    // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     // ===================================================================
 
     /// <summary>
@@ -240,80 +236,14 @@ public static class SceneArchetypeCatalog
         PlacementFilter serviceLocationFilter = resources.LocationFilter;
 
         // SITUATION 1: SECURE LODGING
-        // Tutorial A1 (sequence 1): Manual identity formation choices
-        // Standard/A2+ (sequence null/2+): Use service_negotiation archetype with universal scaling
-        List<ChoiceTemplate> negotiateChoices;
-
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
-        {
-            // SIR BRANTE A1: Identity Formation (manually authored)
-            // - NO stat requirements (player starts with 0)
-            // - Each choice grants DIFFERENT stats (player chooses WHO to be)
-            negotiateChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_friendly",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Chat warmly with the innkeeper",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Rapport = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_assertive",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Assert your need for accommodation",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Authority = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_cunning",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Seek advantageous deal",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Cunning = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_diplomatic",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Negotiate a fair arrangement",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Diplomacy = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
-        }
-        else
-        {
-            // Standard/A2+: Use service_negotiation archetype with universal scaling
-            SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
-            negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
-                negotiateArchetype,
-                negotiateSitId,
-                context);
-        }
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines choice structure
+        // Building rhythm = stat grants (A1 tutorial), Mixed/Crisis = standard negotiation
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            negotiateArchetype,
+            negotiateSitId,
+            context);
 
         SituationTemplate negotiateSituation = new SituationTemplate
         {
@@ -347,105 +277,16 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: EVENING IN ROOM
-        // Tutorial A1: Identity formation (stat grants)
-        // Standard: Recovery focus (Health/Stamina/Focus restoration)
-        List<ChoiceTemplate> restChoices;
-
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
-        {
-            // SIR BRANTE A1: Identity Formation choices
-            restChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_study",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Read and study",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Insight = 1,
-                    Health = 1,
-                    Stamina = 1,
-                    Focus = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_plan",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Plan tomorrow's route",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Cunning = 1  // Planning builds cunning
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_rest",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Rest peacefully",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Health = 3,  // Full rest restores health
-                    Stamina = 3,
-                    Focus = 3
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_socialize",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Visit the common room",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Rapport = 1  // Socializing builds rapport
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
-        }
-        else
-        {
-            // Standard: Simple rest with recovery tradeoffs
-            restChoices = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{restSitId}_full_rest",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Rest through the night",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence
-                    {
-                        Health = 15,
-                        Stamina = 15,
-                        Focus = 10
-                    },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{restSitId}_light_rest",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Light rest",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence
-                    {
-                        Health = 8,
-                        Stamina = 8,
-                        Focus = 5
-                    },
-                    ActionType = ChoiceActionType.Instant
-                }
-            };
-        }
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines rest behavior
+        // Building rhythm = high restoration + stat grants (identity formation)
+        // Crisis rhythm = low restoration, anxious night (damage mitigation)
+        // Mixed rhythm = resource distribution choices (standard trade-offs)
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype restArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceExecutionRest);
+        List<ChoiceTemplate> restChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            restArchetype,
+            restSitId,
+            context);
 
         SituationTemplate restSituation = new SituationTemplate
         {
@@ -469,33 +310,17 @@ public static class SceneArchetypeCatalog
             RouteFilter = null
         };
 
-        // SITUATION 3: MORNING DEPARTURE (Identity Formation - Sir Brante A1)
-        // Two approaches to leaving, each building different stat
-        List<ChoiceTemplate> departChoices = new List<ChoiceTemplate>();
-
-        // Base consequences only - parser handles MainStory enrichment via EnrichMainStoryFinalChoices
-        Consequence earlyDepartureReward = new Consequence { Cunning = 1 };
-        Consequence socializeReward = new Consequence { Rapport = 1 };
-
-        departChoices.Add(new ChoiceTemplate
-        {
-            Id = $"{departSitId}_early",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Leave early",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = earlyDepartureReward,
-            ActionType = ChoiceActionType.Instant
-        });
-
-        departChoices.Add(new ChoiceTemplate
-        {
-            Id = $"{departSitId}_socialize",
-            PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = "Take time to socialize",
-            RequirementFormula = new CompoundRequirement(),
-            Consequence = socializeReward,
-            ActionType = ChoiceActionType.Instant
-        });
+        // SITUATION 3: MORNING DEPARTURE
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines departure behavior
+        // Building rhythm = both paths positive with stat grants (identity formation)
+        // Crisis rhythm = quick exit safe, lingering has penalty (damage mitigation)
+        // Mixed rhythm = standard 2-choice departure (trade-offs)
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceDeparture);
+        List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            departArchetype,
+            departSitId,
+            context);
 
         SituationTemplate departSituation = new SituationTemplate
         {
@@ -578,7 +403,7 @@ public static class SceneArchetypeCatalog
         string situationId = "consequence_reflection";
 
         SituationArchetype reflectionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             reflectionArchetype,
             situationId,
             context);  // Pass context for universal scaling
@@ -712,127 +537,13 @@ public static class SceneArchetypeCatalog
             negotiateSitId,
             context);
 
-        // Enrich negotiation choices with contract-specific rewards
-        // Tutorial A2: Lower stat requirements + spawn A3
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern + Tier handle difficulty scaling
+        // Stat requirements scale via Tier/NPCDemeanor/PowerDynamic (see SituationArchetypeCatalog)
+        // Scene spawning handled by EnrichMainStoryFinalChoices in parser
+        // Fallback enrichment for post-commitment context
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            Consequence baseConsequence = choice.Consequence ?? new Consequence();
-            Consequence successConsequence = choice.OnSuccessConsequence;
-            Consequence failureConsequence = choice.OnFailureConsequence;
-            CompoundRequirement modifiedRequirement = choice.RequirementFormula;
-
-            // Tutorial A2 (sequence 2): Lower stat requirements to 2 (player has 3-5 from A1)
-            // Grant immediate coin payment, spawn A3
-            if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
-            {
-                // Lower stat requirements from 3 to 2 (achievable with A1 stats)
-                // Uses explicit OrPath property lowering
-                if (modifiedRequirement != null && modifiedRequirement.OrPaths != null)
-                {
-                    foreach (OrPath path in modifiedRequirement.OrPaths)
-                    {
-                        // Lower each explicit stat property from 3 to 2
-                        if (path.InsightRequired.HasValue && path.InsightRequired.Value == 3)
-                        {
-                            path.InsightRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.RapportRequired.HasValue && path.RapportRequired.Value == 3)
-                        {
-                            path.RapportRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.AuthorityRequired.HasValue && path.AuthorityRequired.Value == 3)
-                        {
-                            path.AuthorityRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.DiplomacyRequired.HasValue && path.DiplomacyRequired.Value == 3)
-                        {
-                            path.DiplomacyRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.CunningRequired.HasValue && path.CunningRequired.Value == 3)
-                        {
-                            path.CunningRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                    }
-                }
-
-                SceneSpawnReward a3Spawn = new SceneSpawnReward
-                {
-                    SpawnNextMainStoryScene = true
-                };
-
-                // Determine choice type and set immediate coin payment
-                bool hasStatRequirement = modifiedRequirement != null &&
-                                         modifiedRequirement.OrPaths != null &&
-                                         modifiedRequirement.OrPaths.Any();
-                bool hasCoinCost = choice.Consequence != null && choice.Consequence.Coins < 0;
-
-                // Add A3 spawning and immediate coin payment to appropriate consequence based on path type
-                // Must create NEW Consequence objects (init-only properties)
-                switch (choice.PathType)
-                {
-                    case ChoicePathType.InstantSuccess:
-                        // Distinguish stat path vs money path
-                        if (hasStatRequirement)
-                        {
-                            // Stat path (Rapport): Coins = 15, spawn A3
-                            baseConsequence = new Consequence
-                            {
-                                Coins = 15,
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        else if (hasCoinCost)
-                        {
-                            // Money path: Coins = 13, spawn A3
-                            baseConsequence = new Consequence
-                            {
-                                Coins = 13,
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        else
-                        {
-                            // No cost, just spawn
-                            baseConsequence = new Consequence
-                            {
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        break;
-
-                    case ChoicePathType.Challenge:
-                        // Challenge path: Success = 17, Failure = 8, spawn A3 regardless
-                        successConsequence = new Consequence
-                        {
-                            Coins = 17,
-                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                        };
-
-                        failureConsequence = new Consequence
-                        {
-                            Coins = 8,
-                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                        };
-                        break;
-
-                    case ChoicePathType.Fallback:
-                        // Fallback: Player breaks commitment after accepting - consequences but no requirements
-                        // See arc42/08 §8.16 Fallback Context Rules: Post-commitment fallback has penalty
-                        baseConsequence = new Consequence
-                        {
-                            Rapport = -1  // Breaking commitment disappoints the merchant
-                        };
-                        break;
-                }
-            }
-
-            // Override action text for Fallback to reflect post-commitment context
             string enrichedActionText = choice.PathType == ChoicePathType.Fallback
                 ? "Back out of the deal"
                 : choice.ActionTextTemplate;
@@ -840,12 +551,12 @@ public static class SceneArchetypeCatalog
             ChoiceTemplate enrichedChoice = new ChoiceTemplate
             {
                 Id = choice.Id,
-                PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
+                PathType = choice.PathType,
                 ActionTextTemplate = enrichedActionText,
-                RequirementFormula = modifiedRequirement,  // Use modified requirements for A2
-                Consequence = baseConsequence,
-                OnSuccessConsequence = successConsequence,
-                OnFailureConsequence = failureConsequence,
+                RequirementFormula = choice.RequirementFormula,
+                Consequence = choice.Consequence,
+                OnSuccessConsequence = choice.OnSuccessConsequence,
+                OnFailureConsequence = choice.OnFailureConsequence,
                 ActionType = choice.ActionType,
                 ChallengeId = choice.ChallengeId,
                 ChallengeType = choice.ChallengeType,
@@ -914,29 +625,27 @@ public static class SceneArchetypeCatalog
     }
 
     /// <summary>
-    /// ROUTE_SEGMENT_TRAVEL archetype
+    /// ROUTE_SEGMENT_TRAVEL archetype - HIGHLANDER COMPLIANT
     ///
     /// FICTIONAL CONTEXT: Player traveling multi-segment route, encountering obstacles
     /// REUSABLE: Works for any route travel scene throughout game
     ///
     /// Situation Count: 5
-    /// Pattern: Linear (4 route obstacles → arrival)
+    /// Pattern: Linear (3 route obstacles → approach → arrival)
     ///
-    /// Situations 1-4: Route obstacles at SegmentIndex 0-3
-    ///   - Each uses 4-choice pattern (stat-gated/money-gated/challenge/fallback)
-    ///   - Different challenge types (Physical, Mental, Social, simple)
-    ///   - Geographic placement via RouteFilter with SegmentIndex
+    /// HIGHLANDER: ALL situations use SituationArchetypeCatalog with RhythmPattern.
+    /// NO inline choices, NO isCrisis branching.
     ///
-    /// Situation 5: Arrival at destination location
-    ///   - Single choice to complete travel
-    ///   - Rewards: Completion bonus (tutorial: +10 coins when sequence == 3)
-    ///   - Tutorial: Spawns next A-story scene
+    /// Situations 1-3: Route obstacles using domain-appropriate archetypes
+    ///   - Obstacle 1 (Physical): Confrontation archetype (Authority-based)
+    ///   - Obstacle 2 (Mental): Investigation archetype (Insight-based)
+    ///   - Obstacle 3 (Social): SocialManeuvering archetype (Rapport-based)
     ///
-    /// No Dependent Resources: Uses existing world routes/locations
+    /// Situation 4: Final Approach using RestPreparation archetype
+    /// Situation 5: Arrival using ServiceTransaction archetype
     ///
-    /// VERISIMILITUDE: Route travel involves sequential progression through route segments,
-    /// encountering obstacles that require decisions, before arriving at destination.
-    /// Reusable for any multi-segment route travel throughout game.
+    /// RhythmPattern determines choice structure for ALL situations uniformly.
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     private static SceneArchetypeDefinition GenerateRouteSegmentTravel(int tier, GenerationContext context)
     {
@@ -947,76 +656,23 @@ public static class SceneArchetypeCatalog
         string approachSitId = $"{sceneId}_approach";
         string arrivalSitId = $"{sceneId}_arrival";
 
-        // Tutorial A3 (sequence 3): Populate stat requirements + crisis damage control
-        bool isA3Tutorial = context.AStorySequence.HasValue && context.AStorySequence.Value == 3;
-
         // SITUATION 1: PHYSICAL OBSTACLE (Segment 0)
-        CompoundRequirement obstacle1AuthorityReq = new CompoundRequirement();
-        Consequence obstacle1FallbackReward;
-
-        if (isA3Tutorial)
-        {
-            // A3 CRISIS: Authority 3 required, fallback causes damage
-            // Uses Explicit Property Principle - AuthorityRequired instead of string-based routing
-            obstacle1AuthorityReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Authority, 3)
-            };
-            obstacle1FallbackReward = new Consequence { Health = -10 };  // Crisis: Damage control choice
-        }
-        else
-        {
-            obstacle1FallbackReward = new Consequence();  // No penalty outside tutorial
-        }
+        // HIGHLANDER: Uses Confrontation archetype - Authority-based, Physical challenge
+        // RhythmPattern determines: Building=stat grants, Crisis=penalty avoidance, Mixed=trade-offs
+        SituationArchetype obstacle1Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
+        List<ChoiceTemplate> obstacle1Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle1Archetype,
+            obstacle1SitId,
+            context);
 
         SituationTemplate obstacle1Situation = new SituationTemplate
         {
             Id = obstacle1SitId,
             Name = "Forest Obstacle",
             Type = SituationType.Normal,
-            NarrativeTemplate = null,  // AI generates from hints
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_authority",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Direct locals to clear path",
-                    RequirementFormula = obstacle1AuthorityReq,
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay locals to clear it",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -5 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Clear obstacle yourself",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/stamina costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1
-                    OnFailureConsequence = new Consequence(),  // Health -10
-                    ChallengeType = TacticalSystemType.Physical,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle1SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Take longer detour",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle1FallbackReward,  // A3: Health -10 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            SystemType = obstacle1Archetype.ChallengeType,
+            NarrativeTemplate = null,
+            ChoiceTemplates = obstacle1Choices,
             Priority = 100,
             NarrativeHints = new NarrativeHints
             {
@@ -1028,7 +684,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 0  // First segment
+                SegmentIndex = 0
             },
             LocationFilter = new PlacementFilter
             {
@@ -1039,72 +695,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: MENTAL OBSTACLE (Segment 1)
-        CompoundRequirement obstacle2InsightReq = new CompoundRequirement();
-        Consequence obstacle2FallbackReward;
-
-        if (isA3Tutorial)
-        {
-            // A3 CRISIS: Insight 3 required, fallback causes stamina loss
-            // Uses Explicit Property Principle - InsightRequired instead of string-based routing
-            obstacle2InsightReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Insight, 3)
-            };
-            obstacle2FallbackReward = new Consequence { Stamina = -10 };  // Crisis: Exhausting failed attempt
-        }
-        else
-        {
-            obstacle2FallbackReward = new Consequence();  // No penalty outside tutorial
-        }
+        // HIGHLANDER: Uses Investigation archetype - Insight-based, Mental challenge
+        SituationArchetype obstacle2Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> obstacle2Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle2Archetype,
+            obstacle2SitId,
+            context);
 
         SituationTemplate obstacle2Situation = new SituationTemplate
         {
             Id = obstacle2SitId,
             Name = "River Crossing",
             Type = SituationType.Normal,
+            SystemType = obstacle2Archetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_insight",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Spot safe shallows through analysis",
-                    RequirementFormula = obstacle2InsightReq,
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay ferryman",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -8 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Study crossing carefully",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/focus costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1
-                    OnFailureConsequence = new Consequence(),  // Health -5
-                    ChallengeType = TacticalSystemType.Mental,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle2SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Wade across carefully",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle2FallbackReward,  // A3: Stamina -10 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = obstacle2Choices,
             Priority = 90,
             NarrativeHints = new NarrativeHints
             {
@@ -1116,7 +721,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 1  // Second segment
+                SegmentIndex = 1
             },
             LocationFilter = new PlacementFilter
             {
@@ -1127,72 +732,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 3: SOCIAL OBSTACLE (Segment 2)
-        CompoundRequirement obstacle3RapportReq = new CompoundRequirement();
-        Consequence obstacle3FallbackReward;
-
-        if (isA3Tutorial)
-        {
-            // A3 CRISIS: Rapport 3 required, fallback costs coins
-            // Uses Explicit Property Principle - RapportRequired instead of string-based routing
-            obstacle3RapportReq.OrPaths = new List<OrPath>
-            {
-                SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Rapport, 3)
-            };
-            obstacle3FallbackReward = new Consequence { Coins = -5 };  // Crisis: Forced to pay penalty
-        }
-        else
-        {
-            obstacle3FallbackReward = new Consequence();  // No penalty outside tutorial
-        }
+        // HIGHLANDER: Uses SocialManeuvering archetype - Rapport-based, Social challenge
+        SituationArchetype obstacle3Archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> obstacle3Choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            obstacle3Archetype,
+            obstacle3SitId,
+            context);
 
         SituationTemplate obstacle3Situation = new SituationTemplate
         {
             Id = obstacle3SitId,
             Name = "Checkpoint Guard",
             Type = SituationType.Normal,
+            SystemType = obstacle3Archetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_rapport",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Friendly conversation about the road",
-                    RequirementFormula = obstacle3RapportReq,
-                    Consequence = new Consequence(),  // Guard bond +1
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_money",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Pay toll and inspection fee",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence { Coins = -10 },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_challenge",
-                    PathType = ChoicePathType.Challenge,
-                    ActionTextTemplate = "Persuade to waive toll",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Time/resolve costs
-                    OnSuccessConsequence = new Consequence(),  // Understanding +1, Guard bond +2
-                    OnFailureConsequence = new Consequence(),  // Coins -12, Guard bond -1
-                    ChallengeType = TacticalSystemType.Social,
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{obstacle3SitId}_fallback",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Wait patiently through thorough inspection",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = obstacle3FallbackReward,  // A3: Coins -5 (crisis!)
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = obstacle3Choices,
             Priority = 80,
             NarrativeHints = new NarrativeHints
             {
@@ -1204,7 +758,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 2  // Third segment
+                SegmentIndex = 2
             },
             LocationFilter = new PlacementFilter
             {
@@ -1215,33 +769,21 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 4: FINAL APPROACH (Segment 3)
+        // HIGHLANDER: Uses RestPreparation archetype - preparation before arrival
+        SituationArchetype approachArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.RestPreparation);
+        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            approachArchetype,
+            approachSitId,
+            context);
+
         SituationTemplate approachSituation = new SituationTemplate
         {
             Id = approachSitId,
             Name = "Final Approach",
             Type = SituationType.Normal,
+            SystemType = approachArchetype.ChallengeType,
             NarrativeTemplate = null,
-            ChoiceTemplates = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{approachSitId}_continue",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Head to destination",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{approachSitId}_rest",
-                    PathType = ChoicePathType.Fallback,
-                    ActionTextTemplate = "Catch breath before arrival",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence(),  // Stamina +5, Focus +5
-                    ActionType = ChoiceActionType.Instant
-                }
-            },
+            ChoiceTemplates = approachChoices,
             Priority = 70,
             NarrativeHints = new NarrativeHints
             {
@@ -1253,7 +795,7 @@ public static class SceneArchetypeCatalog
             RouteFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Route,
-                SegmentIndex = 3  // Fourth segment
+                SegmentIndex = 3
             },
             LocationFilter = new PlacementFilter
             {
@@ -1264,29 +806,19 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 5: ARRIVAL AT DESTINATION
-        // Tutorial A3 (sequence 3): Fixed +10 coin completion bonus (totals with A2: 25/23/27/18/20)
-        Consequence arrivalConsequence = (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
-            ? new Consequence { Coins = 10 }
-            : new Consequence();
-
-        List<ChoiceTemplate> arrivalChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{arrivalSitId}_complete",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Accept completion bonus and conclude business",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = arrivalConsequence,
-                ActionType = ChoiceActionType.Instant
-            }
-        };
+        // HIGHLANDER: Uses ServiceTransaction archetype - completion of journey
+        SituationArchetype arrivalArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceTransaction);
+        List<ChoiceTemplate> arrivalChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            arrivalArchetype,
+            arrivalSitId,
+            context);
 
         SituationTemplate arrivalSituation = new SituationTemplate
         {
             Id = arrivalSitId,
             Name = "Delivery Complete",
             Type = SituationType.Normal,
+            SystemType = arrivalArchetype.ChallengeType,
             NarrativeTemplate = null,
             ChoiceTemplates = arrivalChoices,
             Priority = 60,
@@ -1297,8 +829,6 @@ public static class SceneArchetypeCatalog
                 Context = "delivery_success",
                 Style = "satisfying"
             },
-            // RouteDestination: Use route's destination location (resolved from earlier RouteFilter situations)
-            // Purpose remains as categorical validation hint
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
@@ -1310,7 +840,7 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.NPC,
                 Profession = Professions.Merchant
             },
-            RouteFilter = null      // At destination location, not on route
+            RouteFilter = null
         };
 
         // Linear spawn rules: Obstacle1 → Obstacle2 → Obstacle3 → Approach → Arrival
@@ -1361,10 +891,6 @@ public static class SceneArchetypeCatalog
         };
     }
 
-    // ===================================================================
-    // NARRATIVE PATTERNS (9) - A-story and B-story content
-    // ===================================================================
-
     /// <summary>
     /// SEEK_AUDIENCE archetype
     ///
@@ -1395,7 +921,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: NEGOTIATE ACCESS
         SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             $"{sceneId}_negotiate",
             context);
@@ -1453,7 +979,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: AUDIENCE
         SituationArchetype audienceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             audienceArchetype,
             $"{sceneId}_audience",
             context);
@@ -1523,7 +1049,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: SEARCH LOCATION
         SituationArchetype searchArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> searchChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> searchChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             searchArchetype,
             $"{sceneId}_search",
             context);
@@ -1558,7 +1084,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: ANALYZE EVIDENCE
         SituationArchetype analyzeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> analyzeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> analyzeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             analyzeArchetype,
             $"{sceneId}_analyze",
             context);
@@ -1583,7 +1109,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: CONCLUDE INVESTIGATION
         SituationArchetype concludeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> concludeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> concludeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             concludeArchetype,
             $"{sceneId}_conclude",
             context);
@@ -1656,7 +1182,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: APPROACH WITNESS
         SituationArchetype approachArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             approachArchetype,
             $"{sceneId}_approach",
             context);
@@ -1681,7 +1207,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: INTERVIEW
         SituationArchetype interviewArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> interviewChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> interviewChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             interviewArchetype,
             $"{sceneId}_interview",
             context);
@@ -1747,7 +1273,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: ACCUSATION
         SituationArchetype accuseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> accuseChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> accuseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             accuseArchetype,
             $"{sceneId}_accuse",
             context);
@@ -1758,6 +1284,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = accuseChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "confrontational",
@@ -1772,7 +1299,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: RESOLUTION
         SituationArchetype resolveArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> resolveChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> resolveChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             resolveArchetype,
             $"{sceneId}_resolve",
             context);
@@ -1783,6 +1310,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = resolveChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "decisive",
@@ -1838,7 +1366,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: INITIAL CONTACT
         SituationArchetype contactArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> contactChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> contactChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             contactArchetype,
             $"{sceneId}_contact",
             context);
@@ -1863,7 +1391,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: NEGOTIATE INFORMATION
         SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             $"{sceneId}_negotiate",
             context);
@@ -1888,7 +1416,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: REVELATION
         SituationArchetype revelationArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> revelationChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> revelationChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             revelationArchetype,
             $"{sceneId}_revelation",
             context);
@@ -1961,7 +1489,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: LOCATE ARTIFACT
         SituationArchetype locateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> locateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> locateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             locateArchetype,
             $"{sceneId}_locate",
             context);
@@ -1986,7 +1514,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: ACQUIRE ARTIFACT
         SituationArchetype acquireArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> acquireChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> acquireChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             acquireArchetype,
             $"{sceneId}_acquire",
             context);
@@ -2062,7 +1590,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: SUSPICION
         SituationArchetype suspectArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> suspectChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> suspectChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             suspectArchetype,
             $"{sceneId}_suspect",
             context);
@@ -2087,7 +1615,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: GATHER PROOF
         SituationArchetype proofArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
-        List<ChoiceTemplate> proofChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> proofChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             proofArchetype,
             $"{sceneId}_proof",
             context);
@@ -2112,7 +1640,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: EXPOSE
         SituationArchetype exposeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
-        List<ChoiceTemplate> exposeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> exposeChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             exposeArchetype,
             $"{sceneId}_expose",
             context);
@@ -2137,7 +1665,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 4: CONSEQUENCE
         SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             consequenceArchetype,
             $"{sceneId}_consequence",
             context);
@@ -2217,7 +1745,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: CRISIS EMERGES
         SituationArchetype crisisArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> crisisChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> crisisChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             crisisArchetype,
             $"{sceneId}_crisis",
             context);
@@ -2228,6 +1756,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Crisis,
             ChoiceTemplates = crisisChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "urgent",
@@ -2242,7 +1771,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: DECISION
         SituationArchetype decisionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> decisionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> decisionChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             decisionArchetype,
             $"{sceneId}_decision",
             context);
@@ -2253,6 +1782,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Crisis,
             ChoiceTemplates = decisionChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "desperate",
@@ -2308,7 +1838,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 1: DILEMMA PRESENTED
         SituationArchetype dilemmaArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> dilemmaChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> dilemmaChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             dilemmaArchetype,
             $"{sceneId}_dilemma",
             context);
@@ -2319,6 +1849,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = dilemmaChoices,
             Priority = 100,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "conflicted",
@@ -2333,7 +1864,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 2: MORAL CHOICE
         SituationArchetype choiceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
-        List<ChoiceTemplate> choiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> choiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             choiceArchetype,
             $"{sceneId}_choice",
             context);
@@ -2344,6 +1875,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = choiceChoices,
             Priority = 90,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "weighty",
@@ -2358,7 +1890,7 @@ public static class SceneArchetypeCatalog
 
         // SITUATION 3: CONSEQUENCE
         SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
-        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             consequenceArchetype,
             $"{sceneId}_consequence",
             context);
@@ -2369,6 +1901,7 @@ public static class SceneArchetypeCatalog
             Type = SituationType.Normal,
             ChoiceTemplates = consequenceChoices,
             Priority = 80,
+            Intensity = ArchetypeIntensity.Demanding,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "reflective",
@@ -2412,6 +1945,313 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    // ===================================================================
+    // PEACEFUL SCENE ARCHETYPES (3)
+    // Recovery-focused patterns (earned structural respite every 8th sequence)
+    // All choices positive, no requirements, stat grants only (Building rhythm)
+    // See arc42/08_crosscutting_concepts.md §8.26 and gdd/06_balance.md §6.8
+    // ===================================================================
+
+    /// <summary>
+    /// QUIET_REFLECTION archetype
+    ///
+    /// FICTIONAL CONTEXT: Player finds a quiet moment for meditation and mental recovery
+    /// STORY PURPOSE: Earned respite, identity formation through contemplation
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (settle → reflect)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Appears every 8th sequence as structural respite from story rhythm
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateQuietReflection(int tier, GenerationContext context)
+    {
+        string sceneId = "quiet_reflection";
+
+        // SITUATION 1: SETTLE IN
+        SituationArchetype settleArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
+        List<ChoiceTemplate> settleChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            settleArchetype,
+            $"{sceneId}_settle",
+            context);
+
+        SituationTemplate settleSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_settle",
+            Type = SituationType.Normal,
+            ChoiceTemplates = settleChoices,
+            Priority = 100,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "calm",
+                Theme = "settling",
+                Context = "finding_peace",
+                Style = "gentle"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Activity = LocationActivity.Quiet,
+                Safety = LocationSafety.Safe
+            },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: DEEP REFLECTION
+        SituationArchetype reflectArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
+        List<ChoiceTemplate> reflectChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            reflectArchetype,
+            $"{sceneId}_reflect",
+            context);
+
+        SituationTemplate reflectSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_reflect",
+            Type = SituationType.Normal,
+            ChoiceTemplates = reflectChoices,
+            Priority = 90,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "contemplative",
+                Theme = "self_discovery",
+                Context = "meditation",
+                Style = "introspective"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_settle",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_settle",
+                    DestinationSituationId = $"{sceneId}_reflect",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                settleSituation,
+                reflectSituation
+            },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// CASUAL_ENCOUNTER archetype
+    ///
+    /// FICTIONAL CONTEXT: Player has casual social interaction with locals
+    /// STORY PURPOSE: Social respite, Rapport building
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (encounter → converse)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Appears every 8th sequence as structural respite from story rhythm
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateCasualEncounter(int tier, GenerationContext context)
+    {
+        string sceneId = "casual_encounter";
+
+        // SITUATION 1: ENCOUNTER
+        SituationArchetype encounterArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.LocalConversation);
+        List<ChoiceTemplate> encounterChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            encounterArchetype,
+            $"{sceneId}_encounter",
+            context);
+
+        SituationTemplate encounterSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_encounter",
+            Type = SituationType.Normal,
+            ChoiceTemplates = encounterChoices,
+            Priority = 100,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "friendly",
+                Theme = "meeting",
+                Context = "casual_hello",
+                Style = "warm"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Activity = LocationActivity.Moderate,
+                Safety = LocationSafety.Safe
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC
+            },
+            RouteFilter = null
+        };
+
+        // SITUATION 2: CONVERSATION
+        SituationArchetype converseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.LocalConversation);
+        List<ChoiceTemplate> converseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            converseArchetype,
+            $"{sceneId}_converse",
+            context);
+
+        SituationTemplate converseSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_converse",
+            Type = SituationType.Normal,
+            ChoiceTemplates = converseChoices,
+            Priority = 90,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "pleasant",
+                Theme = "connection",
+                Context = "friendly_chat",
+                Style = "relaxed"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_encounter",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_encounter",
+                    DestinationSituationId = $"{sceneId}_converse",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                encounterSituation,
+                converseSituation
+            },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// SCHOLARLY_PURSUIT archetype
+    ///
+    /// FICTIONAL CONTEXT: Player studies in a library or scholarly setting
+    /// STORY PURPOSE: Mental respite, Insight building
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (browse → study)
+    ///
+    /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
+    /// Appears every 8th sequence as structural respite from story rhythm
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateScholarlyPursuit(int tier, GenerationContext context)
+    {
+        string sceneId = "scholarly_pursuit";
+
+        // SITUATION 1: BROWSE
+        SituationArchetype browseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.StudyInLibrary);
+        List<ChoiceTemplate> browseChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            browseArchetype,
+            $"{sceneId}_browse",
+            context);
+
+        SituationTemplate browseSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_browse",
+            Type = SituationType.Normal,
+            ChoiceTemplates = browseChoices,
+            Priority = 100,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "curious",
+                Theme = "exploration",
+                Context = "browsing_knowledge",
+                Style = "intellectual"
+            },
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purpose = LocationPurpose.Learning,
+                Activity = LocationActivity.Quiet
+            },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: STUDY
+        SituationArchetype studyArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.StudyInLibrary);
+        List<ChoiceTemplate> studyChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            studyArchetype,
+            $"{sceneId}_study",
+            context);
+
+        SituationTemplate studySituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_study",
+            Type = SituationType.Normal,
+            ChoiceTemplates = studyChoices,
+            Priority = 90,
+            Intensity = ArchetypeIntensity.Recovery,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "focused",
+                Theme = "learning",
+                Context = "deep_study",
+                Style = "scholarly"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_browse",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = $"{sceneId}_browse",
+                    DestinationSituationId = $"{sceneId}_study",
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                browseSituation,
+                studySituation
+            },
             SpawnRules = spawnRules
         };
     }

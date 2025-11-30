@@ -1564,35 +1564,31 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Get all Situations available at a specific location
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// Scene-embedded Situations inherit placement from parent Scene
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// Get all Situations available at a specific location.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
-        // PLAYABILITY VALIDATION: Location must exist
         if (location == null)
             throw new InvalidOperationException($"Location is null - cannot query situations!");
 
-        // Query all Situations (both legacy and Scene-embedded) at this location
-        // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Location == location)
             .ToList();
     }
 
     /// <summary>
-    /// Get all Situations available for a specific NPC
-    /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// Get all Situations available for a specific NPC.
+    /// Returns ALL situations regardless of intensity - player state does NOT filter visibility.
+    /// Learning comes from seeing choices they can't afford (greyed-out), not hidden situations.
+    /// See gdd/06_balance.md §6.8 (Challenge and Consequence Philosophy).
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
         if (npc == null) return new List<Situation>();
 
-        // Query all Situations (both legacy and Scene-embedded) for this NPC
-        // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
             .Where(sit => sit.Npc == npc)
             .ToList();
@@ -1765,7 +1761,15 @@ public class GameFacade
             if (situation == null)
                 return IntentResult.Failed();
 
-            plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+            // TWO-PHASE SCALING: Pass pre-scaled values from action (populated by SceneFacade)
+            // Perfect Information compliance: display = execution (arc42 §8.26)
+            plan = _situationChoiceExecutor.ValidateAndExtract(
+                action.ChoiceTemplate,
+                action.Name,
+                player,
+                _gameWorld,
+                action.ScaledRequirement,    // Pre-scaled by SceneFacade
+                action.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {
@@ -1876,7 +1880,14 @@ public class GameFacade
         }
 
         // STEP 1: Validate and extract execution plan (all NPC actions use SituationChoiceExecutor)
-        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+        // TWO-PHASE SCALING: Pass pre-scaled values from action (populated by SceneFacade)
+        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(
+            action.ChoiceTemplate,
+            action.Name,
+            player,
+            _gameWorld,
+            action.ScaledRequirement,    // Pre-scaled by SceneFacade
+            action.ScaledConsequence);   // Pre-scaled by SceneFacade
 
         if (!plan.IsValid)
         {
@@ -1975,7 +1986,15 @@ public class GameFacade
             if (situation == null)
                 return IntentResult.Failed();
 
-            plan = _situationChoiceExecutor.ValidateAndExtract(card.ChoiceTemplate, card.Name, player, _gameWorld);
+            // TWO-PHASE SCALING: Pass pre-scaled values from PathCard (populated by SceneFacade)
+            // Perfect Information compliance: display = execution (arc42 §8.26)
+            plan = _situationChoiceExecutor.ValidateAndExtract(
+                card.ChoiceTemplate,
+                card.Name,
+                player,
+                _gameWorld,
+                card.ScaledRequirement,    // Pre-scaled by SceneFacade
+                card.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {

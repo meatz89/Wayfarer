@@ -212,6 +212,66 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# ARCHETYPE REUSABILITY (NO TUTORIAL HARDCODING)
+
+**THE RULE:** Every archetype must work in ANY context through categorical scaling. No tutorial-specific code paths.
+
+**Tutorial = Context, Not Code:** Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical properties (Tier 0, Friendly NPC, Basic quality), not from special tutorial code branches.
+
+| Context | Same Archetype Produces |
+|---------|------------------------|
+| Tutorial (Tier 0, Friendly, Basic) | Easy requirements, low costs, modest rewards |
+| Mid-game (Tier 2, Neutral, Standard) | Medium requirements, balanced costs/rewards |
+| Late-game (Tier 3, Hostile, Premium) | Hard requirements, high costs, high rewards |
+
+**FORBIDDEN:**
+- `if (AStorySequence == N)` checks in archetypes
+- `if (context.IsTutorial)` branching
+- Different choice structures for different contexts
+- Hardcoded values that don't scale with categorical properties
+
+**Required:**
+- All scaling via categorical properties (NPCDemeanor, Quality, PowerDynamic, Tier)
+- Same four-choice structure regardless of context
+- Context-agnostic archetype implementations
+
+**Why:** Archetypes must be infinitely reusable. InnLodging in tutorial AND InnLodging in late-game use the SAME code. Categorical properties create appropriate difficulty.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.23, `gdd/05_content.md` §5.3
+
+---
+
+# CONTEXT INJECTION (SCENE GENERATION)
+
+**THE RULE:** Scene generation receives context as input. Generation NEVER reads context from GameWorld.
+
+**Problem solved:** Without context injection, authored tutorials can't control scene sequencing. A1 completing doesn't guarantee A2 will be Investigation—it depends on player's current state at generation time.
+
+**Solution:** Context is always injected by the caller:
+
+| Content Type | Context Source |
+|--------------|----------------|
+| **Authored (A1-A10)** | Author specifies exact context in spawn reward |
+| **Procedural (A11+)** | System reads GameWorld state, passes as context |
+
+Same generation code handles both. HIGHLANDER compliance achieved through context injection, not conditional branching.
+
+**FORBIDDEN:**
+- `_gameWorld.GetPlayer()` inside generation methods
+- `if (isAuthored) ... else ...` branching
+- Context discovery at generation time
+- Different code paths for tutorial vs procedural
+
+**Required:**
+- Context passed as parameter to generation methods
+- Generation is pure function: same context → same output
+- Caller (authored content or procedural system) constructs context
+- Context carried in spawn request DTO
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.28, `gdd/06_balance.md` §6.8
+
+---
+
 # FAIL-FAST PHILOSOPHY
 
 **THE RULE:** Missing data should fail loudly, not silently default.
@@ -295,7 +355,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 - ONLY: `List<T>`, strongly-typed objects, `int` (see GDD DDR-007: Intentional Numeric Design)
 - FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples, `float`, `double`
 - FORBIDDEN: Decimal multipliers (`* 0.X`, `* 1.X`), percentage calculations (`* 100 /`, `/ 100`), basis points
-- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.22)
+- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.24)
 - Enforcement: DDR007ComplianceTests.cs (CI), pre-commit hook (`scripts/hooks/install.sh`)
 
 **Lambdas:**

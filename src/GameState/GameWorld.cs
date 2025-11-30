@@ -1047,6 +1047,7 @@ public class GameWorld
             existing.Name = location.Name;
             existing.AssignVenue(location.Venue);
             existing.HexPosition = location.HexPosition;
+            existing.Difficulty = location.Difficulty; // Net Challenge: difficulty from hex distance
             // Orthogonal categorical properties
             existing.Environment = location.Environment;
             existing.Setting = location.Setting;

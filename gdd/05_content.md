@@ -12,16 +12,20 @@ This document explains HOW content is organized and WHY the archetype-based syst
 
 The primary narrative spine that never ends:
 
-**Phase 1: Authored Tutorial (A1-A10)**
-- Hand-crafted scenes teaching mechanics
+**Phase 1: Tutorial Instantiation (A1-A10)**
+- Uses the SAME reusable archetypes as procedural content
+- Tutorial experience emerges from categorical context (Tier 0, Friendly NPC, Basic quality)
 - Fixed sequence establishing gameplay patterns
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Scene archetypes selected from catalog
+- Uses the SAME reusable archetypes as tutorial
+- Higher tiers, varied NPC demeanors, varied quality levels
 - AI narrative generation connecting to player history
 - Escalating scope over time (local → regional → continental)
 - Never resolves, always deepens
+
+**Critical Principle:** Tutorial and procedural content use IDENTICAL archetype templates. The difference is categorical context, not different code paths. An InnLodging scene in tutorial (Tier 0, Friendly, Basic) uses the same archetype as InnLodging in late-game (Tier 3, Hostile, Premium). Categorical properties scale the experience.
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
@@ -98,6 +102,26 @@ Entity properties (NPC demeanor, location quality, power dynamic) scale difficul
 
 21 situation archetypes × 4 NPC demeanors × 4 quality tiers × 3 power dynamics = **1,008 mechanically distinct variations** from finite patterns.
 
+### Archetype Reusability Principle
+
+**Every archetype must work in ANY context through categorical scaling.**
+
+| Context | Same Archetype Produces |
+|---------|------------------------|
+| Tutorial (Tier 0, Friendly, Basic) | Easy requirements, low costs, modest rewards |
+| Mid-game (Tier 2, Neutral, Standard) | Medium requirements, balanced costs/rewards |
+| Late-game (Tier 3, Hostile, Premium) | Hard requirements, high costs, high rewards |
+
+**Forbidden:**
+- Checking story sequence (`AStorySequence == N`) in archetypes
+- Different code paths for tutorial vs non-tutorial
+- Hardcoded values that don't scale with context
+
+**Required:**
+- All difficulty scaling via categorical properties (NPCDemeanor, Quality, PowerDynamic)
+- Same four-choice structure regardless of context
+- Context-agnostic archetype code
+
 ---
 
 ## 5.4 Categorical Property Scaling
@@ -163,6 +187,29 @@ These guarantees are enforced at parse-time via **Centralized Invariant Enforcem
 See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts.md) and [ADR-016](../arc42/09_architecture_decisions.md) for technical details.
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
+
+### Authored Scene Sequencing (Context Injection)
+
+When authored content spawns the next A-story scene, it specifies **generation context** to control the outcome:
+
+| Context Property | What It Controls |
+|------------------|------------------|
+| **TargetCategory** | Archetype category (Investigation, Social, Confrontation, Crisis, Peaceful) |
+| **LocationContext** | Safety/Purpose values that influence category selection |
+| **IntensityHint** | Override intensity balance scoring |
+| **RhythmPhase** | Building, Crisis, or Mixed rhythm for choice structure |
+| **Exclusions** | Archetypes to avoid (anti-repetition) |
+
+**Authored vs Procedural Context:**
+
+| Flow | Context Source |
+|------|----------------|
+| **Tutorial (A1-A10)** | Author specifies exact context in spawn reward: "next scene is Investigation at Safe location with Building rhythm" |
+| **Infinite (A11+)** | System reads current GameWorld state and passes as context |
+
+Same generation code handles both flows—no special tutorial code paths. Author control is achieved through context specification, not conditional logic.
+
+See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 
 ### B/C Story Flexibility
 
@@ -293,6 +340,15 @@ This enables narrative tension, gating, and consequences that A-Story cannot hav
 
 ## 5.10 Text Generation Rules
 
+### Two-Phase Creation Model
+
+Entity creation happens in two phases. Names and descriptions generated in Phase 2 persist for the remainder of the game.
+
+| Phase | What Happens | Output |
+|-------|--------------|--------|
+| **1. Mechanical** | Structure, references, categorical properties | Generic identifiers |
+| **2. Narrative** | AI examines complete context | PERSISTENT names stored on entities |
+
 ### NO PLACEHOLDERS
 
 Placeholder syntax like `{NPCName}`, `{LocationName}` is FORBIDDEN in templates.
@@ -300,9 +356,11 @@ Placeholder syntax like `{NPCName}`, `{LocationName}` is FORBIDDEN in templates.
 | Approach | When to Use |
 |----------|-------------|
 | **Generic text** | Works standalone without substitution |
-| **Null** | AI generates contextually appropriate text |
+| **Null** | AI generates contextually appropriate text in Phase 2 |
 
-**Rationale:** AI text generation pass will replace all narrative content. Templates should contain either generic text that works standalone, or null for full AI generation.
+**Rationale:** Phase 2 (narrative finalization) generates all contextual text after mechanical creation completes. Templates contain generic text or null—never placeholders. Generated names persist and display consistently throughout the game.
+
+**See also:** arc42 §8.27 for technical details on two-phase creation.
 
 ---
 

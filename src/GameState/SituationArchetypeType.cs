@@ -89,7 +89,7 @@ public enum SituationArchetypeType
     /// </summary>
     Recruitment,
 
-    // ==================== SPECIALIZED (6) ====================
+    // ==================== SERVICE & TRANSITION (6) ====================
 
     /// <summary>
     /// Rest preparation: choosing how to rest
@@ -108,19 +108,38 @@ public enum SituationArchetypeType
 
     /// <summary>
     /// Service negotiation: securing services (inn booking, etc.)
-    /// Specialized choice generation for commerce contexts
     /// </summary>
     ServiceNegotiation,
 
     /// <summary>
     /// Service execution rest: using secured service (staying at inn)
-    /// Different recovery approaches
     /// </summary>
     ServiceExecutionRest,
 
     /// <summary>
     /// Service departure: leaving service venue
-    /// Organize belongings, return key, etc.
     /// </summary>
-    ServiceDeparture
+    ServiceDeparture,
+
+    // ==================== PEACEFUL (3) ====================
+    // Recovery-focused archetypes (earned structural respite every 8th sequence)
+    // No Resolve cost, no stat requirements, purely positive outcomes
+
+    /// <summary>
+    /// Quiet reflection and mental recovery
+    /// Grants Focus restoration and stat points
+    /// </summary>
+    MeditationAndReflection,
+
+    /// <summary>
+    /// Casual conversation with locals
+    /// Grants Rapport and social stat points
+    /// </summary>
+    LocalConversation,
+
+    /// <summary>
+    /// Studying in a library or scholarly setting
+    /// Grants Insight and knowledge-based stat points
+    /// </summary>
+    StudyInLibrary
 }
