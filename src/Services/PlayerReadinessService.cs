@@ -3,10 +3,10 @@
 /// Determines player readiness for different archetype intensities based on Resolve level.
 /// Used by ProceduralAStoryService to filter archetype selection.
 ///
-/// READINESS LEVELS:
-/// - Exhausted (Resolve less than 3): Only Peaceful archetypes safe
-/// - Normal (Resolve 3-15): Peaceful, Building, Testing archetypes safe
-/// - Capable (Resolve greater than 15): All archetypes including Crisis safe
+/// THREE-LEVEL SYSTEM (named to avoid collision with RhythmPattern):
+/// - Exhausted (Resolve less than 3): Only Recovery archetypes safe
+/// - Normal (Resolve 3-15): Recovery and Standard archetypes safe
+/// - Capable (Resolve greater than 15): All archetypes including Demanding safe
 ///
 /// HIGHLANDER: Single source of truth for player readiness determination.
 /// </summary>
@@ -14,13 +14,13 @@ public class PlayerReadinessService
 {
     /// <summary>
     /// Threshold below which player is considered exhausted.
-    /// Only Peaceful archetypes should be offered.
+    /// Only Recovery archetypes should be offered.
     /// </summary>
     public const int ExhaustedThreshold = 3;
 
     /// <summary>
     /// Threshold above which player is considered capable.
-    /// All archetypes including Crisis can be offered.
+    /// All archetypes including Demanding can be offered.
     /// </summary>
     public const int CapableThreshold = 15;
 
@@ -32,15 +32,15 @@ public class PlayerReadinessService
     {
         if (player.Resolve < ExhaustedThreshold)
         {
-            return ArchetypeIntensity.Peaceful;
+            return ArchetypeIntensity.Recovery;
         }
 
         if (player.Resolve > CapableThreshold)
         {
-            return ArchetypeIntensity.Crisis;
+            return ArchetypeIntensity.Demanding;
         }
 
-        return ArchetypeIntensity.Testing;
+        return ArchetypeIntensity.Standard;
     }
 
     /// <summary>
@@ -61,17 +61,14 @@ public class PlayerReadinessService
         ArchetypeIntensity maxSafe = GetMaxSafeIntensity(player);
         List<ArchetypeIntensity> safeIntensities = new List<ArchetypeIntensity>();
 
-        if (maxSafe >= ArchetypeIntensity.Peaceful)
-            safeIntensities.Add(ArchetypeIntensity.Peaceful);
+        if (maxSafe >= ArchetypeIntensity.Recovery)
+            safeIntensities.Add(ArchetypeIntensity.Recovery);
 
-        if (maxSafe >= ArchetypeIntensity.Building)
-            safeIntensities.Add(ArchetypeIntensity.Building);
+        if (maxSafe >= ArchetypeIntensity.Standard)
+            safeIntensities.Add(ArchetypeIntensity.Standard);
 
-        if (maxSafe >= ArchetypeIntensity.Testing)
-            safeIntensities.Add(ArchetypeIntensity.Testing);
-
-        if (maxSafe >= ArchetypeIntensity.Crisis)
-            safeIntensities.Add(ArchetypeIntensity.Crisis);
+        if (maxSafe >= ArchetypeIntensity.Demanding)
+            safeIntensities.Add(ArchetypeIntensity.Demanding);
 
         return safeIntensities;
     }
@@ -102,19 +99,19 @@ public enum PlayerReadinessState
 {
     /// <summary>
     /// Player is exhausted (Resolve less than 3).
-    /// Only peaceful archetypes should be offered.
+    /// Only Recovery archetypes should be offered.
     /// </summary>
     Exhausted,
 
     /// <summary>
     /// Player is in normal state (Resolve 3-15).
-    /// Peaceful, Building, and Testing archetypes safe.
+    /// Recovery and Standard archetypes safe.
     /// </summary>
     Normal,
 
     /// <summary>
     /// Player is capable (Resolve greater than 15).
-    /// All archetype intensities are safe including Crisis.
+    /// All archetype intensities are safe including Demanding.
     /// </summary>
     Capable
 }

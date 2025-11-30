@@ -20,7 +20,7 @@ public class SituationArchetypeCatalogTests
 
         Assert.NotNull(archetype);
         Assert.Equal(SituationArchetypeType.MeditationAndReflection, archetype.Type);
-        Assert.Equal(ArchetypeIntensity.Peaceful, archetype.Intensity);
+        Assert.Equal(ArchetypeIntensity.Recovery, archetype.Intensity);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class SituationArchetypeCatalogTests
 
         Assert.NotNull(archetype);
         Assert.Equal(SituationArchetypeType.LocalConversation, archetype.Type);
-        Assert.Equal(ArchetypeIntensity.Peaceful, archetype.Intensity);
+        Assert.Equal(ArchetypeIntensity.Recovery, archetype.Intensity);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class SituationArchetypeCatalogTests
 
         Assert.NotNull(archetype);
         Assert.Equal(SituationArchetypeType.StudyInLibrary, archetype.Type);
-        Assert.Equal(ArchetypeIntensity.Peaceful, archetype.Intensity);
+        Assert.Equal(ArchetypeIntensity.Recovery, archetype.Intensity);
     }
 
     [Fact]

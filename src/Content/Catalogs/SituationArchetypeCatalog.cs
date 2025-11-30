@@ -94,7 +94,7 @@ public static class SituationArchetypeCatalog
             DeckId = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Crisis
+            Intensity = ArchetypeIntensity.Demanding
         };
     }
 
@@ -126,7 +126,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -158,7 +158,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -190,7 +190,7 @@ public static class SituationArchetypeCatalog
             DeckId = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -222,7 +222,7 @@ public static class SituationArchetypeCatalog
             DeckId = "physical_challenge",
             ResolveCost = 10,
             FallbackTimeCost = 2,
-            Intensity = ArchetypeIntensity.Crisis
+            Intensity = ArchetypeIntensity.Demanding
         };
     }
 
@@ -254,7 +254,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Building
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -286,7 +286,7 @@ public static class SituationArchetypeCatalog
             DeckId = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -318,7 +318,7 @@ public static class SituationArchetypeCatalog
             DeckId = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -350,7 +350,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -382,7 +382,7 @@ public static class SituationArchetypeCatalog
             DeckId = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Crisis
+            Intensity = ArchetypeIntensity.Demanding
         };
     }
 
@@ -414,7 +414,7 @@ public static class SituationArchetypeCatalog
             DeckId = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Crisis
+            Intensity = ArchetypeIntensity.Demanding
         };
     }
 
@@ -446,7 +446,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 2,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -478,7 +478,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -510,7 +510,7 @@ public static class SituationArchetypeCatalog
             DeckId = "desperate_request",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -542,7 +542,7 @@ public static class SituationArchetypeCatalog
             DeckId = "desperate_request",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Testing
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -574,7 +574,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Building
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -607,7 +607,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Building
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -632,7 +632,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 2,
-            Intensity = ArchetypeIntensity.Building
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -669,7 +669,7 @@ public static class SituationArchetypeCatalog
             DeckId = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 0,
-            Intensity = ArchetypeIntensity.Building
+            Intensity = ArchetypeIntensity.Standard
         };
     }
 
@@ -707,7 +707,7 @@ public static class SituationArchetypeCatalog
             DeckId = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
-            Intensity = ArchetypeIntensity.Peaceful
+            Intensity = ArchetypeIntensity.Recovery
         };
     }
 
@@ -745,7 +745,7 @@ public static class SituationArchetypeCatalog
             DeckId = "mental_challenge",
             ResolveCost = 0,
             FallbackTimeCost = 1,
-            Intensity = ArchetypeIntensity.Peaceful
+            Intensity = ArchetypeIntensity.Recovery
         };
     }
 
@@ -781,7 +781,7 @@ public static class SituationArchetypeCatalog
             DeckId = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
-            Intensity = ArchetypeIntensity.Peaceful
+            Intensity = ArchetypeIntensity.Recovery
         };
     }
 
@@ -813,7 +813,7 @@ public static class SituationArchetypeCatalog
             DeckId = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
-            Intensity = ArchetypeIntensity.Peaceful
+            Intensity = ArchetypeIntensity.Recovery
         };
     }
 
@@ -845,7 +845,7 @@ public static class SituationArchetypeCatalog
             DeckId = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
-            Intensity = ArchetypeIntensity.Peaceful
+            Intensity = ArchetypeIntensity.Recovery
         };
     }
 

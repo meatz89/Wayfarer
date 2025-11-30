@@ -119,12 +119,12 @@ public class ProceduralAStoryService
         // Map category to intensity level
         ArchetypeIntensity categoryIntensity = desiredCategory switch
         {
-            "Crisis" => ArchetypeIntensity.Crisis,
-            "Confrontation" => ArchetypeIntensity.Crisis,
-            "Investigation" => ArchetypeIntensity.Testing,
-            "Social" => ArchetypeIntensity.Testing,
-            "Peaceful" => ArchetypeIntensity.Peaceful,
-            _ => ArchetypeIntensity.Testing
+            "Crisis" => ArchetypeIntensity.Demanding,
+            "Confrontation" => ArchetypeIntensity.Demanding,
+            "Investigation" => ArchetypeIntensity.Standard,
+            "Social" => ArchetypeIntensity.Standard,
+            "Peaceful" => ArchetypeIntensity.Recovery,
+            _ => ArchetypeIntensity.Standard
         };
 
         // If player can handle the desired category, use it
@@ -134,19 +134,13 @@ public class ProceduralAStoryService
         }
 
         // Player readiness too low - downgrade to safe category
-        // Exhausted players get Peaceful archetypes (if we have any)
-        // Otherwise get lowest intensity available
-        if (maxSafeIntensity == ArchetypeIntensity.Peaceful)
+        if (maxSafeIntensity == ArchetypeIntensity.Recovery)
         {
             return "Peaceful";
         }
 
-        if (maxSafeIntensity <= ArchetypeIntensity.Building)
-        {
-            return "Social"; // Social archetypes are lower intensity than Investigation
-        }
-
         // Testing intensity - avoid Crisis/Confrontation, prefer Investigation/Social
+        // (Building was removed from ArchetypeIntensity - only Peaceful/Testing/Crisis exist)
         return cyclePosition switch
         {
             0 => "Investigation",

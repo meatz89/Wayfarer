@@ -206,14 +206,14 @@ public class ProceduralAStoryServiceTests
     // ==================== PLAYER READINESS TESTS ====================
 
     [Theory]
-    [InlineData(0, ArchetypeIntensity.Peaceful)]   // Exhausted (0 Resolve)
-    [InlineData(1, ArchetypeIntensity.Peaceful)]   // Exhausted (1 Resolve)
-    [InlineData(2, ArchetypeIntensity.Peaceful)]   // Exhausted (2 Resolve)
-    [InlineData(3, ArchetypeIntensity.Testing)]    // Normal (exactly at threshold)
-    [InlineData(10, ArchetypeIntensity.Testing)]   // Normal
-    [InlineData(15, ArchetypeIntensity.Testing)]   // Normal (at threshold)
-    [InlineData(16, ArchetypeIntensity.Crisis)]    // Capable (above threshold)
-    [InlineData(30, ArchetypeIntensity.Crisis)]    // Capable (well above)
+    [InlineData(0, ArchetypeIntensity.Recovery)]   // Exhausted (0 Resolve)
+    [InlineData(1, ArchetypeIntensity.Recovery)]   // Exhausted (1 Resolve)
+    [InlineData(2, ArchetypeIntensity.Recovery)]   // Exhausted (2 Resolve)
+    [InlineData(3, ArchetypeIntensity.Standard)]    // Normal (exactly at threshold)
+    [InlineData(10, ArchetypeIntensity.Standard)]   // Normal
+    [InlineData(15, ArchetypeIntensity.Standard)]   // Normal (at threshold)
+    [InlineData(16, ArchetypeIntensity.Demanding)]    // Capable (above threshold)
+    [InlineData(30, ArchetypeIntensity.Demanding)]    // Capable (well above)
     public void PlayerReadiness_GetMaxSafeIntensity_ReturnsCorrectLevel(int resolve, ArchetypeIntensity expectedIntensity)
     {
         // CRITICAL: Player readiness determines which archetypes are safe
@@ -236,37 +236,38 @@ public class ProceduralAStoryServiceTests
         List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(exhaustedPlayer);
 
         Assert.Single(safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
     }
 
     [Fact]
-    public void PlayerReadiness_NormalPlayer_IncludesPeacefulBuildingTesting()
+    public void PlayerReadiness_NormalPlayer_IncludesPeacefulAndTesting()
     {
-        // Normal player should have access to Peaceful, Building, and Testing
+        // Normal player (Resolve 3-15) should have access to Peaceful and Testing
+        // Three-level system: Peaceful (recovery), Testing (standard), Crisis (demanding)
         PlayerReadinessService service = new PlayerReadinessService();
         Player normalPlayer = new Player { Resolve = 10 };
 
         List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(normalPlayer);
 
-        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Building, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Testing, safeIntensities);
-        Assert.DoesNotContain(ArchetypeIntensity.Crisis, safeIntensities);
+        Assert.Equal(2, safeIntensities.Count);
+        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
+        Assert.DoesNotContain(ArchetypeIntensity.Demanding, safeIntensities);
     }
 
     [Fact]
     public void PlayerReadiness_CapablePlayer_IncludesAllIntensities()
     {
-        // Capable player should have access to all intensity levels
+        // Capable player (Resolve > 15) should have access to all intensity levels
+        // Three-level system: Peaceful (recovery), Testing (standard), Crisis (demanding)
         PlayerReadinessService service = new PlayerReadinessService();
         Player capablePlayer = new Player { Resolve = 20 };
 
         List<ArchetypeIntensity> safeIntensities = service.GetSafeIntensities(capablePlayer);
 
-        Assert.Equal(4, safeIntensities.Count);
-        Assert.Contains(ArchetypeIntensity.Peaceful, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Building, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Testing, safeIntensities);
-        Assert.Contains(ArchetypeIntensity.Crisis, safeIntensities);
+        Assert.Equal(3, safeIntensities.Count);
+        Assert.Contains(ArchetypeIntensity.Recovery, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Standard, safeIntensities);
+        Assert.Contains(ArchetypeIntensity.Demanding, safeIntensities);
     }
 }
