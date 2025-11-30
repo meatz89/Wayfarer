@@ -943,54 +943,56 @@ Scaling MUST affect both display AND execution. The player sees adjusted costs, 
 
 ---
 
-## 8.27 Mechanics-First Entity Generation
+## 8.27 Two-Phase Entity Creation
 
-**"Generate mechanics now; generate narrative at display time."**
+**"Create mechanics first; finalize narrative after mechanical context is complete."**
 
-Procedural entities are created with generic functional identifiers. Contextual narrative is generated separately when displaying to the player.
+Procedural entities are created in two distinct phases. Names and descriptions persist to end of game.
 
-### Two-Layer Separation
+### Two-Phase Creation Model
 
-| Layer | Timing | Content | Example |
-|-------|--------|---------|---------|
-| **Generation** | Entity creation | Mechanics, structure, categorical properties | `DisplayName: "A{seq}"` |
-| **Narrative** | Display time | Contextual names, descriptions, flavor | `"The Merchant's Gambit"` |
+| Phase | Trigger | Output | Persistence |
+|-------|---------|--------|-------------|
+| **1. Mechanical** | Entity needed | Structure, references, categorical properties | Permanent |
+| **2. Narrative** | All references set | Names, descriptions, flavor text | Permanent |
 
-### Why Generic Names Are Correct
+### Why Two Phases
 
-| Concern | Generation-Time | Display-Time |
-|---------|-----------------|--------------|
-| **Context available** | None (entity new) | Full (state, history, relationships) |
-| **Coherence scope** | Single entity | All visible entities together |
-| **Work efficiency** | Wasted if unseen | Only when needed |
-| **Final output** | Placeholder | Player-facing |
+| Concern | Phase 1 (Mechanical) | Phase 2 (Narrative) |
+|---------|---------------------|---------------------|
+| **Object references** | Being established | All complete |
+| **Relationship context** | Partial | Full graph available |
+| **Naming coherence** | Impossible | Can name consistently across scope |
+| **When executed** | On generation | Once, after mechanical complete |
 
-**Principle:** Do no more naming work than necessary at generation time—it will be replaced by contextual narrative at display time.
+**Principle:** Narrative finalization happens ONCE after mechanical creation, generating PERSISTENT names displayed consistently throughout the game.
 
-### Generation Layer (Complete)
+### Phase 1: Mechanical Creation (Complete)
 
-ProceduralAStoryService creates mechanical structure only:
+ProceduralAStoryService creates structure with generic identifiers:
 - ArchetypeCategory (categorical property for Catalogue resolution)
 - Tier (difficulty scaling)
 - RhythmPattern (choice generation pattern)
 - PlacementFilter (categorical entity resolution)
-- Generic identifiers (`a_story_{sequence}`, `"The Path Deepens"`)
+- Object references (NPC, Location, Venue assignments)
+- Generic identifiers until Phase 2 completes
 
-### Display Layer (Future Feature)
+### Phase 2: Narrative Finalization (Future Feature)
 
-Before presenting entities to player, AI examines:
-- Current entities in visible context
-- Categorical properties of each
+After all object references are established, AI examines:
+- Complete mechanical structure with all relationships
+- Categorical properties of each entity
 - Game state (player resources, time, active scenes)
 - Event history (completed scenes, NPC interactions)
 - Relationship web (bonds, reputation, standing)
 
-Generates unified contextual narrative across visible scope.
+Generates PERSISTENT names stored on entity properties. Names display consistently in UI for remainder of game.
 
 **Forbidden:**
-- AI narrative generation at entity creation time
-- Per-entity narrative without context awareness
-- Premature optimization of display names
+- Narrative generation during mechanical creation (context incomplete)
+- Per-entity naming without relationship awareness
+- Display-time regeneration (names must persist)
+- Placeholder syntax in templates (AI generates complete text)
 
 ---
 

@@ -317,6 +317,15 @@ This enables narrative tension, gating, and consequences that A-Story cannot hav
 
 ## 5.10 Text Generation Rules
 
+### Two-Phase Creation Model
+
+Entity creation happens in two phases. Names and descriptions generated in Phase 2 persist for the remainder of the game.
+
+| Phase | What Happens | Output |
+|-------|--------------|--------|
+| **1. Mechanical** | Structure, references, categorical properties | Generic identifiers |
+| **2. Narrative** | AI examines complete context | PERSISTENT names stored on entities |
+
 ### NO PLACEHOLDERS
 
 Placeholder syntax like `{NPCName}`, `{LocationName}` is FORBIDDEN in templates.
@@ -324,9 +333,11 @@ Placeholder syntax like `{NPCName}`, `{LocationName}` is FORBIDDEN in templates.
 | Approach | When to Use |
 |----------|-------------|
 | **Generic text** | Works standalone without substitution |
-| **Null** | AI generates contextually appropriate text |
+| **Null** | AI generates contextually appropriate text in Phase 2 |
 
-**Rationale:** AI text generation pass will replace all narrative content. Templates should contain either generic text that works standalone, or null for full AI generation.
+**Rationale:** Phase 2 (narrative finalization) generates all contextual text after mechanical creation completes. Templates contain generic text or null—never placeholders. Generated names persist and display consistently throughout the game.
+
+**See also:** arc42 §8.27 for technical details on two-phase creation.
 
 ---
 
