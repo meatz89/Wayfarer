@@ -1078,8 +1078,9 @@ Context injection operates at TWO distinct layers with different purposes:
 
 **Scene Selection Context (Layer 1):**
 - Input to archetype category selection
-- Contains: Sequence, location context, intensity history, rhythm state, anti-repetition data
-- Authored content sets TargetCategory directly; procedural derives from weighted factors
+- Currently uses: Sequence (rotation), MaxSafeIntensity (player readiness), TargetCategory, ExcludedCategories
+- Reserved for future: Location context, intensity history, rhythm state, anti-repetition
+- Authored content sets TargetCategory directly; procedural uses rotation with player readiness filtering
 - Output: Archetype category string (Investigation, Social, Confrontation, Crisis, Peaceful)
 
 **Situation Scaling Context (Layer 2):**

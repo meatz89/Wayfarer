@@ -1,109 +1,112 @@
 /// <summary>
 /// Pure input DTO for scene archetype category selection.
-/// Contains ALL required inputs for ArchetypeCategorySelector.
+/// Contains inputs for SelectArchetypeCategory in ProceduralAStoryService.
 ///
 /// HIGHLANDER PRINCIPLE (arc42 §8.28):
 /// - ALL scene generation uses the SAME code path
-/// - ALL fields are REQUIRED (no optional parameters)
-/// - Authored content: provides explicit values from SceneSpawnReward
+/// - Authored content: provides explicit TargetCategory from SceneSpawnReward
 /// - Procedural content: computes values from GameWorld state
 /// - Same DTO structure regardless of source
+///
+/// CURRENT IMPLEMENTATION:
+/// - Uses: Sequence (rotation), MaxSafeIntensity (player readiness), TargetCategory, ExcludedCategories
+/// - Populated but reserved for future: Location context, intensity history, rhythm phase, anti-repetition
 ///
 /// This DTO makes selection deterministic and testable.
 /// </summary>
 public class SceneSelectionInputs
 {
-    // ==================== REQUIRED INPUTS ====================
-    // All fields must have values - no nulls, no optionals
+    // ==================== CURRENTLY USED ====================
 
     /// <summary>
     /// A-story sequence number for base rotation calculation.
+    /// USED: cyclePosition = (Sequence - 1) % 4
     /// </summary>
     public int Sequence { get; set; }
 
-    // ==================== LOCATION CONTEXT (Factor 2) ====================
+    // ==================== LOCATION CONTEXT (Future: Factor 2) ====================
+    // Populated by BuildSelectionInputs, reserved for future weighted scoring
 
     /// <summary>
-    /// Location safety level for context scoring.
-    /// Dangerous locations favor Crisis/Confrontation.
-    /// Safe locations favor Peaceful/Social.
+    /// Location safety level. FUTURE: Dangerous locations could favor Crisis/Confrontation.
     /// </summary>
     public LocationSafety LocationSafety { get; set; }
 
     /// <summary>
-    /// Location purpose for context scoring.
-    /// Governance favors political archetypes.
-    /// Worship favors peaceful reflection.
+    /// Location purpose. FUTURE: Governance could favor political archetypes.
     /// </summary>
     public LocationPurpose LocationPurpose { get; set; }
 
-    // ==================== INTENSITY TRACKING (Factor 3) ====================
+    // ==================== INTENSITY TRACKING (Future: Factor 3) ====================
+    // Populated by PopulateIntensityHistory, reserved for future weighted scoring
 
     /// <summary>
-    /// Count of Demanding intensity scenes in recent history.
+    /// Count of Demanding intensity scenes in recent history. FUTURE USE.
     /// </summary>
     public int RecentDemandingCount { get; set; }
 
     /// <summary>
-    /// Count of Recovery intensity scenes in recent history.
+    /// Count of Recovery intensity scenes in recent history. FUTURE USE.
     /// </summary>
     public int RecentRecoveryCount { get; set; }
 
     /// <summary>
-    /// Count of Standard intensity scenes in recent history.
+    /// Count of Standard intensity scenes in recent history. FUTURE USE.
     /// </summary>
     public int RecentStandardCount { get; set; }
 
     /// <summary>
-    /// Number of scenes since last Recovery intensity.
+    /// Number of scenes since last Recovery intensity. FUTURE USE.
     /// </summary>
     public int ScenesSinceRecovery { get; set; }
 
     /// <summary>
-    /// Number of scenes since last Demanding intensity.
+    /// Number of scenes since last Demanding intensity. FUTURE USE.
     /// </summary>
     public int ScenesSinceDemanding { get; set; }
 
     /// <summary>
-    /// Pre-computed flag: recent history is intensity-heavy.
+    /// Pre-computed flag: recent history is intensity-heavy. FUTURE USE.
     /// </summary>
     public bool IsIntensityHeavy { get; set; }
 
     /// <summary>
-    /// Total scenes in intensity history.
+    /// Total scenes in intensity history. FUTURE USE.
     /// </summary>
     public int TotalIntensityHistoryCount { get; set; }
 
-    // ==================== RHYTHM PHASE (Factor 4) ====================
+    // ==================== RHYTHM PHASE (Future: Factor 4) ====================
+    // Populated by PopulateIntensityHistory, reserved for future weighted scoring
 
     /// <summary>
-    /// Whether last scene was Crisis rhythm.
+    /// Whether last scene was Crisis rhythm. FUTURE USE.
     /// </summary>
     public bool LastSceneWasCrisisRhythm { get; set; }
 
     /// <summary>
-    /// Intensity of the last completed scene (null if no history).
+    /// Intensity of the last completed scene (null if no history). FUTURE USE.
     /// </summary>
     public ArchetypeIntensity? LastSceneIntensity { get; set; }
 
     /// <summary>
-    /// Count of consecutive Standard intensity scenes.
+    /// Count of consecutive Standard intensity scenes. FUTURE USE.
     /// </summary>
     public int ConsecutiveStandardCount { get; set; }
 
-    // ==================== ANTI-REPETITION (Factor 5) ====================
+    // ==================== ANTI-REPETITION (Future: Factor 5) ====================
+    // Populated by PopulateIntensityHistory, reserved for future weighted scoring
 
     /// <summary>
-    /// Categories used in last 2 scenes.
+    /// Categories used in last 2 scenes. FUTURE USE.
     /// </summary>
     public List<string> RecentCategories { get; set; } = new List<string>();
 
-    // ==================== PLAYER READINESS (CURRENT STATE) ====================
+    // ==================== CURRENTLY USED ====================
 
     /// <summary>
     /// Maximum archetype intensity safe for current player state.
+    /// USED: Filters categories by player Resolve level.
     /// Derived from PlayerReadinessService.GetMaxSafeIntensity().
-    /// Categories mapped: Investigation/Social → Standard, Confrontation/Crisis → Demanding, Peaceful → Recovery
     /// </summary>
     public ArchetypeIntensity MaxSafeIntensity { get; set; } = ArchetypeIntensity.Standard;
 
@@ -111,13 +114,14 @@ public class SceneSelectionInputs
 
     /// <summary>
     /// AUTHORED CONTENT: Explicit target category.
-    /// When set by authored content, selector uses this category directly.
-    /// When null/empty, selector uses weighted scoring.
+    /// USED: When set, selector returns this category directly.
+    /// When null/empty, selector uses rotation logic with player readiness filtering.
     /// </summary>
     public string TargetCategory { get; set; }
 
     /// <summary>
     /// Categories to exclude from selection.
+    /// USED: Skipped during category selection.
     /// </summary>
     public List<string> ExcludedCategories { get; set; } = new List<string>();
 
