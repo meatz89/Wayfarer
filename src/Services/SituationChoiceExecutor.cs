@@ -3,29 +3,49 @@
 /// Handles scene-based actions from Situations (LocationAction, NPCAction, PathCard with ChoiceTemplate)
 /// HIGHLANDER: Single source of truth for ChoiceTemplate validation logic
 /// FALLBACK SCENE ARCHITECTURE: Validates "active scene" actions (atmospheric = fallback scene, separate validator)
+///
+/// TWO-PHASE SCALING MODEL (arc42 §8.26):
+/// Actions may have pre-scaled ScaledRequirement/ScaledConsequence from SceneFacade.
+/// If provided, uses scaled values for BOTH validation AND execution.
+/// Perfect Information: Display = Execution.
 /// </summary>
 public class SituationChoiceExecutor
 {
     /// <summary>
     /// Validate ChoiceTemplate and extract execution plan for scene-based actions
     /// Used by: LocationAction (scene-based), NPCAction (all), PathCard (scene-based)
+    ///
+    /// TWO-PHASE SCALING: Accepts optional pre-scaled requirement/consequence.
+    /// If scaledRequirement/scaledConsequence provided, uses those for validation/execution.
+    /// Otherwise falls back to template values (unscaled).
     /// </summary>
-    public ActionExecutionPlan ValidateAndExtract(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
+    public ActionExecutionPlan ValidateAndExtract(
+        ChoiceTemplate template,
+        string actionName,
+        Player player,
+        GameWorld gameWorld,
+        CompoundRequirement scaledRequirement = null,
+        Consequence scaledConsequence = null)
     {
-        // STEP 1: Validate authored CompoundRequirements (stats, items, etc.)
-        if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
+        // TWO-PHASE SCALING: Use pre-scaled values if provided, otherwise use template values
+        // Perfect Information compliance: display = execution (arc42 §8.26)
+        CompoundRequirement effectiveRequirement = scaledRequirement ?? template.RequirementFormula;
+        Consequence effectiveConsequence = scaledConsequence ?? template.Consequence ?? Consequence.None();
+
+        // STEP 1: Validate authored CompoundRequirements using EFFECTIVE values (stats, items, etc.)
+        if (effectiveRequirement != null && effectiveRequirement.OrPaths.Count > 0)
         {
-            bool requirementsMet = template.RequirementFormula.IsAnySatisfied(player, gameWorld);
+            bool requirementsMet = effectiveRequirement.IsAnySatisfied(player, gameWorld);
             if (!requirementsMet)
             {
                 return ActionExecutionPlan.Invalid("Requirements not met");
             }
         }
 
-        // STEP 2: HIGHLANDER - Validate ALL resource availability via OrPath
+        // STEP 2: HIGHLANDER - Validate ALL resource availability via OrPath using EFFECTIVE consequence
         // Caller builds OrPath directly - CompoundRequirement stays domain-agnostic
         // Sir Brante pattern: Resolve uses GATE (>= 0), others use AFFORDABILITY (>= cost)
-        Consequence consequence = template.Consequence ?? Consequence.None();
+        Consequence consequence = effectiveConsequence;
         OrPath resourcePath = new OrPath { Label = "Resource Requirements" };
         if (consequence.Resolve < 0) resourcePath.ResolveRequired = 0;  // Gate pattern
         if (consequence.Coins < 0) resourcePath.CoinsRequired = -consequence.Coins;
@@ -51,7 +71,7 @@ public class SituationChoiceExecutor
         int focusCost = consequence.Focus < 0 ? -consequence.Focus : 0;
         int hungerCost = consequence.Hunger > 0 ? consequence.Hunger : 0;
 
-        // STEP 3: Build execution plan
+        // STEP 3: Build execution plan with EFFECTIVE consequence
         ActionExecutionPlan plan = ActionExecutionPlan.Valid();
         plan.ResolveCoins = resolveCost;
         plan.CoinsCost = coinsCost;
@@ -63,7 +83,7 @@ public class SituationChoiceExecutor
         plan.FocusCost = focusCost;
         plan.HungerCost = hungerCost;
 
-        plan.Consequence = consequence;
+        plan.Consequence = consequence;  // EFFECTIVE consequence (scaled if provided)
         plan.ActionType = template.ActionType;
         plan.ChallengeType = template.ChallengeType;
         plan.ChallengeId = template.ChallengeId;

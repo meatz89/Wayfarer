@@ -17,7 +17,9 @@ public class GenerationContext
 
     // A-Story Sequence (for infinite main story progression)
     // null for non-A-story scenes, sequence number (11+) for A-story scenes
-    // Used to calculate next A-scene ID for final situation spawn rewards
+    // Used ONLY to calculate next A-scene ID for final situation spawn rewards
+    // NOT used for archetype branching (see arc42 §8.23 - archetype reusability)
+    // FORBIDDEN: if (AStorySequence == N) branching in choice generation
     public int? AStorySequence { get; set; }
 
     // HIGHLANDER: Entity objects for situation placement (not string IDs)
@@ -46,6 +48,11 @@ public class GenerationContext
     public Quality Quality { get; set; } = Quality.Standard;
     public EnvironmentQuality Environment { get; set; } = EnvironmentQuality.Standard;
     public NPCDemeanor NpcDemeanor { get; set; } = NPCDemeanor.Neutral;
+
+    // Sir Brante rhythm pattern - AUTHORED (not derived)
+    // Determines choice generation pattern and consequence polarity
+    // See arc42/08_crosscutting_concepts.md §8.26
+    public RhythmPattern Rhythm { get; set; } = RhythmPattern.Mixed;
 
     /// <summary>
     /// Create categorical context (tier-based only, no entity derivation).
@@ -83,13 +90,17 @@ public class GenerationContext
     /// ALL universal properties are derived from entity state.
     /// NO manual property setting required.
     /// HIGHLANDER: Store entity objects, not string IDs
+    ///
+    /// RhythmPattern is AUTHORED (not derived) - comes from SceneTemplate.
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     public static GenerationContext FromEntities(
         int tier,
         NPC npc,
         Location location,
         Player player,
-        int? mainStorySequence = null)
+        int? mainStorySequence = null,
+        RhythmPattern rhythm = RhythmPattern.Mixed)
     {
         return new GenerationContext
         {
@@ -121,7 +132,10 @@ public class GenerationContext
             Morality = DeriveMoralClarity(npc, location),
             Quality = DeriveQuality(location),
             Environment = DeriveEnvironmentQuality(location),
-            NpcDemeanor = DeriveNPCDemeanor(npc)
+            NpcDemeanor = DeriveNPCDemeanor(npc),
+
+            // Sir Brante rhythm pattern (AUTHORED, not derived)
+            Rhythm = rhythm
         };
     }
 

@@ -86,15 +86,20 @@ Extended by DDR-007 (Intentional Numeric Design), which ensures the math itself 
 - Equipment provides incremental advantages, not transformative power
 - Late-game challenges remain genuinely challenging
 
-### Pillar 5: Character Through Constraint
+### Pillar 5: Character Through Constraint (Sir Brante Model)
 
 **Why:** Identity emerges from sacrifice, not accumulation. Limited stat points force specialization. Helping one person means disappointing another. Your build reflects your values.
+
+**Reference Model:** "The Life and Suffering of Sir Brante" demonstrates this principle masterfully—every stat point matters immediately, creating a rhythm where building stats in one situation enables gates in the next. See gdd/06_balance.md §6.4 for detailed implementation.
 
 **How it manifests:**
 - Cannot maximize all stats—must choose specialization
 - Relationship investment creates obligations
 - Time spent on side content is time not spent on main story
 - Choices close doors permanently (and this is not failure)
+- Stat-building choices alternate with stat-gated choices (the rhythm)
+- Trade-off consequences on ALL paths (gain X, lose Y)
+- OR-type requirements enabling multiple valid approaches
 
 ---
 

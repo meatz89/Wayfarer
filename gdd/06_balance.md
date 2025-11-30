@@ -49,9 +49,11 @@ All stat distributions must have viable paths. If content only works for one bui
 
 ---
 
-## 6.3 The Four-Choice Balance Pattern
+## 6.3 The Four-Choice Balance Pattern (For Mixed Situations)
 
-Every A-story situation balances across four path types:
+**Note:** This pattern applies to MIXED situations where trade-offs exist. Building situations offer all-positive choices. Crisis situations offer all-negative choices with stat-based severity. See §6.4 for situation types.
+
+For Mixed situations, balance across four path types:
 
 | Path | Requirement | Cost | Target Player |
 |------|-------------|------|---------------|
@@ -60,16 +62,238 @@ Every A-story situation balances across four path types:
 | **Challenge** | Moderate stat | Session entry + time | Skill-expressive players |
 | **Fallback** | None | Time + social cost | Anyone (guaranteed) |
 
-### Balance Verification
+### Balance Verification (Mixed Situations)
 
 ✓ Specialists find their optimal path (stat-gated)
 ✓ Generalists have viable alternatives (resource/fallback)
 ✓ No single path dominates all situations
 ✓ Fallback always exists (no soft-locks)
 
+### Building Situation Pattern
+
+All choices positive, differentiated by WHAT you gain:
+
+| Choice | Gains | Target Build |
+|--------|-------|--------------|
+| Studious | +Insight | Investigators |
+| Social | +Rapport | Diplomats |
+| Assertive | +Authority | Enforcers |
+| Restful | +Resources | Anyone |
+
+### Crisis Situation Pattern
+
+All choices negative, stats determine SEVERITY:
+
+| Stat Level | Outcome |
+|------------|---------|
+| Exceeds threshold | Minor loss (damage mitigated) |
+| Meets threshold | Moderate loss (expected) |
+| Below threshold | Major loss (punished for underinvestment) |
+
+OR-type requirements let multiple stats qualify for damage mitigation.
+
 ---
 
-## 6.4 Difficulty Scaling Mechanisms
+## 6.4 The Sir Brante Rhythm (Reference Model)
+
+Wayfarer's progression draws from "The Life and Suffering of Sir Brante" - a game where every stat point matters immediately, creating a satisfying rhythm of building and testing capabilities.
+
+### The Core Tension
+
+Two resource systems create competing pressures:
+
+| Resource | Nature | Spent By | Gained By |
+|----------|--------|----------|-----------|
+| **Permanent Stats** | Accumulate over time | Never lost (rarely decreased) | Stat-building choices |
+| **Resolve** | Fluctuating pool | Unlocking hard choices | Passive/safe decisions |
+
+**The Dilemma:** Spend resolve NOW to unlock stat-building choices (invest in future), or save resolve for future crises (preserve options). This tension is NEVER fully resolved - it IS the game.
+
+### Resource Duality Principle
+
+**Every resource serves THREE roles simultaneously:**
+
+| Role | Function | Example |
+|------|----------|---------|
+| **Gate (Requirement)** | Must have X to see/select option | Resolve ≥ 0 to attempt heroic action |
+| **Cost (Consequence)** | Spend Y when selecting | -5 Resolve when choosing |
+| **Reward (Consequence)** | Gain Z as outcome | +10 Resolve from peaceful moment |
+
+**Critical:** Stats, coins, relationships, and resolve ALL function as gates, costs, AND rewards depending on context. A choice might require Insight ≥ 3, cost 5 coins, and reward +1 Rapport and -5 Resolve.
+
+### Compound Requirement Types
+
+Choices can require multiple conditions combined:
+
+| Requirement Pattern | Example | Design Purpose |
+|--------------------|---------|----------------|
+| **Single Stat** | Authority ≥ 4 | Reward specialists |
+| **Stat + Resolve** | Insight ≥ 3 AND Resolve ≥ 0 | Require investment AND commitment |
+| **Stat + Relationship** | Rapport ≥ 3 AND NPC: Grateful | Reward networkers |
+| **Lower Stat + Higher Resolve** | Authority ≥ 2 AND Resolve ≥ 5 | Let near-qualified burn reserve |
+| **Resource Only** | 10 coins | Wealth alternative to skill |
+| **No Requirements** | Always available | Fallback guarantee |
+
+**OR-paths within choices:** A single choice can have MULTIPLE ways to qualify. "Negotiate" might unlock via Diplomacy ≥ 4 OR (Rapport ≥ 3 AND NPC relationship) OR (pay 15 coins).
+
+### Simultaneous Consequences
+
+Choices yield MULTIPLE effects at once, not single outcomes:
+
+| Choice | Effects |
+|--------|---------|
+| "Accept punishment" | -5 Resolve, +1 Relationship, NPC becomes Grateful |
+| "Defend your honor" | -10 Resolve, +1 Authority, -1 Rapport, NPC becomes Hostile |
+| "Study through the night" | +1 Insight, -1 Stamina, -5 Resolve |
+| "Accept unfavorable terms" | +5 Resolve (avoided stress), -10 Coins, -1 Reputation |
+
+**Key insight:** Even PASSIVE choices have consequences. Backing down might preserve resolve but cost reputation. There are no free choices.
+
+### Resolve as Rhythm Driver
+
+Resolve creates the natural rhythm through its gain/drain patterns:
+
+| Action Type | Resolve Effect | Creates |
+|-------------|---------------|---------|
+| **Heroic/Active choices** | Drain (-5 to -15) | Resource pressure |
+| **Passive/Safe choices** | Restore (+5 to +10) | Recovery opportunity |
+| **Going against disposition** | Heavy drain | Authenticity cost |
+| **Accepting circumstances** | Moderate restore | Compromise benefit |
+
+**The rhythm emerges naturally:** Players who spend heavily on building must recover before they can take more risks. Players who play safe accumulate resolve but miss growth opportunities. The tension between growth and safety IS the game.
+
+### Situation Types (NOT Uniform Structure)
+
+Situations are NOT all the same. Three distinct types exist:
+
+| Type | Choice Outcomes | Player Experience | Example |
+|------|-----------------|-------------------|---------|
+| **Building** | ALL positive (different flavors) | Accumulating progress | Peaceful inn evening - study, socialize, plan, or rest |
+| **Crisis** | ALL negative (varying severity) | Minimizing damage | Bandit ambush - fight, flee, bribe, or surrender |
+| **Mixed** | Trade-offs | Strategic decisions | Negotiation - each path gains something, loses something |
+
+**Building Situations:** Every choice leads to GAINS. The decision is WHAT to gain:
+- "Study" → +1 Insight
+- "Socialize" → +1 Rapport
+- "Plan" → +1 Cunning
+- "Rest" → Full recovery
+
+No wrong answers. Player invests in their preferred direction.
+
+**Crisis Situations:** Every choice leads to LOSSES. Stats determine severity:
+- High Authority → Minor loss ("You intimidate them, lose only 2 coins")
+- Low Authority → Major loss ("They take everything, lose 10 coins and -1 reputation")
+
+The player is being TESTED. Prior stat investment pays off.
+
+**Mixed Situations:** Trade-off territory where gains and losses coexist.
+
+### The Pacing Rhythm (Must Be Tracked)
+
+The game must TRACK where the player is in the rhythm:
+
+| Phase | What Happens | Procedural Decision |
+|-------|--------------|---------------------|
+| **Accumulation** | 2-4 building situations | Grant opportunities to grow |
+| **Test** | 1 crisis situation | Challenge based on expected stats |
+| **Recovery** | 1-2 building situations | Restore after crisis |
+| **Repeat** | Cycle continues | Escalate thresholds each cycle |
+
+**Procedural Context Questions:**
+- How many building situations since last crisis?
+- Is player stat accumulation near expected threshold?
+- Did player just survive a crisis? (recovery needed)
+- Is this an appropriate moment to test?
+
+**Anti-Patterns:**
+- Crisis → Crisis → Crisis = Unfair, no accumulation time
+- Building → Building → Building forever = No tension, no testing
+- Crisis when player is far below expected stats = Punishment without fairness
+
+**The Feeling:** Player senses the rhythm. "I've been gaining stats... something bad is coming." The anticipation creates tension even in peaceful moments.
+
+### OR-Type Requirements (Multiple Valid Paths)
+
+Major choices offer multiple qualification paths:
+
+| Path Type | Example | Player Served |
+|-----------|---------|---------------|
+| **High Stat** | Authority ≥ 5 | Specialists who invested |
+| **Stat Combination** | Cunning ≥ 3 AND ally relationship | Networkers |
+| **Resolve Flex** | Authority ≥ 3 AND spend resolve | Almost-qualified, burn reserve |
+| **Resource Alternative** | Pay 10 coins | Resource-rich players |
+| **Fallback** | Accept poor outcome | Anyone (guaranteed) |
+
+**Design Principle:** Everyone can progress, but not in the same way. Different builds experience different optimal paths through the same content.
+
+### Trade-Off Consequences
+
+Every significant choice involves SIMULTANEOUS gains and losses:
+
+| Choice Pattern | Example | Creates |
+|----------------|---------|---------|
+| **Stat vs Stat** | +1 Authority, -1 Rapport | Specialization pressure |
+| **Stat vs Resource** | +1 Insight, -5 Coins | Investment decision |
+| **Stat vs Relationship** | +1 Cunning, NPC disapproves | Social consequences |
+| **Resource vs Time** | -10 Coins OR wait 2 days | Urgency trade-off |
+
+**Philosophy:** The game refuses to give "all wins." Prioritization IS the gameplay.
+
+### Every Point Matters (Tight Margins)
+
+Stat thresholds are calibrated so players are ALWAYS near the edge:
+
+| Tier | Expected Primary Stat | Typical Threshold | Margin |
+|------|----------------------|-------------------|--------|
+| 0 (Tutorial) | 1-2 | 2-3 | ±1 point decides |
+| 1 (Early) | 3-4 | 4-5 | ±1 point decides |
+| 2 (Mid) | 5-6 | 6-7 | ±1 point decides |
+| 3 (Late) | 7-8 | 8-9 | ±1 point decides |
+
+**The Feeling:** A single stat point gained three situations ago determines whether you qualify for the free path NOW. Choices compound. Nothing is wasted.
+
+### Stat Compounding (Early Choices Matter Most)
+
+In Sir Brante, childhood stats combine with adolescent stats to form adult stats. One childhood point contributes to THREE adult stats. Wayfarer applies this principle:
+
+| Game Phase | Stat Investment | Long-term Impact |
+|------------|-----------------|------------------|
+| **Tutorial (Tier 0)** | Foundation building | Defines viable paths for entire game |
+| **Early (Tier 1)** | Specialization begins | Locks in primary build identity |
+| **Mid (Tier 2)** | Refinement | Marginal improvements |
+| **Late (Tier 3+)** | Optimization | Fine-tuning established build |
+
+**Design consequence:** Tutorial choices are NOT throwaway. A player who invests in Insight early will find Investigation paths cheap throughout the game. A player who spreads points evenly will never get free paths but will have moderate access to everything.
+
+### Authoring vs Playing (Internal vs External View)
+
+The Building/Crisis/Mixed classification is for AUTHORS, not displayed to PLAYERS:
+
+| Internal (Author) | External (Player) |
+|-------------------|-------------------|
+| "This is a Building situation" | "I have four interesting choices" |
+| "Stats determine crisis severity" | "My Authority saved me from worse" |
+| "Rhythm requires recovery here" | "Finally a moment to breathe" |
+| "This choice costs resolve" | "This feels risky, do I commit?" |
+
+**The player never sees labels.** They experience the rhythm through resource pressure and relief. The tension emerges from mechanics, not exposition. Authors track rhythm; players feel it.
+
+### Categorical Scaling Preserves Rhythm
+
+The SAME rhythm operates at every tier - categorical properties scale VALUES, not STRUCTURE:
+
+| What Scales | How It Scales |
+|-------------|---------------|
+| Stat thresholds | Tier base + NPC demeanor adjustment |
+| Resource costs | Tier base + quality adjustment |
+| Stat rewards | Tier base (higher tiers grant more per choice) |
+| Trade-off severity | Tier scales both gains AND losses |
+
+**Critical:** Tutorial at Tier 0 and late-game at Tier 3 feel equally tight because margins scale proportionally. The rhythm is preserved; only the numbers change.
+
+---
+
+## 6.5 Difficulty Scaling Mechanisms
 
 ### Categorical Properties, Not Level Gates
 
@@ -95,7 +319,7 @@ As A-story advances, expected player state increases:
 
 ---
 
-## 6.5 Build Diversity
+## 6.6 Build Diversity
 
 ### Why All Builds Must Work
 
@@ -122,7 +346,7 @@ If only one stat distribution succeeds, the game becomes a puzzle with a correct
 
 ---
 
-## 6.6 Balance Anti-Patterns
+## 6.7 Balance Anti-Patterns
 
 ### Avoid: Single Resource Dominance
 If everything costs coins, coin-rich players trivialize content. Ensure orthogonal costs.
@@ -135,6 +359,21 @@ If choosing "wrong" option leads to unrecoverable loss, players feel cheated. Ma
 
 ### Avoid: Power Creep
 If late-game equipment trivializes challenges, tight margins philosophy breaks. Keep incremental advantages small.
+
+---
+
+## 6.8 Sources and References
+
+### The Life and Suffering of Sir Brante
+
+The Sir Brante rhythm model draws from extensive analysis of this narrative RPG:
+
+- **Willpower System:** Fluctuating resource that gates heroic choices, restored by passive/safe decisions
+- **Stat Compounding:** Childhood stats (Determination, Perception) combine with adolescent stats (Nobility, Ingenuity, Spirituality) to form six adult stats - one early point equals three adult points
+- **Simultaneous Consequences:** Choices yield multiple effects (stats, relationships, willpower) simultaneously
+- **OR-Type Requirements:** Multiple qualification paths for the same choice
+
+Key design insight from developer: "The protagonist ain't almighty and his inner resources are limited. He needs to 'pay' for following his heart."
 
 ---
 

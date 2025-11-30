@@ -39,17 +39,21 @@ public class SceneGenerationFacade
     ///
     /// Called at parse time (or via dynamic package generation) with entities from GameWorld
     /// HIGHLANDER: Accept NPC and Location objects, not string IDs
+    ///
+    /// RhythmPattern is AUTHORED (not derived) - comes from SceneTemplate.
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     public SceneArchetypeDefinition GenerateSceneFromArchetype(
         SceneArchetypeType archetypeType,
         int tier,
         NPC contextNPC,
         Location contextLocation,
-        int? mainStorySequence = null)
+        int? mainStorySequence = null,
+        RhythmPattern rhythm = RhythmPattern.Mixed)
     {
         Player contextPlayer = _gameWorld.GetPlayer();
 
-        GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence);
+        GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence, rhythm);
 
         // HIGHLANDER: ONE catalogue handles ALL 13 archetypes (service + narrative)
         SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, tier, context);

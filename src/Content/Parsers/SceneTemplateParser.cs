@@ -34,34 +34,45 @@ public class SceneTemplateParser
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Archetype value: '{dto.Archetype}'");
         }
 
-        // Parse PresentationMode (defaults to Atmospheric if not specified)
-        PresentationMode presentationMode = PresentationMode.Atmospheric;
-        if (!string.IsNullOrEmpty(dto.PresentationMode))
+        // FAIL-FAST: Tier is REQUIRED (no silent defaults)
+        if (!dto.Tier.HasValue)
         {
-            if (!Enum.TryParse<PresentationMode>(dto.PresentationMode, true, out presentationMode))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid PresentationMode value: '{dto.PresentationMode}'. Must be 'Atmospheric' or 'Modal'.");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'tier'. Must be 0-4.");
+        }
+        int tier = dto.Tier.Value;
+        if (tier < 0 || tier > 4)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid tier={tier}. Must be 0-4.");
         }
 
-        // Parse ProgressionMode (defaults to Breathe if not specified)
-        ProgressionMode progressionMode = ProgressionMode.Breathe;
-        if (!string.IsNullOrEmpty(dto.ProgressionMode))
+        // FAIL-FAST: PresentationMode is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.PresentationMode))
         {
-            if (!Enum.TryParse<ProgressionMode>(dto.ProgressionMode, true, out progressionMode))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid ProgressionMode value: '{dto.ProgressionMode}'. Must be 'Breathe' or 'Cascade'.");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'presentationMode'. Must be 'Atmospheric' or 'Modal'.");
+        }
+        if (!Enum.TryParse<PresentationMode>(dto.PresentationMode, true, out PresentationMode presentationMode))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid PresentationMode value: '{dto.PresentationMode}'. Must be 'Atmospheric' or 'Modal'.");
         }
 
-        // Parse StoryCategory (defaults to SideStory if not specified)
-        StoryCategory category = StoryCategory.SideStory;
-        if (!string.IsNullOrEmpty(dto.Category))
+        // FAIL-FAST: ProgressionMode is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.ProgressionMode))
         {
-            if (!Enum.TryParse<StoryCategory>(dto.Category, true, out category))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'progressionMode'. Must be 'Breathe' or 'Cascade'.");
+        }
+        if (!Enum.TryParse<ProgressionMode>(dto.ProgressionMode, true, out ProgressionMode progressionMode))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid ProgressionMode value: '{dto.ProgressionMode}'. Must be 'Breathe' or 'Cascade'.");
+        }
+
+        // FAIL-FAST: Category is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.Category))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'category'. Valid values: MainStory, SideStory, Service");
+        }
+        if (!Enum.TryParse<StoryCategory>(dto.Category, true, out StoryCategory category))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
         }
 
         // Validate MainStorySequence constraints
@@ -79,18 +90,19 @@ public class SceneTemplateParser
             }
         }
 
-        // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetypeId (HIGHLANDER: ONE path)
+        // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetype (HIGHLANDER: ONE path)
         // Scene archetype defines BOTH structure (how many situations) AND content (which situation types)
         // NO special handling for Standalone vs Multi-situation - catalogue handles all variation
+        // PRINCIPLE: SceneArchetype is a TYPE discriminator, not an ID (arc42 §8.3)
         SceneArchetypeType sceneArchetypeType;
 
-        if (!string.IsNullOrEmpty(dto.SceneArchetypeId))
+        if (!string.IsNullOrEmpty(dto.SceneArchetype))
         {
             // EXPLICIT ARCHETYPE: Parse SceneArchetypeType enum with fail-fast validation
-            if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetypeId, true, out sceneArchetypeType))
+            if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetype, true, out sceneArchetypeType))
             {
                 throw new InvalidDataException(
-                    $"SceneTemplate '{dto.Id}' has invalid SceneArchetypeId: '{dto.SceneArchetypeId}'. " +
+                    $"SceneTemplate '{dto.Id}' has invalid SceneArchetype: '{dto.SceneArchetype}'. " +
                     $"Valid values: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
             }
         }
@@ -110,10 +122,23 @@ public class SceneTemplateParser
         {
             throw new InvalidDataException(
                 $"SceneTemplate '{dto.Id}' missing required archetype. " +
-                $"Provide either 'sceneArchetypeId' (explicit) or 'archetypeCategory' (categorical resolution).");
+                $"Provide either 'sceneArchetype' (explicit) or 'archetypeCategory' (categorical resolution).");
         }
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{sceneArchetypeType}'");
+
+        // FAIL-FAST: RhythmPattern is REQUIRED (no silent defaults)
+        // MUST parse BEFORE GenerateSceneFromArchetype since rhythm affects choice generation
+        // Sir Brante rhythm classification determines choice generation pattern
+        // See arc42/08_crosscutting_concepts.md §8.26
+        if (string.IsNullOrEmpty(dto.RhythmPattern))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'rhythmPattern'. Must be 'Building', 'Crisis', or 'Mixed'.");
+        }
+        if (!Enum.TryParse<RhythmPattern>(dto.RhythmPattern, true, out RhythmPattern rhythmPattern))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid RhythmPattern value: '{dto.RhythmPattern}'. Must be 'Building', 'Crisis', or 'Mixed'.");
+        }
 
         // CATEGORICAL PARSING: No entity resolution at parse time
         // Concrete binding happens at instantiation time via SceneInstantiator
@@ -122,14 +147,15 @@ public class SceneTemplateParser
         NPC contextNPC = null;
         Location contextLocation = null;
 
-        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}, MainStorySequence={dto.MainStorySequence}");
+        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={tier}, MainStorySequence={dto.MainStorySequence}, Rhythm={rhythmPattern}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             sceneArchetypeType,
-            dto.Tier ?? 0,
+            tier,
             contextNPC,
             contextLocation,
-            dto.MainStorySequence);
+            dto.MainStorySequence,
+            rhythmPattern);
 
         List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
         SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;
@@ -156,11 +182,18 @@ public class SceneTemplateParser
             }
         }
 
+        // FAIL-FAST: IsStarter is REQUIRED (no silent defaults)
+        if (!dto.IsStarter.HasValue)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'isStarter'. Must be true or false.");
+        }
+        bool isStarter = dto.IsStarter.Value;
+
         SceneTemplate template = new SceneTemplate
         {
             Id = dto.Id,
             Archetype = archetype,
-            SceneArchetypeId = sceneArchetypeType,
+            SceneArchetype = sceneArchetypeType,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             // Activation filter: Parse trigger for scene activation (Deferred → Active)
             // Scenes activate via LOCATION ONLY (player enters location matching filter)
@@ -171,12 +204,13 @@ public class SceneTemplateParser
             SpawnRules = spawnRules,
             ExpirationDays = dto.ExpirationDays,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
-            Tier = dto.Tier,
+            Tier = tier,
             Category = category,
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
-            IsStarter = dto.IsStarter
+            IsStarter = isStarter,
+            RhythmPattern = rhythmPattern
         };
 
         // A-STORY ENRICHMENT: Per CONTENT_ARCHITECTURE.md §8
@@ -538,71 +572,6 @@ public class SceneTemplateParser
 
         return achievements;
     }
-
-    /// <summary>
-    /// Parse embedded SituationTemplates
-    /// </summary>
-    private List<SituationTemplate> ParseSituationTemplates(List<SituationTemplateDTO> dtos, string contextId, SpawnPattern archetype)
-    {
-        if (dtos == null || !dtos.Any())
-            throw new InvalidDataException($"SceneTemplate '{contextId}' must have at least one SituationTemplate");
-
-        List<SituationTemplate> templates = new List<SituationTemplate>();
-        foreach (SituationTemplateDTO dto in dtos)
-        {
-            templates.Add(ParseSituationTemplate(dto, contextId, archetype));
-        }
-
-        return templates;
-    }
-
-    /// <summary>
-    /// Parse a single SituationTemplate
-    /// </summary>
-    private SituationTemplate ParseSituationTemplate(SituationTemplateDTO dto, string contextId, SpawnPattern archetype)
-    {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException($"SituationTemplate in SceneTemplate '{contextId}' missing required 'Id'");
-
-        // Parse SituationType (defaults to Normal if not specified for backward compatibility)
-        SituationType situationType = SituationType.Normal;
-        if (!string.IsNullOrEmpty(dto.Type))
-        {
-            if (!Enum.TryParse<SituationType>(dto.Type, true, out situationType))
-            {
-                throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{contextId}' has invalid Type value: '{dto.Type}'. Must be 'Normal' or 'Crisis'.");
-            }
-        }
-
-        // ARCHETYPE-BASED GENERATION: archetypeId generates 4 ChoiceTemplates from catalogue
-        List<ChoiceTemplate> choiceTemplates;
-        if (dto.ArchetypeId != null)
-        {
-            // PARSE-TIME ARCHETYPE GENERATION
-            choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId.Value, contextId, dto.Id);
-        }
-        else
-        {
-            throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{contextId}' must have 'archetypeId' for archetype-driven choice generation. All situations require player choices.");
-        }
-
-        SituationTemplate template = new SituationTemplate
-        {
-            Id = dto.Id,
-            Type = situationType,
-            NarrativeTemplate = dto.NarrativeTemplate,
-            ChoiceTemplates = choiceTemplates,
-            Priority = dto.Priority,
-            // Explicit placement filters - no inheritance, each situation specifies its own
-            LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
-            NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
-            RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
-        };
-
-        return template;
-    }
-
     /// <summary>
     /// Parse embedded ChoiceTemplates
     /// </summary>
@@ -1026,145 +995,6 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Generate 4 ChoiceTemplates from archetype structure (parse-time only)
-    /// Called ONLY at parse time when SituationTemplate has archetypeId
-    /// Creates the 4-choice pattern: stat-gated, money, challenge, fallback
-    /// </summary>
-    private List<ChoiceTemplate> GenerateChoiceTemplatesFromArchetype(SituationArchetypeType archetypeType, string contextId, string situationTemplateId)
-    {
-        Console.WriteLine($"[Archetype Generation] Generating 4 choices for situation '{situationTemplateId}' using archetype '{archetypeType}'");
-
-        // Fetch archetype definition from catalogue (PARSE-TIME ONLY)
-        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(archetypeType);
-
-        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
-
-        // CHOICE 1: Stat-Gated (Primary OR Secondary stat)
-        // Best outcome, free if stat requirement met
-        ChoiceTemplate statGatedChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_stat",
-            ActionTextTemplate = GenerateStatGatedActionText(archetype),
-            RequirementFormula = SituationArchetypeCatalog.CreateStatRequirement(archetype, archetype.StatThreshold),
-            Consequence = new Consequence(), // Free - no costs, rewards defined later
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(statGatedChoice);
-
-        // CHOICE 2: Money
-        // Guaranteed success, expensive (negative Coins = cost)
-        ChoiceTemplate moneyChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_money",
-            ActionTextTemplate = GenerateMoneyActionText(archetype),
-            RequirementFormula = new CompoundRequirement(), // No requirements
-            Consequence = new Consequence { Coins = -archetype.CoinCost }, // Negative = cost
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(moneyChoice);
-
-        // CHOICE 3: Challenge
-        // Variable outcome, risky (negative Resolve = cost)
-        ChoiceTemplate challengeChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_challenge",
-            ActionTextTemplate = GenerateChallengeActionText(archetype),
-            RequirementFormula = new CompoundRequirement(), // No requirements (but has resource cost)
-            Consequence = new Consequence { Resolve = -archetype.ResolveCost }, // Negative = cost
-            ActionType = ChoiceActionType.StartChallenge,
-            ChallengeId = null, // Will be set by spawn-time instantiation
-            ChallengeType = archetype.ChallengeType
-        };
-        choices.Add(challengeChoice);
-
-        // CHOICE 4: Fallback
-        // Poor outcome, always available (TimeSegments is always a cost, so positive)
-        ChoiceTemplate fallbackChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_fallback",
-            ActionTextTemplate = GenerateFallbackActionText(archetype),
-            RequirementFormula = new CompoundRequirement(), // No requirements
-            Consequence = new Consequence { TimeSegments = archetype.FallbackTimeCost }, // Time is always positive (passes)
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(fallbackChoice);
-
-        // VERIFICATION LOGGING - Prove 4 choices generated with correct properties
-        Console.WriteLine($"[Archetype Generation] Generated {choices.Count} choices:");
-        Console.WriteLine($"  [Choice 1] Stat-Gated: Requires {archetype.PrimaryStat}/{archetype.SecondaryStat} {archetype.StatThreshold}+, Costs 0, Type={statGatedChoice.ActionType}");
-        Console.WriteLine($"  [Choice 2] Money: No requirements, Costs {archetype.CoinCost} coins, Type={moneyChoice.ActionType}");
-        Console.WriteLine($"  [Choice 3] Challenge: No requirements, Costs {archetype.ResolveCost} Resolve, Type={challengeChoice.ActionType}, ChallengeType={archetype.ChallengeType}");
-        Console.WriteLine($"  [Choice 4] Fallback: No requirements, Costs {archetype.FallbackTimeCost} time segments, Type={fallbackChoice.ActionType}");
-
-        return choices;
-    }
-
-
-    /// <summary>
-    /// Generate action text template for stat-gated choice
-    /// </summary>
-    private string GenerateStatGatedActionText(SituationArchetype archetype)
-    {
-        return archetype.Type switch
-        {
-            SituationArchetypeType.Confrontation => "Assert authority and take command",
-            SituationArchetypeType.Negotiation => "Negotiate favorable terms",
-            SituationArchetypeType.Investigation => "Deduce the solution through analysis",
-            SituationArchetypeType.SocialManeuvering => "Read the social dynamics and navigate skillfully",
-            SituationArchetypeType.Crisis => "Take decisive action with expertise",
-            _ => "Use your expertise"
-        };
-    }
-
-    /// <summary>
-    /// Generate action text template for money choice
-    /// </summary>
-    private string GenerateMoneyActionText(SituationArchetype archetype)
-    {
-        return archetype.Type switch
-        {
-            SituationArchetypeType.Confrontation => "Pay off the opposition",
-            SituationArchetypeType.Negotiation => "Pay the premium price",
-            SituationArchetypeType.Investigation => "Hire an expert or pay for information",
-            SituationArchetypeType.SocialManeuvering => "Offer a generous gift",
-            SituationArchetypeType.Crisis => "Pay for emergency solution",
-            _ => "Pay to resolve"
-        };
-    }
-
-    /// <summary>
-    /// Generate action text template for challenge choice
-    /// </summary>
-    private string GenerateChallengeActionText(SituationArchetype archetype)
-    {
-        return archetype.Type switch
-        {
-            SituationArchetypeType.Confrontation => "Attempt a physical confrontation",
-            SituationArchetypeType.Negotiation => "Engage in complex debate",
-            SituationArchetypeType.Investigation => "Work through the puzzle systematically",
-            SituationArchetypeType.SocialManeuvering => "Make a bold social gambit",
-            SituationArchetypeType.Crisis => "Risk everything on a desperate gambit",
-            _ => "Accept the challenge"
-        };
-    }
-
-    /// <summary>
-    /// Generate action text template for fallback choice
-    /// </summary>
-    private string GenerateFallbackActionText(SituationArchetype archetype)
-    {
-        return archetype.Type switch
-        {
-            SituationArchetypeType.Confrontation => "Back down and submit",
-            SituationArchetypeType.Negotiation => "Accept unfavorable terms",
-            SituationArchetypeType.Investigation => "Give up and move on",
-            SituationArchetypeType.SocialManeuvering => "Exit awkwardly",
-            SituationArchetypeType.Crisis => "Flee the situation",
-            _ => "Accept poor outcome"
-        };
-    }
-
-    /// <summary>
     /// Enrich MainStory final situation choices with SpawnNextMainStoryScene
     /// Per CONTENT_ARCHITECTURE.md §8: "ALL final situation choices receive spawn reward"
     /// HIGHLANDER: ONE enrichment path for ALL MainStory scenes
@@ -1188,41 +1018,5 @@ public class SceneTemplateParser
         }
 
         Console.WriteLine($"[MainStory Enrichment] Enriched {finalSituation.ChoiceTemplates.Count} choices in final situation '{finalSituation.Id}' for scene '{template.Id}'");
-    }
-
-    /// <summary>
-    /// Generate single SituationTemplate from situation archetype
-    /// Called for Standalone scenes that need ONE situation with 4-choice pattern
-    /// Returns SituationTemplate with choices generated from SituationArchetypeCatalog
-    /// </summary>
-    private SituationTemplate GenerateSingleSituationFromArchetype(SituationArchetypeType situationArchetypeType, string contextId, int tier)
-    {
-        string situationId = $"{contextId}_situation";
-
-        Console.WriteLine($"[SingleSituationGeneration] Generating situation '{situationId}' from archetype '{situationArchetypeType}'");
-
-        // Generate 4 choices from archetype catalogue
-        List<ChoiceTemplate> choices = GenerateChoiceTemplatesFromArchetype(situationArchetypeType, contextId, situationId);
-
-        // Create situation template with generated choices
-        SituationTemplate template = new SituationTemplate
-        {
-            Id = situationId,
-            Type = SituationType.Normal,
-            NarrativeTemplate = null, // AI generates from hints
-            ChoiceTemplates = choices,
-            Priority = 100,
-            NarrativeHints = new NarrativeHints
-            {
-                Tone = "neutral",
-                Theme = situationArchetypeType.ToString(),
-                Context = "standalone_situation",
-                Style = "balanced"
-            }
-        };
-
-        Console.WriteLine($"[SingleSituationGeneration] Created SituationTemplate '{situationId}' with {choices.Count} choices");
-
-        return template;
     }
 }

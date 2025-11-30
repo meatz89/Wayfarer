@@ -212,6 +212,35 @@ JSON → DTO → Parser → Entity → Service/UI
 
 ---
 
+# ARCHETYPE REUSABILITY (NO TUTORIAL HARDCODING)
+
+**THE RULE:** Every archetype must work in ANY context through categorical scaling. No tutorial-specific code paths.
+
+**Tutorial = Context, Not Code:** Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical properties (Tier 0, Friendly NPC, Basic quality), not from special tutorial code branches.
+
+| Context | Same Archetype Produces |
+|---------|------------------------|
+| Tutorial (Tier 0, Friendly, Basic) | Easy requirements, low costs, modest rewards |
+| Mid-game (Tier 2, Neutral, Standard) | Medium requirements, balanced costs/rewards |
+| Late-game (Tier 3, Hostile, Premium) | Hard requirements, high costs, high rewards |
+
+**FORBIDDEN:**
+- `if (AStorySequence == N)` checks in archetypes
+- `if (context.IsTutorial)` branching
+- Different choice structures for different contexts
+- Hardcoded values that don't scale with categorical properties
+
+**Required:**
+- All scaling via categorical properties (NPCDemeanor, Quality, PowerDynamic, Tier)
+- Same four-choice structure regardless of context
+- Context-agnostic archetype implementations
+
+**Why:** Archetypes must be infinitely reusable. InnLodging in tutorial AND InnLodging in late-game use the SAME code. Categorical properties create appropriate difficulty.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.23, `gdd/05_content.md` §5.3
+
+---
+
 # FAIL-FAST PHILOSOPHY
 
 **THE RULE:** Missing data should fail loudly, not silently default.
@@ -295,7 +324,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 - ONLY: `List<T>`, strongly-typed objects, `int` (see GDD DDR-007: Intentional Numeric Design)
 - FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples, `float`, `double`
 - FORBIDDEN: Decimal multipliers (`* 0.X`, `* 1.X`), percentage calculations (`* 100 /`, `/ 100`), basis points
-- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.22)
+- Transform percentages to flat adjustments or integer division (see `arc42/08_crosscutting_concepts.md` §8.24)
 - Enforcement: DDR007ComplianceTests.cs (CI), pre-commit hook (`scripts/hooks/install.sh`)
 
 **Lambdas:**
@@ -381,6 +410,7 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 | DOC-PURITY | Code blocks, JSON structures, file paths in arc42/gdd/CLAUDE.md |
 | ICONS | Emojis in .razor files (use `<Icon>` component) |
 | EXPLICIT | String-based property modification patterns |
+| ARCHETYPE | Tutorial hardcoding (AStorySequence checks) in Catalog/Archetype files |
 
 **Bypass:** `git commit --no-verify` (NOT RECOMMENDED - violations will fail CI)
 

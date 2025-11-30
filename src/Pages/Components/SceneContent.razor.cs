@@ -68,18 +68,32 @@ public class SceneContentBase : ComponentBase
 
         Player player = GameFacade.GetPlayer();
 
+        // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
+        // Parse-time: Catalogue generated rhythm structure + tier-based values
+        // Query-time: Entity-derived adjustments for BOTH display AND execution
+        // Perfect Information: Player sees AND receives adjusted costs (arc42 §8.26)
+        RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+            CurrentSituation.Npc,
+            CurrentSituation.Location,
+            player);
+
         foreach (ChoiceTemplate choiceTemplate in CurrentSituation.Template.ChoiceTemplates)
         {
-            // Check requirements
+            // TWO-PHASE SCALING: Apply entity-derived adjustments
+            // ScaledRequirement and ScaledConsequence used for BOTH display AND execution
+            CompoundRequirement scaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula);
+            Consequence scaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence);
+
+            // Check requirements using SCALED values (Perfect Information compliance)
             bool requirementsMet = true;
             string lockReason = "";
 
             // Validate RequirementFormula and build requirement gaps
             List<RequirementPathVM> requirementPaths = new List<RequirementPathVM>();
-            if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
+            if (scaledRequirement != null && scaledRequirement.OrPaths.Count > 0)
             {
-                requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
-                requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player);
+                requirementsMet = scaledRequirement.IsAnySatisfied(player, GameWorld);
+                requirementPaths = GetRequirementGaps(scaledRequirement, player);
 
                 if (!requirementsMet && requirementPaths.Count > 0)
                 {
@@ -88,9 +102,9 @@ public class SceneContentBase : ComponentBase
                 }
             }
 
-            // Map ALL costs/rewards from unified Consequence (Perfect Information)
+            // Map ALL costs/rewards from SCALED Consequence (Perfect Information)
             // Consequence uses NEGATIVE VALUES for costs, POSITIVE VALUES for rewards
-            Consequence consequence = choiceTemplate.Consequence ?? Consequence.None();
+            Consequence consequence = scaledConsequence ?? Consequence.None();
 
             // Extract costs (negative values, convert to positive for display)
             int resolveCost = consequence.Resolve < 0 ? -consequence.Resolve : 0;
@@ -400,6 +414,7 @@ public class SceneContentBase : ComponentBase
     /// <summary>
     /// Handle player selecting a choice in the modal scene.
     /// Validates requirements, applies costs, executes rewards, handles progression mode.
+    /// TWO-PHASE SCALING: Uses SCALED values for BOTH display AND execution (Perfect Information).
     /// </summary>
     protected async Task HandleChoiceSelected(ActionCardViewModel choice)
     {
@@ -416,17 +431,28 @@ public class SceneContentBase : ComponentBase
 
         Player player = GameFacade.GetPlayer();
 
-        // DEFENSIVE CHECK: Re-validate authored requirements before execution
-        if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
+        // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
+        // MUST match LoadChoices() scaling - display = execution (arc42 §8.26)
+        RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+            CurrentSituation.Npc,
+            CurrentSituation.Location,
+            player);
+
+        // TWO-PHASE SCALING: Apply entity-derived adjustments for execution
+        CompoundRequirement scaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula);
+        Consequence scaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence);
+
+        // DEFENSIVE CHECK: Re-validate authored requirements using SCALED values
+        if (scaledRequirement != null && scaledRequirement.OrPaths.Count > 0)
         {
-            bool requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
+            bool requirementsMet = scaledRequirement.IsAnySatisfied(player, GameWorld);
             if (!requirementsMet)
                 return; // Requirements not met - should never happen if UI is correct
         }
 
-        // HIGHLANDER: Re-validate resource availability via OrPath
+        // HIGHLANDER: Re-validate resource availability via OrPath using SCALED consequence
         // Caller builds OrPath directly - CompoundRequirement stays domain-agnostic
-        Consequence consequence = choiceTemplate.Consequence ?? Consequence.None();
+        Consequence consequence = scaledConsequence ?? Consequence.None();
         OrPath resourcePath = new OrPath { Label = "Resource Requirements" };
         if (consequence.Resolve < 0) resourcePath.ResolveRequired = 0;  // Gate pattern
         if (consequence.Coins < 0) resourcePath.CoinsRequired = -consequence.Coins;
@@ -478,6 +504,11 @@ public class SceneContentBase : ComponentBase
             // OnSuccessReward applied by challenge system, NOT here
             Console.WriteLine($"[SceneContent.HandleChoiceSelected] Routing to {choiceTemplate.ChallengeType} challenge");
 
+            // TWO-PHASE SCALING: Pre-scale challenge rewards for Perfect Information
+            // Challenge facades apply these pre-scaled consequences directly
+            Consequence scaledSuccessReward = scalingContext.ApplyToConsequence(choiceTemplate.OnSuccessConsequence);
+            Consequence scaledFailureReward = scalingContext.ApplyToConsequence(choiceTemplate.OnFailureConsequence);
+
             // Store challenge context for resumption
             if (choiceTemplate.ChallengeType == TacticalSystemType.Social)
             {
@@ -490,8 +521,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingSocialContext = new SocialChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessConsequence,
-                    FailureReward = choiceTemplate.OnFailureConsequence,
+                    CompletionReward = scaledSuccessReward, // TWO-PHASE SCALING: Pre-scaled
+                    FailureReward = scaledFailureReward,    // TWO-PHASE SCALING: Pre-scaled
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -500,8 +531,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingMentalContext = new MentalChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessConsequence,
-                    FailureReward = choiceTemplate.OnFailureConsequence,
+                    CompletionReward = scaledSuccessReward, // TWO-PHASE SCALING: Pre-scaled
+                    FailureReward = scaledFailureReward,    // TWO-PHASE SCALING: Pre-scaled
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -510,8 +541,8 @@ public class SceneContentBase : ComponentBase
                 GameWorld.PendingPhysicalContext = new PhysicalChallengeContext
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
-                    CompletionReward = choiceTemplate.OnSuccessConsequence,
-                    FailureReward = choiceTemplate.OnFailureConsequence,
+                    CompletionReward = scaledSuccessReward, // TWO-PHASE SCALING: Pre-scaled
+                    FailureReward = scaledFailureReward,    // TWO-PHASE SCALING: Pre-scaled
                     ChoiceExecution = choiceNode // Store for later use
                 };
             }
@@ -531,13 +562,14 @@ public class SceneContentBase : ComponentBase
             return;
         }
 
-        // INSTANT PATH: Apply consequences immediately
+        // INSTANT PATH: Apply consequences immediately using SCALED values
+        // TWO-PHASE SCALING: scaledConsequence has entity-derived cost adjustments (arc42 §8.26)
         Console.WriteLine($"[HandleChoiceSelected.DEBUG] Choice: {choiceTemplate.Id}");
-        Console.WriteLine($"[HandleChoiceSelected.DEBUG] Consequence null? {choiceTemplate.Consequence == null}");
-        if (choiceTemplate.Consequence != null)
+        Console.WriteLine($"[HandleChoiceSelected.DEBUG] Consequence null? {scaledConsequence == null}");
+        if (scaledConsequence != null)
         {
-            Console.WriteLine($"[HandleChoiceSelected.DEBUG] ScenesToSpawn.Count = {choiceTemplate.Consequence.ScenesToSpawn.Count}");
-            foreach (SceneSpawnReward spawn in choiceTemplate.Consequence.ScenesToSpawn)
+            Console.WriteLine($"[HandleChoiceSelected.DEBUG] ScenesToSpawn.Count = {scaledConsequence.ScenesToSpawn.Count}");
+            foreach (SceneSpawnReward spawn in scaledConsequence.ScenesToSpawn)
             {
                 Console.WriteLine($"[HandleChoiceSelected.DEBUG]   SpawnNextMainStoryScene = {spawn.SpawnNextMainStoryScene}");
             }
@@ -549,7 +581,8 @@ public class SceneContentBase : ComponentBase
 
             try
             {
-                await RewardApplicationService.ApplyConsequence(choiceTemplate.Consequence, CurrentSituation);
+                // TWO-PHASE SCALING: Apply SCALED consequence (costs adjusted for entity context)
+                await RewardApplicationService.ApplyConsequence(scaledConsequence, CurrentSituation);
             }
             finally
             {

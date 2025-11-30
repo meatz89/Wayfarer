@@ -8,6 +8,7 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
+| **ArchetypeIntensity** | Player readiness filter for procedural content: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Three-level system mapping player Resolve to safe archetypes. Named to avoid collision with RhythmPattern values. Determines WHICH archetypes are safe for current player state. Orthogonal to RhythmPattern. |
 | **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
@@ -20,6 +21,7 @@ Domain and technical terms used throughout this documentation.
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
+| **RhythmPattern** | Choice generation pattern determining HOW choices are structured: Building (stat grants, no requirements), Crisis (penalty avoidance), Mixed (standard trade-offs). Determines choice STRUCTURE, not archetype selection. Orthogonal to ArchetypeIntensity. |
 | **Scene** | Persistent narrative container holding embedded Situations; spawns from template |
 | **Situation** | Single decision point within a Scene; presents Choices to player |
 | **SituationCard** | Tactical victory condition defining threshold and rewards |

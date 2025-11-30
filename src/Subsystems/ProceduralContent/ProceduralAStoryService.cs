@@ -31,15 +31,18 @@ public class ProceduralAStoryService
     private readonly GameWorld _gameWorld;
     private readonly ContentGenerationFacade _contentFacade;
     private readonly PackageLoader _packageLoader;
+    private readonly PlayerReadinessService _readinessService;
 
     public ProceduralAStoryService(
         GameWorld gameWorld,
         ContentGenerationFacade contentFacade,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        PlayerReadinessService readinessService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _contentFacade = contentFacade ?? throw new ArgumentNullException(nameof(contentFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _readinessService = readinessService ?? throw new ArgumentNullException(nameof(readinessService));
     }
 
     /// <summary>
@@ -53,9 +56,14 @@ public class ProceduralAStoryService
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        // 1. Get archetype CATEGORY (categorical property, not specific archetype)
+        // 1. Get player readiness for intensity filtering
+        Player player = _gameWorld.GetPlayer();
+        ArchetypeIntensity maxSafeIntensity = _readinessService.GetMaxSafeIntensity(player);
+
+        // 2. Get archetype CATEGORY (categorical property, not specific archetype)
         // Parser will resolve to specific archetype via Catalogue
-        string archetypeCategory = GetArchetypeCategory(sequence);
+        // Filtered by player readiness to avoid overwhelming exhausted players
+        string archetypeCategory = GetArchetypeCategory(sequence, maxSafeIntensity);
 
         // 2. Get excluded archetypes for anti-repetition (categorical property)
         List<string> excludedArchetypes = GetExcludedArchetypes(context);
@@ -81,24 +89,64 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get archetype category for given sequence based on rotation cycle.
+    /// Get archetype category for given sequence based on rotation cycle and player readiness.
     /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
     /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
     /// Works from ANY sequence (flexible number of authored scenes)
     ///
+    /// PLAYER READINESS FILTERING:
+    /// - Exhausted (Recovery only): Forces Peaceful category archetypes
+    /// - Normal (up to Standard): Allows Investigation, Social, Confrontation
+    /// - Capable (up to Demanding): Allows all including Crisis
+    ///
     /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
     /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
     /// </summary>
-    private string GetArchetypeCategory(int sequence)
+    private string GetArchetypeCategory(int sequence, ArchetypeIntensity maxSafeIntensity)
     {
         int cyclePosition = (sequence - 1) % 4;
 
-        return cyclePosition switch
+        // Standard rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
+        string desiredCategory = cyclePosition switch
         {
             0 => "Investigation",
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
+            _ => "Investigation"
+        };
+
+        // Map category to intensity level
+        ArchetypeIntensity categoryIntensity = desiredCategory switch
+        {
+            "Crisis" => ArchetypeIntensity.Demanding,
+            "Confrontation" => ArchetypeIntensity.Demanding,
+            "Investigation" => ArchetypeIntensity.Standard,
+            "Social" => ArchetypeIntensity.Standard,
+            "Peaceful" => ArchetypeIntensity.Recovery,
+            _ => ArchetypeIntensity.Standard
+        };
+
+        // If player can handle the desired category, use it
+        if (categoryIntensity <= maxSafeIntensity)
+        {
+            return desiredCategory;
+        }
+
+        // Player readiness too low - downgrade to safe category
+        if (maxSafeIntensity == ArchetypeIntensity.Recovery)
+        {
+            return "Peaceful";
+        }
+
+        // Standard intensity - avoid Crisis/Confrontation, prefer Investigation/Social
+        // Three-level system: Recovery, Standard, Demanding (avoids RhythmPattern collision)
+        return cyclePosition switch
+        {
+            0 => "Investigation",
+            1 => "Social",
+            2 => "Investigation", // Downgrade Confrontation → Investigation
+            3 => "Social",        // Downgrade Crisis → Social
             _ => "Investigation"
         };
     }
@@ -151,12 +199,16 @@ public class ProceduralAStoryService
         // Build spawn conditions (A-scenes spawn automatically via completion trigger)
         SpawnConditionsDTO spawnConditions = BuildSpawnConditions(sequence, context);
 
+        // Determine rhythm pattern based on archetype category and story beat
+        // Sir Brante Pattern: Building accumulates capability, Crisis tests it
+        string rhythmPattern = DetermineRhythmPattern(archetypeCategory, sequence, tier);
+
         SceneTemplateDTO dto = new SceneTemplateDTO
         {
             Id = sceneId,
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
-            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetypeId
+            // CATALOGUE PATTERN: Use ArchetypeCategory instead of explicit SceneArchetype
             // Parser calls SceneArchetypeCatalog.ResolveFromCategory at parse-time
             ArchetypeCategory = archetypeCategory,
             ExcludedArchetypes = excludedArchetypes,
@@ -167,11 +219,52 @@ public class ProceduralAStoryService
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
+            IsStarter = false, // Procedural A-story spawns from reward, not at game start
             ExpirationDays = null, // A-story never expires
-            IntroNarrativeTemplate = null // AI generates from hints
+            IntroNarrativeTemplate = null, // AI generates from hints
+            RhythmPattern = rhythmPattern // Sir Brante rhythm (Building/Crisis/Mixed)
         };
 
         return dto;
+    }
+
+    /// <summary>
+    /// Determine rhythm pattern based on archetype category and story beat.
+    /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
+    ///
+    /// Pattern selection:
+    /// - Peaceful category → Building rhythm (all positive, recovery for exhausted players)
+    /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
+    /// - First scene after Crisis → Building rhythm (recovery, stat grants)
+    /// - Other categories → Mixed rhythm (standard trade-offs)
+    ///
+    /// AI composes scenes with this rhythm; catalogue generates appropriate choices.
+    /// </summary>
+    private string DetermineRhythmPattern(string archetypeCategory, int sequence, int tier)
+    {
+        // Peaceful category always uses Building rhythm (all positive for exhausted players)
+        if (archetypeCategory == "Peaceful")
+        {
+            return "Building";
+        }
+
+        // Crisis category always uses Crisis rhythm (test investments)
+        if (archetypeCategory == "Crisis")
+        {
+            return "Crisis";
+        }
+
+        // First scene after Crisis (Investigation) uses Building rhythm (recovery)
+        // Cycle: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
+        // Position 0 follows Crisis(3), so it's recovery time
+        int cyclePosition = (sequence - 1) % 4;
+        if (cyclePosition == 0)
+        {
+            return "Building";
+        }
+
+        // All other categories use Mixed rhythm (standard trade-offs)
+        return "Mixed";
     }
 
     /// <summary>
@@ -418,13 +511,9 @@ public class ProceduralAStoryService
                     $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
                     $"All scenes must have valid Template reference.");
             }
-            if (!scene.Template.SceneArchetypeId.HasValue)
-            {
-                throw new InvalidOperationException(
-                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null SceneArchetypeId. " +
-                    $"All A-story scenes must have archetype.");
-            }
-            context.RecentArchetypes.Add(scene.Template.SceneArchetypeId.Value);
+            // SceneArchetype is now non-nullable (all scenes have an archetype)
+            // PRINCIPLE: Archetype is a TYPE discriminator, not an ID (arc42 §8.3)
+            context.RecentArchetypes.Add(scene.Template.SceneArchetype);
 
             // Validate and extract region from LAST COMPLETED situation
             if (!scene.Situations.Any())
