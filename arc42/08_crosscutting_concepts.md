@@ -848,6 +848,33 @@ RhythmPattern flows through GenerationContext at runtime. AI determines appropri
 
 **Rhythm flows through the same parse-time generation as all categorical properties.**
 
+### Orthogonal Concept: ArchetypeIntensity
+
+Two independent systems control procedural content: RhythmPattern (choice structure) and ArchetypeIntensity (archetype selection). Named distinctly to avoid collision.
+
+| Concept | Purpose | Values | Controls |
+|---------|---------|--------|----------|
+| **RhythmPattern** | Choice generation | Building / Crisis / Mixed | HOW choices are structured |
+| **ArchetypeIntensity** | Player readiness filter | Recovery / Standard / Demanding | WHICH archetypes can be selected |
+
+**ArchetypeIntensity maps player Resolve to safe archetypes:**
+
+| Player State | Resolve | Max Safe Intensity | Allowed Archetypes |
+|--------------|---------|-------------------|-------------------|
+| Exhausted | < 3 | Recovery | Only recovery-focused archetypes |
+| Normal | 3-15 | Standard | Recovery + standard trade-off archetypes |
+| Capable | > 15 | Demanding | All archetypes including high-stakes |
+
+**Practical correlation (not dependency):**
+
+| Category | Typical Intensity | Typical Rhythm | Why |
+|----------|------------------|----------------|-----|
+| Peaceful | Recovery | Building | Exhausted players need recovery |
+| Investigation/Social | Standard | Mixed | Normal gameplay trade-offs |
+| Crisis/Confrontation | Demanding | Crisis | Tests require capable players |
+
+These correlations emerge from design intent, not system coupling. The systems remain orthogonal.
+
 ### HIGHLANDER Compliance
 
 ALL situation archetypes use ONE generation path. No routing, no special cases:

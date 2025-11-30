@@ -95,9 +95,9 @@ public class ProceduralAStoryService
     /// Works from ANY sequence (flexible number of authored scenes)
     ///
     /// PLAYER READINESS FILTERING:
-    /// - Exhausted (Peaceful only): Forces Peaceful category archetypes
-    /// - Normal (up to Testing): Allows Investigation, Social, Confrontation
-    /// - Capable (up to Crisis): Allows all including Crisis
+    /// - Exhausted (Recovery only): Forces Peaceful category archetypes
+    /// - Normal (up to Standard): Allows Investigation, Social, Confrontation
+    /// - Capable (up to Demanding): Allows all including Crisis
     ///
     /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
     /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
@@ -139,8 +139,8 @@ public class ProceduralAStoryService
             return "Peaceful";
         }
 
-        // Testing intensity - avoid Crisis/Confrontation, prefer Investigation/Social
-        // (Building was removed from ArchetypeIntensity - only Peaceful/Testing/Crisis exist)
+        // Standard intensity - avoid Crisis/Confrontation, prefer Investigation/Social
+        // Three-level system: Recovery, Standard, Demanding (avoids RhythmPattern collision)
         return cyclePosition switch
         {
             0 => "Investigation",

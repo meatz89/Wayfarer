@@ -217,7 +217,7 @@ public class ProceduralAStoryServiceTests
     public void PlayerReadiness_GetMaxSafeIntensity_ReturnsCorrectLevel(int resolve, ArchetypeIntensity expectedIntensity)
     {
         // CRITICAL: Player readiness determines which archetypes are safe
-        // Exhausted players (Resolve < 3) must ONLY get Peaceful archetypes
+        // Exhausted players (Resolve < 3) must ONLY get Recovery archetypes
         PlayerReadinessService service = new PlayerReadinessService();
         Player player = new Player { Resolve = resolve };
 
@@ -227,9 +227,9 @@ public class ProceduralAStoryServiceTests
     }
 
     [Fact]
-    public void PlayerReadiness_ExhaustedPlayer_OnlyPeacefulSafe()
+    public void PlayerReadiness_ExhaustedPlayer_OnlyRecoverySafe()
     {
-        // CRITICAL: Exhausted player must ONLY have Peaceful in safe list
+        // CRITICAL: Exhausted player must ONLY have Recovery in safe list
         PlayerReadinessService service = new PlayerReadinessService();
         Player exhaustedPlayer = new Player { Resolve = 1 };
 
@@ -240,10 +240,10 @@ public class ProceduralAStoryServiceTests
     }
 
     [Fact]
-    public void PlayerReadiness_NormalPlayer_IncludesPeacefulAndTesting()
+    public void PlayerReadiness_NormalPlayer_IncludesRecoveryAndStandard()
     {
-        // Normal player (Resolve 3-15) should have access to Peaceful and Testing
-        // Three-level system: Peaceful (recovery), Testing (standard), Crisis (demanding)
+        // Normal player (Resolve 3-15) should have access to Recovery and Standard
+        // Three-level system: Recovery, Standard, Demanding
         PlayerReadinessService service = new PlayerReadinessService();
         Player normalPlayer = new Player { Resolve = 10 };
 
@@ -259,7 +259,7 @@ public class ProceduralAStoryServiceTests
     public void PlayerReadiness_CapablePlayer_IncludesAllIntensities()
     {
         // Capable player (Resolve > 15) should have access to all intensity levels
-        // Three-level system: Peaceful (recovery), Testing (standard), Crisis (demanding)
+        // Three-level system: Recovery, Standard, Demanding
         PlayerReadinessService service = new PlayerReadinessService();
         Player capablePlayer = new Player { Resolve = 20 };
 
