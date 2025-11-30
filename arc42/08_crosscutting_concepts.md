@@ -943,6 +943,57 @@ Scaling MUST affect both display AND execution. The player sees adjusted costs, 
 
 ---
 
+## 8.27 Mechanics-First Entity Generation
+
+**"Generate mechanics now; generate narrative at display time."**
+
+Procedural entities are created with generic functional identifiers. Contextual narrative is generated separately when displaying to the player.
+
+### Two-Layer Separation
+
+| Layer | Timing | Content | Example |
+|-------|--------|---------|---------|
+| **Generation** | Entity creation | Mechanics, structure, categorical properties | `DisplayName: "A{seq}"` |
+| **Narrative** | Display time | Contextual names, descriptions, flavor | `"The Merchant's Gambit"` |
+
+### Why Generic Names Are Correct
+
+| Concern | Generation-Time | Display-Time |
+|---------|-----------------|--------------|
+| **Context available** | None (entity new) | Full (state, history, relationships) |
+| **Coherence scope** | Single entity | All visible entities together |
+| **Work efficiency** | Wasted if unseen | Only when needed |
+| **Final output** | Placeholder | Player-facing |
+
+**Principle:** Do no more naming work than necessary at generation time—it will be replaced by contextual narrative at display time.
+
+### Generation Layer (Complete)
+
+ProceduralAStoryService creates mechanical structure only:
+- ArchetypeCategory (categorical property for Catalogue resolution)
+- Tier (difficulty scaling)
+- RhythmPattern (choice generation pattern)
+- PlacementFilter (categorical entity resolution)
+- Generic identifiers (`a_story_{sequence}`, `"The Path Deepens"`)
+
+### Display Layer (Future Feature)
+
+Before presenting entities to player, AI examines:
+- Current entities in visible context
+- Categorical properties of each
+- Game state (player resources, time, active scenes)
+- Event history (completed scenes, NPC interactions)
+- Relationship web (bonds, reputation, standing)
+
+Generates unified contextual narrative across visible scope.
+
+**Forbidden:**
+- AI narrative generation at entity creation time
+- Per-entity narrative without context awareness
+- Premature optimization of display names
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
