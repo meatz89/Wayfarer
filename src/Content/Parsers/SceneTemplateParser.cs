@@ -34,6 +34,17 @@ public class SceneTemplateParser
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Archetype value: '{dto.Archetype}'");
         }
 
+        // FAIL-FAST: Tier is REQUIRED (no silent defaults)
+        if (!dto.Tier.HasValue)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'tier'. Must be 0-4.");
+        }
+        int tier = dto.Tier.Value;
+        if (tier < 0 || tier > 4)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid tier={tier}. Must be 0-4.");
+        }
+
         // Parse PresentationMode (defaults to Atmospheric if not specified)
         PresentationMode presentationMode = PresentationMode.Atmospheric;
         if (!string.IsNullOrEmpty(dto.PresentationMode))
@@ -123,11 +134,11 @@ public class SceneTemplateParser
         NPC contextNPC = null;
         Location contextLocation = null;
 
-        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}, MainStorySequence={dto.MainStorySequence}");
+        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={tier}, MainStorySequence={dto.MainStorySequence}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             sceneArchetypeType,
-            dto.Tier,
+            tier,
             contextNPC,
             contextLocation,
             dto.MainStorySequence);
@@ -172,7 +183,7 @@ public class SceneTemplateParser
             SpawnRules = spawnRules,
             ExpirationDays = dto.ExpirationDays,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
-            Tier = dto.Tier,
+            Tier = tier,
             Category = category,
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
