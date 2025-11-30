@@ -769,12 +769,20 @@ public static class SituationArchetypeCatalog
     /// <summary>
     /// Generate 4 standard choices from archetype with UNIVERSAL PROPERTY SCALING.
     ///
-    /// Context parameter enables universal scaling:
-    /// - StatThreshold scales by PowerDynamic (Dominant 0.6x, Equal 1.0x, Submissive 1.4x)
-    /// - CoinCost scales by Quality (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
+    /// Context parameter enables universal scaling via categorical properties:
+    /// - StatThreshold scales by Tier (0: +0, 1: +1, 2: +2, 3+: +3)
+    /// - StatThreshold scales by PowerDynamic (Dominant: -2, Equal: 0, Submissive: +2)
+    /// - StatThreshold scales by NpcDemeanor (Friendly: -2, Neutral: 0, Hostile: +2)
+    /// - CoinCost scales by Quality (Basic: -3, Standard: 0, Premium: +5, Luxury: +10)
+    /// - CoinCost scales by Tier (each tier adds +2)
+    ///
+    /// Example results (base threshold 3):
+    /// - Tier 0 + Friendly: 3 + 0 - 2 = 1 (tutorial-appropriate)
+    /// - Tier 2 + Neutral: 3 + 2 + 0 = 5 (mid-game appropriate)
+    /// - Tier 3 + Hostile: 3 + 3 + 2 = 8 (late-game challenging)
     ///
     /// If context null, uses archetype base values (no scaling).
-    /// ALL 18 base archetypes benefit from universal scaling.
+    /// ALL archetypes benefit from universal scaling - NO TUTORIAL-SPECIFIC CODE PATHS.
     /// </summary>
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
@@ -815,11 +823,194 @@ public static class SituationArchetypeCatalog
             {
                 scaledStatThreshold = scaledStatThreshold - 2; // Friendly NPCs easier
             }
+
+            // TIER SCALING: Higher tiers have harder requirements
+            // Tier 0 (Tutorial): +0 - base difficulty
+            // Tier 1 (Early): +1 - slightly harder
+            // Tier 2 (Mid): +2 - moderately harder
+            // Tier 3+ (Late): +3 - significantly harder
+            // Combined with base threshold (3) and demeanor, produces:
+            // - Tier 0 + Friendly: 3 + 0 - 2 = 1 (achievable with 1-2 stats)
+            // - Tier 1 + Neutral: 3 + 1 + 0 = 4 (achievable with 3-4 stats)
+            // - Tier 2 + Neutral: 3 + 2 + 0 = 5 (achievable with 5-6 stats)
+            // - Tier 3 + Hostile: 3 + 3 + 2 = 8 (requires 7-8 stats)
+            int tierAdjustment = context.Tier switch
+            {
+                0 => 0,
+                1 => 1,
+                2 => 2,
+                >= 3 => 3,
+                _ => 0
+            };
+            scaledStatThreshold = scaledStatThreshold + tierAdjustment;
+
+            // Also scale coin costs by tier (higher tiers = more expensive economy)
+            // Tier 0: +0, Tier 1: +2, Tier 2: +4, Tier 3: +6
+            scaledCoinCost = scaledCoinCost + (context.Tier * 2);
         }
 
+        // Ensure minimum threshold of 1 (never negative)
+        scaledStatThreshold = Math.Max(1, scaledStatThreshold);
+
+        // Ensure minimum cost of 1 (never free or negative)
+        scaledCoinCost = Math.Max(1, scaledCoinCost);
+
+        // SIR BRANTE RHYTHM PATTERN: Same archetype produces different choices based on rhythm
+        // Building = All positive (stat grants, no requirements)
+        // Crisis = Damage mitigation (requirements gate avoiding penalty, fallback takes penalty)
+        // Mixed = Standard trade-offs (current behavior)
+        // See arc42/08_crosscutting_concepts.md §8.26
+        RhythmPattern rhythm = context?.Rhythm ?? RhythmPattern.Mixed;
+
+        return rhythm switch
+        {
+            RhythmPattern.Building => GenerateBuildingChoices(archetype, situationTemplateId),
+            RhythmPattern.Crisis => GenerateCrisisChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
+            RhythmPattern.Mixed => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
+            _ => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost)
+        };
+    }
+
+    /// <summary>
+    /// Generate BUILDING rhythm choices - all positive outcomes, character formation.
+    /// No requirements, choices GRANT stats instead of costing them.
+    /// Used for: Tutorial A1, recovery periods, positive momentum scenes.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateBuildingChoices(
+        SituationArchetype archetype,
+        string situationTemplateId)
+    {
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
-        ChoiceTemplate statGatedChoice = new ChoiceTemplate
+        // Choice 1: Primary stat path - GRANTS primary stat (no requirement)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_primary",
+            PathType = ChoicePathType.InstantSuccess,
+            ActionTextTemplate = GenerateBuildingPrimaryText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = CreateStatGrantConsequence(archetype.PrimaryStat, 1),
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 2: Secondary stat path - GRANTS secondary stat (no requirement)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_secondary",
+            PathType = ChoicePathType.InstantSuccess,
+            ActionTextTemplate = GenerateBuildingSecondaryText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = CreateStatGrantConsequence(archetype.SecondaryStat, 1),
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 3: Exploration - GRANTS insight through curiosity (no requirement)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_explore",
+            PathType = ChoicePathType.InstantSuccess,
+            ActionTextTemplate = "Explore and observe carefully",
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = new Consequence { Insight = 1 },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 4: Different flavor - GRANTS cunning (no requirement, always available)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_cunning",
+            PathType = ChoicePathType.Fallback,
+            ActionTextTemplate = "Take time to think strategically",
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = new Consequence { Cunning = 1 },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        return choices;
+    }
+
+    /// <summary>
+    /// Generate CRISIS rhythm choices - damage mitigation, stat gates avoid penalty.
+    /// Requirements prevent penalty, fallback TAKES penalty.
+    /// Used for: A3 crisis, high stakes moments, dramatic tension.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateCrisisChoices(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        int scaledStatThreshold,
+        int scaledCoinCost)
+    {
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // Crisis penalty based on archetype domain
+        Consequence crisisPenalty = GetCrisisPenalty(archetype);
+
+        // Choice 1: Stat-gated AVOIDANCE - meet threshold to AVOID penalty (no consequence)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_stat",
+            PathType = ChoicePathType.InstantSuccess,
+            ActionTextTemplate = GenerateCrisisStatText(archetype),
+            RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
+            Consequence = new Consequence(), // Success = avoid penalty
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 2: Pay to AVOID penalty
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_money",
+            PathType = ChoicePathType.InstantSuccess,
+            ActionTextTemplate = GenerateCrisisMoneyText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = new Consequence { Coins = -scaledCoinCost }, // Pay to avoid
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 3: Challenge to MAYBE avoid penalty
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_challenge",
+            PathType = ChoicePathType.Challenge,
+            ActionTextTemplate = GenerateCrisisChallengeText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = new Consequence { Resolve = -archetype.ResolveCost },
+            OnSuccessConsequence = new Consequence(), // Success = avoid penalty
+            OnFailureConsequence = crisisPenalty, // Failure = take penalty
+            ActionType = ChoiceActionType.StartChallenge,
+            ChallengeId = null,
+            ChallengeType = archetype.ChallengeType,
+            DeckId = archetype.DeckId
+        });
+
+        // Choice 4: Fallback TAKES the penalty
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_fallback",
+            PathType = ChoicePathType.Fallback,
+            ActionTextTemplate = GenerateCrisisFallbackText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            Consequence = crisisPenalty, // Fallback = take the penalty
+            ActionType = ChoiceActionType.Instant
+        });
+
+        return choices;
+    }
+
+    /// <summary>
+    /// Generate MIXED rhythm choices - standard trade-off gameplay.
+    /// Requirements gate best outcome, fallback is poor but available.
+    /// Used for: Normal gameplay, most procedural content.
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateMixedChoices(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        int scaledStatThreshold,
+        int scaledCoinCost)
+    {
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_stat",
             PathType = ChoicePathType.InstantSuccess,
@@ -827,10 +1018,9 @@ public static class SituationArchetypeCatalog
             RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
             Consequence = new Consequence(),
             ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(statGatedChoice);
+        });
 
-        ChoiceTemplate moneyChoice = new ChoiceTemplate
+        choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_money",
             PathType = ChoicePathType.InstantSuccess,
@@ -838,15 +1028,12 @@ public static class SituationArchetypeCatalog
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence { Coins = -scaledCoinCost },
             ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(moneyChoice);
+        });
 
-        // Create consequence first, then derive requirement from it (Sir Brante dual-nature encapsulated)
         Consequence challengeConsequence = archetype.ResolveCost > 0
             ? new Consequence { Resolve = -archetype.ResolveCost }
             : new Consequence();
 
-        // HIGHLANDER: Build CompoundRequirement with OrPath directly - no factory method coupling
         CompoundRequirement challengeReq = new CompoundRequirement();
         if (archetype.ResolveCost > 0)
         {
@@ -854,7 +1041,7 @@ public static class SituationArchetypeCatalog
             challengeReq.OrPaths.Add(resourcePath);
         }
 
-        ChoiceTemplate challengeChoice = new ChoiceTemplate
+        choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
             PathType = ChoicePathType.Challenge,
@@ -865,10 +1052,9 @@ public static class SituationArchetypeCatalog
             ChallengeId = null,
             ChallengeType = archetype.ChallengeType,
             DeckId = archetype.DeckId
-        };
-        choices.Add(challengeChoice);
+        });
 
-        ChoiceTemplate fallbackChoice = new ChoiceTemplate
+        choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_fallback",
             PathType = ChoicePathType.Fallback,
@@ -876,10 +1062,132 @@ public static class SituationArchetypeCatalog
             RequirementFormula = new CompoundRequirement(),
             Consequence = new Consequence { TimeSegments = archetype.FallbackTimeCost },
             ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(fallbackChoice);
+        });
 
         return choices;
+    }
+
+    /// <summary>
+    /// Get crisis penalty based on archetype domain.
+    /// Physical domains = health loss, Mental = stamina loss, Social = coin loss.
+    /// </summary>
+    private static Consequence GetCrisisPenalty(SituationArchetype archetype)
+    {
+        return archetype.Domain switch
+        {
+            Domain.Authority => new Consequence { Health = -10 },
+            Domain.Economic => new Consequence { Coins = -5 },
+            Domain.Cultural => new Consequence { Stamina = -10 },
+            Domain.Social => new Consequence { Focus = -10 },
+            Domain.Mental => new Consequence { Stamina = -10 },
+            _ => new Consequence { Health = -10 }
+        };
+    }
+
+    /// <summary>
+    /// Create consequence that grants a single stat point.
+    /// </summary>
+    private static Consequence CreateStatGrantConsequence(PlayerStatType stat, int amount)
+    {
+        return stat switch
+        {
+            PlayerStatType.Insight => new Consequence { Insight = amount },
+            PlayerStatType.Rapport => new Consequence { Rapport = amount },
+            PlayerStatType.Authority => new Consequence { Authority = amount },
+            PlayerStatType.Diplomacy => new Consequence { Diplomacy = amount },
+            PlayerStatType.Cunning => new Consequence { Cunning = amount },
+            _ => new Consequence()
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Building primary choice.
+    /// </summary>
+    private static string GenerateBuildingPrimaryText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Assert yourself confidently",
+            SituationArchetypeType.Negotiation => "Engage diplomatically",
+            SituationArchetypeType.Investigation => "Analyze the situation carefully",
+            SituationArchetypeType.SocialManeuvering => "Build rapport warmly",
+            _ => "Approach with your primary skill"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Building secondary choice.
+    /// </summary>
+    private static string GenerateBuildingSecondaryText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Stand firm with resolve",
+            SituationArchetypeType.Negotiation => "Connect personally",
+            SituationArchetypeType.Investigation => "Use cunning to deduce",
+            SituationArchetypeType.SocialManeuvering => "Navigate with diplomacy",
+            _ => "Approach with your secondary skill"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Crisis stat choice.
+    /// </summary>
+    private static string GenerateCrisisStatText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Take command to prevent disaster",
+            SituationArchetypeType.Negotiation => "Defuse the situation diplomatically",
+            SituationArchetypeType.Investigation => "Spot the danger before it's too late",
+            SituationArchetypeType.SocialManeuvering => "Smooth things over quickly",
+            _ => "Use expertise to avoid the worst"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Crisis money choice.
+    /// </summary>
+    private static string GenerateCrisisMoneyText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Pay to make the problem go away",
+            SituationArchetypeType.Negotiation => "Bribe your way out of trouble",
+            SituationArchetypeType.Investigation => "Pay for urgent information",
+            SituationArchetypeType.SocialManeuvering => "Offer compensation for the offense",
+            _ => "Pay to escape the situation"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Crisis challenge choice.
+    /// </summary>
+    private static string GenerateCrisisChallengeText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Fight desperately to survive",
+            SituationArchetypeType.Negotiation => "Desperately try to reason",
+            SituationArchetypeType.Investigation => "Race to solve the puzzle",
+            SituationArchetypeType.SocialManeuvering => "Make a risky social gambit",
+            _ => "Take a desperate chance"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for Crisis fallback choice.
+    /// </summary>
+    private static string GenerateCrisisFallbackText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.Confrontation => "Suffer the consequences",
+            SituationArchetypeType.Negotiation => "Accept the harsh terms",
+            SituationArchetypeType.Investigation => "Fail to prevent the problem",
+            SituationArchetypeType.SocialManeuvering => "Face the social fallout",
+            _ => "Accept the damage"
+        };
     }
 
     /// <summary>
@@ -1038,7 +1346,10 @@ public static class SituationArchetypeCatalog
 
     /// <summary>
     /// Generate service_negotiation choices with context-aware scaling.
-    /// Scales stat thresholds by NPC.Demeanor and coin costs by Service.Quality.
+    /// Uses SAME scaling formula as GenerateChoiceTemplates():
+    /// - Tier scaling: 0: +0, 1: +1, 2: +2, 3+: +3
+    /// - NpcDemeanor: Friendly: -2, Neutral: 0, Hostile: +2
+    /// - Quality (coin cost): Basic: -3, Standard: 0, Premium: +5, Luxury: +10
     /// Returns 4 choices with EMPTY Consequence (SceneArchetypeCatalog enriches them).
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceNegotiationChoices(
@@ -1055,6 +1366,17 @@ public static class SituationArchetypeCatalog
             _ => archetype.StatThreshold
         };
 
+        // TIER SCALING: Same formula as GenerateChoiceTemplates()
+        int tierAdjustment = context.Tier switch
+        {
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            >= 3 => 3,
+            _ => 0
+        };
+        scaledStatThreshold = scaledStatThreshold + tierAdjustment;
+
         // Adjust coin cost by quality (universal property)
         int scaledCoinCost = context.Quality switch
         {
@@ -1064,6 +1386,13 @@ public static class SituationArchetypeCatalog
             Quality.Luxury => archetype.CoinCost + 10,  // 15 coins (5+10)
             _ => archetype.CoinCost
         };
+
+        // Also scale coin costs by tier
+        scaledCoinCost = scaledCoinCost + (context.Tier * 2);
+
+        // Ensure minimums
+        scaledStatThreshold = Math.Max(1, scaledStatThreshold);
+        scaledCoinCost = Math.Max(1, scaledCoinCost);
 
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 

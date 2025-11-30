@@ -159,4 +159,14 @@ public class SceneTemplate
     /// </summary>
     public bool IsStarter { get; init; } = false;
 
+    /// <summary>
+    /// Sir Brante-style narrative rhythm classification.
+    /// Determines choice generation pattern and consequence polarity.
+    /// Building = All positive outcomes, stat grants (A1 tutorial, recovery)
+    /// Crisis = Damage mitigation, fallback has penalty (A3 crisis, high stakes)
+    /// Mixed = Standard trade-offs (normal gameplay)
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+    /// </summary>
+    public RhythmPattern RhythmPattern { get; init; }
+
 }

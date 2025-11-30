@@ -240,80 +240,14 @@ public static class SceneArchetypeCatalog
         PlacementFilter serviceLocationFilter = resources.LocationFilter;
 
         // SITUATION 1: SECURE LODGING
-        // Tutorial A1 (sequence 1): Manual identity formation choices
-        // Standard/A2+ (sequence null/2+): Use service_negotiation archetype with universal scaling
-        List<ChoiceTemplate> negotiateChoices;
-
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
-        {
-            // SIR BRANTE A1: Identity Formation (manually authored)
-            // - NO stat requirements (player starts with 0)
-            // - Each choice grants DIFFERENT stats (player chooses WHO to be)
-            negotiateChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_friendly",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Chat warmly with the innkeeper",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Rapport = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_assertive",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Assert your need for accommodation",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Authority = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_cunning",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Seek advantageous deal",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Cunning = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{negotiateSitId}_diplomatic",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Negotiate a fair arrangement",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Coins = -5,
-                    Diplomacy = 1
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
-        }
-        else
-        {
-            // Standard/A2+: Use service_negotiation archetype with universal scaling
-            SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
-            negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
-                negotiateArchetype,
-                negotiateSitId,
-                context);
-        }
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern determines choice structure
+        // Building rhythm = stat grants (A1 tutorial), Mixed/Crisis = standard negotiation
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            negotiateArchetype,
+            negotiateSitId,
+            context);
 
         SituationTemplate negotiateSituation = new SituationTemplate
         {
@@ -347,105 +281,39 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: EVENING IN ROOM
-        // Tutorial A1: Identity formation (stat grants)
-        // Standard: Recovery focus (Health/Stamina/Focus restoration)
-        List<ChoiceTemplate> restChoices;
-
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
-        {
-            // SIR BRANTE A1: Identity Formation choices
-            restChoices = new List<ChoiceTemplate>
+        // HIGHLANDER: ONE path for all scenes - recovery with optional stat reflection
+        // RhythmPattern affects difficulty in negotiation; rest focuses on recovery
+        List<ChoiceTemplate> restChoices = new List<ChoiceTemplate>
         {
             new ChoiceTemplate
             {
-                Id = $"{restSitId}_study",
+                Id = $"{restSitId}_full_rest",
                 PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Read and study",
+                ActionTextTemplate = "Rest through the night",
                 RequirementFormula = new CompoundRequirement(),
                 Consequence = new Consequence
                 {
-                    Insight = 1,
-                    Health = 1,
-                    Stamina = 1,
-                    Focus = 1
+                    Health = 15,
+                    Stamina = 15,
+                    Focus = 10
                 },
                 ActionType = ChoiceActionType.Instant
             },
             new ChoiceTemplate
             {
-                Id = $"{restSitId}_plan",
+                Id = $"{restSitId}_light_rest",
                 PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Plan tomorrow's route",
+                ActionTextTemplate = "Light rest",
                 RequirementFormula = new CompoundRequirement(),
                 Consequence = new Consequence
                 {
-                    Cunning = 1  // Planning builds cunning
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_rest",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Rest peacefully",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Health = 3,  // Full rest restores health
-                    Stamina = 3,
-                    Focus = 3
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{restSitId}_socialize",
-                PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Visit the common room",
-                RequirementFormula = new CompoundRequirement(),
-                Consequence = new Consequence
-                {
-                    Rapport = 1  // Socializing builds rapport
+                    Health = 8,
+                    Stamina = 8,
+                    Focus = 5
                 },
                 ActionType = ChoiceActionType.Instant
             }
         };
-        }
-        else
-        {
-            // Standard: Simple rest with recovery tradeoffs
-            restChoices = new List<ChoiceTemplate>
-            {
-                new ChoiceTemplate
-                {
-                    Id = $"{restSitId}_full_rest",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Rest through the night",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence
-                    {
-                        Health = 15,
-                        Stamina = 15,
-                        Focus = 10
-                    },
-                    ActionType = ChoiceActionType.Instant
-                },
-                new ChoiceTemplate
-                {
-                    Id = $"{restSitId}_light_rest",
-                    PathType = ChoicePathType.InstantSuccess,
-                    ActionTextTemplate = "Light rest",
-                    RequirementFormula = new CompoundRequirement(),
-                    Consequence = new Consequence
-                    {
-                        Health = 8,
-                        Stamina = 8,
-                        Focus = 5
-                    },
-                    ActionType = ChoiceActionType.Instant
-                }
-            };
-        }
 
         SituationTemplate restSituation = new SituationTemplate
         {
@@ -712,127 +580,13 @@ public static class SceneArchetypeCatalog
             negotiateSitId,
             context);
 
-        // Enrich negotiation choices with contract-specific rewards
-        // Tutorial A2: Lower stat requirements + spawn A3
+        // HIGHLANDER: ONE path for all scenes - RhythmPattern + Tier handle difficulty scaling
+        // Stat requirements scale via Tier/NPCDemeanor/PowerDynamic (see SituationArchetypeCatalog)
+        // Scene spawning handled by EnrichMainStoryFinalChoices in parser
+        // Fallback enrichment for post-commitment context
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            Consequence baseConsequence = choice.Consequence ?? new Consequence();
-            Consequence successConsequence = choice.OnSuccessConsequence;
-            Consequence failureConsequence = choice.OnFailureConsequence;
-            CompoundRequirement modifiedRequirement = choice.RequirementFormula;
-
-            // Tutorial A2 (sequence 2): Lower stat requirements to 2 (player has 3-5 from A1)
-            // Grant immediate coin payment, spawn A3
-            if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
-            {
-                // Lower stat requirements from 3 to 2 (achievable with A1 stats)
-                // Uses explicit OrPath property lowering
-                if (modifiedRequirement != null && modifiedRequirement.OrPaths != null)
-                {
-                    foreach (OrPath path in modifiedRequirement.OrPaths)
-                    {
-                        // Lower each explicit stat property from 3 to 2
-                        if (path.InsightRequired.HasValue && path.InsightRequired.Value == 3)
-                        {
-                            path.InsightRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.RapportRequired.HasValue && path.RapportRequired.Value == 3)
-                        {
-                            path.RapportRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.AuthorityRequired.HasValue && path.AuthorityRequired.Value == 3)
-                        {
-                            path.AuthorityRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.DiplomacyRequired.HasValue && path.DiplomacyRequired.Value == 3)
-                        {
-                            path.DiplomacyRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                        if (path.CunningRequired.HasValue && path.CunningRequired.Value == 3)
-                        {
-                            path.CunningRequired = 2;
-                            path.Label = path.Label?.Replace("3+", "2+");
-                        }
-                    }
-                }
-
-                SceneSpawnReward a3Spawn = new SceneSpawnReward
-                {
-                    SpawnNextMainStoryScene = true
-                };
-
-                // Determine choice type and set immediate coin payment
-                bool hasStatRequirement = modifiedRequirement != null &&
-                                         modifiedRequirement.OrPaths != null &&
-                                         modifiedRequirement.OrPaths.Any();
-                bool hasCoinCost = choice.Consequence != null && choice.Consequence.Coins < 0;
-
-                // Add A3 spawning and immediate coin payment to appropriate consequence based on path type
-                // Must create NEW Consequence objects (init-only properties)
-                switch (choice.PathType)
-                {
-                    case ChoicePathType.InstantSuccess:
-                        // Distinguish stat path vs money path
-                        if (hasStatRequirement)
-                        {
-                            // Stat path (Rapport): Coins = 15, spawn A3
-                            baseConsequence = new Consequence
-                            {
-                                Coins = 15,
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        else if (hasCoinCost)
-                        {
-                            // Money path: Coins = 13, spawn A3
-                            baseConsequence = new Consequence
-                            {
-                                Coins = 13,
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        else
-                        {
-                            // No cost, just spawn
-                            baseConsequence = new Consequence
-                            {
-                                ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                            };
-                        }
-                        break;
-
-                    case ChoicePathType.Challenge:
-                        // Challenge path: Success = 17, Failure = 8, spawn A3 regardless
-                        successConsequence = new Consequence
-                        {
-                            Coins = 17,
-                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                        };
-
-                        failureConsequence = new Consequence
-                        {
-                            Coins = 8,
-                            ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn }
-                        };
-                        break;
-
-                    case ChoicePathType.Fallback:
-                        // Fallback: Player breaks commitment after accepting - consequences but no requirements
-                        // See arc42/08 §8.16 Fallback Context Rules: Post-commitment fallback has penalty
-                        baseConsequence = new Consequence
-                        {
-                            Rapport = -1  // Breaking commitment disappoints the merchant
-                        };
-                        break;
-                }
-            }
-
-            // Override action text for Fallback to reflect post-commitment context
             string enrichedActionText = choice.PathType == ChoicePathType.Fallback
                 ? "Back out of the deal"
                 : choice.ActionTextTemplate;
@@ -840,12 +594,12 @@ public static class SceneArchetypeCatalog
             ChoiceTemplate enrichedChoice = new ChoiceTemplate
             {
                 Id = choice.Id,
-                PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
+                PathType = choice.PathType,
                 ActionTextTemplate = enrichedActionText,
-                RequirementFormula = modifiedRequirement,  // Use modified requirements for A2
-                Consequence = baseConsequence,
-                OnSuccessConsequence = successConsequence,
-                OnFailureConsequence = failureConsequence,
+                RequirementFormula = choice.RequirementFormula,
+                Consequence = choice.Consequence,
+                OnSuccessConsequence = choice.OnSuccessConsequence,
+                OnFailureConsequence = choice.OnFailureConsequence,
                 ActionType = choice.ActionType,
                 ChallengeId = choice.ChallengeId,
                 ChallengeType = choice.ChallengeType,
@@ -947,26 +701,28 @@ public static class SceneArchetypeCatalog
         string approachSitId = $"{sceneId}_approach";
         string arrivalSitId = $"{sceneId}_arrival";
 
-        // Tutorial A3 (sequence 3): Populate stat requirements + crisis damage control
-        bool isA3Tutorial = context.AStorySequence.HasValue && context.AStorySequence.Value == 3;
+        // HIGHLANDER: ONE path - RhythmPattern determines crisis vs standard behavior
+        // Crisis rhythm: Requirements gate safe outcome, fallback has penalty
+        // Mixed rhythm: Requirements gate best outcome, fallback has time cost
+        // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+        bool isCrisis = context?.Rhythm == RhythmPattern.Crisis;
 
         // SITUATION 1: PHYSICAL OBSTACLE (Segment 0)
         CompoundRequirement obstacle1AuthorityReq = new CompoundRequirement();
         Consequence obstacle1FallbackReward;
 
-        if (isA3Tutorial)
+        if (isCrisis)
         {
-            // A3 CRISIS: Authority 3 required, fallback causes damage
-            // Uses Explicit Property Principle - AuthorityRequired instead of string-based routing
+            // CRISIS: Authority 3 required, fallback causes damage
             obstacle1AuthorityReq.OrPaths = new List<OrPath>
             {
                 SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Authority, 3)
             };
-            obstacle1FallbackReward = new Consequence { Health = -10 };  // Crisis: Damage control choice
+            obstacle1FallbackReward = new Consequence { Health = -10 };
         }
         else
         {
-            obstacle1FallbackReward = new Consequence();  // No penalty outside tutorial
+            obstacle1FallbackReward = new Consequence();
         }
 
         SituationTemplate obstacle1Situation = new SituationTemplate
@@ -1042,19 +798,18 @@ public static class SceneArchetypeCatalog
         CompoundRequirement obstacle2InsightReq = new CompoundRequirement();
         Consequence obstacle2FallbackReward;
 
-        if (isA3Tutorial)
+        if (isCrisis)
         {
-            // A3 CRISIS: Insight 3 required, fallback causes stamina loss
-            // Uses Explicit Property Principle - InsightRequired instead of string-based routing
+            // CRISIS: Insight 3 required, fallback causes stamina loss
             obstacle2InsightReq.OrPaths = new List<OrPath>
             {
                 SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Insight, 3)
             };
-            obstacle2FallbackReward = new Consequence { Stamina = -10 };  // Crisis: Exhausting failed attempt
+            obstacle2FallbackReward = new Consequence { Stamina = -10 };
         }
         else
         {
-            obstacle2FallbackReward = new Consequence();  // No penalty outside tutorial
+            obstacle2FallbackReward = new Consequence();
         }
 
         SituationTemplate obstacle2Situation = new SituationTemplate
@@ -1130,19 +885,18 @@ public static class SceneArchetypeCatalog
         CompoundRequirement obstacle3RapportReq = new CompoundRequirement();
         Consequence obstacle3FallbackReward;
 
-        if (isA3Tutorial)
+        if (isCrisis)
         {
-            // A3 CRISIS: Rapport 3 required, fallback costs coins
-            // Uses Explicit Property Principle - RapportRequired instead of string-based routing
+            // CRISIS: Rapport 3 required, fallback costs coins
             obstacle3RapportReq.OrPaths = new List<OrPath>
             {
                 SituationArchetypeCatalog.CreateOrPathForStat(PlayerStatType.Rapport, 3)
             };
-            obstacle3FallbackReward = new Consequence { Coins = -5 };  // Crisis: Forced to pay penalty
+            obstacle3FallbackReward = new Consequence { Coins = -5 };
         }
         else
         {
-            obstacle3FallbackReward = new Consequence();  // No penalty outside tutorial
+            obstacle3FallbackReward = new Consequence();
         }
 
         SituationTemplate obstacle3Situation = new SituationTemplate
@@ -1264,8 +1018,8 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 5: ARRIVAL AT DESTINATION
-        // Tutorial A3 (sequence 3): Fixed +10 coin completion bonus (totals with A2: 25/23/27/18/20)
-        Consequence arrivalConsequence = (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
+        // HIGHLANDER: Crisis rhythm provides completion bonus for surviving high-stakes journey
+        Consequence arrivalConsequence = isCrisis
             ? new Consequence { Coins = 10 }
             : new Consequence();
 

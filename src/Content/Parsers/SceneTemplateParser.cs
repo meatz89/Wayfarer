@@ -127,6 +127,19 @@ public class SceneTemplateParser
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{sceneArchetypeType}'");
 
+        // FAIL-FAST: RhythmPattern is REQUIRED (no silent defaults)
+        // MUST parse BEFORE GenerateSceneFromArchetype since rhythm affects choice generation
+        // Sir Brante rhythm classification determines choice generation pattern
+        // See arc42/08_crosscutting_concepts.md §8.26
+        if (string.IsNullOrEmpty(dto.RhythmPattern))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'rhythmPattern'. Must be 'Building', 'Crisis', or 'Mixed'.");
+        }
+        if (!Enum.TryParse<RhythmPattern>(dto.RhythmPattern, true, out RhythmPattern rhythmPattern))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid RhythmPattern value: '{dto.RhythmPattern}'. Must be 'Building', 'Crisis', or 'Mixed'.");
+        }
+
         // CATEGORICAL PARSING: No entity resolution at parse time
         // Concrete binding happens at instantiation time via SceneInstantiator
         // All scenes use categorical properties for procedural placement
@@ -134,14 +147,15 @@ public class SceneTemplateParser
         NPC contextNPC = null;
         Location contextLocation = null;
 
-        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={tier}, MainStorySequence={dto.MainStorySequence}");
+        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={tier}, MainStorySequence={dto.MainStorySequence}, Rhythm={rhythmPattern}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             sceneArchetypeType,
             tier,
             contextNPC,
             contextLocation,
-            dto.MainStorySequence);
+            dto.MainStorySequence,
+            rhythmPattern);
 
         List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
         SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;
@@ -195,7 +209,8 @@ public class SceneTemplateParser
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
-            IsStarter = isStarter
+            IsStarter = isStarter,
+            RhythmPattern = rhythmPattern
         };
 
         // A-STORY ENRICHMENT: Per CONTENT_ARCHITECTURE.md §8

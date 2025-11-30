@@ -148,4 +148,16 @@ public class SceneTemplateDTO
     /// </summary>
     public bool? IsStarter { get; set; }
 
+    /// <summary>
+    /// Sir Brante-style narrative rhythm classification - REQUIRED (FAIL-FAST)
+    /// Determines choice generation pattern and consequence polarity.
+    /// Values: "Building", "Crisis", "Mixed"
+    /// Building = All positive outcomes, stat grants (A1 tutorial, recovery)
+    /// Crisis = Damage mitigation, fallback has penalty (A3 crisis, high stakes)
+    /// Mixed = Standard trade-offs (normal gameplay)
+    /// Missing value = parse-time exception (content authoring error)
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+    /// </summary>
+    public string RhythmPattern { get; set; }
+
 }
