@@ -857,13 +857,13 @@ Two independent systems control procedural content: RhythmPattern (choice struct
 | **RhythmPattern** | Choice generation | Building / Crisis / Mixed | HOW choices are structured |
 | **ArchetypeIntensity** | Player readiness filter | Recovery / Standard / Demanding | WHICH archetypes can be selected |
 
-**ArchetypeIntensity maps player Resolve to safe archetypes:**
+**ArchetypeIntensity maps player resource state to safe archetypes:**
 
-| Player State | Resolve | Max Safe Intensity | Allowed Archetypes |
-|--------------|---------|-------------------|-------------------|
-| Exhausted | < 3 | Recovery | Only recovery-focused archetypes |
-| Normal | 3-15 | Standard | Recovery + standard trade-off archetypes |
-| Capable | > 15 | Demanding | All archetypes including high-stakes |
+| Player State | Resource Level | Max Safe Intensity | Allowed Archetypes |
+|--------------|----------------|-------------------|-------------------|
+| Exhausted | Very Low | Recovery | Only recovery-focused archetypes |
+| Normal | Medium | Standard | Recovery + standard trade-off archetypes |
+| Capable | High | Demanding | All archetypes including high-stakes |
 
 **Practical correlation (not dependency):**
 

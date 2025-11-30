@@ -3,18 +3,7 @@ using Xunit;
 namespace Wayfarer.Tests.Services;
 
 /// <summary>
-/// Tests for runtime intensity filtering in facades.
-///
-/// CRITICAL: Ensures exhausted players (Resolve less than 3) only see Recovery situations,
-/// not all situations regardless of intensity level.
-///
-/// This extends generation-time filtering (ProceduralAStoryService) to runtime display
-/// filtering (GameFacade, LocationFacade).
-///
-/// THREE-LEVEL PLAYER READINESS:
-/// - Exhausted (Resolve less than 3): Recovery only
-/// - Normal (Resolve 3-15): Recovery + Standard
-/// - Capable (Resolve greater than 15): All intensities
+/// Tests runtime intensity filtering - protects exhausted players from demanding situations.
 /// </summary>
 public class RuntimeIntensityFilteringTests
 {
