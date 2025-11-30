@@ -837,15 +837,15 @@ RhythmPattern follows the Catalogue Pattern: authored in JSON templates, transfo
 
 ### HIGHLANDER Compliance
 
-All situation archetypes respect rhythm through ONE generation path:
+ALL situation archetypes use ONE generation path. No routing, no special cases:
 
-| Archetype | Building Produces | Crisis Produces | Mixed Produces |
-|-----------|-------------------|-----------------|----------------|
-| ServiceNegotiation | Stat grant choices | Penalty avoidance choices | Standard trade-off choices |
-| ServiceExecutionRest | High restoration + stat reflection | Low restoration, anxious night | Resource distribution choices |
-| ServiceDeparture | Both paths positive with stat grants | Quick exit safe, lingering has penalty | Standard departure options |
+| Rhythm | All Archetypes Produce |
+|--------|----------------------|
+| **Building** | 4 choices with no requirements, each GRANTS a different stat |
+| **Crisis** | 4 choices where stat/coin requirements gate avoiding penalty; fallback takes penalty |
+| **Mixed** | 4 choices with standard trade-offs (requirements, costs, rewards) |
 
-**Same archetype + different rhythm = different choice structures. No tutorial hardcoding.**
+**Same archetype + different rhythm = different choice structures. No category routing.**
 
 ### Rhythm Anti-Patterns
 

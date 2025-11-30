@@ -1,32 +1,16 @@
 
 /// <summary>
-/// Categorizes situation archetypes by choice generation pattern.
-/// Used for routing to specialized choice generators instead of ID string matching.
+/// Archetype category marker - HIGHLANDER COMPLIANT.
+/// All archetypes are Standard. No routing, no special cases.
+/// RhythmPattern (Building/Crisis/Mixed) determines choice structure.
+/// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
 /// </summary>
 public enum ArchetypeCategory
 {
     /// <summary>
-    /// Standard 4-choice archetype (stat-gated, money, challenge, fallback)
+    /// All archetypes use standard rhythm-aware 4-choice generation.
     /// </summary>
-    Standard,
-
-    /// <summary>
-    /// Service negotiation archetype (inn booking, service contracts)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceNegotiation,
-
-    /// <summary>
-    /// Service execution archetype (rest at inn, consume service)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceExecutionRest,
-
-    /// <summary>
-    /// Service departure archetype (leaving service venue)
-    /// Has specialized choice generation logic
-    /// </summary>
-    ServiceDeparture
+    Standard
 }
 
 /// <summary>
@@ -59,8 +43,9 @@ public class SituationArchetype
     public string Name { get; init; }
 
     /// <summary>
-    /// Archetype category for choice generation routing.
-    /// Enables enum-based switching instead of ID string matching.
+    /// Archetype category marker - all archetypes are Standard.
+    /// RhythmPattern determines choice structure, not category.
+    /// See arc42/08_crosscutting_concepts.md §8.26
     /// </summary>
     public ArchetypeCategory Category { get; init; } = ArchetypeCategory.Standard;
 
