@@ -75,20 +75,22 @@ public class ProceduralAStoryServiceTests
     }
 
     [Theory]
-    [InlineData(1, "Investigation")]   // (1-1) % 4 = 0
-    [InlineData(2, "Social")]          // (2-1) % 4 = 1
-    [InlineData(3, "Confrontation")]   // (3-1) % 4 = 2
-    [InlineData(4, "Crisis")]          // (4-1) % 4 = 3
-    [InlineData(5, "Investigation")]   // (5-1) % 4 = 0 (cycle repeats)
-    [InlineData(9, "Investigation")]   // (9-1) % 4 = 0
-    [InlineData(10, "Social")]         // (10-1) % 4 = 1
-    [InlineData(11, "Confrontation")]  // (11-1) % 4 = 2
-    [InlineData(12, "Crisis")]         // (12-1) % 4 = 3
+    [InlineData(1, "Investigation")]   // (1-1) % 8 = 0
+    [InlineData(2, "Social")]          // (2-1) % 8 = 1
+    [InlineData(3, "Confrontation")]   // (3-1) % 8 = 2
+    [InlineData(4, "Crisis")]          // (4-1) % 8 = 3
+    [InlineData(5, "Investigation")]   // (5-1) % 8 = 4
+    [InlineData(6, "Social")]          // (6-1) % 8 = 5
+    [InlineData(7, "Confrontation")]   // (7-1) % 8 = 6
+    [InlineData(8, "Peaceful")]        // (8-1) % 8 = 7 (earned respite)
+    [InlineData(9, "Investigation")]   // (9-1) % 8 = 0 (cycle repeats)
+    [InlineData(16, "Peaceful")]       // (16-1) % 8 = 7
     public void ArchetypeRotation_SequenceMapsToCorrectCategory(int sequence, string expectedCategory)
     {
-        // This tests the rotation algorithm directly without generating templates
-        // Formula: (sequence - 1) % 4 maps to category
-        int cyclePosition = (sequence - 1) % 4;
+        // This tests the 8-cycle rotation algorithm directly
+        // Formula: (sequence - 1) % 8 maps to category
+        // Peaceful appears every 8th sequence as earned structural respite
+        int cyclePosition = (sequence - 1) % 8;
 
         string actualCategory = cyclePosition switch
         {
@@ -96,6 +98,10 @@ public class ProceduralAStoryServiceTests
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
+            4 => "Investigation",
+            5 => "Social",
+            6 => "Confrontation",
+            7 => "Peaceful",
             _ => throw new InvalidOperationException()
         };
 
@@ -159,13 +165,13 @@ public class ProceduralAStoryServiceTests
     }
 
     // ==================== PEACEFUL CATEGORY TESTS ====================
-    // Peaceful category exists for Recovery-intensity situations
+    // Peaceful category provides earned structural respite every 8th sequence
 
     [Fact]
     public void Catalog_PeacefulCategory_ReturnsNonEmptyList()
     {
-        // CRITICAL: Peaceful category must return archetypes for exhausted players
-        // If empty, player with low Resolve gets stuck with no valid scenes
+        // CRITICAL: Peaceful category must return archetypes for 8-cycle rotation
+        // Appears every 8th sequence as earned structural respite
         List<SceneArchetypeType> peacefulArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Peaceful");
 
         Assert.NotEmpty(peacefulArchetypes);
@@ -186,7 +192,7 @@ public class ProceduralAStoryServiceTests
     public void Catalog_AllFiveCategories_HaveNonEmptyArchetypes()
     {
         // CRITICAL: ALL five rotation categories must return valid archetypes
-        // Including Peaceful for exhausted players
+        // 8-cycle rotation uses all five categories
         List<string> categories = new List<string>
         {
             "Investigation",

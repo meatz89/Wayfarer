@@ -750,7 +750,7 @@ public static class SituationArchetypeCatalog
     }
 
     // ==================== PEACEFUL ARCHETYPES (3) ====================
-    // Recovery-focused archetypes for exhausted players
+    // Recovery-focused archetypes (earned structural respite every 8th sequence)
     // No Resolve cost, no stat requirements, purely positive outcomes
 
     /// <summary>

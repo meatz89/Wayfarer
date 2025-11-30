@@ -88,29 +88,35 @@ public class ProceduralAStoryService
     /// <summary>
     /// Get archetype category for given sequence based on rotation cycle.
     /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
-    /// Rotation strategy: Investigation → Social → Confrontation → Crisis (repeat)
-    /// Works from ANY sequence (flexible number of authored scenes).
+    ///
+    /// 8-SEQUENCE ROTATION with Peaceful as earned respite:
+    /// Investigation → Social → Confrontation → Crisis → Investigation → Social → Confrontation → Peaceful
+    ///
+    /// Design rationale:
+    /// - Peaceful appears 1/8 (12.5%) - uncommon but predictable
+    /// - Replaces second Crisis in each 8-sequence cycle (never two Crisis in a row)
+    /// - Peaceful is EARNED through story structure, not given when player struggles
+    /// - Intensity flow: Standard → Standard → Demanding → Demanding → Standard → Standard → Demanding → Recovery
     ///
     /// CHALLENGE PHILOSOPHY: Player state does NOT affect category selection.
-    /// Fair rhythm emerges from story structure (rotation cycle), not player-state filtering.
-    /// Players face Crisis/Confrontation even when exhausted - learning from unaffordable choices.
+    /// Fair rhythm emerges from story structure, not player-state filtering.
     /// See gdd/06_balance.md §6.8 for Challenge and Consequence Philosophy.
-    ///
-    /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
-    /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
     /// </summary>
     private string GetArchetypeCategory(int sequence)
     {
-        int cyclePosition = (sequence - 1) % 4;
+        int cyclePosition = (sequence - 1) % 8;
 
-        // Standard rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
-        // NO player state filtering - fair rhythm from story structure
+        // 8-cycle rotation: Peaceful replaces second Crisis, providing earned structural respite
         return cyclePosition switch
         {
             0 => "Investigation",
             1 => "Social",
             2 => "Confrontation",
             3 => "Crisis",
+            4 => "Investigation",
+            5 => "Social",
+            6 => "Confrontation",
+            7 => "Peaceful",  // Earned respite (Recovery intensity, Building rhythm)
             _ => "Investigation"
         };
     }
@@ -197,16 +203,16 @@ public class ProceduralAStoryService
     /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
     ///
     /// Pattern selection:
-    /// - Peaceful category → Building rhythm (all positive, recovery for exhausted players)
+    /// - Peaceful category → Building rhythm (all positive, earned structural respite)
     /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
-    /// - First scene after Crisis → Building rhythm (recovery, stat grants)
+    /// - First scene after Crisis/Peaceful → Building rhythm (recovery, stat grants)
     /// - Other categories → Mixed rhythm (standard trade-offs)
     ///
     /// AI composes scenes with this rhythm; catalogue generates appropriate choices.
     /// </summary>
     private string DetermineRhythmPattern(string archetypeCategory, int sequence, int tier)
     {
-        // Peaceful category always uses Building rhythm (all positive for exhausted players)
+        // Peaceful category always uses Building rhythm (earned respite, all positive)
         if (archetypeCategory == "Peaceful")
         {
             return "Building";
@@ -218,11 +224,10 @@ public class ProceduralAStoryService
             return "Crisis";
         }
 
-        // First scene after Crisis (Investigation) uses Building rhythm (recovery)
-        // Cycle: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
-        // Position 0 follows Crisis(3), so it's recovery time
-        int cyclePosition = (sequence - 1) % 4;
-        if (cyclePosition == 0)
+        // First scene after Crisis or Peaceful uses Building rhythm (recovery)
+        // 8-cycle: Investigation(0) follows Peaceful(7), Investigation(4) follows Crisis(3)
+        int cyclePosition = (sequence - 1) % 8;
+        if (cyclePosition == 0 || cyclePosition == 4)
         {
             return "Building";
         }

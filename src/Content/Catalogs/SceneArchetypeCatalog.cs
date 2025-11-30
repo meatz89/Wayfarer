@@ -1951,22 +1951,22 @@ public static class SceneArchetypeCatalog
 
     // ===================================================================
     // PEACEFUL SCENE ARCHETYPES (3)
-    // Recovery-focused patterns for exhausted players (Resolve less than 3)
-    // All choices positive, no requirements, stat grants only
-    // See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+    // Recovery-focused patterns (earned structural respite every 8th sequence)
+    // All choices positive, no requirements, stat grants only (Building rhythm)
+    // See arc42/08_crosscutting_concepts.md §8.26 and gdd/06_balance.md §6.8
     // ===================================================================
 
     /// <summary>
     /// QUIET_REFLECTION archetype
     ///
     /// FICTIONAL CONTEXT: Player finds a quiet moment for meditation and mental recovery
-    /// STORY PURPOSE: Recovery for exhausted players, identity formation through contemplation
+    /// STORY PURPOSE: Earned respite, identity formation through contemplation
     ///
     /// Situation Count: 2
     /// Pattern: Linear (settle → reflect)
     ///
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
-    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
     private static SceneArchetypeDefinition GenerateQuietReflection(int tier, GenerationContext context)
     {
@@ -2059,13 +2059,13 @@ public static class SceneArchetypeCatalog
     /// CASUAL_ENCOUNTER archetype
     ///
     /// FICTIONAL CONTEXT: Player has casual social interaction with locals
-    /// STORY PURPOSE: Social recovery for exhausted players, Rapport building
+    /// STORY PURPOSE: Social respite, Rapport building
     ///
     /// Situation Count: 2
     /// Pattern: Linear (encounter → converse)
     ///
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
-    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
     private static SceneArchetypeDefinition GenerateCasualEncounter(int tier, GenerationContext context)
     {
@@ -2161,13 +2161,13 @@ public static class SceneArchetypeCatalog
     /// SCHOLARLY_PURSUIT archetype
     ///
     /// FICTIONAL CONTEXT: Player studies in a library or scholarly setting
-    /// STORY PURPOSE: Mental recovery for exhausted players, Insight building
+    /// STORY PURPOSE: Mental respite, Insight building
     ///
     /// Situation Count: 2
     /// Pattern: Linear (browse → study)
     ///
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
-    /// Designed for exhausted players (Resolve less than 3) who need safe recovery
+    /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
     private static SceneArchetypeDefinition GenerateScholarlyPursuit(int tier, GenerationContext context)
     {

@@ -439,6 +439,33 @@ The game maintains fairness through rhythm, not rescue:
 - Automatic recovery when Resolve is low
 - Removal of demanding content for unprepared players
 
+### 8-Sequence Rotation (Earned Structural Respite)
+
+Procedural A-Story generation follows an 8-sequence cycle with Peaceful as earned respite:
+
+| Position | Category | Intensity | Purpose |
+|----------|----------|-----------|---------|
+| 1 | Investigation | Standard | Information gathering |
+| 2 | Social | Standard | Relationship building |
+| 3 | Confrontation | Demanding | Rising tension |
+| 4 | Crisis | Demanding | Peak challenge |
+| 5 | Investigation | Standard | New thread |
+| 6 | Social | Standard | Consolidation |
+| 7 | Confrontation | Demanding | Building to climax |
+| 8 | **Peaceful** | **Recovery** | **Earned respite** |
+
+**Design rationale:**
+- Peaceful appears every 8th sequence (12.5% frequency) - uncommon but predictable
+- Replaces what would be a second Crisis - never two Crisis in a row
+- Peaceful is EARNED through story structure, not given when player struggles
+- Creates intensity flow: Standard → Standard → Demanding → Demanding → Standard → Standard → Demanding → Recovery
+
+**Rhythm pattern assignment:**
+- Peaceful always uses Building rhythm (all positive choices)
+- Investigation after Crisis/Peaceful uses Building rhythm (recovery)
+- Crisis always uses Crisis rhythm (penalty on fallback)
+- Other categories use Mixed rhythm (standard trade-offs)
+
 ### Intensity Categorization vs Choice Requirements (Orthogonal Systems)
 
 Two separate systems describe content, but only one gates player access:
