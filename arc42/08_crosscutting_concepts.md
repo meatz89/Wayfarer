@@ -821,11 +821,24 @@ Any category can appear in tutorial OR procedural content. The category describe
 
 **"Building accumulates capability; Crisis tests it."**
 
-Content rhythm controls how situations present choices to players. Rhythm is AUTHORED per scene template - content designers specify intended pacing, not derived from game state.
+Content rhythm controls how situations present choices to players. Rhythm is contextual - determined by current game state and story beat, enabling AI to generate appropriate content at runtime.
 
-### Rhythm as Authored Categorical Property
+### Design Vision: AI-Generated Procedural Content
 
-RhythmPattern follows the Catalogue Pattern: authored in JSON templates, transformed at parse-time into concrete choice structures. Scene templates declare their rhythm classification.
+At runtime, AI generates scene structures procedurally for current context. SituationArchetypes are the vocabulary AI uses to compose scenes - the catalogue handles mechanics, AI handles structure.
+
+| Layer | Responsibility | Timing |
+|-------|---------------|--------|
+| **AI** | Decides scene structure (which archetypes in what order) | Runtime |
+| **Context** | Provides rhythm, tier, NPC demeanor, quality | Runtime |
+| **Catalogue** | Generates rhythm-aware choices from archetypes | Runtime |
+| **Game** | Executes choices with mechanical consistency | Runtime |
+
+**AI says "Negotiation → Confrontation → Crisis" with Building rhythm; catalogue generates stat-granting choices.**
+
+### Rhythm as Contextual Property
+
+RhythmPattern flows through GenerationContext at runtime. AI determines appropriate rhythm based on story state, player resources, and dramatic pacing.
 
 | Rhythm | Choice Generation | Player Experience |
 |--------|-------------------|-------------------|
