@@ -838,7 +838,18 @@ At runtime, AI generates scene structures procedurally for current context. Situ
 
 ### Rhythm as Contextual Property
 
-RhythmPattern flows through GenerationContext at runtime. AI determines appropriate rhythm based on story state, player resources, and dramatic pacing.
+RhythmPattern flows through GenerationContext. Like other Context Injection properties (§8.28), rhythm has two sources:
+
+| Source | How Rhythm Is Set | Use Case |
+|--------|-------------------|----------|
+| **Authored** | Explicit RhythmPattern in SceneTemplateDTO | Tutorial sequences, hand-crafted narrative beats |
+| **Procedural** | Computed from archetype category | Infinite A-story continuation |
+
+**Procedural Rhythm Computation:**
+- Peaceful category → Building rhythm (recovery for exhausted players)
+- Crisis category → Crisis rhythm (test player investments)
+- First scene after Crisis → Building rhythm (recovery)
+- Other categories → Mixed rhythm (standard trade-offs)
 
 | Rhythm | Choice Generation | Player Experience |
 |--------|-------------------|-------------------|
@@ -1029,6 +1040,96 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 - Per-entity naming without relationship awareness
 - Display-time regeneration (names must persist)
 - Placeholder syntax in templates (AI generates complete text)
+
+---
+
+## 8.28 Context Injection (HIGHLANDER Scene Generation)
+
+**"Generation receives context as input; generation never discovers context."**
+
+Scene generation uses a single code path for both authored and procedural content. Context is always INJECTED, never discovered from GameWorld during generation.
+
+### Why Context Injection
+
+| Problem | Caused By | Solution |
+|---------|-----------|----------|
+| **Authored sequences unpredictable** | Generation reads GameWorld state | Inject explicit context |
+| **Two code paths** | Branching on "authored vs procedural" | Single path, different inputs |
+| **Testing difficulty** | Generation depends on GameWorld state | Pure function with inputs |
+| **Determinism impossible** | State changes between scenes | Context frozen at call time |
+
+### The Pattern
+
+| Source | Who Builds Context | What It Contains |
+|--------|-------------------|------------------|
+| **Authored** | Content author via SceneSpawnReward | Explicit TargetCategory, LocationContext, Exclusions |
+| **Procedural** | Caller computes from GameWorld | Derived from player state, location, history |
+
+Both paths produce identical SceneSelectionInputs. Generator receives inputs and produces output. No GameWorld reads inside generator.
+
+### Two Context Layers
+
+Context injection operates at TWO distinct layers with different purposes:
+
+| Layer | DTO | Purpose | When |
+|-------|-----|---------|------|
+| **Scene Selection** | SceneSelectionInputs | Determines WHICH archetype category to generate | Before template creation |
+| **Situation Scaling** | GenerationContext | Determines HOW to scale archetype values | During situation instantiation |
+
+**Scene Selection Context (Layer 1):**
+- Input to archetype category selection
+- Contains: Sequence, location context, intensity history, rhythm state, anti-repetition data
+- Authored content sets TargetCategory directly; procedural derives from weighted factors
+- Output: Archetype category string (Investigation, Social, Confrontation, Crisis, Peaceful)
+
+**Situation Scaling Context (Layer 2):**
+- Input to catalogue generation and choice scaling
+- Contains: Tier, categorical properties (Danger, Stakes, Urgency, Power, Quality), entity references
+- Derived from resolved entities at instantiation time
+- Output: Scaled requirements, costs, rewards matching context
+
+**Why Two Layers:**
+- Selection happens BEFORE entities exist (choosing template type)
+- Scaling happens AFTER entities resolve (adjusting values)
+- Different data sources: Selection uses history/state; Scaling uses entity properties
+- Single-layer approach would require premature entity resolution
+
+### Process Flow
+
+| Step | What Happens | Context Used |
+|------|--------------|--------------|
+| **1. Trigger** | SceneSpawnReward evaluated | None yet |
+| **2. Build Selection Inputs** | Caller builds SceneSelectionInputs | Authored fields OR GameWorld state |
+| **3. Select Category** | Generator selects archetype category | SceneSelectionInputs |
+| **4. Build DTO** | Generator creates SceneTemplateDTO | Category + tier |
+| **5. Parse Template** | PackageLoader → Parser → Catalogue | Categorical properties |
+| **6. Resolve Entities** | Placement filter matches entities | Template filters |
+| **7. Build Generation Context** | Entities → GenerationContext | Resolved entity properties |
+| **8. Generate Situations** | Archetype + GenerationContext → Situations | Full context |
+
+**Key Insight:** Steps 2-5 use Layer 1 (selection). Steps 7-8 use Layer 2 (scaling). Entity resolution (step 6) is the transition point.
+
+### HIGHLANDER Compliance
+
+| Principle | How Context Injection Upholds It |
+|-----------|----------------------------------|
+| **Same code path** | Both authored and procedural use identical generation logic |
+| **Single source of truth** | Context is THE input, not discovered state |
+| **No optional parameters** | All inputs required, no conditional bypasses |
+| **Parse-time translation** | Context fields translate to entities via Catalogue |
+
+### Consequences
+
+- **Authored tutorial sequences are deterministic** - author controls A1→A2→A3 category progression
+- **Procedural sequences are adaptive** - context computed from actual player state
+- **Generation is testable** - pass inputs, verify output, no GameWorld mocking needed
+- **No special cases** - same Generator.Generate() call regardless of source
+
+**Forbidden:**
+- GameWorld reads inside generation methods
+- Optional context parameters that bypass inputs
+- Different method signatures for authored vs procedural
+- Context discovery at generation time
 
 ---
 

@@ -46,42 +46,47 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Generate next A-story template for given sequence
-    /// Called when previous A-scene completes
-    /// Returns generated template ID (for tracking)
+    /// Generate next A-story template for given sequence.
+    /// Called when previous A-scene completes.
+    /// Returns generated template ID (for tracking).
+    ///
+    /// CONTEXT INJECTION (HIGHLANDER, arc42 §8.28):
+    /// - Receives SceneSelectionInputs (complete inputs, no GameWorld reads inside)
+    /// - If inputs.TargetCategory set (authored): use it directly
+    /// - If inputs.TargetCategory null (procedural): compute from selection logic
+    /// - Same code path: inputs → category selection → DTO → PackageLoader → Parser
     ///
     /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
     /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
     /// NO runtime catalogue calls - all resolution through Parser pipeline.
     /// </summary>
-    public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
+    public async Task<string> GenerateNextATemplate(
+        int sequence,
+        AStoryContext context,
+        SceneSelectionInputs selectionInputs)
     {
-        // 1. Get player readiness for intensity filtering
-        Player player = _gameWorld.GetPlayer();
-        ArchetypeIntensity maxSafeIntensity = _readinessService.GetMaxSafeIntensity(player);
+        // Get archetype CATEGORY from selection inputs
+        // CONTEXT INJECTION: If authored content set TargetCategory, use it directly
+        // Otherwise compute from selection logic (procedural path)
+        string archetypeCategory = SelectArchetypeCategory(selectionInputs);
 
-        // 2. Get archetype CATEGORY (categorical property, not specific archetype)
-        // Parser will resolve to specific archetype via Catalogue
-        // Filtered by player readiness to avoid overwhelming exhausted players
-        string archetypeCategory = GetArchetypeCategory(sequence, maxSafeIntensity);
-
-        // 2. Get excluded archetypes for anti-repetition (categorical property)
+        // Get excluded archetypes for anti-repetition (categorical property)
         List<string> excludedArchetypes = GetExcludedArchetypes(context);
 
-        // 3. Calculate tier from sequence
+        // Calculate tier from sequence
         int tier = CalculateTier(sequence);
 
-        // 4. Build SceneTemplateDTO with categorical properties
+        // Build SceneTemplateDTO with categorical properties
         SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeCategory, excludedArchetypes, tier, context);
 
-        // 4. Serialize to JSON package
+        // Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
         string packageId = $"a_story_{sequence}_template";
 
-        // 5. Write dynamic package file
+        // Write dynamic package file
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
 
-        // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
+        // Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
         // Result discarded - templates don't need post-load configuration
         _ = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
@@ -89,24 +94,27 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get archetype category for given sequence based on rotation cycle and player readiness.
-    /// Returns CATEGORICAL property - Parser will resolve to specific archetype via Catalogue.
-    /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
-    /// Works from ANY sequence (flexible number of authored scenes)
+    /// Select archetype category from SceneSelectionInputs.
+    /// CONTEXT INJECTION: Same code path for authored and procedural.
+    /// - If TargetCategory set: use it directly (authored override)
+    /// - If not set: use rotation logic with player readiness filtering (procedural)
     ///
     /// PLAYER READINESS FILTERING:
-    /// - Exhausted (Recovery only): Forces Peaceful category archetypes
-    /// - Normal (up to Standard): Allows Investigation, Social, Confrontation
-    /// - Capable (up to Demanding): Allows all including Crisis
-    ///
-    /// CATALOGUE PATTERN: Service returns categorical property, Parser calls Catalogue at parse-time.
-    /// NO runtime catalogue calls in Services - all resolution happens through Parser pipeline.
+    /// - Exhausted (Recovery only): Forces Peaceful category
+    /// - Normal (up to Standard): Allows Investigation, Social; downgrades Confrontation/Crisis
+    /// - Capable (up to Demanding): Allows all categories including Crisis
     /// </summary>
-    private string GetArchetypeCategory(int sequence, ArchetypeIntensity maxSafeIntensity)
+    private string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        int cyclePosition = (sequence - 1) % 4;
+        // AUTHORED PATH: TargetCategory explicitly set
+        if (!string.IsNullOrEmpty(inputs.TargetCategory))
+        {
+            return inputs.TargetCategory;
+        }
 
-        // Standard rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
+        // PROCEDURAL PATH: Compute from inputs with player readiness filtering
+        // Base rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
+        int cyclePosition = (inputs.Sequence - 1) % 4;
         string desiredCategory = cyclePosition switch
         {
             0 => "Investigation",
@@ -127,27 +135,60 @@ public class ProceduralAStoryService
             _ => ArchetypeIntensity.Standard
         };
 
-        // If player can handle the desired category, use it
-        if (categoryIntensity <= maxSafeIntensity)
+        // Player readiness filtering
+        string selectedCategory;
+        if (categoryIntensity <= inputs.MaxSafeIntensity)
         {
-            return desiredCategory;
+            // Player can handle desired category
+            selectedCategory = desiredCategory;
+        }
+        else if (inputs.MaxSafeIntensity == ArchetypeIntensity.Recovery)
+        {
+            // Exhausted player - force Peaceful category
+            selectedCategory = "Peaceful";
+        }
+        else
+        {
+            // Standard intensity - downgrade Confrontation/Crisis to safe alternatives
+            selectedCategory = cyclePosition switch
+            {
+                0 => "Investigation",
+                1 => "Social",
+                2 => "Investigation", // Downgrade Confrontation → Investigation
+                3 => "Social",        // Downgrade Crisis → Social
+                _ => "Investigation"
+            };
         }
 
-        // Player readiness too low - downgrade to safe category
-        if (maxSafeIntensity == ArchetypeIntensity.Recovery)
+        // Check if selected category is excluded
+        if (inputs.ExcludedCategories.Contains(selectedCategory))
         {
-            return "Peaceful";
+            // Find first non-excluded category from safe options
+            List<string> safeCategories = GetSafeCategoriesForIntensity(inputs.MaxSafeIntensity);
+            foreach (string category in safeCategories)
+            {
+                if (!inputs.ExcludedCategories.Contains(category))
+                {
+                    return category;
+                }
+            }
+            return "Investigation"; // Final fallback
         }
 
-        // Standard intensity - avoid Crisis/Confrontation, prefer Investigation/Social
-        // Three-level system: Recovery, Standard, Demanding (avoids RhythmPattern collision)
-        return cyclePosition switch
+        return selectedCategory;
+    }
+
+    /// <summary>
+    /// Get list of categories safe for given intensity level, ordered by preference.
+    /// </summary>
+    private List<string> GetSafeCategoriesForIntensity(ArchetypeIntensity maxIntensity)
+    {
+        return maxIntensity switch
         {
-            0 => "Investigation",
-            1 => "Social",
-            2 => "Investigation", // Downgrade Confrontation → Investigation
-            3 => "Social",        // Downgrade Crisis → Social
-            _ => "Investigation"
+            ArchetypeIntensity.Recovery => new List<string> { "Peaceful" },
+            ArchetypeIntensity.Standard => new List<string> { "Investigation", "Social", "Peaceful" },
+            ArchetypeIntensity.Demanding => new List<string> { "Investigation", "Social", "Confrontation", "Crisis", "Peaceful" },
+            _ => new List<string> { "Investigation" }
         };
     }
 

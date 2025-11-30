@@ -778,6 +778,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse SceneSpawnRewards from DTOs
     /// NO ID STRINGS - uses SpawnNextMainStoryScene boolean flag
+    /// CONTEXT INJECTION: Parses explicit context fields for authored sequencing
     /// </summary>
     private List<SceneSpawnReward> ParseSceneSpawnRewards(List<SceneSpawnRewardDTO> dtos)
     {
@@ -787,13 +788,73 @@ public class SceneTemplateParser
         List<SceneSpawnReward> rewards = new List<SceneSpawnReward>();
         foreach (SceneSpawnRewardDTO dto in dtos)
         {
-            rewards.Add(new SceneSpawnReward
+            SceneSpawnReward reward = new SceneSpawnReward
             {
-                SpawnNextMainStoryScene = dto.SpawnNextMainStoryScene
-            });
+                SpawnNextMainStoryScene = dto.SpawnNextMainStoryScene,
+                TargetCategory = dto.TargetCategory,
+                LocationSafetyContext = ParseLocationSafety(dto.LocationSafetyContext),
+                LocationPurposeContext = ParseLocationPurpose(dto.LocationPurposeContext),
+                ExcludedCategories = ParseExcludedCategories(dto.ExcludedCategories)
+            };
+            rewards.Add(reward);
         }
 
         return rewards;
+    }
+
+    /// <summary>
+    /// Parse location safety from string.
+    /// Returns null if string is null/empty.
+    /// </summary>
+    private LocationSafety? ParseLocationSafety(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        return value.ToLowerInvariant() switch
+        {
+            "safe" => LocationSafety.Safe,
+            "risky" => LocationSafety.Risky,
+            "dangerous" => LocationSafety.Dangerous,
+            _ => throw new InvalidOperationException(
+                $"Unknown LocationSafety '{value}' - valid values: Safe, Risky, Dangerous")
+        };
+    }
+
+    /// <summary>
+    /// Parse location purpose from string.
+    /// Returns null if string is null/empty.
+    /// </summary>
+    private LocationPurpose? ParseLocationPurpose(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        return value.ToLowerInvariant() switch
+        {
+            "commerce" => LocationPurpose.Commerce,
+            "governance" => LocationPurpose.Governance,
+            "worship" => LocationPurpose.Worship,
+            "dwelling" => LocationPurpose.Dwelling,
+            "civic" => LocationPurpose.Civic,
+            "production" => LocationPurpose.Production,
+            "hospitality" => LocationPurpose.Hospitality,
+            "utility" => LocationPurpose.Utility,
+            _ => throw new InvalidOperationException(
+                $"Unknown LocationPurpose '{value}' - valid values: Commerce, Governance, Worship, Dwelling, Civic, Production, Hospitality, Utility")
+        };
+    }
+
+    /// <summary>
+    /// Parse excluded categories from comma-separated string.
+    /// </summary>
+    private List<string> ParseExcludedCategories(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return new List<string>();
+
+        return value.Split(',')
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToList();
     }
 
     /// <summary>

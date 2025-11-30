@@ -14,6 +14,7 @@ public class RewardApplicationService
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ProceduralAStoryService _proceduralAStoryService;
     private readonly PackageLoader _packageLoader;
+    private readonly PlayerReadinessService _playerReadinessService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
@@ -21,7 +22,8 @@ public class RewardApplicationService
         TimeFacade timeFacade,
         SceneInstantiator sceneInstantiator,
         ProceduralAStoryService proceduralAStoryService,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        PlayerReadinessService playerReadinessService)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
@@ -29,6 +31,7 @@ public class RewardApplicationService
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     /// <summary>
@@ -224,9 +227,16 @@ public class RewardApplicationService
                 if (template == null)
                 {
                     // No authored template exists - generate procedurally
+                    // CONTEXT INJECTION (HIGHLANDER): Build inputs from authored context OR GameWorld
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
                     AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
-                    await _proceduralAStoryService.GenerateNextATemplate(currentSequence + 1, aStoryContext);
+
+                    // Build selection inputs: authored context if available, else from GameWorld
+                    SceneSelectionInputs selectionInputs = BuildSelectionInputs(
+                        currentSequence + 1, sceneSpawn, player, currentSituation?.Location);
+
+                    await _proceduralAStoryService.GenerateNextATemplate(
+                        currentSequence + 1, aStoryContext, selectionInputs);
 
                     // ZERO NULL TOLERANCE: Template must exist after generation
                     template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
@@ -278,5 +288,45 @@ public class RewardApplicationService
                 Console.WriteLine($"[FinalizeSceneSpawns] Created deferred scene package: {packageId}");
             }
         }
+    }
+
+    /// <summary>
+    /// Build SceneSelectionInputs for procedural generation.
+    /// CONTEXT INJECTION (HIGHLANDER): Same code path for authored and procedural.
+    /// - If SceneSpawnReward has authored context: use explicit values
+    /// - If not: derive from GameWorld state
+    /// </summary>
+    private SceneSelectionInputs BuildSelectionInputs(
+        int sequence,
+        SceneSpawnReward sceneSpawn,
+        Player player,
+        Location currentLocation)
+    {
+        // Start with base inputs
+        SceneSelectionInputs inputs = new SceneSelectionInputs
+        {
+            Sequence = sequence,
+            MaxSafeIntensity = _playerReadinessService.GetMaxSafeIntensity(player)
+        };
+
+        // CONTEXT INJECTION: Use authored context if available
+        if (sceneSpawn.HasAuthoredContext)
+        {
+            // Authored path: use explicit values from content
+            inputs.TargetCategory = sceneSpawn.TargetCategory;
+            inputs.LocationSafety = sceneSpawn.LocationSafetyContext ?? LocationSafety.Safe;
+            inputs.LocationPurpose = sceneSpawn.LocationPurposeContext ?? LocationPurpose.Civic;
+            inputs.ExcludedCategories = sceneSpawn.ExcludedCategories ?? new List<string>();
+        }
+        else
+        {
+            // Procedural path: derive from GameWorld state
+            inputs.TargetCategory = null; // Will use rotation logic
+            inputs.LocationSafety = currentLocation?.Safety ?? LocationSafety.Safe;
+            inputs.LocationPurpose = currentLocation?.Purpose ?? LocationPurpose.Civic;
+            inputs.ExcludedCategories = new List<string>();
+        }
+
+        return inputs;
     }
 }
