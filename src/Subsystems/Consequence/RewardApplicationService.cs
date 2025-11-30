@@ -294,7 +294,7 @@ public class RewardApplicationService
     /// Build SceneSelectionInputs for procedural generation.
     /// CONTEXT INJECTION (HIGHLANDER): Same code path for authored and procedural.
     /// - If SceneSpawnReward has authored context: use explicit values
-    /// - If not: derive from GameWorld state
+    /// - If not: derive from GameWorld state including intensity history
     /// </summary>
     private SceneSelectionInputs BuildSelectionInputs(
         int sequence,
@@ -327,6 +327,170 @@ public class RewardApplicationService
             inputs.ExcludedCategories = new List<string>();
         }
 
+        // Populate intensity tracking fields from completed A-story scene history
+        PopulateIntensityHistory(inputs);
+
         return inputs;
+    }
+
+    /// <summary>
+    /// Populate intensity tracking fields from completed A-story scenes.
+    /// Computes recent intensity counts, scene gaps, and rhythm state from GameWorld history.
+    /// </summary>
+    private void PopulateIntensityHistory(SceneSelectionInputs inputs)
+    {
+        // Get completed A-story scenes ordered by sequence
+        List<Scene> completedScenes = _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.MainStorySequence.HasValue &&
+                        s.State == SceneState.Completed)
+            .OrderBy(s => s.MainStorySequence)
+            .ToList();
+
+        if (!completedScenes.Any())
+        {
+            // No history - use defaults (already initialized in DTO)
+            return;
+        }
+
+        // Extract intensity from each scene's situations (use highest intensity in scene)
+        List<ArchetypeIntensity> intensityHistory = new List<ArchetypeIntensity>();
+        List<string> categoryHistory = new List<string>();
+        List<RhythmPattern> rhythmHistory = new List<RhythmPattern>();
+
+        foreach (Scene scene in completedScenes)
+        {
+            // Get maximum intensity from scene's situations
+            ArchetypeIntensity sceneIntensity = ArchetypeIntensity.Standard;
+            if (scene.Situations.Any())
+            {
+                sceneIntensity = scene.Situations.Max(s => s.Intensity);
+            }
+            intensityHistory.Add(sceneIntensity);
+
+            // Track category from template's archetype (SceneArchetypeType maps to category)
+            if (scene.Template != null)
+            {
+                categoryHistory.Add(MapArchetypeToCategory(scene.Template.SceneArchetype));
+
+                // Track rhythm from template's rhythm pattern
+                rhythmHistory.Add(scene.Template.RhythmPattern);
+            }
+        }
+
+        // Recent window (last 5 scenes for intensity tracking)
+        int recentWindow = 5;
+        List<ArchetypeIntensity> recentIntensities = intensityHistory
+            .TakeLast(recentWindow)
+            .ToList();
+
+        // Count intensity types in recent history
+        inputs.RecentDemandingCount = recentIntensities.Count(i => i == ArchetypeIntensity.Demanding);
+        inputs.RecentRecoveryCount = recentIntensities.Count(i => i == ArchetypeIntensity.Recovery);
+        inputs.RecentStandardCount = recentIntensities.Count(i => i == ArchetypeIntensity.Standard);
+        inputs.TotalIntensityHistoryCount = intensityHistory.Count;
+
+        // Calculate scenes since last Recovery/Demanding
+        inputs.ScenesSinceRecovery = CalculateScenesSince(intensityHistory, ArchetypeIntensity.Recovery);
+        inputs.ScenesSinceDemanding = CalculateScenesSince(intensityHistory, ArchetypeIntensity.Demanding);
+
+        // Intensity heavy = more Demanding than Recovery in recent history
+        inputs.IsIntensityHeavy = inputs.RecentDemandingCount > inputs.RecentRecoveryCount;
+
+        // Last scene state
+        if (intensityHistory.Any())
+        {
+            inputs.LastSceneIntensity = intensityHistory.Last();
+        }
+
+        // Count consecutive Standard intensity scenes at end of history
+        inputs.ConsecutiveStandardCount = CountConsecutiveFromEnd(intensityHistory, ArchetypeIntensity.Standard);
+
+        // Last scene rhythm (Crisis rhythm = test phase)
+        if (rhythmHistory.Any())
+        {
+            inputs.LastSceneWasCrisisRhythm = rhythmHistory.Last() == RhythmPattern.Crisis;
+        }
+
+        // Recent categories (last 2 for anti-repetition)
+        inputs.RecentCategories = categoryHistory
+            .TakeLast(2)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Calculate number of scenes since last occurrence of given intensity.
+    /// Returns 0 if last scene matches, or total count if never occurred.
+    /// </summary>
+    private int CalculateScenesSince(List<ArchetypeIntensity> history, ArchetypeIntensity target)
+    {
+        for (int i = history.Count - 1; i >= 0; i--)
+        {
+            if (history[i] == target)
+            {
+                return history.Count - 1 - i;
+            }
+        }
+        return history.Count; // Never occurred
+    }
+
+    /// <summary>
+    /// Count consecutive occurrences of target intensity from end of history.
+    /// </summary>
+    private int CountConsecutiveFromEnd(List<ArchetypeIntensity> history, ArchetypeIntensity target)
+    {
+        int count = 0;
+        for (int i = history.Count - 1; i >= 0; i--)
+        {
+            if (history[i] == target)
+            {
+                count++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// Map SceneArchetypeType to category string for selection tracking.
+    /// Categories: Investigation, Social, Confrontation, Crisis, Peaceful, Service
+    /// </summary>
+    private string MapArchetypeToCategory(SceneArchetypeType archetype)
+    {
+        return archetype switch
+        {
+            // Investigation category
+            SceneArchetypeType.InvestigateLocation => "Investigation",
+            SceneArchetypeType.GatherTestimony => "Investigation",
+            SceneArchetypeType.UncoverConspiracy => "Investigation",
+            SceneArchetypeType.DiscoverArtifact => "Investigation",
+
+            // Social category
+            SceneArchetypeType.SeekAudience => "Social",
+            SceneArchetypeType.MeetOrderMember => "Social",
+            SceneArchetypeType.CasualEncounter => "Social",
+
+            // Confrontation category
+            SceneArchetypeType.ConfrontAntagonist => "Confrontation",
+
+            // Crisis category
+            SceneArchetypeType.UrgentDecision => "Crisis",
+            SceneArchetypeType.MoralCrossroads => "Crisis",
+
+            // Peaceful category (Recovery intensity)
+            SceneArchetypeType.QuietReflection => "Peaceful",
+            SceneArchetypeType.ScholarlyPursuit => "Peaceful",
+
+            // Service category (C-story patterns)
+            SceneArchetypeType.InnLodging => "Service",
+            SceneArchetypeType.ConsequenceReflection => "Service",
+            SceneArchetypeType.DeliveryContract => "Service",
+            SceneArchetypeType.RouteSegmentTravel => "Service",
+
+            _ => "Investigation" // Default fallback
+        };
     }
 }
