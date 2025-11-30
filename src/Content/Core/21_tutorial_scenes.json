@@ -11,9 +11,11 @@
     "sceneTemplates": [
       {
         "id": "tutorial_secure_lodging",
+        "category": "SideStory",
         "archetype": "Linear",
         "sceneArchetype": "InnLodging",
         "presentationMode": "Modal",
+        "progressionMode": "Breathe",
         "tier": 0,
         "isStarter": false,
         "locationActivationFilter": {
@@ -28,9 +30,11 @@
       },
       {
         "id": "tutorial_rough_morning",
+        "category": "SideStory",
         "archetype": "Standalone",
         "sceneArchetype": "ConsequenceReflection",
         "presentationMode": "Modal",
+        "progressionMode": "Breathe",
         "tier": 0,
         "isStarter": false,
         "locationActivationFilter": {

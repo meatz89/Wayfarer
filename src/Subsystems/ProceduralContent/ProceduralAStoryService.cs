@@ -167,6 +167,7 @@ public class ProceduralAStoryService
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
+            IsStarter = false, // Procedural A-story spawns from reward, not at game start
             ExpirationDays = null, // A-story never expires
             IntroNarrativeTemplate = null // AI generates from hints
         };

@@ -45,34 +45,34 @@ public class SceneTemplateParser
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid tier={tier}. Must be 0-4.");
         }
 
-        // Parse PresentationMode (defaults to Atmospheric if not specified)
-        PresentationMode presentationMode = PresentationMode.Atmospheric;
-        if (!string.IsNullOrEmpty(dto.PresentationMode))
+        // FAIL-FAST: PresentationMode is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.PresentationMode))
         {
-            if (!Enum.TryParse<PresentationMode>(dto.PresentationMode, true, out presentationMode))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid PresentationMode value: '{dto.PresentationMode}'. Must be 'Atmospheric' or 'Modal'.");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'presentationMode'. Must be 'Atmospheric' or 'Modal'.");
+        }
+        if (!Enum.TryParse<PresentationMode>(dto.PresentationMode, true, out PresentationMode presentationMode))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid PresentationMode value: '{dto.PresentationMode}'. Must be 'Atmospheric' or 'Modal'.");
         }
 
-        // Parse ProgressionMode (defaults to Breathe if not specified)
-        ProgressionMode progressionMode = ProgressionMode.Breathe;
-        if (!string.IsNullOrEmpty(dto.ProgressionMode))
+        // FAIL-FAST: ProgressionMode is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.ProgressionMode))
         {
-            if (!Enum.TryParse<ProgressionMode>(dto.ProgressionMode, true, out progressionMode))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid ProgressionMode value: '{dto.ProgressionMode}'. Must be 'Breathe' or 'Cascade'.");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'progressionMode'. Must be 'Breathe' or 'Cascade'.");
+        }
+        if (!Enum.TryParse<ProgressionMode>(dto.ProgressionMode, true, out ProgressionMode progressionMode))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid ProgressionMode value: '{dto.ProgressionMode}'. Must be 'Breathe' or 'Cascade'.");
         }
 
-        // Parse StoryCategory (defaults to SideStory if not specified)
-        StoryCategory category = StoryCategory.SideStory;
-        if (!string.IsNullOrEmpty(dto.Category))
+        // FAIL-FAST: Category is REQUIRED (no silent defaults)
+        if (string.IsNullOrEmpty(dto.Category))
         {
-            if (!Enum.TryParse<StoryCategory>(dto.Category, true, out category))
-            {
-                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
-            }
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'category'. Valid values: MainStory, SideStory, Service");
+        }
+        if (!Enum.TryParse<StoryCategory>(dto.Category, true, out StoryCategory category))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
         }
 
         // Validate MainStorySequence constraints
@@ -168,6 +168,13 @@ public class SceneTemplateParser
             }
         }
 
+        // FAIL-FAST: IsStarter is REQUIRED (no silent defaults)
+        if (!dto.IsStarter.HasValue)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'isStarter'. Must be true or false.");
+        }
+        bool isStarter = dto.IsStarter.Value;
+
         SceneTemplate template = new SceneTemplate
         {
             Id = dto.Id,
@@ -188,7 +195,7 @@ public class SceneTemplateParser
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
-            IsStarter = dto.IsStarter
+            IsStarter = isStarter
         };
 
         // A-STORY ENRICHMENT: Per CONTENT_ARCHITECTURE.md §8
