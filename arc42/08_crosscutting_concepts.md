@@ -875,10 +875,10 @@ Requirements and consequences use the SAME resources in different roles:
 
 | Resource | As Requirement | As Cost | As Reward |
 |----------|---------------|---------|-----------|
-| **Stats** | Authority ≥ 4 | Rare (crisis damage) | +1 Authority |
-| **Resolve** | Resolve ≥ 0 | -5 Resolve | +10 Resolve |
-| **Coins** | None typical | -10 Coins | +5 Coins |
-| **Relationships** | NPC: Grateful | NPC becomes Hostile | NPC becomes Grateful |
+| **Stats** | Threshold gate | Rare (crisis damage) | Stat increase |
+| **Resolve** | Minimum threshold | Resolve drain | Resolve restoration |
+| **Coins** | None typical | Service payment | Payment received |
+| **Relationships** | NPC disposition | Relationship degradation | Relationship improvement |
 
 A single choice may have: Stat requirement + Resolve requirement + Coin cost + Stat reward + Relationship change.
 
@@ -894,7 +894,7 @@ OrPath supports multiple qualification routes:
 | **Relationship gate** | OrPath with NPC relationship status |
 | **Multiple OR** | Multiple OrPaths, any one qualifies |
 
-**Example:** "Negotiate" choice qualifies via: (Diplomacy ≥ 5) OR (Rapport ≥ 3 AND Resolve ≥ 5) OR (Pay 20 coins)
+**Example:** "Negotiate" choice qualifies via: (High Diplomacy) OR (Moderate Rapport AND Resolve) OR (Coin payment)
 
 ### Two-Phase Scaling Model
 
@@ -926,9 +926,9 @@ Scaling MUST affect both display AND execution. The player sees adjusted costs, 
 
 | Property | Source | Effect |
 |----------|--------|--------|
-| **StatRequirementAdjustment** | NPC demeanor (Hostile +2, Friendly -2) | Skill checks easier/harder |
-| **CoinCostAdjustment** | Location quality (Basic -3, Luxury +10) | Services cheaper/expensive |
-| **ResolveCostAdjustment** | Power dynamic (Dominant -1, Submissive +1) | Social costs vary |
+| **StatRequirementAdjustment** | NPC demeanor | Hostile increases difficulty, Friendly reduces |
+| **CoinCostAdjustment** | Location quality | Basic reduces costs, Luxury increases |
+| **ResolveCostAdjustment** | Power dynamic | Dominant reduces cost, Submissive increases |
 
 **Flow:**
 1. AI generates scene structure with rhythm (parse-time)
