@@ -2090,8 +2090,7 @@ public static class SceneArchetypeCatalog
             },
             NpcFilter = new PlacementFilter
             {
-                PlacementType = PlacementType.NPC,
-                Demeanor = NPCDemeanor.Friendly
+                PlacementType = PlacementType.NPC
             },
             RouteFilter = null
         };
@@ -2186,7 +2185,7 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Purpose = LocationPurpose.Study,
+                Purpose = LocationPurpose.Learning,
                 Activity = LocationActivity.Quiet
             },
             NpcFilter = null,

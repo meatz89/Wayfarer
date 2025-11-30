@@ -17,7 +17,9 @@ public class GenerationContext
 
     // A-Story Sequence (for infinite main story progression)
     // null for non-A-story scenes, sequence number (11+) for A-story scenes
-    // Used to calculate next A-scene ID for final situation spawn rewards
+    // Used ONLY to calculate next A-scene ID for final situation spawn rewards
+    // NOT used for archetype branching (see arc42 §8.23 - archetype reusability)
+    // FORBIDDEN: if (AStorySequence == N) branching in choice generation
     public int? AStorySequence { get; set; }
 
     // HIGHLANDER: Entity objects for situation placement (not string IDs)
