@@ -347,24 +347,47 @@ public class ArchetypeCategorySelector
     /// Map SceneArchetypeType to its category string.
     /// Used for anti-repetition checking and intensity recording.
     /// PUBLIC: Called by SituationCompletionHandler for intensity tracking.
+    ///
+    /// FAIL-FAST: Throws for unknown archetypes to catch authoring errors.
+    /// Service patterns mapped to "Service" category (should not be tracked for A-story rhythm).
     /// </summary>
     public static string MapArchetypeToCategory(SceneArchetypeType archetype)
     {
         return archetype switch
         {
+            // Investigation category (Standard intensity)
             SceneArchetypeType.InvestigateLocation => "Investigation",
             SceneArchetypeType.GatherTestimony => "Investigation",
             SceneArchetypeType.SeekAudience => "Investigation",
             SceneArchetypeType.DiscoverArtifact => "Investigation",
             SceneArchetypeType.UncoverConspiracy => "Investigation",
+
+            // Social category (Standard intensity)
             SceneArchetypeType.MeetOrderMember => "Social",
+
+            // Confrontation category (Demanding intensity)
             SceneArchetypeType.ConfrontAntagonist => "Confrontation",
+
+            // Crisis category (Demanding intensity)
             SceneArchetypeType.UrgentDecision => "Crisis",
             SceneArchetypeType.MoralCrossroads => "Crisis",
+
+            // Peaceful category (Recovery intensity)
             SceneArchetypeType.QuietReflection => "Peaceful",
             SceneArchetypeType.CasualEncounter => "Peaceful",
             SceneArchetypeType.ScholarlyPursuit => "Peaceful",
-            _ => "Investigation" // Default fallback
+
+            // Service patterns - should NOT be tracked for A-story rhythm
+            // If these reach intensity recording, it indicates a data authoring error
+            // (service pattern marked as MainStory category)
+            SceneArchetypeType.InnLodging => "Service",
+            SceneArchetypeType.ConsequenceReflection => "Service",
+            SceneArchetypeType.DeliveryContract => "Service",
+            SceneArchetypeType.RouteSegmentTravel => "Service",
+
+            // FAIL-FAST: Unknown archetype is a code error (enum extended without updating mapping)
+            _ => throw new InvalidOperationException(
+                $"Unknown SceneArchetypeType '{archetype}' - add explicit mapping to ArchetypeCategorySelector")
         };
     }
 
@@ -372,31 +395,46 @@ public class ArchetypeCategorySelector
     /// Map SceneArchetypeType to its intensity level.
     /// Used for intensity recording when A-story scenes complete.
     /// PUBLIC: Called by SituationCompletionHandler for intensity tracking.
+    ///
+    /// FAIL-FAST: Throws for unknown archetypes to catch authoring errors.
+    /// Service patterns mapped to Standard (should not be tracked for A-story rhythm).
     /// </summary>
     public static ArchetypeIntensity MapArchetypeToIntensity(SceneArchetypeType archetype)
     {
         return archetype switch
         {
-            // Peaceful category = Recovery intensity
+            // Peaceful category = Recovery intensity (earned structural respite)
             SceneArchetypeType.QuietReflection => ArchetypeIntensity.Recovery,
             SceneArchetypeType.CasualEncounter => ArchetypeIntensity.Recovery,
             SceneArchetypeType.ScholarlyPursuit => ArchetypeIntensity.Recovery,
 
-            // Investigation/Social categories = Standard intensity
+            // Investigation category = Standard intensity
             SceneArchetypeType.InvestigateLocation => ArchetypeIntensity.Standard,
             SceneArchetypeType.GatherTestimony => ArchetypeIntensity.Standard,
             SceneArchetypeType.SeekAudience => ArchetypeIntensity.Standard,
             SceneArchetypeType.DiscoverArtifact => ArchetypeIntensity.Standard,
             SceneArchetypeType.UncoverConspiracy => ArchetypeIntensity.Standard,
+
+            // Social category = Standard intensity
             SceneArchetypeType.MeetOrderMember => ArchetypeIntensity.Standard,
 
-            // Crisis/Confrontation categories = Demanding intensity
+            // Confrontation category = Demanding intensity
             SceneArchetypeType.ConfrontAntagonist => ArchetypeIntensity.Demanding,
+
+            // Crisis category = Demanding intensity
             SceneArchetypeType.UrgentDecision => ArchetypeIntensity.Demanding,
             SceneArchetypeType.MoralCrossroads => ArchetypeIntensity.Demanding,
 
-            // Service patterns default to Standard (not tracked for A-story rhythm)
-            _ => ArchetypeIntensity.Standard
+            // Service patterns - should NOT be tracked for A-story rhythm
+            // If these reach intensity recording, it indicates a data authoring error
+            SceneArchetypeType.InnLodging => ArchetypeIntensity.Standard,
+            SceneArchetypeType.ConsequenceReflection => ArchetypeIntensity.Standard,
+            SceneArchetypeType.DeliveryContract => ArchetypeIntensity.Standard,
+            SceneArchetypeType.RouteSegmentTravel => ArchetypeIntensity.Standard,
+
+            // FAIL-FAST: Unknown archetype is a code error (enum extended without updating mapping)
+            _ => throw new InvalidOperationException(
+                $"Unknown SceneArchetypeType '{archetype}' - add explicit mapping to ArchetypeCategorySelector")
         };
     }
 

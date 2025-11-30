@@ -3,7 +3,18 @@ using Xunit;
 namespace Wayfarer.Tests.Subsystems.ProceduralContent;
 
 /// <summary>
-/// Tests for ProceduralAStoryService - archetype rotation, tier calculation, anti-repetition
+/// Tests for ProceduralAStoryService - catalog integrity, tier calculation, context tracking.
+///
+/// CONTEXT-AWARE SCENE SELECTION:
+/// The actual selection algorithm is in ArchetypeCategorySelector (see ArchetypeCategorySelectorTests).
+/// This file tests supporting components: catalog, context, tier calculation.
+///
+/// WEIGHTED SCORING (5 factors):
+/// 1. Base rotation (15 points) - tested here as formula verification
+/// 2. Location context (30+ points) - tested in ArchetypeCategorySelectorTests
+/// 3. Intensity balance (40+ points) - tested in ArchetypeCategorySelectorTests
+/// 4. Rhythm phase (20 points) - tested in ArchetypeCategorySelectorTests
+/// 5. Anti-repetition (-15 penalty) - tested in ArchetypeCategorySelectorTests
 ///
 /// UNIT TESTS ONLY: Integration tests were removed because:
 /// 1. Content/Core has authored A1-A3 templates using SERVICE patterns (InnLodging, DeliveryContract)
@@ -85,11 +96,15 @@ public class ProceduralAStoryServiceTests
     [InlineData(8, "Peaceful")]        // (8-1) % 8 = 7 (earned respite)
     [InlineData(9, "Investigation")]   // (9-1) % 8 = 0 (cycle repeats)
     [InlineData(16, "Peaceful")]       // (16-1) % 8 = 7
-    public void ArchetypeRotation_SequenceMapsToCorrectCategory(int sequence, string expectedCategory)
+    public void BaseRotation_SequenceMapsToCategory(int sequence, string expectedCategory)
     {
-        // This tests the 8-cycle rotation algorithm directly
-        // Formula: (sequence - 1) % 8 maps to category
-        // Peaceful appears every 8th sequence as earned structural respite
+        // Tests the BASE ROTATION component of ArchetypeCategorySelector
+        // This is ONE of FIVE scoring factors (worth 15 points)
+        // Other factors (location context, intensity balance, rhythm phase, anti-repetition)
+        // can override this baseline when their scores are higher
+        //
+        // Formula: (sequence - 1) % 8 maps to category affinity
+        // Peaceful appears every 8th sequence as potential earned structural respite
         int cyclePosition = (sequence - 1) % 8;
 
         string actualCategory = cyclePosition switch
