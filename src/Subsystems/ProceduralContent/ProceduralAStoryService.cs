@@ -151,6 +151,10 @@ public class ProceduralAStoryService
         // Build spawn conditions (A-scenes spawn automatically via completion trigger)
         SpawnConditionsDTO spawnConditions = BuildSpawnConditions(sequence, context);
 
+        // Determine rhythm pattern based on archetype category and story beat
+        // Sir Brante Pattern: Building accumulates capability, Crisis tests it
+        string rhythmPattern = DetermineRhythmPattern(archetypeCategory, sequence, tier);
+
         SceneTemplateDTO dto = new SceneTemplateDTO
         {
             Id = sceneId,
@@ -169,10 +173,43 @@ public class ProceduralAStoryService
             ProgressionMode = "Cascade", // Situations flow with momentum
             IsStarter = false, // Procedural A-story spawns from reward, not at game start
             ExpirationDays = null, // A-story never expires
-            IntroNarrativeTemplate = null // AI generates from hints
+            IntroNarrativeTemplate = null, // AI generates from hints
+            RhythmPattern = rhythmPattern // Sir Brante rhythm (Building/Crisis/Mixed)
         };
 
         return dto;
+    }
+
+    /// <summary>
+    /// Determine rhythm pattern based on archetype category and story beat.
+    /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
+    ///
+    /// Pattern selection:
+    /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
+    /// - First scene after Crisis → Building rhythm (recovery, stat grants)
+    /// - Other categories → Mixed rhythm (standard trade-offs)
+    ///
+    /// AI composes scenes with this rhythm; catalogue generates appropriate choices.
+    /// </summary>
+    private string DetermineRhythmPattern(string archetypeCategory, int sequence, int tier)
+    {
+        // Crisis category always uses Crisis rhythm (test investments)
+        if (archetypeCategory == "Crisis")
+        {
+            return "Crisis";
+        }
+
+        // First scene after Crisis (Investigation) uses Building rhythm (recovery)
+        // Cycle: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
+        // Position 0 follows Crisis(3), so it's recovery time
+        int cyclePosition = (sequence - 1) % 4;
+        if (cyclePosition == 0)
+        {
+            return "Building";
+        }
+
+        // All other categories use Mixed rhythm (standard trade-offs)
+        return "Mixed";
     }
 
     /// <summary>

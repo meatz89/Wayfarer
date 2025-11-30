@@ -896,6 +896,37 @@ OrPath supports multiple qualification routes:
 
 **Example:** "Negotiate" choice qualifies via: (Diplomacy ≥ 5) OR (Rapport ≥ 3 AND Resolve ≥ 5) OR (Pay 20 coins)
 
+### Two-Phase Scaling Model
+
+Entity-derived scaling happens in two phases, enabling AI generation at parse-time while respecting runtime entity relationships:
+
+| Phase | Timing | What Gets Scaled | Source |
+|-------|--------|-----------------|--------|
+| **Parse-Time** | Catalogue generation | Rhythm structure, tier-based values | GenerationContext.Tier, RhythmPattern |
+| **Query-Time** | Action instantiation | Stat requirements, costs | RuntimeScalingContext from current entities |
+
+**Why Two Phases?**
+- Parse-time: Entities don't exist yet (procedural generation)
+- Query-time: Entities are resolved, relationships known
+- Player sees adjusted requirements reflecting current NPC relationship
+
+**RuntimeScalingContext Adjustments (Query-Time)**
+
+| Property | Source | Effect |
+|----------|--------|--------|
+| **StatRequirementAdjustment** | NPC demeanor (Hostile +2, Friendly -2) | Skill checks easier/harder |
+| **CoinCostAdjustment** | Location quality (Basic -3, Luxury +10) | Services cheaper/expensive |
+| **ResolveCostAdjustment** | Power dynamic (Dominant -1, Submissive +1) | Social costs vary |
+
+**Flow:**
+1. AI generates scene structure with rhythm (parse-time)
+2. Catalogue generates choices with tier-based values (parse-time)
+3. Scene activates, entities resolved (activation-time)
+4. SceneFacade derives RuntimeScalingContext from entities (query-time)
+5. Player sees scaled requirements and costs (display-time)
+
+**HIGHLANDER Compliance:** Original templates immutable. Scaling creates new instances for display only.
+
 ---
 
 ## Related Documentation

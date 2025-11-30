@@ -121,4 +121,23 @@ public class NPCAction
     /// - NEW: Generate ScenePreview DTO from template, no entity until action executes
     /// </summary>
     public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
+
+    /// <summary>
+    /// Entity-derived scaled requirement for display (query-time scaling).
+    /// TWO-PHASE SCALING MODEL (arc42 §8.26):
+    /// - Parse-time: Catalogue generates rhythm structure + tier-based values
+    /// - Query-time: Entity-derived adjustments from RuntimeScalingContext
+    ///
+    /// Created by SceneFacade when building NPCAction from ChoiceTemplate.
+    /// null = no scaling applied (use ChoiceTemplate.RequirementFormula directly)
+    /// non-null = scaled version reflecting current NPC relationship
+    /// </summary>
+    public CompoundRequirement ScaledRequirement { get; set; }
+
+    /// <summary>
+    /// Entity-derived scaled consequence for display (query-time scaling).
+    /// TWO-PHASE SCALING MODEL (arc42 §8.26):
+    /// Costs adjusted based on NPC relationship and location quality.
+    /// </summary>
+    public Consequence ScaledConsequence { get; set; }
 }

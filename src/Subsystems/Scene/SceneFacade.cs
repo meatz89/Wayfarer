@@ -80,6 +80,14 @@ public class SceneFacade
             Situation situation = scene.CurrentSituation;
             if (situation == null) continue;
 
+            // TWO-PHASE SCALING: Derive entity context for query-time adjustments
+            // Parse-time: Catalogue generated rhythm structure + tier-based values
+            // Query-time: Entity-derived adjustments from RuntimeScalingContext
+            RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+                situation.Npc,
+                situation.Location,
+                player);
+
             // Create actions fresh from ChoiceTemplates (ephemeral, not stored)
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
@@ -95,7 +103,12 @@ public class SceneFacade
                     Consequence = Consequence.None(),
                     TimeRequired = 0,
                     Availability = new List<TimeBlocks>(),
-                    Priority = 100
+                    Priority = 100,
+
+                    // TWO-PHASE SCALING: Apply entity-derived adjustments for display
+                    // Player sees scaled requirements reflecting current NPC relationship
+                    ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
+                    ScaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence)
                 };
 
                 // PERFECT INFORMATION: Generate scene previews from template metadata
@@ -141,6 +154,12 @@ public class SceneFacade
             Situation situation = scene.CurrentSituation;
             if (situation == null) continue;
 
+            // TWO-PHASE SCALING: Derive entity context for query-time adjustments
+            RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+                situation.Npc,
+                situation.Location,
+                player);
+
             // NPC already available from method parameter (situation.Npc == npc)
             // Create actions fresh from ChoiceTemplates (ephemeral, not stored)
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
@@ -153,7 +172,11 @@ public class SceneFacade
                     ChoiceTemplate = choiceTemplate,
                     Situation = situation,
                     ActionType = DetermineNPCActionType(choiceTemplate),
-                    ChallengeType = choiceTemplate.ChallengeType
+                    ChallengeType = choiceTemplate.ChallengeType,
+
+                    // TWO-PHASE SCALING: Apply entity-derived adjustments for display
+                    ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
+                    ScaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence)
                 };
 
                 // PERFECT INFORMATION: Generate scene previews from template metadata
@@ -199,6 +222,12 @@ public class SceneFacade
             Situation situation = scene.CurrentSituation;
             if (situation == null) continue;
 
+            // TWO-PHASE SCALING: Derive entity context for query-time adjustments
+            RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+                situation.Npc,
+                situation.Location,
+                player);
+
             // Create path cards fresh from ChoiceTemplates (ephemeral, not stored)
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
@@ -215,7 +244,11 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>()
+                    StatRequirements = new Dictionary<string, int>(),
+
+                    // TWO-PHASE SCALING: Apply entity-derived adjustments for display
+                    ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
+                    ScaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence)
                 };
 
                 // PERFECT INFORMATION: Generate scene previews from template metadata
@@ -261,6 +294,12 @@ public class SceneFacade
             Situation situation = scene.CurrentSituation;
             if (situation == null) continue;
 
+            // TWO-PHASE SCALING: Derive entity context for query-time adjustments
+            RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+                situation.Npc,
+                situation.Location,
+                player);
+
             // Create path cards fresh from ChoiceTemplates (ephemeral, not stored)
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
@@ -277,7 +316,11 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>()
+                    StatRequirements = new Dictionary<string, int>(),
+
+                    // TWO-PHASE SCALING: Apply entity-derived adjustments for display
+                    ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
+                    ScaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence)
                 };
 
                 // PERFECT INFORMATION: Generate scene previews from template metadata
