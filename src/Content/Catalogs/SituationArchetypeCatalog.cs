@@ -1133,7 +1133,7 @@ public static class SituationArchetypeCatalog
         {
             Domain.Authority => new Consequence { Health = -10 },
             Domain.Economic => new Consequence { Coins = -5 },
-            Domain.Cultural => new Consequence { Stamina = -10 },
+            Domain.Physical => new Consequence { Stamina = -10 },
             Domain.Social => new Consequence { Focus = -10 },
             Domain.Mental => new Consequence { Stamina = -10 },
             _ => new Consequence { Health = -10 }

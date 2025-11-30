@@ -2085,7 +2085,7 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Activity = LocationActivity.Social,
+                Activity = LocationActivity.Moderate,
                 Safety = LocationSafety.Safe
             },
             NpcFilter = new PlacementFilter
