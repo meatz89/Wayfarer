@@ -460,6 +460,7 @@
                         <span class="detail-value">@loc.Activity</span>
                     </div>
                 </div>
+                @RenderResolutionDetails(node.Resolution)
                 break;
 
             case SpawnGraphEntityType.NPC when node.NPCSnapshot != null:
@@ -487,6 +488,7 @@
                         <span class="detail-value">@npc.StoryRole</span>
                     </div>
                 </div>
+                @RenderResolutionDetails(node.Resolution)
                 break;
 
             case SpawnGraphEntityType.Route when node.RouteSnapshot != null:
@@ -514,7 +516,95 @@
                         <span class="detail-value">@route.BaseCoinCost</span>
                     </div>
                 </div>
+                @RenderResolutionDetails(node.Resolution)
                 break;
         }
     };
+
+    private RenderFragment RenderResolutionDetails(EntityResolutionMetadata resolution) => __builder =>
+    {
+        if (resolution == null) return;
+
+        <div class="detail-section resolution-section">
+            <h4>Resolution</h4>
+            <div class="detail-row">
+                <span class="detail-label">Outcome</span>
+                <span class="resolution-outcome-badge @GetOutcomeClass(resolution.Outcome)">
+                    @GetOutcomeText(resolution.Outcome)
+                </span>
+            </div>
+
+            @if (resolution.Outcome == EntityResolutionOutcome.Discovered && resolution.MatchedProperties.Count > 0)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Matched Filter Properties</span>
+                    <div class="property-list">
+                        @foreach (string prop in resolution.MatchedProperties)
+                        {
+                            <span class="property-tag filter-provided">@prop</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (resolution.Outcome == EntityResolutionOutcome.Created)
+            {
+                @if (resolution.FilterProvidedProperties.Count > 0)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">From Filter</span>
+                        <div class="property-list">
+                            @foreach (string prop in resolution.FilterProvidedProperties)
+                            {
+                                <span class="property-tag filter-provided">@prop</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (resolution.GeneratedProperties.Count > 0)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Generated (Defaults)</span>
+                        <div class="property-list">
+                            @foreach (string prop in resolution.GeneratedProperties)
+                            {
+                                <span class="property-tag generated">@prop</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            @if (resolution.Outcome == EntityResolutionOutcome.RouteDestination)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Source</span>
+                    <span class="detail-value">Used route destination location</span>
+                </div>
+            }
+        </div>
+    };
+
+    private string GetOutcomeText(EntityResolutionOutcome outcome)
+    {
+        return outcome switch
+        {
+            EntityResolutionOutcome.Discovered => "Discovered",
+            EntityResolutionOutcome.Created => "Created",
+            EntityResolutionOutcome.RouteDestination => "Route Destination",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetOutcomeClass(EntityResolutionOutcome outcome)
+    {
+        return outcome switch
+        {
+            EntityResolutionOutcome.Discovered => "outcome-discovered",
+            EntityResolutionOutcome.Created => "outcome-created",
+            EntityResolutionOutcome.RouteDestination => "outcome-route-dest",
+            _ => ""
+        };
+    }
 }

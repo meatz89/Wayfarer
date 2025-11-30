@@ -302,7 +302,7 @@ public class SpawnGraphBuilder
                     string entityNodeId = "entity_" + nodeIndex++;
                     Point position = GetPositionFromLayout(positionMap, entityNodeId, 800, 100);
 
-                    EntityNodeModel model = new EntityNodeModel(position, situationNode.Location);
+                    EntityNodeModel model = new EntityNodeModel(position, situationNode.Location, situationNode.LocationResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                 }
@@ -316,7 +316,7 @@ public class SpawnGraphBuilder
                     string entityNodeId = "entity_" + nodeIndex++;
                     Point position = GetPositionFromLayout(positionMap, entityNodeId, 800, 180);
 
-                    EntityNodeModel model = new EntityNodeModel(position, situationNode.NPC);
+                    EntityNodeModel model = new EntityNodeModel(position, situationNode.NPC, situationNode.NPCResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                 }
@@ -330,7 +330,7 @@ public class SpawnGraphBuilder
                     string entityNodeId = "entity_" + nodeIndex++;
                     Point position = GetPositionFromLayout(positionMap, entityNodeId, 800, 260);
 
-                    EntityNodeModel model = new EntityNodeModel(position, situationNode.Route);
+                    EntityNodeModel model = new EntityNodeModel(position, situationNode.Route, situationNode.RouteResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                 }
@@ -480,7 +480,8 @@ public class SpawnGraphBuilder
                 {
                     EntityNodeModel model = new EntityNodeModel(
                         new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
-                        situationSpawn.Location);
+                        situationSpawn.Location,
+                        situationSpawn.LocationResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                     entityRow++;
@@ -494,7 +495,8 @@ public class SpawnGraphBuilder
                 {
                     EntityNodeModel model = new EntityNodeModel(
                         new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
-                        situationSpawn.NPC);
+                        situationSpawn.NPC,
+                        situationSpawn.NPCResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                     entityRow++;
@@ -508,7 +510,8 @@ public class SpawnGraphBuilder
                 {
                     EntityNodeModel model = new EntityNodeModel(
                         new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
-                        situationSpawn.Route);
+                        situationSpawn.Route,
+                        situationSpawn.RouteResolution);
                     diagram.Nodes.Add(model);
                     entityModelMap[entityKey] = model;
                     entityRow++;

@@ -662,3 +662,97 @@
 .legend-line.orange { color: #f97316; }
 .legend-line.red { color: #ef4444; }
 .legend-line.brown { color: #b45309; }
+
+/* Resolution badges for entity nodes */
+.resolution-badge {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.resolution-badge.resolution-discovered {
+    background-color: rgba(34, 197, 94, 0.4);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.6);
+}
+
+.resolution-badge.resolution-created {
+    background-color: rgba(139, 92, 246, 0.4);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.6);
+}
+
+.resolution-badge.resolution-route-dest {
+    background-color: rgba(234, 179, 8, 0.4);
+    color: #fef08a;
+    border: 1px solid rgba(234, 179, 8, 0.6);
+}
+
+/* Filter properties display for entity nodes */
+.node-filter-props {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-style: italic;
+}
+
+/* Detail panel resolution section */
+.detail-section.resolution-section {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.resolution-outcome-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.resolution-outcome-badge.outcome-discovered {
+    background-color: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+.resolution-outcome-badge.outcome-created {
+    background-color: rgba(139, 92, 246, 0.3);
+    color: #c4b5fd;
+}
+
+.resolution-outcome-badge.outcome-route-dest {
+    background-color: rgba(234, 179, 8, 0.3);
+    color: #fef08a;
+}
+
+/* Property lists in resolution details */
+.property-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.property-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
+}
+
+.property-tag.filter-provided {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: #93c5fd;
+}
+
+.property-tag.generated {
+    background-color: rgba(156, 163, 175, 0.3);
+    color: #d1d5db;
+}
