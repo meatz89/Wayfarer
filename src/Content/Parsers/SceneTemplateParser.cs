@@ -127,7 +127,7 @@ public class SceneTemplateParser
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             sceneArchetypeType,
-            dto.Tier ?? 0,
+            dto.Tier,
             contextNPC,
             contextLocation,
             dto.MainStorySequence);
