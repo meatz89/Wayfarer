@@ -1062,10 +1062,10 @@ Scene generation uses a single code path for both authored and procedural conten
 
 | Source | Who Builds Context | What It Contains |
 |--------|-------------------|------------------|
-| **Authored** | Content author via SceneSpawnReward | Explicit TargetCategory, LocationContext, Exclusions |
-| **Procedural** | Caller computes from GameWorld | Derived from player state, location, history |
+| **Authored** | Content author via SceneSpawnReward | Hardcoded categorical properties that produce desired scene |
+| **Procedural** | Caller computes from GameWorld | Derived from location context, intensity history |
 
-Both paths produce identical SceneSelectionInputs. Generator receives inputs and produces output. No GameWorld reads inside generator.
+Both paths produce identical SceneSelectionInputs. Generator receives inputs and applies SAME selection logic. The only difference is WHERE inputs come from—not HOW they're processed.
 
 ### Two Context Layers
 
@@ -1078,10 +1078,17 @@ Context injection operates at TWO distinct layers with different purposes:
 
 **Scene Selection Context (Layer 1):**
 - Input to archetype category selection
-- Currently uses: Sequence (rotation), MaxSafeIntensity (player readiness), TargetCategory, ExcludedCategories
-- Reserved for future: Location context, intensity history, rhythm state, anti-repetition
-- Authored content sets TargetCategory directly; procedural uses rotation with player readiness filtering
-- Output: Archetype category string (Investigation, Social, Confrontation, Crisis, Peaceful)
+- Primary drivers: Location context, intensity history, rhythm phase
+- Secondary drivers: NPC context, tier, anti-repetition
+- Authored content provides hardcoded inputs; procedural derives from history
+- SAME selection logic processes both—no overrides, no bypasses
+- Output: Archetype category and intensity (Investigation/Recovery, Crisis/Demanding, etc.)
+
+**What NEVER Influences Selection:**
+- Current player Resolve level
+- Current player stat values
+- Current player resource counts
+- Sequence-based rotation (arbitrary, not rhythm-based)
 
 **Situation Scaling Context (Layer 2):**
 - Input to catalogue generation and choice scaling
@@ -1097,18 +1104,18 @@ Context injection operates at TWO distinct layers with different purposes:
 
 ### Process Flow
 
-| Step | What Happens | Context Used |
-|------|--------------|--------------|
+| Step | What Happens | Context Source |
+|------|--------------|----------------|
 | **1. Trigger** | SceneSpawnReward evaluated | None yet |
-| **2. Build Selection Inputs** | Caller builds SceneSelectionInputs | Authored fields OR GameWorld state |
-| **3. Select Category** | Generator selects archetype category | SceneSelectionInputs |
-| **4. Build DTO** | Generator creates SceneTemplateDTO | Category + tier |
+| **2. Build Selection Inputs** | Caller builds SceneSelectionInputs | Authored: hardcoded / Procedural: history + location |
+| **3. Select Archetype** | Selection logic processes inputs | SceneSelectionInputs (same logic always) |
+| **4. Build DTO** | Generator creates SceneTemplateDTO | Selected archetype + tier |
 | **5. Parse Template** | PackageLoader → Parser → Catalogue | Categorical properties |
 | **6. Resolve Entities** | Placement filter matches entities | Template filters |
 | **7. Build Generation Context** | Entities → GenerationContext | Resolved entity properties |
 | **8. Generate Situations** | Archetype + GenerationContext → Situations | Full context |
 
-**Key Insight:** Steps 2-5 use Layer 1 (selection). Steps 7-8 use Layer 2 (scaling). Entity resolution (step 6) is the transition point.
+**Key Insight:** Step 3 is identical for authored and procedural. The selection logic doesn't know which source built the inputs—it just processes categorical properties and produces archetype selection.
 
 ### HIGHLANDER Compliance
 
@@ -1121,16 +1128,17 @@ Context injection operates at TWO distinct layers with different purposes:
 
 ### Consequences
 
-- **Authored tutorial sequences are deterministic** - author controls A1→A2→A3 category progression
-- **Procedural sequences are adaptive** - context computed from actual player state
+- **Authored tutorial sequences are deterministic** - author provides categorical inputs that naturally produce desired scene types
+- **Procedural sequences are history-driven** - context computed from intensity history, rhythm phase, location
 - **Generation is testable** - pass inputs, verify output, no GameWorld mocking needed
-- **No special cases** - same Generator.Generate() call regardless of source
+- **No special cases** - same selection logic regardless of source
 
 **Forbidden:**
 - GameWorld reads inside generation methods
-- Optional context parameters that bypass inputs
-- Different method signatures for authored vs procedural
-- Context discovery at generation time
+- TargetCategory or similar override parameters
+- Current player state influencing selection
+- Sequence-based rotation
+- Different method signatures or code paths for authored vs procedural
 
 ---
 

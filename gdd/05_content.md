@@ -13,19 +13,27 @@ This document explains HOW content is organized and WHY the archetype-based syst
 The primary narrative spine that never ends:
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
-- Uses the SAME reusable archetypes as procedural content
-- Tutorial experience emerges from categorical context (Tier 0, Friendly NPC, Basic quality)
-- Fixed sequence establishing gameplay patterns
+- Uses the SAME selection logic as procedural content
+- Tutorial scenes emerge from authored categorical inputs (not overrides)
+- Authored DTO specifies: location context, rhythm phase, intensity history
+- Selection logic processes these inputs identically to procedural
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Uses the SAME reusable archetypes as tutorial
-- Higher tiers, varied NPC demeanors, varied quality levels
-- AI narrative generation connecting to player history
-- Escalating scope over time (local → regional → continental)
+- Uses the SAME selection logic as tutorial
+- Procedural DTO derives inputs from actual GameWorld state
+- Location context read from player's current location
+- Rhythm phase computed from completed scene history
 - Never resolves, always deepens
 
-**Critical Principle:** Tutorial and procedural content use IDENTICAL archetype templates. The difference is categorical context, not different code paths. An InnLodging scene in tutorial (Tier 0, Friendly, Basic) uses the same archetype as InnLodging in late-game (Tier 3, Hostile, Premium). Categorical properties scale the experience.
+**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is DTO source:
+
+| Content | DTO Source | Selection Logic |
+|---------|------------|-----------------|
+| Tutorial | Authored categorical properties | Same |
+| Procedural | GameWorld-derived properties | Same |
+
+Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored inputs (safe location, friendly NPC, empty intensity history, recovery rhythm phase) naturally flow through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes inputs.
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 

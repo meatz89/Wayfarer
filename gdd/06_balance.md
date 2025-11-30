@@ -162,6 +162,38 @@ Resolve creates the natural rhythm through its gain/drain patterns:
 
 **The rhythm emerges naturally:** Players who spend heavily on building must recover before they can take more risks. Players who play safe accumulate resolve but miss growth opportunities. The tension between growth and safety IS the game.
 
+### Two Orthogonal Dimensions
+
+Scene generation operates on TWO INDEPENDENT axes that combine freely:
+
+**Category = WHAT kind of narrative**
+
+| Category | Player Experience |
+|----------|-------------------|
+| **Investigation** | Uncover information, search for clues |
+| **Social** | Relationship building, negotiation |
+| **Confrontation** | Direct conflict, accusation |
+| **Crisis** | High-stakes decision, moral crossroads |
+
+**ArchetypeIntensity = HOW demanding mechanically**
+
+| Intensity | Mechanical Feel |
+|-----------|-----------------|
+| **Recovery** | All positive outcomes, no requirements |
+| **Standard** | Normal trade-offs, achievable requirements |
+| **Demanding** | Tough requirements, real costs |
+
+**These are INDEPENDENT axes:**
+
+| | Recovery | Standard | Demanding |
+|---|----------|----------|-----------|
+| **Investigation** | Easy clue-finding | Normal investigation | Dangerous pursuit |
+| **Social** | Pleasant chat | Negotiation | Hostile confrontation |
+| **Confrontation** | Verbal dispute | Serious conflict | Life-threatening |
+| **Crisis** | Low-stakes choice | Meaningful dilemma | Life-or-death decision |
+
+**Critical Insight:** A Crisis scene can be Recovery intensity—the narrative climax happens, but the mechanical pressure is gentle. An Investigation scene can be Demanding intensity—gathering clues is mechanically punishing. Category and intensity are orthogonal.
+
 ### Situation Types (NOT Uniform Structure)
 
 Situations are NOT all the same. Three distinct types exist:
@@ -190,7 +222,7 @@ The player is being TESTED. Prior stat investment pays off.
 
 ### The Pacing Rhythm (Must Be Tracked)
 
-The game must TRACK where the player is in the rhythm:
+The game must TRACK where the player is in the rhythm based on HISTORY:
 
 | Phase | What Happens | Procedural Decision |
 |-------|--------------|---------------------|
@@ -199,18 +231,62 @@ The game must TRACK where the player is in the rhythm:
 | **Recovery** | 1-2 building situations | Restore after crisis |
 | **Repeat** | Cycle continues | Escalate thresholds each cycle |
 
-**Procedural Context Questions:**
-- How many building situations since last crisis?
-- Is player stat accumulation near expected threshold?
-- Did player just survive a crisis? (recovery needed)
-- Is this an appropriate moment to test?
+**Rhythm Phase is Computed from History:**
+- Count demanding scenes in recent window
+- Count recovery scenes in recent window
+- Track scenes since last crisis
+- Track scenes since last recovery
+- Compute: Is intensity-heavy? Is recovery-starved?
+
+These HISTORICAL measures determine rhythm phase. The selection logic then produces appropriate scene types for that phase.
+
+**What NEVER Influences Scene Selection:**
+- Current player Resolve level
+- Current player stat values
+- Current player resource counts
+- Whether player is "struggling" or "thriving"
+
+The player's CURRENT state is their responsibility. Bad choices have consequences. The game does not cushion poor play with easier scenes.
 
 **Anti-Patterns:**
-- Crisis → Crisis → Crisis = Unfair, no accumulation time
-- Building → Building → Building forever = No tension, no testing
-- Crisis when player is far below expected stats = Punishment without fairness
+- "Player has low Resolve, give easier scene" = Removes consequences
+- "Rotate through categories by A-story sequence" = Arbitrary, not rhythm-based
+- Crisis → Crisis → Crisis = Unfair, no accumulation time (valid anti-pattern)
+- Building → Building → Building forever = No tension, no testing (valid anti-pattern)
 
 **The Feeling:** Player senses the rhythm. "I've been gaining stats... something bad is coming." The anticipation creates tension even in peaceful moments.
+
+### Scene Selection Inputs (What Drives Generation)
+
+Scene selection receives categorical inputs and produces scene archetype selection deterministically:
+
+**Primary Drivers:**
+
+| Input Category | Properties | How It Influences Selection |
+|----------------|------------|----------------------------|
+| **Location Context** | Safety, Purpose, Privacy, Activity | Dangerous locations favor confrontation; civic locations favor social |
+| **Intensity History** | Recent demanding/recovery counts, scenes since crisis | Determines rhythm phase (accumulation, test, recovery) |
+| **Rhythm Phase** | Computed from intensity history | Building phase → building archetypes; crisis phase → crisis archetypes |
+
+**Secondary Drivers:**
+
+| Input Category | Properties | How It Influences Selection |
+|----------------|------------|----------------------------|
+| **NPC Context** | Demeanor, relationship level | Hostile NPCs with no relationship favor confrontation |
+| **Tier** | Current story tier | Higher tiers enable more archetype variety |
+| **Anti-Repetition** | Recent categories, recent archetypes | Avoid same category twice in a row |
+
+**How Tutorial Uses This:**
+
+Tutorial scenes work by providing authored categorical inputs that naturally produce desired results:
+
+| Tutorial Need | Authored Inputs | Selection Result |
+|---------------|-----------------|------------------|
+| A1: Gentle introduction | Safe location, Friendly NPC, Empty history, Recovery phase | Social/Investigation archetype |
+| A3: First challenge | Neutral location, Neutral NPC, Some accumulation, Test phase | Confrontation archetype |
+| A5: First crisis | Dangerous location, Suspicious NPC, Full accumulation, Crisis phase | Crisis archetype |
+
+The selection logic doesn't know these are tutorial scenes. It processes inputs identically to procedural content.
 
 ### OR-Type Requirements (Multiple Valid Paths)
 

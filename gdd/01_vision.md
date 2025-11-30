@@ -186,9 +186,61 @@ Success is measured by journey quality, not arrival. The game teaches letting go
 
 ---
 
+## 1.8 History-Driven Scene Generation
+
+**The game measures PAST, never reacts to PRESENT player state.**
+
+### Core Principle
+
+Scene generation is deterministic based on what HAS HAPPENED, not what the player currently has. Current Resolve, current stats, current resources—none of these influence what scene comes next. The player's current state is their own responsibility.
+
+### Why This Matters
+
+| Anti-Pattern | Why It's Wrong |
+|--------------|----------------|
+| "Player has low Resolve, give easier scene" | Removes consequences; player learns bad choices are cushioned |
+| "Rotate through categories by sequence number" | Arbitrary; ignores actual rhythm of what player experienced |
+| "Skip Crisis if player is struggling" | Undermines the tension that makes choices meaningful |
+
+**Correct Pattern:** Measure intensity of past scenes. If player has experienced several demanding situations, the next scene should be recovery. If player has had too much recovery, challenge them. The rhythm emerges from HISTORY, not current state.
+
+### What Drives Scene Selection
+
+| Factor | Examples | How It Works |
+|--------|----------|--------------|
+| **Intensity History** | Recent demanding/recovery counts, scenes since last crisis | Determines rhythm phase (accumulation, test, recovery) |
+| **Location Context** | Safety, purpose, privacy, activity level | Influences appropriate scene categories for the setting |
+| **Categorical Properties** | NPC demeanor, quality tier, power dynamic | Combine through deterministic logic to select archetype |
+
+### HIGHLANDER Principle for Generation
+
+Authored tutorial and procedural content use IDENTICAL selection logic:
+
+| Content Type | DTO Source | Selection Logic |
+|--------------|------------|-----------------|
+| **Authored (Tutorial)** | Hardcoded categorical properties | Same |
+| **Procedural** | Derived from GameWorld state | Same |
+
+The tutorial produces specific scenes NOT through overrides or bypasses, but because its hardcoded categorical properties (safe location, friendly NPC, recovery rhythm phase) naturally flow through the selection logic to produce the appropriate scene type.
+
+**Forbidden:**
+- TargetCategory override that bypasses selection
+- Sequence-based rotation
+- Current player state influencing selection
+- Different code paths for authored vs procedural
+
+**Required:**
+- Same selection logic always
+- Categorical properties as sole inputs
+- History-based rhythm determination
+- Location-appropriate scene matching
+
+---
+
 ## Cross-References
 
 - **Core Loops**: See [03_core_loop.md](03_core_loop.md) for how pillars manifest in gameplay
 - **Balance**: See [06_balance.md](06_balance.md) for how scarcity creates depth
+- **Rhythm System**: See [06_balance.md §6.4](06_balance.md) for Sir Brante rhythm implementation
 - **Psychological Laws**: See [design/13_player_experience_emergence_laws.md](../design/13_player_experience_emergence_laws.md) for player psychology
 - **Detailed Design**: See [design/01_design_vision.md](../design/01_design_vision.md) for exhaustive treatment

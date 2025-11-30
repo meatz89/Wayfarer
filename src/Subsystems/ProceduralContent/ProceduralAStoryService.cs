@@ -95,51 +95,114 @@ public class ProceduralAStoryService
 
     /// <summary>
     /// Select archetype category from SceneSelectionInputs.
-    /// CONTEXT INJECTION: Same code path for authored and procedural.
-    /// - If TargetCategory set: use it directly (authored override)
-    /// - If not set: use rotation logic (procedural)
+    /// HIGHLANDER: Same logic for authored and procedural content.
+    /// The only difference is WHERE inputs come from, not HOW they're processed.
+    ///
+    /// HISTORY-DRIVEN (gdd/01 §1.8):
+    /// - Based on rhythm phase (computed from intensity history)
+    /// - Location context influences appropriate categories
+    /// - Anti-repetition prevents same category twice
+    /// - Current player state NEVER influences selection
     ///
     /// ORTHOGONAL SYSTEMS (arc42 §8.26):
-    /// - Category selection determines NARRATIVE TYPE (Investigation, Social, etc.)
-    /// - ArchetypeIntensity filtering happens at ARCHETYPE level, not category level
-    /// - These systems remain decoupled - "correlation, not dependency"
+    /// - Category = WHAT narrative type (Investigation, Social, Confrontation, Crisis)
+    /// - Intensity selection happens separately after category is chosen
     /// </summary>
     private string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // AUTHORED PATH: TargetCategory explicitly set
-        if (!string.IsNullOrEmpty(inputs.TargetCategory))
+        // Determine appropriate categories based on rhythm phase
+        List<string> appropriateCategories = GetCategoriesForRhythmPhase(inputs.RhythmPhase);
+
+        // Filter by location context
+        appropriateCategories = FilterByLocationContext(appropriateCategories, inputs);
+
+        // Apply anti-repetition (avoid recent categories)
+        List<string> availableCategories = appropriateCategories
+            .Where(c => !inputs.RecentCategories.Contains(c))
+            .ToList();
+
+        // If all filtered out, use appropriate categories without anti-repetition
+        if (!availableCategories.Any())
         {
-            return inputs.TargetCategory;
+            availableCategories = appropriateCategories;
         }
 
-        // PROCEDURAL PATH: Pure rotation
-        // Base rotation: Investigation(0) → Social(1) → Confrontation(2) → Crisis(3)
-        int cyclePosition = (inputs.Sequence - 1) % 4;
-        string category = cyclePosition switch
+        // Deterministic selection based on intensity history hash
+        // This ensures same inputs always produce same output
+        int selectionIndex = ComputeSelectionIndex(inputs, availableCategories.Count);
+        return availableCategories[selectionIndex];
+    }
+
+    /// <summary>
+    /// Get categories appropriate for the current rhythm phase.
+    /// </summary>
+    private List<string> GetCategoriesForRhythmPhase(RhythmPhase phase)
+    {
+        return phase switch
         {
-            0 => "Investigation",
-            1 => "Social",
-            2 => "Confrontation",
-            3 => "Crisis",
-            _ => "Investigation"
+            // Accumulation: favor building opportunities
+            RhythmPhase.Accumulation => new List<string> { "Investigation", "Social", "Confrontation" },
+
+            // Test: time for crisis/challenge
+            RhythmPhase.Test => new List<string> { "Crisis", "Confrontation" },
+
+            // Recovery: gentle scenes after crisis
+            RhythmPhase.Recovery => new List<string> { "Social", "Investigation" },
+
+            _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
         };
+    }
 
-        // Check if category is excluded
-        if (inputs.ExcludedCategories.Contains(category))
+    /// <summary>
+    /// Filter categories by location context appropriateness.
+    /// </summary>
+    private List<string> FilterByLocationContext(List<string> categories, SceneSelectionInputs inputs)
+    {
+        List<string> filtered = new List<string>(categories);
+
+        // Dangerous locations favor confrontation/crisis
+        if (inputs.LocationSafety == LocationSafety.Dangerous)
         {
-            // Find first non-excluded category from rotation
-            List<string> rotation = new List<string> { "Investigation", "Social", "Confrontation", "Crisis" };
-            foreach (string cat in rotation)
+            // Prioritize but don't exclude others
+            if (filtered.Contains("Confrontation") || filtered.Contains("Crisis"))
             {
-                if (!inputs.ExcludedCategories.Contains(cat))
-                {
-                    return cat;
-                }
+                filtered = filtered.Where(c => c == "Confrontation" || c == "Crisis").ToList();
             }
-            return "Investigation"; // Final fallback
         }
 
-        return category;
+        // Safe civic locations favor social/investigation
+        if (inputs.LocationSafety == LocationSafety.Safe && inputs.LocationPurpose == LocationPurpose.Civic)
+        {
+            if (filtered.Contains("Social") || filtered.Contains("Investigation"))
+            {
+                filtered = filtered.Where(c => c == "Social" || c == "Investigation").ToList();
+            }
+        }
+
+        // Ensure we always have at least one option
+        if (!filtered.Any())
+        {
+            return categories;
+        }
+
+        return filtered;
+    }
+
+    /// <summary>
+    /// Compute deterministic selection index from inputs.
+    /// Uses intensity history to create variety without randomness.
+    /// </summary>
+    private int ComputeSelectionIndex(SceneSelectionInputs inputs, int optionCount)
+    {
+        if (optionCount <= 0) return 0;
+
+        // Create a hash from history values for deterministic but varied selection
+        int hash = inputs.RecentDemandingCount * 7
+                 + inputs.RecentRecoveryCount * 11
+                 + inputs.ScenesSinceRecovery * 13
+                 + inputs.TotalIntensityHistoryCount * 17;
+
+        return Math.Abs(hash) % optionCount;
     }
 
     /// <summary>
