@@ -123,23 +123,16 @@ public class ProceduralAStoryService
     /// HIGHLANDER: Same logic for authored and procedural content.
     /// The only difference is WHERE inputs come from, not HOW they're processed.
     ///
-    /// HISTORY-DRIVEN (gdd/01 §1.8):
-    /// - Based on rhythm phase (computed from intensity history)
-    /// - Location context influences appropriate categories
+    /// SIMPLIFIED (arc42 §8.28):
+    /// - RhythmPattern is THE ONLY driver for category selection
     /// - Anti-repetition prevents same category twice
+    /// - LocationSafety/Purpose/Tier REMOVED (legacy)
     /// - Current player state NEVER influences selection
-    ///
-    /// ORTHOGONAL SYSTEMS (arc42 §8.26):
-    /// - Category = WHAT narrative type (Investigation, Social, Confrontation, Crisis)
-    /// - Intensity selection happens separately after category is chosen
     /// </summary>
     private string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // Determine appropriate categories based on rhythm pattern
+        // Determine appropriate categories based on rhythm pattern ONLY
         List<string> appropriateCategories = GetCategoriesForRhythmPattern(inputs.RhythmPattern);
-
-        // Filter by location context
-        appropriateCategories = FilterByLocationContext(appropriateCategories, inputs);
 
         // Apply anti-repetition (avoid recent categories)
         List<string> availableCategories = appropriateCategories
@@ -152,10 +145,9 @@ public class ProceduralAStoryService
             availableCategories = appropriateCategories;
         }
 
-        // Deterministic selection based on intensity history hash
-        // This ensures same inputs always produce same output
-        int selectionIndex = ComputeSelectionIndex(inputs, availableCategories.Count);
-        return availableCategories[selectionIndex];
+        // Deterministic selection based on category count
+        // First available category for determinism
+        return availableCategories[0];
     }
 
     /// <summary>
@@ -176,58 +168,6 @@ public class ProceduralAStoryService
 
             _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
         };
-    }
-
-    /// <summary>
-    /// Filter categories by location context appropriateness.
-    /// </summary>
-    private List<string> FilterByLocationContext(List<string> categories, SceneSelectionInputs inputs)
-    {
-        List<string> filtered = new List<string>(categories);
-
-        // Dangerous locations favor confrontation/crisis
-        if (inputs.LocationSafety == LocationSafety.Dangerous)
-        {
-            // Prioritize but don't exclude others
-            if (filtered.Contains("Confrontation") || filtered.Contains("Crisis"))
-            {
-                filtered = filtered.Where(c => c == "Confrontation" || c == "Crisis").ToList();
-            }
-        }
-
-        // Safe civic locations favor social/investigation
-        if (inputs.LocationSafety == LocationSafety.Safe && inputs.LocationPurpose == LocationPurpose.Civic)
-        {
-            if (filtered.Contains("Social") || filtered.Contains("Investigation"))
-            {
-                filtered = filtered.Where(c => c == "Social" || c == "Investigation").ToList();
-            }
-        }
-
-        // Ensure we always have at least one option
-        if (!filtered.Any())
-        {
-            return categories;
-        }
-
-        return filtered;
-    }
-
-    /// <summary>
-    /// Compute deterministic selection index from inputs.
-    /// Uses intensity history to create variety without randomness.
-    /// </summary>
-    private int ComputeSelectionIndex(SceneSelectionInputs inputs, int optionCount)
-    {
-        if (optionCount <= 0) return 0;
-
-        // Create a hash from history values for deterministic but varied selection
-        int hash = inputs.RecentDemandingCount * 7
-                 + inputs.RecentRecoveryCount * 11
-                 + inputs.ScenesSinceRecovery * 13
-                 + inputs.TotalIntensityHistoryCount * 17;
-
-        return Math.Abs(hash) % optionCount;
     }
 
     /// <summary>

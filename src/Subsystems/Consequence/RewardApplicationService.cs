@@ -288,42 +288,26 @@ public class RewardApplicationService
 
     /// <summary>
     /// Build SceneSelectionInputs from SceneSpawnReward context.
-    /// CONTEXT INJECTION (arc42 §8.28): Context ONLY comes from spawn reward.
-    /// For SpawnNextMainStoryScene, procedural system handles context separately.
+    /// CONTEXT INJECTION (arc42 §8.28): RhythmPattern from spawn reward OR derived from history.
     /// </summary>
     private SceneSelectionInputs BuildSelectionInputs(SceneSpawnReward sceneSpawn)
     {
-        // SceneSpawnReward is THE source of context - no game state derivation here
-        // For SpawnNextMainStoryScene without context, procedural system provides context
-        if (!sceneSpawn.HasAuthoredContext)
+        if (sceneSpawn.HasAuthoredContext)
         {
-            // No context on spawn reward - use defaults (procedural will override)
-            return SceneSelectionInputs.CreateDefault();
+            // Authored RhythmPattern - use it directly
+            return sceneSpawn.BuildAuthoredInputs();
         }
 
-        // Authored context - validates completeness, returns context from spawn reward
-        return sceneSpawn.BuildAuthoredInputs();
+        // No authored context - derive RhythmPattern from intensity history
+        return DeriveFromIntensityHistory();
     }
 
     /// <summary>
-    /// Compute story tier from A-story sequence.
+    /// Derive SceneSelectionInputs from completed scene history.
+    /// Computes RhythmPattern and anti-repetition lists.
     /// </summary>
-    private int ComputeTierFromSequence(int sequence)
+    private SceneSelectionInputs DeriveFromIntensityHistory()
     {
-        if (sequence <= 10) return 0; // Tutorial
-        if (sequence <= 30) return 1; // Early
-        if (sequence <= 50) return 2; // Mid
-        return 3; // Late
-    }
-
-    /// <summary>
-    /// Populate intensity tracking fields from completed A-story scenes.
-    /// Computes recent intensity counts, scene gaps, rhythm pattern from GameWorld history.
-    /// All context derived from game state - no overrides.
-    /// </summary>
-    private void PopulateIntensityHistory(SceneSelectionInputs inputs)
-    {
-        // Get completed A-story scenes ordered by sequence
         List<Scene> completedScenes = _gameWorld.Scenes
             .Where(s => s.Category == StoryCategory.MainStory &&
                         s.MainStorySequence.HasValue &&
@@ -331,14 +315,14 @@ public class RewardApplicationService
             .OrderBy(s => s.MainStorySequence)
             .ToList();
 
+        SceneSelectionInputs inputs = SceneSelectionInputs.CreateDefault();
+
         if (!completedScenes.Any())
         {
-            // No history - default to Building (game start)
-            inputs.RhythmPattern = RhythmPattern.Building;
-            return;
+            return inputs; // Default to Building rhythm
         }
 
-        // Extract intensity, category, archetype, rhythm from each scene
+        // Extract history for rhythm computation and anti-repetition
         List<ArchetypeIntensity> intensityHistory = new List<ArchetypeIntensity>();
         List<string> categoryHistory = new List<string>();
         List<string> archetypeHistory = new List<string>();
@@ -346,7 +330,6 @@ public class RewardApplicationService
 
         foreach (Scene scene in completedScenes)
         {
-            // Get maximum intensity from scene's situations
             ArchetypeIntensity sceneIntensity = ArchetypeIntensity.Standard;
             if (scene.Situations.Any())
             {
@@ -354,7 +337,6 @@ public class RewardApplicationService
             }
             intensityHistory.Add(sceneIntensity);
 
-            // Track category and archetype from template
             if (scene.Template != null)
             {
                 categoryHistory.Add(MapArchetypeToCategory(scene.Template.SceneArchetype));
@@ -363,116 +345,64 @@ public class RewardApplicationService
             }
         }
 
-        // Recent window (last 5 scenes for intensity tracking)
-        int recentWindow = 5;
-        List<ArchetypeIntensity> recentIntensities = intensityHistory
-            .TakeLast(recentWindow)
-            .ToList();
-
-        // Count intensity types in recent history
-        inputs.RecentDemandingCount = recentIntensities.Count(i => i == ArchetypeIntensity.Demanding);
-        inputs.RecentRecoveryCount = recentIntensities.Count(i => i == ArchetypeIntensity.Recovery);
-        inputs.RecentStandardCount = recentIntensities.Count(i => i == ArchetypeIntensity.Standard);
-        inputs.TotalIntensityHistoryCount = intensityHistory.Count;
-
-        // Calculate scenes since last Recovery/Demanding
-        inputs.ScenesSinceRecovery = CalculateScenesSince(intensityHistory, ArchetypeIntensity.Recovery);
-        inputs.ScenesSinceDemanding = CalculateScenesSince(intensityHistory, ArchetypeIntensity.Demanding);
-
-        // Intensity heavy = more Demanding than Recovery in recent history
-        inputs.IsIntensityHeavy = inputs.RecentDemandingCount > inputs.RecentRecoveryCount;
-
-        // Last scene state
-        if (intensityHistory.Any())
-        {
-            inputs.LastSceneIntensity = intensityHistory.Last();
-        }
-
-        // Count consecutive Standard intensity scenes at end of history
-        inputs.ConsecutiveStandardCount = CountConsecutiveFromEnd(intensityHistory, ArchetypeIntensity.Standard);
-
-        // Last scene rhythm (Crisis rhythm = test phase)
-        if (rhythmHistory.Any())
-        {
-            inputs.LastSceneWasCrisisRhythm = rhythmHistory.Last() == RhythmPattern.Crisis;
-        }
-
-        // Anti-repetition: recent categories and archetypes
+        // Anti-repetition lists
         inputs.RecentCategories = categoryHistory.TakeLast(2).ToList();
         inputs.RecentArchetypes = archetypeHistory.TakeLast(3).ToList();
 
-        // Compute RhythmPattern from history - all context from game state
-        inputs.RhythmPattern = ComputeRhythmPattern(inputs, rhythmHistory);
+        // Compute RhythmPattern from history
+        inputs.RhythmPattern = ComputeRhythmPatternFromHistory(intensityHistory, rhythmHistory);
+
+        return inputs;
     }
 
     /// <summary>
-    /// Compute rhythm pattern from intensity history.
-    /// Determines if player should build, face crisis, or recover (mixed).
+    /// Compute RhythmPattern from intensity and rhythm history.
     /// </summary>
-    private RhythmPattern ComputeRhythmPattern(SceneSelectionInputs inputs, List<RhythmPattern> rhythmHistory)
+    private RhythmPattern ComputeRhythmPatternFromHistory(
+        List<ArchetypeIntensity> intensityHistory,
+        List<RhythmPattern> rhythmHistory)
     {
+        if (!intensityHistory.Any())
+        {
+            return RhythmPattern.Building;
+        }
+
         // Just after Crisis rhythm → Mixed (recovery phase)
-        if (inputs.LastSceneWasCrisisRhythm)
+        if (rhythmHistory.Any() && rhythmHistory.Last() == RhythmPattern.Crisis)
         {
             return RhythmPattern.Mixed;
         }
 
+        // Recent window for intensity counts
+        List<ArchetypeIntensity> recent = intensityHistory.TakeLast(5).ToList();
+        int demandingCount = recent.Count(i => i == ArchetypeIntensity.Demanding);
+        int recoveryCount = recent.Count(i => i == ArchetypeIntensity.Recovery);
+
         // Intensity heavy (more Demanding than Recovery) → needs Mixed (recovery)
-        if (inputs.IsIntensityHeavy && inputs.ScenesSinceRecovery >= 2)
+        if (demandingCount > recoveryCount)
         {
             return RhythmPattern.Mixed;
+        }
+
+        // Calculate scenes since last Demanding
+        int scenesSinceDemanding = 0;
+        for (int i = intensityHistory.Count - 1; i >= 0; i--)
+        {
+            if (intensityHistory[i] == ArchetypeIntensity.Demanding)
+            {
+                break;
+            }
+            scenesSinceDemanding++;
         }
 
         // Long time since Demanding → time for Crisis (test)
-        if (inputs.ScenesSinceDemanding >= 4)
-        {
-            return RhythmPattern.Crisis;
-        }
-
-        // Many consecutive Standard scenes → time for variety (Crisis)
-        if (inputs.ConsecutiveStandardCount >= 3)
+        if (scenesSinceDemanding >= 4)
         {
             return RhythmPattern.Crisis;
         }
 
         // Default: Building (accumulation phase)
         return RhythmPattern.Building;
-    }
-
-    /// <summary>
-    /// Calculate number of scenes since last occurrence of given intensity.
-    /// Returns 0 if last scene matches, or total count if never occurred.
-    /// </summary>
-    private int CalculateScenesSince(List<ArchetypeIntensity> history, ArchetypeIntensity target)
-    {
-        for (int i = history.Count - 1; i >= 0; i--)
-        {
-            if (history[i] == target)
-            {
-                return history.Count - 1 - i;
-            }
-        }
-        return history.Count; // Never occurred
-    }
-
-    /// <summary>
-    /// Count consecutive occurrences of target intensity from end of history.
-    /// </summary>
-    private int CountConsecutiveFromEnd(List<ArchetypeIntensity> history, ArchetypeIntensity target)
-    {
-        int count = 0;
-        for (int i = history.Count - 1; i >= 0; i--)
-        {
-            if (history[i] == target)
-            {
-                count++;
-            }
-            else
-            {
-                break;
-            }
-        }
-        return count;
     }
 
     /// <summary>

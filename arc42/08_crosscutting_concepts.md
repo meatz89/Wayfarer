@@ -1032,65 +1032,72 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 ## 8.28 Context Injection (HIGHLANDER Scene Generation)
 
-**"One DTO, two sources. Parser doesn't know where it came from."**
+**"RhythmPattern drives selection. Location difficulty drives scaling. Never mixed."**
 
-### Two Concepts
+### Two Distinct Systems
 
-| Concept | What It Is | Contains |
-|---------|------------|----------|
-| **SceneTemplate** | Pure archetype | SituationTemplates (structure, choice patterns) |
-| **Scene** | Playable instance | Situations (concrete game state) |
+| System | Input | When Applied | Controls |
+|--------|-------|--------------|----------|
+| **Scene Selection** | RhythmPattern + anti-repetition | Scene spawn trigger hit | Which archetype category |
+| **Choice Scaling** | Location difficulty (hex distance) | Situation created | Requirement/reward values |
 
-**SceneTemplates** are pure archetypes (InnLodging, SeekAudience, etc.) containing SituationTemplates. Loaded at game start.
+These systems are ORTHOGONAL. Selection doesn't know about scaling. Scaling doesn't influence selection.
 
-**Scenes** are instances created by parsing SceneDTO.
+### Scene Selection: RhythmPattern Only
 
-### One DTO, Two Sources
+Scene archetype selection uses ONLY:
 
-SceneDTO serves BOTH creation and runtime. It contains template reference + complete context + runtime state. Both authored and procedural content use the SAME DTO:
+| Input | Source | Purpose |
+|-------|--------|---------|
+| **RhythmPattern** | Computed from intensity history | Building → building archetypes; Crisis → crisis archetypes |
+| **Anti-Repetition** | Recent categories/archetypes | Avoid immediate repetition |
 
-| Source | How DTO is Created |
-|--------|-------------------|
-| **Authored** | JSON → SceneDTO (context properties populated) |
-| **Procedural** | Code creates SceneDTO directly |
+**No other inputs influence selection.** Location context, player stats, tier—all REMOVED from selection.
 
-Parser receives SceneDTO and produces Scene domain object. Parser has no knowledge of source.
+### Choice Scaling: Location Difficulty
 
-### SceneDTO Structure
+When a situation is instantiated from template, choices receive scaling from location:
 
-| Section | Properties | Purpose |
-|---------|------------|---------|
-| **Context** | Tier, RhythmPattern, LocationSafety, LocationPurpose | Creation-time scaling |
-| **Identity** | SceneArchetype, Id, MainStorySequence, IsStarter | Template reference, A-story |
-| **Activation** | LocationActivationFilter, NpcActivationFilter, SpawnConditions | When scene triggers |
-| **Runtime** | State, CurrentSituationId, Situations | Populated during play |
+| Input | Source | Effect |
+|-------|--------|--------|
+| **Location Difficulty** | Hex distance from world center / 5 | Modifies stat requirements and reward magnitudes |
+| **Net Challenge** | Location difficulty - player strength | Applied via ApplyStatAdjustment() |
 
-Context properties are REQUIRED at creation, no defaults.
+Scaling happens at instantiation—AFTER selection is complete.
+
+### Context Flow
+
+```
+SceneSpawnReward → RhythmPattern → SelectArchetypeCategory → SceneTemplate
+                                                                    ↓
+                         Location.Difficulty → Choice Instantiation
+```
+
+SceneSpawnReward is THE source of RhythmPattern context. Choice scaling reads from current Location.
 
 ### HIGHLANDER Compliance
 
 | Principle | How It's Upheld |
 |-----------|-----------------|
-| **Same DTO type** | SceneDTO for both paths |
-| **Same parser** | Parser processes DTO, not source |
-| **No nulls, no defaults** | Context complete before parsing |
+| **Same selection logic** | RhythmPattern processed identically for authored/procedural |
+| **Same scaling logic** | Location difficulty applied identically to all choices |
+| **No source detection** | Selection doesn't know if context was authored |
 
 ### Forbidden Patterns
 
 | Pattern | Why It's Wrong |
 |---------|----------------|
-| Separate DTO types for authored/procedural | Violates HIGHLANDER |
-| Nullable context properties | Violates no-null policy |
-| `HasAuthoredContext` checks | Parser shouldn't know source |
-| Fallback defaults (`??`) | Hides missing data |
-| Context on SceneTemplate | Templates are pure archetypes |
-| RhythmPhase enum | Redundant with RhythmPattern |
+| LocationSafety/Purpose in selection | Legacy properties—DELETED |
+| Tier in selection | Legacy property—DELETED |
+| Player stats influencing selection | Game doesn't cushion poor play |
+| Merging authored with game state | Context is all-or-nothing |
+| Context derivation at parse time | Context set by SceneSpawnReward only |
+| `HasAuthoredContext` checks | Removed—all scenes have RhythmPattern |
 
 **Cross-References:**
 - §8.1 HIGHLANDER: One code path for all scene generation
-- §8.2 Catalogue Pattern: Context properties translate at parse-time
-- §8.23 Archetype Reusability: No tutorial hardcoding in archetypes
-- §8.26 Sir Brante Rhythm: RhythmPattern as contextual property
+- §8.26 Sir Brante Rhythm: RhythmPattern computation from intensity history
+- §8.30 Net Challenge: Location difficulty scaling system
 
 ---
 

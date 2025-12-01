@@ -8,10 +8,11 @@ namespace Wayfarer.Tests.Architecture;
 /// Verifies that authored and procedural content use IDENTICAL selection logic.
 /// The only difference is WHERE inputs come from, not HOW they're processed.
 ///
-/// PRINCIPLE (arc42 §8.28):
+/// SIMPLIFIED (arc42 §8.28):
 /// - Same SelectArchetypeCategory for both paths
-/// - Current player state NEVER influences selection
-/// - Selection based on rhythm pattern + location context + history
+/// - RhythmPattern is THE ONLY driver for category selection
+/// - Anti-repetition prevents immediate repeats
+/// - LocationSafety/Purpose/Tier REMOVED (legacy)
 /// </summary>
 public class HighlanderSceneGenerationTests
 {
@@ -24,14 +25,10 @@ public class HighlanderSceneGenerationTests
         // regardless of whether inputs came from authored or procedural source
 
         SceneSelectionInputs inputsA = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building,
-            locationSafety: LocationSafety.Safe,
-            locationPurpose: LocationPurpose.Civic);
+            rhythmPattern: RhythmPattern.Building);
 
         SceneSelectionInputs inputsB = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building,
-            locationSafety: LocationSafety.Safe,
-            locationPurpose: LocationPurpose.Civic);
+            rhythmPattern: RhythmPattern.Building);
 
         // Both should produce identical category
         string categoryA = TestSelectArchetypeCategory(inputsA);
@@ -41,22 +38,16 @@ public class HighlanderSceneGenerationTests
     }
 
     [Fact]
-    public void SelectArchetypeCategory_DeterministicFromHistory()
+    public void SelectArchetypeCategory_Deterministic()
     {
-        // Selection must be deterministic - same history values = same result
+        // Selection must be deterministic - same inputs = same result
         // No randomness allowed in category selection
 
         SceneSelectionInputs inputs1 = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building,
-            recentDemandingCount: 2,
-            recentRecoveryCount: 1,
-            scenesSinceRecovery: 3);
+            rhythmPattern: RhythmPattern.Building);
 
         SceneSelectionInputs inputs2 = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building,
-            recentDemandingCount: 2,
-            recentRecoveryCount: 1,
-            scenesSinceRecovery: 3);
+            rhythmPattern: RhythmPattern.Building);
 
         string category1 = TestSelectArchetypeCategory(inputs1);
         string category2 = TestSelectArchetypeCategory(inputs2);
@@ -85,8 +76,7 @@ public class HighlanderSceneGenerationTests
     {
         // Crisis pattern MUST be able to produce Crisis category
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Crisis,
-            locationSafety: LocationSafety.Dangerous); // Filter to Crisis/Confrontation
+            rhythmPattern: RhythmPattern.Crisis);
 
         string category = TestSelectArchetypeCategory(inputs);
 
@@ -103,37 +93,6 @@ public class HighlanderSceneGenerationTests
         string category = TestSelectArchetypeCategory(inputs);
 
         Assert.NotEqual("Crisis", category);
-    }
-
-    // ==================== LOCATION CONTEXT FILTERING ====================
-
-    [Fact]
-    public void LocationContext_Dangerous_FavorsCrisisOrConfrontation()
-    {
-        // Dangerous locations should favor Confrontation/Crisis
-        SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Crisis, // Allows Crisis/Confrontation
-            locationSafety: LocationSafety.Dangerous);
-
-        string category = TestSelectArchetypeCategory(inputs);
-
-        Assert.True(category == "Crisis" || category == "Confrontation",
-            $"Dangerous location in Crisis pattern should produce Crisis or Confrontation, got: {category}");
-    }
-
-    [Fact]
-    public void LocationContext_SafeCivic_FavorsSocialOrInvestigation()
-    {
-        // Safe civic locations should favor Social/Investigation
-        SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building, // Allows Investigation/Social/Confrontation
-            locationSafety: LocationSafety.Safe,
-            locationPurpose: LocationPurpose.Civic);
-
-        string category = TestSelectArchetypeCategory(inputs);
-
-        Assert.True(category == "Social" || category == "Investigation",
-            $"Safe civic location should produce Social or Investigation, got: {category}");
     }
 
     // ==================== ANTI-REPETITION ====================
@@ -166,40 +125,42 @@ public class HighlanderSceneGenerationTests
         Assert.Contains(category, new[] { "Investigation", "Social", "Confrontation" });
     }
 
-    // ==================== NO PLAYER STATE INFLUENCE ====================
+    // ==================== LEGACY PROPERTIES REMOVED ====================
 
     [Fact]
-    public void Selection_NotInfluencedByPlayerResolve()
+    public void Selection_NoLocationSafetyProperty()
     {
-        // CRITICAL: Current player Resolve should NEVER influence category selection
-        // This is tested by ensuring SceneSelectionInputs has no Resolve/MaxSafeIntensity field
-
-        // SceneSelectionInputs should NOT have MaxSafeIntensity property
-        // (it was removed in the refactoring)
+        // LocationSafety REMOVED from SceneSelectionInputs (legacy)
         Type inputsType = typeof(SceneSelectionInputs);
-        System.Reflection.PropertyInfo maxSafeProperty = inputsType.GetProperty("MaxSafeIntensity");
+        System.Reflection.PropertyInfo locationSafetyProperty = inputsType.GetProperty("LocationSafety");
 
-        Assert.Null(maxSafeProperty);
+        Assert.Null(locationSafetyProperty);
     }
 
     [Fact]
-    public void Selection_NotInfluencedBySequenceRotation()
+    public void Selection_NoLocationPurposeProperty()
     {
-        // CRITICAL: Selection should NOT use sequence-based rotation
-        // Sequence field was removed from SceneSelectionInputs
-
+        // LocationPurpose REMOVED from SceneSelectionInputs (legacy)
         Type inputsType = typeof(SceneSelectionInputs);
-        System.Reflection.PropertyInfo sequenceProperty = inputsType.GetProperty("Sequence");
+        System.Reflection.PropertyInfo locationPurposeProperty = inputsType.GetProperty("LocationPurpose");
 
-        Assert.Null(sequenceProperty);
+        Assert.Null(locationPurposeProperty);
+    }
+
+    [Fact]
+    public void Selection_NoTierProperty()
+    {
+        // Tier REMOVED from SceneSelectionInputs (legacy)
+        Type inputsType = typeof(SceneSelectionInputs);
+        System.Reflection.PropertyInfo tierProperty = inputsType.GetProperty("Tier");
+
+        Assert.Null(tierProperty);
     }
 
     [Fact]
     public void Selection_NoTargetCategoryOverride()
     {
-        // CRITICAL: TargetCategory override was removed
-        // No bypassing selection logic
-
+        // TargetCategory override was never added - no bypassing selection logic
         Type inputsType = typeof(SceneSelectionInputs);
         System.Reflection.PropertyInfo targetCategoryProperty = inputsType.GetProperty("TargetCategory");
 
@@ -211,13 +172,10 @@ public class HighlanderSceneGenerationTests
     [Fact]
     public void AuthoredContent_UsesIdenticalSelectionLogic()
     {
-        // Authored content provides categorical inputs that flow through SAME logic
+        // Authored content provides RhythmPattern that flows through SAME logic
         SceneSpawnReward authoredReward = new SceneSpawnReward
         {
-            LocationSafetyContext = LocationSafety.Safe,
-            LocationPurposeContext = LocationPurpose.Civic,
-            RhythmPatternContext = RhythmPattern.Building,
-            TierContext = 0
+            RhythmPatternContext = RhythmPattern.Building
         };
 
         // Build inputs from authored content
@@ -225,10 +183,7 @@ public class HighlanderSceneGenerationTests
 
         // Build equivalent procedural inputs
         SceneSelectionInputs proceduralInputs = CreateTestInputs(
-            rhythmPattern: RhythmPattern.Building,
-            locationSafety: LocationSafety.Safe,
-            locationPurpose: LocationPurpose.Civic,
-            tier: 0);
+            rhythmPattern: RhythmPattern.Building);
 
         // Both should produce same category
         string authoredCategory = TestSelectArchetypeCategory(authoredInputs);
@@ -250,30 +205,34 @@ public class HighlanderSceneGenerationTests
         Assert.Null(excludedCategoriesProperty);
     }
 
+    [Fact]
+    public void SceneSpawnReward_NoLegacyContextProperties()
+    {
+        // SceneSpawnReward should NOT have legacy LocationSafety/Purpose/Tier properties
+
+        Type rewardType = typeof(SceneSpawnReward);
+        System.Reflection.PropertyInfo locationSafetyProperty = rewardType.GetProperty("LocationSafetyContext");
+        System.Reflection.PropertyInfo locationPurposeProperty = rewardType.GetProperty("LocationPurposeContext");
+        System.Reflection.PropertyInfo tierProperty = rewardType.GetProperty("TierContext");
+
+        Assert.Null(locationSafetyProperty);
+        Assert.Null(locationPurposeProperty);
+        Assert.Null(tierProperty);
+    }
+
     // ==================== HELPER METHODS ====================
 
     /// <summary>
     /// Create test inputs with specified values, defaults for others.
+    /// SIMPLIFIED: Only RhythmPattern + anti-repetition.
     /// </summary>
     private SceneSelectionInputs CreateTestInputs(
         RhythmPattern rhythmPattern = RhythmPattern.Building,
-        LocationSafety locationSafety = LocationSafety.Safe,
-        LocationPurpose locationPurpose = LocationPurpose.Civic,
-        int tier = 0,
-        int recentDemandingCount = 0,
-        int recentRecoveryCount = 0,
-        int scenesSinceRecovery = 0,
         List<string> recentCategories = null)
     {
         return new SceneSelectionInputs
         {
             RhythmPattern = rhythmPattern,
-            LocationSafety = locationSafety,
-            LocationPurpose = locationPurpose,
-            Tier = tier,
-            RecentDemandingCount = recentDemandingCount,
-            RecentRecoveryCount = recentRecoveryCount,
-            ScenesSinceRecovery = scenesSinceRecovery,
             RecentCategories = recentCategories ?? new List<string>(),
             RecentArchetypes = new List<string>()
         };
@@ -281,19 +240,15 @@ public class HighlanderSceneGenerationTests
 
     /// <summary>
     /// Test implementation of SelectArchetypeCategory logic.
-    /// Mirrors the actual implementation for testing purposes.
+    /// SIMPLIFIED: RhythmPattern + anti-repetition only.
     ///
     /// PRODUCTION IMPLEMENTATION LOCATION:
     /// ProceduralAStoryService.SelectArchetypeCategory() in
-    /// src/Subsystems/ProceduralContent/ProceduralAStoryService.cs (lines 136-159)
-    ///
-    /// MAINTAINABILITY: If production logic changes, this test implementation
-    /// must be updated to match. Consider using reflection or direct invocation
-    /// if test isolation permits.
+    /// src/Subsystems/ProceduralContent/ProceduralAStoryService.cs
     /// </summary>
     private string TestSelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // Get appropriate categories for rhythm pattern
+        // Get appropriate categories for rhythm pattern ONLY
         List<string> appropriateCategories = inputs.RhythmPattern switch
         {
             RhythmPattern.Building => new List<string> { "Investigation", "Social", "Confrontation" },
@@ -302,61 +257,17 @@ public class HighlanderSceneGenerationTests
             _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
         };
 
-        // Filter by location context
-        List<string> filtered = FilterByLocationContext(appropriateCategories, inputs);
-
         // Apply anti-repetition
-        List<string> available = filtered
+        List<string> available = appropriateCategories
             .Where(c => !inputs.RecentCategories.Contains(c))
             .ToList();
 
         if (!available.Any())
         {
-            available = filtered;
+            available = appropriateCategories;
         }
 
-        // Deterministic selection
-        int selectionIndex = ComputeSelectionIndex(inputs, available.Count);
-        return available[selectionIndex];
-    }
-
-    private List<string> FilterByLocationContext(List<string> categories, SceneSelectionInputs inputs)
-    {
-        List<string> filtered = new List<string>(categories);
-
-        if (inputs.LocationSafety == LocationSafety.Dangerous)
-        {
-            if (filtered.Contains("Confrontation") || filtered.Contains("Crisis"))
-            {
-                filtered = filtered.Where(c => c == "Confrontation" || c == "Crisis").ToList();
-            }
-        }
-
-        if (inputs.LocationSafety == LocationSafety.Safe && inputs.LocationPurpose == LocationPurpose.Civic)
-        {
-            if (filtered.Contains("Social") || filtered.Contains("Investigation"))
-            {
-                filtered = filtered.Where(c => c == "Social" || c == "Investigation").ToList();
-            }
-        }
-
-        if (!filtered.Any())
-        {
-            return categories;
-        }
-
-        return filtered;
-    }
-
-    private int ComputeSelectionIndex(SceneSelectionInputs inputs, int optionCount)
-    {
-        if (optionCount <= 0) return 0;
-
-        int hash = inputs.RecentDemandingCount * 7
-                 + inputs.RecentRecoveryCount * 11
-                 + inputs.ScenesSinceRecovery * 13
-                 + inputs.TotalIntensityHistoryCount * 17;
-
-        return Math.Abs(hash) % optionCount;
+        // First available category for determinism
+        return available[0];
     }
 }

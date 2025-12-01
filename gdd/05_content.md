@@ -14,26 +14,25 @@ The primary narrative spine that never ends:
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
 - Uses the SAME selection logic as procedural content
-- Tutorial scenes emerge from authored categorical inputs (not overrides)
-- Authored DTO specifies: location context, rhythm phase, intensity history
-- Selection logic processes these inputs identically to procedural
+- Tutorial scenes emerge from authored RhythmPattern (not overrides)
+- SceneSpawnReward specifies: RhythmPattern only
+- Selection logic processes this identically to procedural
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
 - Uses the SAME selection logic as tutorial
-- Procedural DTO derives inputs from actual GameWorld state
-- Location context read from player's current location
-- Rhythm phase computed from completed scene history
+- RhythmPattern computed from intensity history
+- Anti-repetition filters recent categories/archetypes
 - Never resolves, always deepens
 
-**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is DTO source:
+**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is RhythmPattern source:
 
-| Content | DTO Source | Selection Logic |
-|---------|------------|-----------------|
-| Tutorial | Authored categorical properties | Same |
-| Procedural | GameWorld-derived properties | Same |
+| Content | RhythmPattern Source | Selection Logic |
+|---------|---------------------|-----------------|
+| Tutorial | Authored in SceneSpawnReward | Same |
+| Procedural | Computed from intensity history | Same |
 
-Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored inputs (safe location, friendly NPC, empty intensity history, recovery rhythm phase) naturally flow through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes inputs.
+Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored RhythmPattern (Building) naturally flows through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes RhythmPattern.
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 

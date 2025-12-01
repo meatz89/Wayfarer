@@ -792,59 +792,13 @@ public class SceneTemplateParser
             SceneSpawnReward reward = new SceneSpawnReward
             {
                 SpawnNextMainStoryScene = dto.SpawnNextMainStoryScene,
-                // CATEGORICAL INPUTS - flow through same selection logic as procedural
-                LocationSafetyContext = ParseLocationSafety(dto.LocationSafetyContext),
-                LocationPurposeContext = ParseLocationPurpose(dto.LocationPurposeContext),
-                RhythmPatternContext = ParseRhythmPattern(dto.RhythmPatternContext),
-                TierContext = dto.TierContext
+                // SIMPLIFIED (arc42 §8.28): RhythmPattern is THE ONLY context input
+                RhythmPatternContext = ParseRhythmPattern(dto.RhythmPatternContext)
             };
             rewards.Add(reward);
         }
 
         return rewards;
-    }
-
-    /// <summary>
-    /// Parse location safety from string.
-    /// Returns null if string is null/empty.
-    /// </summary>
-    private LocationSafety? ParseLocationSafety(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-
-        return value.ToLowerInvariant() switch
-        {
-            "safe" => LocationSafety.Safe,
-            "neutral" => LocationSafety.Neutral,
-            "dangerous" => LocationSafety.Dangerous,
-            _ => throw new InvalidOperationException(
-                $"Unknown LocationSafety '{value}' - valid values: Safe, Neutral, Dangerous")
-        };
-    }
-
-    /// <summary>
-    /// Parse location purpose from string.
-    /// Returns null if string is null/empty.
-    /// </summary>
-    private LocationPurpose? ParseLocationPurpose(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-
-        return value.ToLowerInvariant() switch
-        {
-            "transit" => LocationPurpose.Transit,
-            "dwelling" => LocationPurpose.Dwelling,
-            "commerce" => LocationPurpose.Commerce,
-            "civic" => LocationPurpose.Civic,
-            "defense" => LocationPurpose.Defense,
-            "governance" => LocationPurpose.Governance,
-            "worship" => LocationPurpose.Worship,
-            "learning" => LocationPurpose.Learning,
-            "entertainment" => LocationPurpose.Entertainment,
-            "generic" => LocationPurpose.Generic,
-            _ => throw new InvalidOperationException(
-                $"Unknown LocationPurpose '{value}' - valid values: Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic")
-        };
     }
 
     /// <summary>

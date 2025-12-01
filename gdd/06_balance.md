@@ -256,37 +256,43 @@ The player's CURRENT state is their responsibility. Bad choices have consequence
 
 **The Feeling:** Player senses the rhythm. "I've been gaining stats... something bad is coming." The anticipation creates tension even in peaceful moments.
 
-### Scene Selection Inputs (What Drives Generation)
+### Scene Selection Inputs (RhythmPattern Only)
 
-Scene selection receives categorical inputs and produces scene archetype selection deterministically:
+Scene selection uses ONLY two inputs:
 
-**Primary Drivers:**
+| Input | Source | Purpose |
+|-------|--------|---------|
+| **RhythmPattern** | Computed from intensity history | Determines appropriate archetype category |
+| **Anti-Repetition** | Recent categories/archetypes | Prevents immediate repetition |
 
-| Input Category | Properties | How It Influences Selection |
-|----------------|------------|----------------------------|
-| **Location Context** | Safety, Purpose, Privacy, Activity | Dangerous locations favor confrontation; civic locations favor social |
-| **Intensity History** | Recent demanding/recovery counts, scenes since crisis | Determines rhythm phase (accumulation, test, recovery) |
-| **Rhythm Phase** | Computed from intensity history | Building phase → building archetypes; crisis phase → crisis archetypes |
+**RhythmPattern Computation (from Intensity History):**
 
-**Secondary Drivers:**
+| History State | Computed RhythmPattern | Category Pool |
+|---------------|------------------------|---------------|
+| Intensity-heavy (many demanding scenes) | Building | Recovery archetypes |
+| Recovery-starved (long since recovery) | Building | Peaceful archetypes |
+| Balanced history | Mixed | Trade-off archetypes |
+| Full accumulation cycle complete | Crisis | Crisis/Confrontation archetypes |
 
-| Input Category | Properties | How It Influences Selection |
-|----------------|------------|----------------------------|
-| **NPC Context** | Demeanor, relationship level | Hostile NPCs with no relationship favor confrontation |
-| **Tier** | Current story tier | Higher tiers enable more archetype variety |
-| **Anti-Repetition** | Recent categories, recent archetypes | Avoid same category twice in a row |
+**What Does NOT Influence Selection:**
+- Location safety, purpose, or difficulty (LEGACY—removed)
+- Player stats, Resolve, or resources
+- Story tier or sequence number
+- NPC demeanor or relationships
+
+Location difficulty affects CHOICE SCALING (stat requirements), not SCENE SELECTION.
 
 **How Tutorial Uses This:**
 
-Tutorial scenes work by providing authored categorical inputs that naturally produce desired results:
+Tutorial scenes specify RhythmPattern directly in SceneSpawnReward:
 
-| Tutorial Need | Authored Inputs | Selection Result |
-|---------------|-----------------|------------------|
-| A1: Gentle introduction | Safe location, Friendly NPC, Empty history, Recovery phase | Social/Investigation archetype |
-| A3: First challenge | Neutral location, Neutral NPC, Some accumulation, Test phase | Confrontation archetype |
-| A5: First crisis | Dangerous location, Suspicious NPC, Full accumulation, Crisis phase | Crisis archetype |
+| Tutorial Scene | Authored RhythmPattern | Selection Result |
+|----------------|------------------------|------------------|
+| A1: Introduction | Building | Social/Investigation |
+| A3: First challenge | Mixed | Confrontation |
+| A5: First crisis | Crisis | Crisis |
 
-The selection logic doesn't know these are tutorial scenes. It processes inputs identically to procedural content.
+The selection logic doesn't know these are tutorial scenes. Same code path, different RhythmPattern input.
 
 ### OR-Type Requirements (Multiple Valid Paths)
 
