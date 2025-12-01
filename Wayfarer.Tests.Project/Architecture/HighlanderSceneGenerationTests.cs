@@ -11,7 +11,7 @@ namespace Wayfarer.Tests.Architecture;
 /// PRINCIPLE (arc42 §8.28):
 /// - Same SelectArchetypeCategory for both paths
 /// - Current player state NEVER influences selection
-/// - Selection based on rhythm phase + location context + history
+/// - Selection based on rhythm pattern + location context + history
 /// </summary>
 public class HighlanderSceneGenerationTests
 {
@@ -24,12 +24,12 @@ public class HighlanderSceneGenerationTests
         // regardless of whether inputs came from authored or procedural source
 
         SceneSelectionInputs inputsA = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             locationSafety: LocationSafety.Safe,
             locationPurpose: LocationPurpose.Civic);
 
         SceneSelectionInputs inputsB = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             locationSafety: LocationSafety.Safe,
             locationPurpose: LocationPurpose.Civic);
 
@@ -47,13 +47,13 @@ public class HighlanderSceneGenerationTests
         // No randomness allowed in category selection
 
         SceneSelectionInputs inputs1 = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             recentDemandingCount: 2,
             recentRecoveryCount: 1,
             scenesSinceRecovery: 3);
 
         SceneSelectionInputs inputs2 = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             recentDemandingCount: 2,
             recentRecoveryCount: 1,
             scenesSinceRecovery: 3);
@@ -64,16 +64,16 @@ public class HighlanderSceneGenerationTests
         Assert.Equal(category1, category2);
     }
 
-    // ==================== RHYTHM PHASE → CATEGORY MAPPING ====================
+    // ==================== RHYTHM PATTERN → CATEGORY MAPPING ====================
 
     [Theory]
-    [InlineData(RhythmPhase.Accumulation, new[] { "Investigation", "Social", "Confrontation" })]
-    [InlineData(RhythmPhase.Test, new[] { "Crisis", "Confrontation" })]
-    [InlineData(RhythmPhase.Recovery, new[] { "Social", "Investigation" })]
-    public void RhythmPhase_MapsToAppropriateCategories(RhythmPhase phase, string[] expectedCategories)
+    [InlineData(RhythmPattern.Building, new[] { "Investigation", "Social", "Confrontation" })]
+    [InlineData(RhythmPattern.Crisis, new[] { "Crisis", "Confrontation" })]
+    [InlineData(RhythmPattern.Mixed, new[] { "Social", "Investigation" })]
+    public void RhythmPattern_MapsToAppropriateCategories(RhythmPattern pattern, string[] expectedCategories)
     {
-        // Each rhythm phase should produce only appropriate categories
-        SceneSelectionInputs inputs = CreateTestInputs(rhythmPhase: phase);
+        // Each rhythm pattern should produce only appropriate categories
+        SceneSelectionInputs inputs = CreateTestInputs(rhythmPattern: pattern);
 
         string category = TestSelectArchetypeCategory(inputs);
 
@@ -81,24 +81,24 @@ public class HighlanderSceneGenerationTests
     }
 
     [Fact]
-    public void RhythmPhase_Test_IncludesCrisis()
+    public void RhythmPattern_Crisis_IncludesCrisisCategory()
     {
-        // Test phase MUST be able to produce Crisis category
+        // Crisis pattern MUST be able to produce Crisis category
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Test,
+            rhythmPattern: RhythmPattern.Crisis,
             locationSafety: LocationSafety.Dangerous); // Filter to Crisis/Confrontation
 
         string category = TestSelectArchetypeCategory(inputs);
 
         Assert.True(category == "Crisis" || category == "Confrontation",
-            $"Test phase should produce Crisis or Confrontation, got: {category}");
+            $"Crisis pattern should produce Crisis or Confrontation, got: {category}");
     }
 
     [Fact]
-    public void RhythmPhase_Recovery_ExcludesCrisis()
+    public void RhythmPattern_Mixed_ExcludesCrisis()
     {
-        // Recovery phase should NOT produce Crisis category
-        SceneSelectionInputs inputs = CreateTestInputs(rhythmPhase: RhythmPhase.Recovery);
+        // Mixed pattern should NOT produce Crisis category
+        SceneSelectionInputs inputs = CreateTestInputs(rhythmPattern: RhythmPattern.Mixed);
 
         string category = TestSelectArchetypeCategory(inputs);
 
@@ -112,13 +112,13 @@ public class HighlanderSceneGenerationTests
     {
         // Dangerous locations should favor Confrontation/Crisis
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Test, // Allows Crisis/Confrontation
+            rhythmPattern: RhythmPattern.Crisis, // Allows Crisis/Confrontation
             locationSafety: LocationSafety.Dangerous);
 
         string category = TestSelectArchetypeCategory(inputs);
 
         Assert.True(category == "Crisis" || category == "Confrontation",
-            $"Dangerous location in Test phase should produce Crisis or Confrontation, got: {category}");
+            $"Dangerous location in Crisis pattern should produce Crisis or Confrontation, got: {category}");
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class HighlanderSceneGenerationTests
     {
         // Safe civic locations should favor Social/Investigation
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation, // Allows Investigation/Social/Confrontation
+            rhythmPattern: RhythmPattern.Building, // Allows Investigation/Social/Confrontation
             locationSafety: LocationSafety.Safe,
             locationPurpose: LocationPurpose.Civic);
 
@@ -143,12 +143,12 @@ public class HighlanderSceneGenerationTests
     {
         // Should avoid categories used in last 2 scenes
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation, // Allows Investigation/Social/Confrontation
+            rhythmPattern: RhythmPattern.Building, // Allows Investigation/Social/Confrontation
             recentCategories: new List<string> { "Investigation", "Social" });
 
         string category = TestSelectArchetypeCategory(inputs);
 
-        // Should pick Confrontation (only remaining option from Accumulation phase)
+        // Should pick Confrontation (only remaining option from Building pattern)
         Assert.Equal("Confrontation", category);
     }
 
@@ -157,7 +157,7 @@ public class HighlanderSceneGenerationTests
     {
         // If all categories would be excluded, should still produce a result
         SceneSelectionInputs inputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             recentCategories: new List<string> { "Investigation", "Social", "Confrontation" });
 
         string category = TestSelectArchetypeCategory(inputs);
@@ -216,7 +216,7 @@ public class HighlanderSceneGenerationTests
         {
             LocationSafetyContext = LocationSafety.Safe,
             LocationPurposeContext = LocationPurpose.Civic,
-            RhythmPhaseContext = RhythmPhase.Accumulation,
+            RhythmPatternContext = RhythmPattern.Building,
             TierContext = 0
         };
 
@@ -225,7 +225,7 @@ public class HighlanderSceneGenerationTests
 
         // Build equivalent procedural inputs
         SceneSelectionInputs proceduralInputs = CreateTestInputs(
-            rhythmPhase: RhythmPhase.Accumulation,
+            rhythmPattern: RhythmPattern.Building,
             locationSafety: LocationSafety.Safe,
             locationPurpose: LocationPurpose.Civic,
             tier: 0);
@@ -256,7 +256,7 @@ public class HighlanderSceneGenerationTests
     /// Create test inputs with specified values, defaults for others.
     /// </summary>
     private SceneSelectionInputs CreateTestInputs(
-        RhythmPhase rhythmPhase = RhythmPhase.Accumulation,
+        RhythmPattern rhythmPattern = RhythmPattern.Building,
         LocationSafety locationSafety = LocationSafety.Safe,
         LocationPurpose locationPurpose = LocationPurpose.Civic,
         int tier = 0,
@@ -267,7 +267,7 @@ public class HighlanderSceneGenerationTests
     {
         return new SceneSelectionInputs
         {
-            RhythmPhase = rhythmPhase,
+            RhythmPattern = rhythmPattern,
             LocationSafety = locationSafety,
             LocationPurpose = locationPurpose,
             Tier = tier,
@@ -293,12 +293,12 @@ public class HighlanderSceneGenerationTests
     /// </summary>
     private string TestSelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // Get appropriate categories for rhythm phase
-        List<string> appropriateCategories = inputs.RhythmPhase switch
+        // Get appropriate categories for rhythm pattern
+        List<string> appropriateCategories = inputs.RhythmPattern switch
         {
-            RhythmPhase.Accumulation => new List<string> { "Investigation", "Social", "Confrontation" },
-            RhythmPhase.Test => new List<string> { "Crisis", "Confrontation" },
-            RhythmPhase.Recovery => new List<string> { "Social", "Investigation" },
+            RhythmPattern.Building => new List<string> { "Investigation", "Social", "Confrontation" },
+            RhythmPattern.Crisis => new List<string> { "Crisis", "Confrontation" },
+            RhythmPattern.Mixed => new List<string> { "Social", "Investigation" },
             _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
         };
 

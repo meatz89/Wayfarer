@@ -39,8 +39,8 @@ public class SceneSelectionInputs
     /// </summary>
     public LocationPurpose LocationPurpose { get; set; }
 
-    // ==================== INTENSITY HISTORY (Primary Driver - Rhythm Phase) ====================
-    // Determines where player is in Building/Test/Recovery rhythm
+    // ==================== INTENSITY HISTORY (Primary Driver - Rhythm) ====================
+    // Determines where player is in Building/Crisis/Mixed rhythm
 
     /// <summary>
     /// Count of Demanding intensity scenes in recent history window.
@@ -84,7 +84,7 @@ public class SceneSelectionInputs
     /// </summary>
     public int TotalIntensityHistoryCount { get; set; }
 
-    // ==================== RHYTHM PHASE (Primary Driver - Derived from History) ====================
+    // ==================== RHYTHM PATTERN (Primary Driver - Derived from History) ====================
     // Pre-computed rhythm state for selection logic
 
     /// <summary>
@@ -106,12 +106,12 @@ public class SceneSelectionInputs
     public int ConsecutiveStandardCount { get; set; }
 
     /// <summary>
-    /// Computed rhythm phase based on intensity history.
-    /// Accumulation = grant opportunities to grow
-    /// Test = challenge based on expected stats
-    /// Recovery = restore after crisis
+    /// Computed rhythm pattern based on intensity history.
+    /// Building = grant opportunities to grow (accumulation phase)
+    /// Crisis = challenge based on expected stats (test phase)
+    /// Mixed = restore after crisis (recovery phase)
     /// </summary>
-    public RhythmPhase RhythmPhase { get; set; }
+    public RhythmPattern RhythmPattern { get; set; }
 
     // ==================== ANTI-REPETITION (Secondary Driver) ====================
     // Prevents same category appearing multiple times in a row
@@ -157,38 +157,10 @@ public class SceneSelectionInputs
             LastSceneWasCrisisRhythm = false,
             LastSceneIntensity = null,
             ConsecutiveStandardCount = 0,
-            RhythmPhase = RhythmPhase.Accumulation,
+            RhythmPattern = RhythmPattern.Building,
             RecentCategories = new List<string>(),
             RecentArchetypes = new List<string>(),
             Tier = 0
         };
     }
-}
-
-/// <summary>
-/// Rhythm phase computed from intensity history.
-/// Determines what kind of scene is appropriate next.
-/// </summary>
-public enum RhythmPhase
-{
-    /// <summary>
-    /// Player is building stats/resources.
-    /// Grant opportunities to grow.
-    /// Favor Building situations with Recovery/Standard intensity.
-    /// </summary>
-    Accumulation,
-
-    /// <summary>
-    /// Player has accumulated enough - time to test.
-    /// Challenge based on expected stats.
-    /// Favor Crisis situations with Standard/Demanding intensity.
-    /// </summary>
-    Test,
-
-    /// <summary>
-    /// Player just survived a crisis.
-    /// Restore after the challenge.
-    /// Favor Building situations with Recovery intensity.
-    /// </summary>
-    Recovery
 }

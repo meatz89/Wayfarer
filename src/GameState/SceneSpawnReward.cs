@@ -10,7 +10,7 @@
 ///
 /// HISTORY-DRIVEN GENERATION (gdd/01 §1.8):
 /// - No TargetCategory override - authored content uses categorical inputs
-/// - Selection based on rhythm phase + location context + history
+/// - Selection based on rhythm pattern + location context + history
 /// - Current player state NEVER influences selection
 /// </summary>
 public class SceneSpawnReward
@@ -51,11 +51,11 @@ public class SceneSpawnReward
     public LocationPurpose? LocationPurposeContext { get; set; }
 
     /// <summary>
-    /// Explicit rhythm phase for selection.
-    /// Accumulation grants growth; Test challenges; Recovery restores.
+    /// Explicit rhythm pattern for selection.
+    /// Building grants growth; Crisis challenges; Mixed restores.
     /// When null, computed from intensity history at spawn time.
     /// </summary>
-    public RhythmPhase? RhythmPhaseContext { get; set; }
+    public RhythmPattern? RhythmPatternContext { get; set; }
 
     /// <summary>
     /// Story tier for selection.
@@ -73,7 +73,7 @@ public class SceneSpawnReward
     {
         // NULL COALESCING RATIONALE (FAIL-FAST compatible):
         // Authored content may intentionally omit categorical properties to use game-start defaults.
-        // This enables partial authored context (e.g., specify only RhythmPhase, let location derive).
+        // This enables partial authored context (e.g., specify only RhythmPattern, let location derive).
         // These are NOT hiding errors - null means "use default for new game scenario".
         return new SceneSelectionInputs
         {
@@ -81,8 +81,8 @@ public class SceneSpawnReward
             LocationSafety = LocationSafetyContext ?? LocationSafety.Safe,
             LocationPurpose = LocationPurposeContext ?? LocationPurpose.Civic,
 
-            // Rhythm phase - use authored or default to Accumulation (game start = building phase)
-            RhythmPhase = RhythmPhaseContext ?? RhythmPhase.Accumulation,
+            // Rhythm pattern - use authored or default to Building (game start = building phase)
+            RhythmPattern = RhythmPatternContext ?? RhythmPattern.Building,
 
             // Tier - use authored or default to 0 (tutorial tier)
             Tier = TierContext ?? 0,
@@ -111,6 +111,6 @@ public class SceneSpawnReward
     public bool HasAuthoredContext =>
         LocationSafetyContext.HasValue
         || LocationPurposeContext.HasValue
-        || RhythmPhaseContext.HasValue
+        || RhythmPatternContext.HasValue
         || TierContext.HasValue;
 }

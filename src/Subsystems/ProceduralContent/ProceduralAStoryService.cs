@@ -135,8 +135,8 @@ public class ProceduralAStoryService
     /// </summary>
     private string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // Determine appropriate categories based on rhythm phase
-        List<string> appropriateCategories = GetCategoriesForRhythmPhase(inputs.RhythmPhase);
+        // Determine appropriate categories based on rhythm pattern
+        List<string> appropriateCategories = GetCategoriesForRhythmPattern(inputs.RhythmPattern);
 
         // Filter by location context
         appropriateCategories = FilterByLocationContext(appropriateCategories, inputs);
@@ -159,20 +159,20 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get categories appropriate for the current rhythm phase.
+    /// Get categories appropriate for the current rhythm pattern.
     /// </summary>
-    private List<string> GetCategoriesForRhythmPhase(RhythmPhase phase)
+    private List<string> GetCategoriesForRhythmPattern(RhythmPattern pattern)
     {
-        return phase switch
+        return pattern switch
         {
-            // Accumulation: favor building opportunities
-            RhythmPhase.Accumulation => new List<string> { "Investigation", "Social", "Confrontation" },
+            // Building: favor building opportunities (accumulation phase)
+            RhythmPattern.Building => new List<string> { "Investigation", "Social", "Confrontation" },
 
-            // Test: time for crisis/challenge
-            RhythmPhase.Test => new List<string> { "Crisis", "Confrontation" },
+            // Crisis: time for crisis/challenge (test phase)
+            RhythmPattern.Crisis => new List<string> { "Crisis", "Confrontation" },
 
-            // Recovery: gentle scenes after crisis
-            RhythmPhase.Recovery => new List<string> { "Social", "Investigation" },
+            // Mixed: gentle scenes after crisis (recovery phase)
+            RhythmPattern.Mixed => new List<string> { "Social", "Investigation" },
 
             _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
         };
@@ -282,10 +282,10 @@ public class ProceduralAStoryService
         // Build spawn conditions (A-scenes spawn automatically via completion trigger)
         SpawnConditionsDTO spawnConditions = BuildSpawnConditions(sequence, context);
 
-        // Determine rhythm pattern based on archetype category and rhythm phase from inputs
+        // Determine rhythm pattern based on archetype category and input rhythm
         // Sir Brante Pattern: Building accumulates capability, Crisis tests it
-        // HIGHLANDER: Uses RhythmPhase from inputs, not player state
-        string rhythmPattern = DetermineRhythmPattern(archetypeCategory, selectionInputs.RhythmPhase);
+        // HIGHLANDER: Uses RhythmPattern from inputs, not player state
+        string rhythmPattern = DetermineRhythmPatternForScene(archetypeCategory, selectionInputs.RhythmPattern);
 
         SceneTemplateDTO dto = new SceneTemplateDTO
         {
@@ -313,18 +313,18 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Determine rhythm pattern based on archetype category and rhythm phase.
+    /// Determine final rhythm pattern for scene based on archetype category and input rhythm.
     /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
     ///
     /// CONTEXT INJECTION (HIGHLANDER):
     /// - Peaceful category → Building rhythm (all positive, earned structural respite)
     /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
-    /// - Recovery phase → Building rhythm (recovery, stat grants)
+    /// - Mixed input → Building rhythm for recovery
     /// - Other combinations → Mixed rhythm (standard trade-offs)
     ///
-    /// Uses RhythmPhase from inputs (computed from intensity history by caller).
+    /// Uses RhythmPattern from inputs (computed from intensity history by caller).
     /// </summary>
-    private string DetermineRhythmPattern(string archetypeCategory, RhythmPhase rhythmPhase)
+    private string DetermineRhythmPatternForScene(string archetypeCategory, RhythmPattern inputRhythm)
     {
         // Peaceful category always uses Building rhythm (earned respite, all positive)
         if (archetypeCategory == "Peaceful")
@@ -338,9 +338,9 @@ public class ProceduralAStoryService
             return "Crisis";
         }
 
-        // Recovery rhythm phase uses Building rhythm (recovery)
-        // HIGHLANDER: Uses RhythmPhase from inputs, not player state
-        if (rhythmPhase == RhythmPhase.Recovery)
+        // Mixed input rhythm uses Building for recovery
+        // HIGHLANDER: Uses RhythmPattern from inputs, not player state
+        if (inputRhythm == RhythmPattern.Mixed)
         {
             return "Building";
         }

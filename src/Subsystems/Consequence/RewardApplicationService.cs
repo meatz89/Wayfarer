@@ -327,9 +327,9 @@ public class RewardApplicationService
             inputs.Tier = ComputeTierFromSequence(sequence);
         }
 
-        // Populate intensity history and compute RhythmPhase from GameWorld
-        // Both authored and procedural get actual history (unless authored overrides RhythmPhase)
-        PopulateIntensityHistory(inputs, sceneSpawn.RhythmPhaseContext);
+        // Populate intensity history and compute RhythmPattern from GameWorld
+        // Both authored and procedural get actual history (unless authored overrides RhythmPattern)
+        PopulateIntensityHistory(inputs, sceneSpawn.RhythmPatternContext);
 
         return inputs;
     }
@@ -347,10 +347,10 @@ public class RewardApplicationService
 
     /// <summary>
     /// Populate intensity tracking fields from completed A-story scenes.
-    /// Computes recent intensity counts, scene gaps, rhythm phase from GameWorld history.
-    /// If rhythmPhaseOverride is provided (authored content), use that instead of computing.
+    /// Computes recent intensity counts, scene gaps, rhythm pattern from GameWorld history.
+    /// If rhythmPatternOverride is provided (authored content), use that instead of computing.
     /// </summary>
-    private void PopulateIntensityHistory(SceneSelectionInputs inputs, RhythmPhase? rhythmPhaseOverride)
+    private void PopulateIntensityHistory(SceneSelectionInputs inputs, RhythmPattern? rhythmPatternOverride)
     {
         // Get completed A-story scenes ordered by sequence
         List<Scene> completedScenes = _gameWorld.Scenes
@@ -362,8 +362,8 @@ public class RewardApplicationService
 
         if (!completedScenes.Any())
         {
-            // No history - use authored override if provided, else default to Accumulation
-            inputs.RhythmPhase = rhythmPhaseOverride ?? RhythmPhase.Accumulation;
+            // No history - use authored override if provided, else default to Building
+            inputs.RhythmPattern = rhythmPatternOverride ?? RhythmPattern.Building;
             return;
         }
 
@@ -430,49 +430,49 @@ public class RewardApplicationService
         inputs.RecentCategories = categoryHistory.TakeLast(2).ToList();
         inputs.RecentArchetypes = archetypeHistory.TakeLast(3).ToList();
 
-        // Compute RhythmPhase from history (unless authored override)
-        if (rhythmPhaseOverride.HasValue)
+        // Compute RhythmPattern from history (unless authored override)
+        if (rhythmPatternOverride.HasValue)
         {
-            inputs.RhythmPhase = rhythmPhaseOverride.Value;
+            inputs.RhythmPattern = rhythmPatternOverride.Value;
         }
         else
         {
-            inputs.RhythmPhase = ComputeRhythmPhase(inputs, rhythmHistory);
+            inputs.RhythmPattern = ComputeRhythmPattern(inputs, rhythmHistory);
         }
     }
 
     /// <summary>
-    /// Compute rhythm phase from intensity history.
-    /// Determines if player should accumulate, be tested, or recover.
+    /// Compute rhythm pattern from intensity history.
+    /// Determines if player should build, face crisis, or recover (mixed).
     /// </summary>
-    private RhythmPhase ComputeRhythmPhase(SceneSelectionInputs inputs, List<RhythmPattern> rhythmHistory)
+    private RhythmPattern ComputeRhythmPattern(SceneSelectionInputs inputs, List<RhythmPattern> rhythmHistory)
     {
-        // Just after Crisis rhythm → Recovery phase
+        // Just after Crisis rhythm → Mixed (recovery phase)
         if (inputs.LastSceneWasCrisisRhythm)
         {
-            return RhythmPhase.Recovery;
+            return RhythmPattern.Mixed;
         }
 
-        // Intensity heavy (more Demanding than Recovery) → needs Recovery
+        // Intensity heavy (more Demanding than Recovery) → needs Mixed (recovery)
         if (inputs.IsIntensityHeavy && inputs.ScenesSinceRecovery >= 2)
         {
-            return RhythmPhase.Recovery;
+            return RhythmPattern.Mixed;
         }
 
-        // Long time since Demanding → time for Test
+        // Long time since Demanding → time for Crisis (test)
         if (inputs.ScenesSinceDemanding >= 4)
         {
-            return RhythmPhase.Test;
+            return RhythmPattern.Crisis;
         }
 
-        // Many consecutive Standard scenes → time for variety (Test)
+        // Many consecutive Standard scenes → time for variety (Crisis)
         if (inputs.ConsecutiveStandardCount >= 3)
         {
-            return RhythmPhase.Test;
+            return RhythmPattern.Crisis;
         }
 
-        // Default: Accumulation (building phase)
-        return RhythmPhase.Accumulation;
+        // Default: Building (accumulation phase)
+        return RhythmPattern.Building;
     }
 
     /// <summary>

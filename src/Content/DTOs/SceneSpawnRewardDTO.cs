@@ -8,7 +8,7 @@
 ///
 /// HISTORY-DRIVEN GENERATION (gdd/01 §1.8):
 /// No TargetCategory override - authored uses categorical properties.
-/// Selection based on rhythm phase + location context + history.
+/// Selection based on rhythm pattern + location context + history.
 /// </summary>
 public class SceneSpawnRewardDTO
 {
@@ -36,10 +36,10 @@ public class SceneSpawnRewardDTO
     public string LocationPurposeContext { get; set; }
 
     /// <summary>
-    /// Rhythm phase context: Accumulation, Test, Recovery.
+    /// Rhythm pattern context: Building, Crisis, Mixed.
     /// Determines which categories are appropriate for selection.
     /// </summary>
-    public string RhythmPhaseContext { get; set; }
+    public string RhythmPatternContext { get; set; }
 
     /// <summary>
     /// Story tier for selection (0-3).

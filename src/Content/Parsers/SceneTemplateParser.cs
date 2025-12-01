@@ -795,7 +795,7 @@ public class SceneTemplateParser
                 // CATEGORICAL INPUTS - flow through same selection logic as procedural
                 LocationSafetyContext = ParseLocationSafety(dto.LocationSafetyContext),
                 LocationPurposeContext = ParseLocationPurpose(dto.LocationPurposeContext),
-                RhythmPhaseContext = ParseRhythmPhase(dto.RhythmPhaseContext),
+                RhythmPatternContext = ParseRhythmPattern(dto.RhythmPatternContext),
                 TierContext = dto.TierContext
             };
             rewards.Add(reward);
@@ -848,20 +848,20 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse rhythm phase from string.
+    /// Parse rhythm pattern from string.
     /// Returns null if string is null/empty.
     /// </summary>
-    private RhythmPhase? ParseRhythmPhase(string value)
+    private RhythmPattern? ParseRhythmPattern(string value)
     {
         if (string.IsNullOrEmpty(value)) return null;
 
         return value.ToLowerInvariant() switch
         {
-            "accumulation" => RhythmPhase.Accumulation,
-            "test" => RhythmPhase.Test,
-            "recovery" => RhythmPhase.Recovery,
+            "building" => RhythmPattern.Building,
+            "crisis" => RhythmPattern.Crisis,
+            "mixed" => RhythmPattern.Mixed,
             _ => throw new InvalidOperationException(
-                $"Unknown RhythmPhase '{value}' - valid values: Accumulation, Test, Recovery")
+                $"Unknown RhythmPattern '{value}' - valid values: Building, Crisis, Mixed")
         };
     }
 
