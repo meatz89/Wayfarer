@@ -815,10 +815,10 @@ public class SceneTemplateParser
         return value.ToLowerInvariant() switch
         {
             "safe" => LocationSafety.Safe,
-            "risky" => LocationSafety.Risky,
+            "neutral" => LocationSafety.Neutral,
             "dangerous" => LocationSafety.Dangerous,
             _ => throw new InvalidOperationException(
-                $"Unknown LocationSafety '{value}' - valid values: Safe, Risky, Dangerous")
+                $"Unknown LocationSafety '{value}' - valid values: Safe, Neutral, Dangerous")
         };
     }
 
@@ -832,16 +832,18 @@ public class SceneTemplateParser
 
         return value.ToLowerInvariant() switch
         {
+            "transit" => LocationPurpose.Transit,
+            "dwelling" => LocationPurpose.Dwelling,
             "commerce" => LocationPurpose.Commerce,
+            "civic" => LocationPurpose.Civic,
+            "defense" => LocationPurpose.Defense,
             "governance" => LocationPurpose.Governance,
             "worship" => LocationPurpose.Worship,
-            "dwelling" => LocationPurpose.Dwelling,
-            "civic" => LocationPurpose.Civic,
-            "production" => LocationPurpose.Production,
-            "hospitality" => LocationPurpose.Hospitality,
-            "utility" => LocationPurpose.Utility,
+            "learning" => LocationPurpose.Learning,
+            "entertainment" => LocationPurpose.Entertainment,
+            "generic" => LocationPurpose.Generic,
             _ => throw new InvalidOperationException(
-                $"Unknown LocationPurpose '{value}' - valid values: Commerce, Governance, Worship, Dwelling, Civic, Production, Hospitality, Utility")
+                $"Unknown LocationPurpose '{value}' - valid values: Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic")
         };
     }
 
