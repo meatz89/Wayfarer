@@ -392,48 +392,38 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Analyze hex range to determine dominant terrain and average danger
+    /// Analyze hex range to determine dominant terrain and average danger.
+    /// DDR-007: Uses List<T> with LINQ GroupBy instead of Dictionary.
     /// </summary>
     private SegmentAnalysisResult AnalyzeSegmentHexes(List<AxialCoordinates> segmentHexes)
     {
         if (segmentHexes == null || segmentHexes.Count == 0)
             return new SegmentAnalysisResult(TerrainType.Plains, 0);
 
-        // Count terrain types
-        Dictionary<TerrainType, int> terrainCounts = new Dictionary<TerrainType, int>();
-        int totalDanger = 0;
-        int validHexCount = 0;
-
+        // Collect hex data into list
+        List<Hex> validHexes = new List<Hex>();
         foreach (AxialCoordinates coords in segmentHexes)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                // Count terrain
-                if (!terrainCounts.ContainsKey(hex.Terrain))
-                    terrainCounts[hex.Terrain] = 0;
-                terrainCounts[hex.Terrain]++;
-
-                // Sum danger
-                totalDanger += hex.DangerLevel;
-                validHexCount++;
+                validHexes.Add(hex);
             }
         }
 
-        // Find dominant terrain (most common)
-        TerrainType dominantTerrain = TerrainType.Plains;
-        int maxCount = 0;
-        foreach (KeyValuePair<TerrainType, int> kvp in terrainCounts)
-        {
-            if (kvp.Value > maxCount)
-            {
-                maxCount = kvp.Value;
-                dominantTerrain = kvp.Key;
-            }
-        }
+        if (validHexes.Count == 0)
+            return new SegmentAnalysisResult(TerrainType.Plains, 0);
+
+        // Find dominant terrain using LINQ GroupBy (DDR-007: no Dictionary)
+        TerrainType dominantTerrain = validHexes
+            .GroupBy(h => h.Terrain)
+            .OrderByDescending(g => g.Count())
+            .First()
+            .Key;
 
         // Calculate average danger
-        int averageDanger = validHexCount > 0 ? totalDanger / validHexCount : 0;
+        int totalDanger = validHexes.Sum(h => h.DangerLevel);
+        int averageDanger = totalDanger / validHexes.Count;
 
         return new SegmentAnalysisResult(dominantTerrain, averageDanger);
     }

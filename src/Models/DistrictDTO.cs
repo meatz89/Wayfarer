@@ -8,7 +8,7 @@ public class DistrictDTO
     public string Description { get; set; }
 
     // District knows its parent Region
-    public string RegionId { get; set; }
+    public string RegionName { get; set; }
 
     // Districts contain multiple locations
     public List<string> VenueIds { get; set; } = new List<string>();

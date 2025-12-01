@@ -131,7 +131,7 @@ public static class SceneParser
         if (dto.LocationActivationFilter != null)
         {
             string locationActivationContext = $"Scene:{dto.DisplayName}/LocationActivation";
-            locationActivationFilter = SceneTemplateParser.ParsePlacementFilter(
+            locationActivationFilter = PlacementFilterParser.Parse(
                 dto.LocationActivationFilter, locationActivationContext);
         }
 
@@ -157,21 +157,21 @@ public static class SceneParser
             if (situationDto.LocationFilter != null)
             {
                 string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
-                locationFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.LocationFilter, locationContext);
+                locationFilter = PlacementFilterParser.Parse(situationDto.LocationFilter, locationContext);
             }
 
             // Parse NPC filter (MUST be explicit on situation)
             if (situationDto.NpcFilter != null)
             {
                 string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
-                npcFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.NpcFilter, npcContext);
+                npcFilter = PlacementFilterParser.Parse(situationDto.NpcFilter, npcContext);
             }
 
             // Parse route filter (MUST be explicit on situation)
             if (situationDto.RouteFilter != null)
             {
                 string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
-                routeFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.RouteFilter, routeContext);
+                routeFilter = PlacementFilterParser.Parse(situationDto.RouteFilter, routeContext);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 

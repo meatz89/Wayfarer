@@ -25,7 +25,7 @@
         "id": "test_inn_venue",
         "name": "Test Inn",
         "description": "A simple test inn for lodging scene tests",
-        "districtId": "test_district",
+        "districtName": "test_district",
         "tier": 1
       }
     ],

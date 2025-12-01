@@ -61,7 +61,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources
@@ -79,7 +79,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources
@@ -97,7 +97,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Neutral,
             Activity = LocationActivity.Busy,
             Purpose = LocationPurpose.Commerce,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources
@@ -115,7 +115,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources
@@ -133,7 +133,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Neutral,
             Activity = LocationActivity.Busy,
             Purpose = LocationPurpose.Commerce,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources
@@ -151,7 +151,7 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Learning,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         return new DependentResources

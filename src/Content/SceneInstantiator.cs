@@ -20,9 +20,6 @@ using System.Text.Json;
 /// </summary>
 public class SceneInstantiator
 {
-    private const int SEGMENTS_PER_DAY = 16;
-    private const int SEGMENTS_PER_TIME_BLOCK = 4;
-
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
@@ -859,7 +856,7 @@ public class SceneInstantiator
             return null;
 
         // Apply selection strategy to choose ONE from multiple matches
-        NPC selectedNPC = ApplySelectionStrategyNPC(matchingNPCs, filter.SelectionStrategy, player);
+        NPC selectedNPC = PlacementSelectionStrategies.ApplyStrategyNPC(matchingNPCs, filter.SelectionStrategy, player);
         return selectedNPC?.Name;
     }
 
@@ -874,10 +871,10 @@ public class SceneInstantiator
         List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
         {
             // Check district (accessed via Location.Venue.District)
-            // HIGHLANDER: District is object reference, filter.DistrictId is string (DTO boundary)
-            if (!string.IsNullOrEmpty(filter.DistrictId))
+            // HIGHLANDER: District is object reference, filter.DistrictName is string (DTO boundary)
+            if (!string.IsNullOrEmpty(filter.DistrictName))
             {
-                if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictId)
+                if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictName)
                     return false;
             }
 
@@ -893,7 +890,7 @@ public class SceneInstantiator
             return null;
 
         // Apply selection strategy to choose ONE from multiple matches
-        Location selectedLocation = ApplySelectionStrategyLocation(matchingLocations, filter.SelectionStrategy, player);
+        Location selectedLocation = PlacementSelectionStrategies.ApplyStrategyLocation(matchingLocations, filter.SelectionStrategy, player);
         return selectedLocation?.Name;
     }
 
@@ -1023,10 +1020,10 @@ public class SceneInstantiator
             criteria.Add($"Location Role: {filter.LocationRole}");
         if (filter.Purpose.HasValue)
             criteria.Add($"Purpose: {filter.Purpose}");
-        if (!string.IsNullOrEmpty(filter.DistrictId))
-            criteria.Add($"District: {filter.DistrictId}");
-        if (!string.IsNullOrEmpty(filter.RegionId))
-            criteria.Add($"Region: {filter.RegionId}");
+        if (!string.IsNullOrEmpty(filter.DistrictName))
+            criteria.Add($"District: {filter.DistrictName}");
+        if (!string.IsNullOrEmpty(filter.RegionName))
+            criteria.Add($"Region: {filter.RegionName}");
 
         // Route filters
         if (filter.Terrain != null)
@@ -1125,222 +1122,8 @@ public class SceneInstantiator
         return string.Join("\n", contextInfo);
     }
 
-    /// <summary>
-    /// Apply selection strategy to choose ONE NPC from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, Random)
-    /// </summary>
-    private NPC ApplySelectionStrategyNPC(List<NPC> candidates, PlacementSelectionStrategy strategy, Player player)
-    {
-        if (candidates == null || candidates.Count == 0)
-            return null;
-
-        if (candidates.Count == 1)
-            return candidates[0]; // Only one candidate, return it
-
-        return strategy switch
-        {
-            PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
-            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentNPC(candidates, player),
-            PlacementSelectionStrategy.Random => SelectRandomNPC(candidates),
-            _ => candidates[0] // Fallback to first match
-        };
-    }
-
-    /// <summary>
-    /// Apply selection strategy to choose ONE Location from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest works, others fall back to Random)
-    /// </summary>
-    private Location ApplySelectionStrategyLocation(List<Location> candidates, PlacementSelectionStrategy strategy, Player player)
-    {
-        if (candidates == null || candidates.Count == 0)
-            return null;
-
-        if (candidates.Count == 1)
-            return candidates[0]; // Only one candidate, return it
-
-        return strategy switch
-        {
-            PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectRandomLocation(candidates), // N/A for locations
-            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentLocation(candidates, player),
-            PlacementSelectionStrategy.Random => SelectRandomLocation(candidates),
-            _ => candidates[0] // Fallback to first match
-        };
-    }
-
-    /// <summary>
-    /// Select NPC closest to player's current position using hex grid distance
-    /// </summary>
-    private NPC SelectClosestNPC(List<NPC> candidates, Player player)
-    {
-        NPC closest = null;
-        int minDistance = int.MaxValue;
-
-        foreach (NPC npc in candidates)
-        {
-            if (npc.Location?.HexPosition == null)
-                continue; // NPC has no position, skip
-
-            int distance = player.CurrentPosition.DistanceTo(npc.Location.HexPosition.Value);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closest = npc;
-            }
-        }
-
-        return closest ?? candidates[0]; // Fallback to first if no positions
-    }
-
-    /// <summary>
-    /// Select Location closest to player's current position using hex grid distance
-    /// </summary>
-    private Location SelectClosestLocation(List<Location> candidates, Player player)
-    {
-        Location closest = null;
-        int minDistance = int.MaxValue;
-
-        foreach (Location location in candidates)
-        {
-            if (location.HexPosition == null)
-                continue; // Location has no position, skip
-
-            int distance = player.CurrentPosition.DistanceTo(location.HexPosition.Value);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closest = location;
-            }
-        }
-
-        return closest ?? candidates[0]; // Fallback to first if no positions
-    }
-
-    /// <summary>
-    /// Select NPC with highest bond strength
-    /// Good for "trusted ally" or "close friend" scenarios
-    /// </summary>
-    private NPC SelectHighestBondNPC(List<NPC> candidates)
-    {
-        return candidates.OrderByDescending(npc => npc.BondStrength).First();
-    }
-
-    /// <summary>
-    /// Select NPC least recently interacted with for content variety
-    /// Uses Player.NPCInteractions timestamp data to find oldest interaction
-    /// Falls back to Random if no interaction history exists
-    /// </summary>
-    private NPC SelectLeastRecentNPC(List<NPC> candidates, Player player)
-    {
-        // Create interaction lookup dictionary for fast access
-        // ONE record per NPC (update-in-place pattern) - no GroupBy needed
-        // HIGHLANDER: Use NPC object as key, not string ID
-        Dictionary<NPC, NPCInteractionRecord> interactionLookup = player.NPCInteractions
-            .ToDictionary(interaction => interaction.Npc);
-
-        // Find candidate with oldest interaction (or never interacted)
-        NPC leastRecentNPC = null;
-        long oldestTimestamp = long.MaxValue;
-
-        foreach (NPC candidate in candidates)
-        {
-            if (!interactionLookup.ContainsKey(candidate))
-            {
-                // Never interacted with this NPC - prioritize these
-                return candidate;
-            }
-
-            NPCInteractionRecord record = interactionLookup[candidate];
-            long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
-
-            if (timestamp < oldestTimestamp)
-            {
-                oldestTimestamp = timestamp;
-                leastRecentNPC = candidate;
-            }
-        }
-
-        // If all candidates have been interacted with, return least recent
-        // If somehow nothing found, fall back to random
-        return leastRecentNPC ?? SelectRandomNPC(candidates);
-    }
-
-    /// <summary>
-    /// Select random NPC from candidates using RNG for unpredictable variety (uniform distribution)
-    /// </summary>
-    private NPC SelectRandomNPC(List<NPC> candidates)
-    {
-        int index = Random.Shared.Next(candidates.Count);
-        return candidates[index];
-    }
-
-    /// <summary>
-    /// Select random Location from candidates using RNG for unpredictable variety (uniform distribution)
-    /// </summary>
-    private Location SelectRandomLocation(List<Location> candidates)
-    {
-        int index = Random.Shared.Next(candidates.Count);
-        return candidates[index];
-    }
-
-    /// <summary>
-    /// Select Location least recently visited for content variety
-    /// Uses Player.LocationVisits timestamp data to find oldest visit
-    /// Falls back to Random if no visit history exists
-    /// </summary>
-    private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
-    {
-        // Find candidate with oldest visit (or never visited)
-        // Use LINQ queries over List<T>, NOT Dictionary (DOMAIN COLLECTION PRINCIPLE)
-        Location leastRecentLocation = null;
-        long oldestTimestamp = long.MaxValue;
-
-        foreach (Location candidate in candidates)
-        {
-            // LINQ query: Find visit record for this location
-            LocationVisitRecord record = player.LocationVisits
-                .FirstOrDefault(visit => visit.Location == candidate);
-
-            if (record == null)
-            {
-                // Never visited this location - prioritize these
-                return candidate;
-            }
-
-            long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
-
-            if (timestamp < oldestTimestamp)
-            {
-                oldestTimestamp = timestamp;
-                leastRecentLocation = candidate;
-            }
-        }
-
-        // If all candidates have been visited, return least recent
-        // If somehow nothing found, fall back to random
-        return leastRecentLocation ?? SelectRandomLocation(candidates);
-    }
-
-    /// <summary>
-    /// Calculate timestamp from game time components for chronological comparison
-    /// Formula: (Day * 16) + (TimeBlockValue * 4) + Segment
-    /// Assumes 4 time blocks per day (Morning, Midday, Afternoon, Evening), 4 segments per block = 16 segments/day
-    /// </summary>
-    private long CalculateTimestamp(int day, TimeBlocks timeBlock, int segment)
-    {
-        int timeBlockValue = timeBlock switch
-        {
-            TimeBlocks.Morning => 0,
-            TimeBlocks.Midday => 1,
-            TimeBlocks.Afternoon => 2,
-            TimeBlocks.Evening => 3,
-            _ => 0
-        };
-
-        return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
-    }
-
+    // Selection strategy methods extracted to PlacementSelectionStrategies.cs
+    // Use PlacementSelectionStrategies.ApplyStrategyNPC() and ApplyStrategyLocation()
 
     /// <summary>
     /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization
@@ -1371,8 +1154,8 @@ public class SceneInstantiator
             // Location filters
             Role = filter.LocationRole?.ToString(),
             IsPlayerAccessible = filter.IsPlayerAccessible,
-            DistrictId = filter.DistrictId,
-            RegionId = filter.RegionId,
+            DistrictName = filter.DistrictName,
+            RegionName = filter.RegionName,
             // Orthogonal Categorical Dimensions - Location
             Privacy = filter.Privacy?.ToString(),
             Safety = filter.Safety?.ToString(),

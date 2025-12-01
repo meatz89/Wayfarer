@@ -8,7 +8,7 @@ public class RegionDTO
     public string Description { get; set; }
 
     // Regions contain multiple districts
-    public List<string> DistrictIds { get; set; } = new List<string>();
+    public List<string> DistrictNames { get; set; } = new List<string>();
 
     // Region-level properties
     public string Government { get; set; }

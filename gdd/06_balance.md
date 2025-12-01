@@ -521,81 +521,99 @@ The game maintains fairness through rhythm, not rescue:
 - Automatic recovery when Resolve is low
 - Removal of demanding content for unprepared players
 
-### 8-Sequence Rotation (Earned Structural Respite)
+### RhythmPattern-Driven Scene Generation
 
-Procedural A-Story generation follows an 8-sequence cycle with Peaceful as earned respite:
+Scene generation is controlled by **RhythmPattern** (Building/Crisis/Mixed), computed from **intensity history**, not from sequence position. This creates emergent narrative rhythm that responds to accumulated story weight.
 
-| Position | Category | Intensity | Purpose |
-|----------|----------|-----------|---------|
-| 1 | Investigation | Standard | Information gathering |
-| 2 | Social | Standard | Relationship building |
-| 3 | Confrontation | Demanding | Rising tension |
-| 4 | Crisis | Demanding | Peak challenge |
-| 5 | Investigation | Standard | New thread |
-| 6 | Social | Standard | Consolidation |
-| 7 | Confrontation | Demanding | Building to climax |
-| 8 | **Peaceful** | **Recovery** | **Earned respite** |
+**Axis 1: RhythmPattern (Choice STRUCTURE)**
+
+| RhythmPattern | Choice Generation | Player Experience |
+|---------------|-------------------|-------------------|
+| **Building** | 4 choices with NO requirements, each GRANTS a different stat | "Who am I becoming?" |
+| **Crisis** | 4 choices where stat/coin requirements gate escaping penalty | "Can I survive?" |
+| **Mixed** | 4 choices with standard trade-offs (requirements + costs) | "What do I value?" |
+
+**Axis 2: ArchetypeIntensity (Content CHALLENGE)**
+
+| Intensity | Mechanical Feel | Example Archetypes |
+|-----------|-----------------|-------------------|
+| **Recovery** | All positive outcomes, no requirements | QuietReflection, CasualEncounter |
+| **Standard** | Normal trade-offs, achievable requirements | Investigation, Social |
+| **Demanding** | Tough requirements, real costs | Confrontation, Crisis |
+
+**These are ORTHOGONAL.** Same archetype + different RhythmPattern = different choice structures. A Crisis archetype with Building rhythm grants stats. A Social archetype with Crisis rhythm has penalty fallbacks.
+
+### Intensity History Drives RhythmPattern
+
+RhythmPattern is COMPUTED from past scene intensity, not from sequence position:
+
+| Intensity History | Computed RhythmPattern |
+|-------------------|------------------------|
+| Many demanding scenes recently | **Building** (recovery needed) |
+| Long since last recovery | **Building** (accumulation opportunity) |
+| Balanced history | **Mixed** (standard trade-offs) |
+| Full accumulation cycle complete | **Crisis** (test investments) |
+
+**Anti-pattern:** Checking `if (MainStorySequence == 4)` violates archetype reusability. RhythmPattern emerges from history, not position.
+
+### Typical Emergent Pattern
+
+When intensity history is balanced, scenes tend to follow this flow (NOT a hardcoded rotation):
+
+| Typical Order | Category | Intensity | Why It Emerges |
+|---------------|----------|-----------|----------------|
+| After recovery | Investigation | Standard | Mixed rhythm, anti-repetition |
+| After investigation | Social | Standard | Mixed rhythm, relationship focus |
+| After moderate content | Confrontation | Demanding | Crisis rhythm building |
+| After demanding | Crisis | Demanding | Peak tension test |
+| After crisis | Investigation | Standard | Building rhythm (post-crisis recovery) |
+| After recovery investigation | Social | Standard | Building rhythm consolidation |
+| After second social | Confrontation | Demanding | Mixed rhythm tension |
+| After intensity buildup | **Peaceful** | **Recovery** | Building rhythm (earned respite) |
 
 **Design rationale:**
-- Peaceful appears every 8th sequence (12.5% frequency) - uncommon but predictable
-- Replaces what would be a second Crisis - never two Crisis in a row
+- Peaceful appears ~12.5% of the time through intensity history, not fixed positions
+- Heavy demanding history triggers Building rhythm with Peaceful category selection
 - Peaceful is EARNED through story structure, not given when player struggles
-- Creates intensity flow: Standard → Standard → Demanding → Demanding → Standard → Standard → Demanding → Recovery
+- Category + RhythmPattern combine to produce appropriate choice structures
 
-**Rhythm pattern assignment:**
-- Peaceful always uses Building rhythm (all positive choices)
-- Investigation after Crisis/Peaceful uses Building rhythm (recovery)
-- Crisis always uses Crisis rhythm (penalty on fallback)
-- Other categories use Mixed rhythm (standard trade-offs)
+### Scene Selection Factors (IMPLEMENTED)
 
-### Context-Aware Scene Selection (IMPLEMENTED)
+Scene selection is deterministic: same inputs always produce same output.
 
-The 8-sequence rotation above serves as a **base rotation baseline**. The actual implementation uses a **weighted scoring algorithm** that considers multiple contextual factors while remaining fully deterministic.
-
-**Design Decisions:**
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Determinism | Same inputs always produce same output | Predictable for debugging, fair for players |
-| Player resources | NO influence on category selection | Challenge Philosophy - no coddling |
-| Location context | STRONG influence | Safety/Purpose drive narrative appropriateness |
-| Peaceful selection | Context-based, not fixed position | Earned through intensity history |
-
-**Scene Type Selection Factors:**
-
-| Factor | Influence | Implementation Status |
-|--------|-----------|----------------------|
-| Base rotation | Provides predictable baseline | IMPLEMENTED (weighted, not overriding) |
-| Location context | Safety and Purpose strongly bias categories | IMPLEMENTED |
-| Intensity balance | Prevents monotony, triggers recovery when needed | IMPLEMENTED |
-| Rhythm phase | Post-crisis favors lighter content | IMPLEMENTED |
-| Anti-repetition | Recent categories penalized | IMPLEMENTED |
-| Previous player choice | Consequence-driven storytelling | NOT YET IMPLEMENTED |
-| Story state | Encountered NPCs, collected artifacts | NOT YET IMPLEMENTED |
+| Factor | Effect on Selection | Implementation |
+|--------|---------------------|----------------|
+| **Intensity History** | Computes RhythmPattern (Building/Crisis/Mixed) | Primary driver |
+| **Anti-repetition** | Penalizes recently-used categories | IMPLEMENTED |
+| **Location Context** | Safety/Purpose bias category weight | IMPLEMENTED |
+| **Player Resources** | NO influence (Challenge Philosophy) | By design |
 
 **Key Principles:**
 
-- **Deterministic but Responsive:** Same game state always produces same selection, but selection adapts to context
-- **Location Drives Atmosphere:** Dangerous locations strongly favor Crisis/Confrontation; Safe locations favor Peaceful/Social
-- **Peaceful is Earned:** Heavy demanding history (multiple high-intensity scenes) triggers Peaceful selection via intensity balance scoring
-- **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection (Challenge Philosophy)
-- **Intensity Recording:** Each completed A-story scene records its intensity for future context-aware decisions
-- **Context Injection:** Scene Instance = Template + Context; difference is WHERE they come from
+- **History Over State:** RhythmPattern reads PAST intensity, never reacts to PRESENT player state
+- **Peaceful is Earned:** Heavy demanding history triggers Peaceful selection via intensity tracking
+- **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection
+- **Deterministic but Responsive:** Same game state always produces same selection
+- **Context Injection:** Scene Instance = Template + Context; both authored and procedural use same code path
 
-**Context Injection Principle (HIGHLANDER Compliance):**
+### Context Injection Principle (HIGHLANDER Compliance)
 
 **Two concepts:** SceneTemplate (pure archetype), Scene (runtime instance).
 
-**One DTO, two sources:** SceneDTO serves both creation and runtime. Both authored and procedural use the same DTO:
+**One DTO, two sources:** SceneDTO serves both creation and runtime:
 
 | Path | DTO Source | Context Source |
 |------|------------|----------------|
-| **Authored** | JSON → SceneDTO | Pre-defined in JSON |
-| **Procedural** | Code → SceneDTO | Derived from GameWorld |
-
-SceneDTO contains template ref + RhythmPattern context + runtime state. Scene selection uses ONLY RhythmPattern; choice scaling uses Location.Difficulty (orthogonal systems).
+| **Authored (A1-A10)** | JSON → SceneDTO | Pre-defined in JSON |
+| **Procedural (A11+)** | Code → SceneDTO | Derived from GameWorld |
 
 Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
+
+**Orthogonal Systems:**
+- **Scene Selection:** Uses RhythmPattern + anti-repetition (determines WHICH archetype)
+- **Choice Scaling:** Uses Location.Difficulty (determines requirement VALUES)
+
+These systems are independent. RhythmPattern determines choice structure; Location.Difficulty scales the numbers within that structure.
 
 See arc42/08 §8.28 for technical implementation pattern.
 

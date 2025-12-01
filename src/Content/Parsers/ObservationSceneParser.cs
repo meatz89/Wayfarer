@@ -14,7 +14,7 @@ public static class ObservationSceneParser
             throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a locationFilter");
 
         // EntityResolver.Find pattern - find-only at parse-time (Locations should already exist)
-        PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, $"ObservationScene:{dto.Name}");
+        PlacementFilter locationFilter = PlacementFilterParser.Parse(dto.LocationFilter, $"ObservationScene:{dto.Name}");
         Location location = entityResolver.FindLocation(locationFilter, null);
         if (location == null)
         {

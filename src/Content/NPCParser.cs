@@ -112,7 +112,7 @@ public static class NPCParser
         // At parse-time, locations MUST exist (loaded before NPCs)
         if (dto.SpawnLocation != null)
         {
-            PlacementFilter spawnFilter = SceneTemplateParser.ParsePlacementFilter(dto.SpawnLocation, $"NPC:{dto.Id}");
+            PlacementFilter spawnFilter = PlacementFilterParser.Parse(dto.SpawnLocation, $"NPC:{dto.Id}");
             Location spawnLocation = entityResolver.FindLocation(spawnFilter, null);
             if (spawnLocation == null)
             {

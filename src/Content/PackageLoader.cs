@@ -784,9 +784,9 @@ public class PackageLoader
         {
             // Resolve Region reference immediately using lookup
             Region? region = null;
-            if (!string.IsNullOrEmpty(dto.RegionId))
+            if (!string.IsNullOrEmpty(dto.RegionName))
             {
-                region = regionLookup.GetValueOrDefault(dto.RegionId);
+                region = regionLookup.GetValueOrDefault(dto.RegionName);
             }
 
             District district = new District
@@ -987,9 +987,9 @@ public class PackageLoader
         {
             // Resolve District reference immediately using lookup
             District? district = null;
-            if (!string.IsNullOrEmpty(dto.DistrictId))
+            if (!string.IsNullOrEmpty(dto.DistrictName))
             {
-                district = districtLookup.GetValueOrDefault(dto.DistrictId);
+                district = districtLookup.GetValueOrDefault(dto.DistrictName);
             }
 
             // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)

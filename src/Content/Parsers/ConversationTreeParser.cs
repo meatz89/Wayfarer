@@ -28,7 +28,7 @@ public static class ConversationTreeParser
             throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'StartingNodeId' field");
 
         // EntityResolver.Find pattern - find-only at parse-time (NPCs should already exist)
-        PlacementFilter participantFilter = SceneTemplateParser.ParsePlacementFilter(dto.ParticipantFilter, $"ConversationTree:{dto.Id}");
+        PlacementFilter participantFilter = PlacementFilterParser.Parse(dto.ParticipantFilter, $"ConversationTree:{dto.Id}");
         NPC npc = entityResolver.FindNPC(participantFilter, null);
         if (npc == null)
         {

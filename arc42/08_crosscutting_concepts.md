@@ -843,13 +843,13 @@ RhythmPattern flows through GenerationContext. Like other Context Injection prop
 | Source | How Rhythm Is Set | Use Case |
 |--------|-------------------|----------|
 | **Authored** | Explicit RhythmPattern in SceneTemplateDTO | Tutorial sequences, hand-crafted narrative beats |
-| **Procedural** | Computed from archetype category | Infinite A-story continuation |
+| **Procedural** | Computed from intensity history | Infinite A-story continuation |
 
-**Procedural Rhythm Computation:**
-- Peaceful category → Building rhythm (recovery for exhausted players)
-- Crisis category → Crisis rhythm (test player investments)
-- First scene after Crisis → Building rhythm (recovery)
-- Other categories → Mixed rhythm (standard trade-offs)
+**Procedural Rhythm Computation (from intensity history):**
+- Heavy demanding history → Building rhythm (recovery needed)
+- Long since last recovery → Building rhythm (accumulation opportunity)
+- Balanced history → Mixed rhythm (standard trade-offs)
+- Full accumulation cycle complete → Crisis rhythm (test investments)
 
 | Rhythm | Choice Generation | Player Experience |
 |--------|-------------------|-------------------|
@@ -878,7 +878,7 @@ Two independent systems describe procedural content: RhythmPattern (choice struc
 
 **Challenge and Consequence Philosophy:**
 
-Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from story structure (archetype rotation cycle), not from player state filtering.
+Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from **RhythmPattern-driven generation** (computed from intensity history), not from player state filtering.
 
 Intensity propagates at parse-time: Archetype → SituationTemplate → Situation (copied at spawn). Runtime uses intensity only for descriptive purposes, never for filtering visibility.
 

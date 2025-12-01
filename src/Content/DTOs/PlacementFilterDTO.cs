@@ -138,13 +138,13 @@ public class PlacementFilterDTO
     /// District ID filter (large categorical container)
     /// null = any district
     /// </summary>
-    public string DistrictId { get; set; }
+    public string DistrictName { get; set; }
 
     /// <summary>
     /// Region ID filter (large categorical container)
     /// null = any region
     /// </summary>
-    public string RegionId { get; set; }
+    public string RegionName { get; set; }
 
     // ====================
     // ROUTE FILTERS

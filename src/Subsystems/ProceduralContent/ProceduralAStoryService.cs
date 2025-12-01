@@ -287,7 +287,7 @@ public class ProceduralAStoryService
             PlacementType = "Location", // A-story happens at locations
 
             // Location filters: CATEGORICAL only (no specific region)
-            // RegionId = null means any region is acceptable
+            // RegionName = null means any region is acceptable
             // EntityResolver finds matching location at spawn time
 
             // NPC filters: CATEGORICAL properties
@@ -393,7 +393,7 @@ public class ProceduralAStoryService
             RecentArchetypes = new List<SceneArchetypeType>(),
             RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
-            UnlockedRegionIds = new List<string>(),
+            UnlockedRegionNames = new List<string>(),
             EncounteredOrderMemberIds = new List<string>(),
             CollectedArtifactIds = new List<string>(),
             UncoveredRevelationIds = new List<string>(),

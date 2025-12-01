@@ -30,10 +30,10 @@ public class PlacementFilter
     // ==================== CATEGORICAL SEARCH ====================
 
     /// <summary>
-    /// Strategy for selecting ONE entity when multiple candidates match the filter
-    /// Defaults to Random (uniform distribution)
+    /// Strategy for selecting ONE entity when multiple candidates match the filter.
+    /// DDR-007: Defaults to First (deterministic Name-based selection).
     /// </summary>
-    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.Random;
+    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.First;
 
     // ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
@@ -150,7 +150,7 @@ public class PlacementFilter
     /// Specified = location must be in this district
     /// NOTE: This is concrete ID, but districts are large categorical containers
     /// </summary>
-    public string DistrictId { get; init; }
+    public string DistrictName { get; init; }
 
     /// <summary>
     /// Region identifier filter
@@ -158,7 +158,7 @@ public class PlacementFilter
     /// Specified = location must be in this region
     /// NOTE: This is concrete ID, but regions are large categorical containers
     /// </summary>
-    public string RegionId { get; init; }
+    public string RegionName { get; init; }
 
     // ==================== ROUTE FILTERS (when PlacementType == Route) ====================
 
