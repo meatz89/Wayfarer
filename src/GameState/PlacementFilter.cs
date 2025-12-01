@@ -59,20 +59,6 @@ public class PlacementFilter
     public NPCRelationship? RequiredRelationship { get; init; }
 
     /// <summary>
-    /// Minimum NPC tier requirement
-    /// null = no minimum
-    /// Example: MinTier = 2 means "only select tier 2+ NPCs"
-    /// </summary>
-    public int? MinTier { get; init; }
-
-    /// <summary>
-    /// Maximum NPC tier requirement
-    /// null = no maximum
-    /// Example: MaxTier = 3 means "only select tier 1-3 NPCs"
-    /// </summary>
-    public int? MaxTier { get; init; }
-
-    /// <summary>
     /// Minimum bond strength required with player
     /// Example: MinBond = 10 means "select NPCs player has bond 10+"
     /// null = no minimum requirement
@@ -189,13 +175,6 @@ public class PlacementFilter
     /// Example: StructureType.Bridge - route must include this structure type
     /// </summary>
     public StructureType? Structure { get; init; }
-
-    /// <summary>
-    /// Route difficulty tier requirement
-    /// null = any difficulty
-    /// Specified = route must match this tier
-    /// </summary>
-    public int? RouteTier { get; init; }
 
     /// <summary>
     /// Minimum difficulty rating for route selection (uses DangerRating property)

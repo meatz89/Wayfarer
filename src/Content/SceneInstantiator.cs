@@ -473,10 +473,6 @@ public class SceneInstantiator
             matchedProperties.Add("SocialStanding");
         if (filter.StoryRole.HasValue && npc.StoryRole == filter.StoryRole.Value)
             matchedProperties.Add("StoryRole");
-        if (filter.MinTier.HasValue && npc.Tier >= filter.MinTier.Value)
-            matchedProperties.Add("MinTier");
-        if (filter.MaxTier.HasValue && npc.Tier <= filter.MaxTier.Value)
-            matchedProperties.Add("MaxTier");
 
         return EntityResolutionMetadata.ForDiscovered(filterSnapshot, matchedProperties);
     }
@@ -535,8 +531,6 @@ public class SceneInstantiator
 
         if (filter.Terrain.HasValue)
             matchedProperties.Add("Terrain");
-        if (filter.RouteTier.HasValue && route.Tier == filter.RouteTier.Value)
-            matchedProperties.Add("Tier");
         if (filter.MinDifficulty.HasValue)
             matchedProperties.Add("MinDifficulty");
         if (filter.MaxDifficulty.HasValue)
@@ -917,13 +911,6 @@ public class SceneInstantiator
             {
                 string dominantTerrain = route.GetDominantTerrainType();
                 if (dominantTerrain != filter.Terrain.ToString())
-                    return false;
-            }
-
-            // Check route tier (calculated from DangerRating)
-            if (filter.RouteTier.HasValue)
-            {
-                if (route.Tier != filter.RouteTier.Value)
                     return false;
             }
 
