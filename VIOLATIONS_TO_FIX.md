@@ -32,9 +32,10 @@ All violations have been resolved. This file now serves as documentation of the 
 | **SceneSpawnReward** | Removed TargetCategory, ExcludedCategories. Added LocationPrivacyContext, LocationActivityContext, RhythmPhaseContext, TierContext |
 | **SceneSpawnRewardDTO** | Mirror of entity changes |
 | **SceneTemplateParser** | Added ParseLocationPrivacy, ParseLocationActivity, ParseRhythmPhase |
-| **RewardApplicationService** | Removed Sequence, MaxSafeIntensity, TargetCategory. Added ComputeRhythmPhase |
+| **RewardApplicationService** | Removed Sequence, MaxSafeIntensity, TargetCategory, PlayerReadinessService dependency. Added ComputeRhythmPhase |
 | **SceneSelectionInputs** | Removed overrides. Added RhythmPhase enum, full categorical inputs |
 | **ProceduralAStoryService** | SelectArchetypeCategory now uses rhythm phase + location context |
+| **ArchetypeCategorySelector** | Removed SelectCategory (HIGHLANDER violation). Kept only MapArchetypeToCategory, MapArchetypeToIntensity utilities |
 
 ---
 

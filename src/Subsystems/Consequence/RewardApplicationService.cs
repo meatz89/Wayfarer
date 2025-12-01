@@ -14,7 +14,6 @@ public class RewardApplicationService
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ProceduralAStoryService _proceduralAStoryService;
     private readonly PackageLoader _packageLoader;
-    private readonly PlayerReadinessService _playerReadinessService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
@@ -22,8 +21,7 @@ public class RewardApplicationService
         TimeFacade timeFacade,
         SceneInstantiator sceneInstantiator,
         ProceduralAStoryService proceduralAStoryService,
-        PackageLoader packageLoader,
-        PlayerReadinessService playerReadinessService)
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
@@ -31,7 +29,6 @@ public class RewardApplicationService
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
-        _playerReadinessService = playerReadinessService ?? throw new ArgumentNullException(nameof(playerReadinessService));
     }
 
     /// <summary>
