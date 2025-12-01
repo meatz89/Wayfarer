@@ -284,6 +284,14 @@ public class HighlanderSceneGenerationTests
     /// <summary>
     /// Test implementation of SelectArchetypeCategory logic.
     /// Mirrors the actual implementation for testing purposes.
+    ///
+    /// PRODUCTION IMPLEMENTATION LOCATION:
+    /// ProceduralAStoryService.SelectArchetypeCategory() in
+    /// src/Subsystems/ProceduralContent/ProceduralAStoryService.cs (lines 136-159)
+    ///
+    /// MAINTAINABILITY: If production logic changes, this test implementation
+    /// must be updated to match. Consider using reflection or direct invocation
+    /// if test isolation permits.
     /// </summary>
     private string TestSelectArchetypeCategory(SceneSelectionInputs inputs)
     {

@@ -85,18 +85,22 @@ public class SceneSpawnReward
     /// </summary>
     public SceneSelectionInputs BuildAuthoredInputs()
     {
+        // NULL COALESCING RATIONALE (FAIL-FAST compatible):
+        // Authored content may intentionally omit categorical properties to use game-start defaults.
+        // This enables partial authored context (e.g., specify only RhythmPhase, let location derive).
+        // These are NOT hiding errors - null means "use default for new game scenario".
         return new SceneSelectionInputs
         {
-            // Location context - use authored or defaults
+            // Location context - use authored or defaults (Safe/Civic/Public/Moderate = new game)
             LocationSafety = LocationSafetyContext ?? LocationSafety.Safe,
             LocationPurpose = LocationPurposeContext ?? LocationPurpose.Civic,
             LocationPrivacy = LocationPrivacyContext ?? LocationPrivacy.Public,
             LocationActivity = LocationActivityContext ?? LocationActivity.Moderate,
 
-            // Rhythm phase - use authored or default to Accumulation
+            // Rhythm phase - use authored or default to Accumulation (game start = building phase)
             RhythmPhase = RhythmPhaseContext ?? RhythmPhase.Accumulation,
 
-            // Tier - use authored or default to 0
+            // Tier - use authored or default to 0 (tutorial tier)
             Tier = TierContext ?? 0,
 
             // History fields default to empty (game start scenario)

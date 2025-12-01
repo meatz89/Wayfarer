@@ -316,7 +316,10 @@ public class RewardApplicationService
             // Procedural path: derive categorical inputs from GameWorld state
             inputs = SceneSelectionInputs.CreateDefault();
 
-            // Location context from current location
+            // NULL COALESCING RATIONALE (FAIL-FAST compatible):
+            // currentLocation can be null during early procedural generation when spawning
+            // before player has entered any location (game start, between-scene transitions).
+            // Defaults represent "neutral/safe starting point" - NOT hiding missing data.
             inputs.LocationSafety = currentLocation?.Safety ?? LocationSafety.Safe;
             inputs.LocationPurpose = currentLocation?.Purpose ?? LocationPurpose.Civic;
             inputs.LocationPrivacy = currentLocation?.Privacy ?? LocationPrivacy.Public;
