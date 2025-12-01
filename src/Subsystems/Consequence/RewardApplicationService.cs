@@ -289,11 +289,16 @@ public class RewardApplicationService
 
     /// <summary>
     /// Build SceneSelectionInputs for procedural generation.
-    /// HIGHLANDER: Same selection logic for authored and procedural.
-    /// Only difference is WHERE inputs come from, not HOW they're processed.
+    /// HIGHLANDER: One unified merge path - authored values override game-derived.
+    /// No branching based on "is this authored" - same merge logic always.
+    ///
+    /// CONTEXT INJECTION (arc42 §8.28):
+    /// - Authored content: provides explicit categorical values
+    /// - Procedural content: derives from game state
+    /// - Merge: authored values take precedence, nulls derive from game state
     ///
     /// HISTORY-DRIVEN (gdd/01 §1.8):
-    /// - Selection based on intensity history + location context + rhythm phase
+    /// - Selection based on intensity history + location context + rhythm pattern
     /// - Current player state (Resolve, stats) NEVER influences selection
     /// </summary>
     private SceneSelectionInputs BuildSelectionInputs(
@@ -302,33 +307,28 @@ public class RewardApplicationService
         Player player,
         Location currentLocation)
     {
-        SceneSelectionInputs inputs;
+        SceneSelectionInputs inputs = SceneSelectionInputs.CreateDefault();
 
-        // HIGHLANDER: Same selection logic, different input source
-        if (sceneSpawn.HasAuthoredContext)
-        {
-            // Authored path: use explicit categorical inputs from content
-            // These flow through SAME selection logic as procedural
-            inputs = sceneSpawn.BuildAuthoredInputs();
-        }
-        else
-        {
-            // Procedural path: derive categorical inputs from GameWorld state
-            inputs = SceneSelectionInputs.CreateDefault();
+        // HIGHLANDER: Unified merge - authored values override game-derived
+        // Each property: use authored if present, else derive from game state
 
-            // NULL COALESCING RATIONALE (FAIL-FAST compatible):
-            // currentLocation can be null during early procedural generation when spawning
-            // before player has entered any location (game start, between-scene transitions).
-            // Defaults represent "neutral/safe starting point" - NOT hiding missing data.
-            inputs.LocationSafety = currentLocation?.Safety ?? LocationSafety.Safe;
-            inputs.LocationPurpose = currentLocation?.Purpose ?? LocationPurpose.Civic;
+        // Location context: authored OR current location OR safe defaults
+        // NULL COALESCING RATIONALE (FAIL-FAST compatible):
+        // currentLocation can be null during early procedural generation when spawning
+        // before player has entered any location (game start, between-scene transitions).
+        // Defaults represent "neutral/safe starting point" - NOT hiding missing data.
+        inputs.LocationSafety = sceneSpawn.LocationSafetyContext
+            ?? currentLocation?.Safety
+            ?? LocationSafety.Safe;
+        inputs.LocationPurpose = sceneSpawn.LocationPurposeContext
+            ?? currentLocation?.Purpose
+            ?? LocationPurpose.Civic;
 
-            // Tier computed from sequence
-            inputs.Tier = ComputeTierFromSequence(sequence);
-        }
+        // Tier: authored OR computed from sequence
+        inputs.Tier = sceneSpawn.TierContext ?? ComputeTierFromSequence(sequence);
 
         // Populate intensity history and compute RhythmPattern from GameWorld
-        // Both authored and procedural get actual history (unless authored overrides RhythmPattern)
+        // Authored RhythmPattern takes precedence if provided
         PopulateIntensityHistory(inputs, sceneSpawn.RhythmPatternContext);
 
         return inputs;
