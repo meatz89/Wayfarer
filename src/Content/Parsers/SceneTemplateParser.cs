@@ -795,8 +795,6 @@ public class SceneTemplateParser
                 // CATEGORICAL INPUTS - flow through same selection logic as procedural
                 LocationSafetyContext = ParseLocationSafety(dto.LocationSafetyContext),
                 LocationPurposeContext = ParseLocationPurpose(dto.LocationPurposeContext),
-                LocationPrivacyContext = ParseLocationPrivacy(dto.LocationPrivacyContext),
-                LocationActivityContext = ParseLocationActivity(dto.LocationActivityContext),
                 RhythmPhaseContext = ParseRhythmPhase(dto.RhythmPhaseContext),
                 TierContext = dto.TierContext
             };
@@ -844,42 +842,6 @@ public class SceneTemplateParser
             "utility" => LocationPurpose.Utility,
             _ => throw new InvalidOperationException(
                 $"Unknown LocationPurpose '{value}' - valid values: Commerce, Governance, Worship, Dwelling, Civic, Production, Hospitality, Utility")
-        };
-    }
-
-    /// <summary>
-    /// Parse location privacy from string.
-    /// Returns null if string is null/empty.
-    /// </summary>
-    private LocationPrivacy? ParseLocationPrivacy(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-
-        return value.ToLowerInvariant() switch
-        {
-            "public" => LocationPrivacy.Public,
-            "semipublic" => LocationPrivacy.SemiPublic,
-            "private" => LocationPrivacy.Private,
-            _ => throw new InvalidOperationException(
-                $"Unknown LocationPrivacy '{value}' - valid values: Public, SemiPublic, Private")
-        };
-    }
-
-    /// <summary>
-    /// Parse location activity from string.
-    /// Returns null if string is null/empty.
-    /// </summary>
-    private LocationActivity? ParseLocationActivity(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return null;
-
-        return value.ToLowerInvariant() switch
-        {
-            "quiet" => LocationActivity.Quiet,
-            "moderate" => LocationActivity.Moderate,
-            "busy" => LocationActivity.Busy,
-            _ => throw new InvalidOperationException(
-                $"Unknown LocationActivity '{value}' - valid values: Quiet, Moderate, Busy")
         };
     }
 

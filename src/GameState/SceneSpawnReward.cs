@@ -51,20 +51,6 @@ public class SceneSpawnReward
     public LocationPurpose? LocationPurposeContext { get; set; }
 
     /// <summary>
-    /// Location privacy context for selection.
-    /// Public locations have witnesses; Private enables different options.
-    /// When null, derived from target location at spawn time.
-    /// </summary>
-    public LocationPrivacy? LocationPrivacyContext { get; set; }
-
-    /// <summary>
-    /// Location activity context for selection.
-    /// Busy favors social encounters; Quiet favors investigation.
-    /// When null, derived from target location at spawn time.
-    /// </summary>
-    public LocationActivity? LocationActivityContext { get; set; }
-
-    /// <summary>
     /// Explicit rhythm phase for selection.
     /// Accumulation grants growth; Test challenges; Recovery restores.
     /// When null, computed from intensity history at spawn time.
@@ -91,11 +77,9 @@ public class SceneSpawnReward
         // These are NOT hiding errors - null means "use default for new game scenario".
         return new SceneSelectionInputs
         {
-            // Location context - use authored or defaults (Safe/Civic/Public/Moderate = new game)
+            // Location context - use authored or defaults (Safe/Civic = new game)
             LocationSafety = LocationSafetyContext ?? LocationSafety.Safe,
             LocationPurpose = LocationPurposeContext ?? LocationPurpose.Civic,
-            LocationPrivacy = LocationPrivacyContext ?? LocationPrivacy.Public,
-            LocationActivity = LocationActivityContext ?? LocationActivity.Moderate,
 
             // Rhythm phase - use authored or default to Accumulation (game start = building phase)
             RhythmPhase = RhythmPhaseContext ?? RhythmPhase.Accumulation,
@@ -127,8 +111,6 @@ public class SceneSpawnReward
     public bool HasAuthoredContext =>
         LocationSafetyContext.HasValue
         || LocationPurposeContext.HasValue
-        || LocationPrivacyContext.HasValue
-        || LocationActivityContext.HasValue
         || RhythmPhaseContext.HasValue
         || TierContext.HasValue;
 }

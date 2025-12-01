@@ -39,20 +39,6 @@ public class SceneSelectionInputs
     /// </summary>
     public LocationPurpose LocationPurpose { get; set; }
 
-    /// <summary>
-    /// Location privacy level.
-    /// Public locations have witnesses, affect scene stakes.
-    /// Private locations enable different narrative options.
-    /// </summary>
-    public LocationPrivacy LocationPrivacy { get; set; }
-
-    /// <summary>
-    /// Location activity level.
-    /// Busy locations favor social encounters.
-    /// Quiet locations favor investigation.
-    /// </summary>
-    public LocationActivity LocationActivity { get; set; }
-
     // ==================== INTENSITY HISTORY (Primary Driver - Rhythm Phase) ====================
     // Determines where player is in Building/Test/Recovery rhythm
 
@@ -142,22 +128,6 @@ public class SceneSelectionInputs
     /// </summary>
     public List<string> RecentArchetypes { get; set; } = new List<string>();
 
-    // ==================== NPC CONTEXT (Secondary Driver) ====================
-    // When scene involves specific NPC, their properties influence selection
-
-    /// <summary>
-    /// NPC demeanor if scene involves specific NPC.
-    /// Hostile NPCs favor Confrontation categories.
-    /// Friendly NPCs favor Social categories.
-    /// </summary>
-    public NPCDemeanor? NpcDemeanor { get; set; }
-
-    /// <summary>
-    /// Relationship level with NPC if applicable.
-    /// Strong relationships enable different narrative options.
-    /// </summary>
-    public int? NpcRelationshipLevel { get; set; }
-
     // ==================== TIER (Secondary Driver) ====================
     // Higher tiers enable more variety and intensity
 
@@ -177,8 +147,6 @@ public class SceneSelectionInputs
         {
             LocationSafety = LocationSafety.Safe,
             LocationPurpose = LocationPurpose.Civic,
-            LocationPrivacy = LocationPrivacy.Public,
-            LocationActivity = LocationActivity.Moderate,
             RecentDemandingCount = 0,
             RecentRecoveryCount = 0,
             RecentStandardCount = 0,
@@ -192,8 +160,6 @@ public class SceneSelectionInputs
             RhythmPhase = RhythmPhase.Accumulation,
             RecentCategories = new List<string>(),
             RecentArchetypes = new List<string>(),
-            NpcDemeanor = null,
-            NpcRelationshipLevel = null,
             Tier = 0
         };
     }

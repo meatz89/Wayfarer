@@ -36,18 +36,6 @@ public class SceneSpawnRewardDTO
     public string LocationPurposeContext { get; set; }
 
     /// <summary>
-    /// Location privacy context: Public, SemiPublic, Private.
-    /// Public locations have witnesses; Private enables different options.
-    /// </summary>
-    public string LocationPrivacyContext { get; set; }
-
-    /// <summary>
-    /// Location activity context: Quiet, Moderate, Busy.
-    /// Busy favors social encounters; Quiet favors investigation.
-    /// </summary>
-    public string LocationActivityContext { get; set; }
-
-    /// <summary>
     /// Rhythm phase context: Accumulation, Test, Recovery.
     /// Determines which categories are appropriate for selection.
     /// </summary>

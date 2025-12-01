@@ -322,8 +322,6 @@ public class RewardApplicationService
             // Defaults represent "neutral/safe starting point" - NOT hiding missing data.
             inputs.LocationSafety = currentLocation?.Safety ?? LocationSafety.Safe;
             inputs.LocationPurpose = currentLocation?.Purpose ?? LocationPurpose.Civic;
-            inputs.LocationPrivacy = currentLocation?.Privacy ?? LocationPrivacy.Public;
-            inputs.LocationActivity = currentLocation?.Activity ?? LocationActivity.Moderate;
 
             // Tier computed from sequence
             inputs.Tier = ComputeTierFromSequence(sequence);

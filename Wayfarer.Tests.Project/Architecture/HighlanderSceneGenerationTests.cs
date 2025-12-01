@@ -270,8 +270,6 @@ public class HighlanderSceneGenerationTests
             RhythmPhase = rhythmPhase,
             LocationSafety = locationSafety,
             LocationPurpose = locationPurpose,
-            LocationPrivacy = LocationPrivacy.Public,
-            LocationActivity = LocationActivity.Moderate,
             Tier = tier,
             RecentDemandingCount = recentDemandingCount,
             RecentRecoveryCount = recentRecoveryCount,
