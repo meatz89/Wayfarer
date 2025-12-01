@@ -205,11 +205,6 @@ public class EntityResolver
         if (filter.KnowledgeLevel.HasValue && npc.KnowledgeLevel != filter.KnowledgeLevel.Value)
             return false;
 
-        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
-            return false;
-        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
-            return false;
-
         return true;
     }
 

@@ -2,7 +2,8 @@
 /// <summary>
 /// UNIVERSAL categorical property: Quality/tier of goods, services, locations, items
 ///
-/// Derivation: Location.Tier (1 = Basic, 2 = Standard, 3 = Premium, 4+ = Luxury)
+/// Derivation: Location.Difficulty (0 = Basic, 1 = Standard, 2 = Premium, 3+ = Luxury)
+/// Location.Difficulty = hex distance from world center / 5 (arc42 §8.28)
 ///
 /// Scales costs and benefits across ALL domains:
 /// - Services: Cost multiplier (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
