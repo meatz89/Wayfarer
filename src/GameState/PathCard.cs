@@ -59,11 +59,10 @@ public class PathCard
 
     /// <summary>
     /// Stat requirements - minimum stat levels required to use this path (ATMOSPHERIC PATTERN)
-    /// Dictionary key = stat name (e.g., "insight", "cunning")
-    /// Dictionary value = minimum level required
     /// Player must meet ALL stat requirements
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> StatRequirements { get; set; } = new Dictionary<string, int>();
+    public List<StatRequirementEntry> StatRequirements { get; set; } = new List<StatRequirementEntry>();
 
     /// <summary>
     /// Stamina cost to use this path (ATMOSPHERIC PATTERN)
@@ -113,11 +112,10 @@ public class PathCard
 
     /// <summary>
     /// Token gains from using this path (ATMOSPHERIC PATTERN)
-    /// Dictionary key = token type (e.g., "Diplomacy", "Status")
-    /// Dictionary value = amount gained
     /// Progression system integration
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> TokenGains { get; set; } = new Dictionary<string, int>();
+    public List<TokenGainEntry> TokenGains { get; set; } = new List<TokenGainEntry>();
 
     /// <summary>
     /// List of path card IDs revealed when this path is used (ATMOSPHERIC PATTERN)

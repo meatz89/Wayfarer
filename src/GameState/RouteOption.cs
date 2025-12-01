@@ -69,7 +69,8 @@ public class RouteOption
     public string Description { get; set; }
 
     // Route condition variations
-    public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<WeatherModificationEntry> WeatherModifications { get; set; } = new List<WeatherModificationEntry>();
 
     public RouteType RouteType { get; set; }
 
@@ -299,9 +300,11 @@ public class RouteOption
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
         // Apply weather modifications
-        if (WeatherModifications.TryGetValue(weather, out RouteModification modification))
+        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary.TryGetValue
+        WeatherModificationEntry weatherMod = WeatherModifications.FirstOrDefault(w => w.Weather == weather);
+        if (weatherMod != null)
         {
-            baseCost += modification.StaminaCostModifier;
+            baseCost += weatherMod.Modification.StaminaCostModifier;
         }
 
         return Math.Max(1, baseCost);

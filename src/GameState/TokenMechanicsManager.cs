@@ -346,14 +346,18 @@ public class TokenMechanicsManager
         int totalBonus = 0;
 
         // Check all items in inventory for token bonuses
+        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary.TryGetValue
         foreach (Item item in player.Inventory.GetAllItems())
         {
             if (item == null) continue;
-            if (item.TokenGenerationBonuses != null &&
-                item.TokenGenerationBonuses.TryGetValue(tokenType, out int bonus))
+            if (item.TokenGenerationBonuses != null)
             {
-                // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
-                totalBonus = totalBonus + bonus;
+                ConnectionTypeTokenEntry entry = item.TokenGenerationBonuses.FirstOrDefault(e => e.Type == tokenType);
+                if (entry != null)
+                {
+                    // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+                    totalBonus = totalBonus + entry.Amount;
+                }
             }
         }
 

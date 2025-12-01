@@ -31,14 +31,15 @@ public class SocialSession
     public bool PreventNextDoubtIncrease { get; set; } = false;
 
     // Statement History Tracking - count of Statement cards played per stat type
-    public Dictionary<PlayerStatType, int> StatementCounts { get; set; } = new Dictionary<PlayerStatType, int>
-{
-    { PlayerStatType.Insight, 0 },
-    { PlayerStatType.Rapport, 0 },
-    { PlayerStatType.Authority, 0 },
-    { PlayerStatType.Diplomacy, 0 },
-    { PlayerStatType.Cunning, 0 }
-};
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<StatementCountEntry> StatementCounts { get; set; } = new List<StatementCountEntry>
+    {
+        new StatementCountEntry { Stat = PlayerStatType.Insight, Count = 0 },
+        new StatementCountEntry { Stat = PlayerStatType.Rapport, Count = 0 },
+        new StatementCountEntry { Stat = PlayerStatType.Authority, Count = 0 },
+        new StatementCountEntry { Stat = PlayerStatType.Diplomacy, Count = 0 },
+        new StatementCountEntry { Stat = PlayerStatType.Cunning, Count = 0 }
+    };
 
     // Conversation turn history
     public List<SocialTurn> TurnHistory { get; set; } = new List<SocialTurn>();
@@ -189,33 +190,37 @@ public class SocialSession
 
     /// <summary>
     /// Get the count of Statement cards played for a specific stat type
+    /// DOMAIN COLLECTION PRINCIPLE: LINQ lookup instead of Dictionary
     /// </summary>
     public int GetStatementCount(PlayerStatType stat)
     {
-        return StatementCounts.TryGetValue(stat, out int count) ? count : 0;
+        return StatementCounts.FirstOrDefault(e => e.Stat == stat)?.Count ?? 0;
     }
 
     /// <summary>
     /// Get the total number of Statement cards played across all stat types
+    /// DOMAIN COLLECTION PRINCIPLE: LINQ aggregation instead of Dictionary.Values
     /// </summary>
     public int GetTotalStatements()
     {
-        return StatementCounts.Values.Sum();
+        return StatementCounts.Sum(e => e.Count);
     }
 
     /// <summary>
     /// Increment the Statement counter for a specific stat type
     /// Called when a Statement card is played
+    /// DOMAIN COLLECTION PRINCIPLE: LINQ lookup instead of Dictionary
     /// </summary>
     public void IncrementStatementCount(PlayerStatType stat)
     {
-        if (StatementCounts.ContainsKey(stat))
+        StatementCountEntry entry = StatementCounts.FirstOrDefault(e => e.Stat == stat);
+        if (entry != null)
         {
-            StatementCounts[stat]++;
+            entry.Count++;
         }
         else
         {
-            StatementCounts[stat] = 1;
+            StatementCounts.Add(new StatementCountEntry { Stat = stat, Count = 1 });
         }
     }
 
@@ -224,5 +229,14 @@ public class SocialSession
         // End if doubt at maximum
         return CurrentDoubt >= MaxDoubt;
     }
+}
 
+/// <summary>
+/// Statement count entry for social session tracking.
+/// DOMAIN COLLECTION PRINCIPLE: Used in List instead of Dictionary.
+/// </summary>
+public class StatementCountEntry
+{
+    public PlayerStatType Stat { get; set; }
+    public int Count { get; set; }
 }

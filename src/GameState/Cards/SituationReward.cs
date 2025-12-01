@@ -11,5 +11,6 @@ public class SituationReward
     public string Item { get; set; }
     public string Permit { get; set; }
     public string Observation { get; set; }
-    public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<StringTokenEntry> Tokens { get; set; } = new List<StringTokenEntry>();
 }

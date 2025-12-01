@@ -16,7 +16,8 @@ public class ConversationTreeContext
     public int CurrentFocus { get; set; }
     public int MaxFocus { get; set; }
     public int CurrentRelationship { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<PlayerStatEntry> PlayerStats { get; set; }
     public List<string> PlayerKnowledge { get; set; }
 
     // Display info
@@ -27,7 +28,7 @@ public class ConversationTreeContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
+        PlayerStats = new List<PlayerStatEntry>();
         PlayerKnowledge = new List<string>();
     }
 
@@ -60,10 +61,12 @@ public class ConversationTreeContext
         if (!response.RequiredStat.HasValue) return true;
         if (!response.RequiredStatLevel.HasValue) return true;
 
-        if (!PlayerStats.ContainsKey(response.RequiredStat.Value))
+        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary lookup
+        PlayerStatEntry statEntry = PlayerStats.FirstOrDefault(s => s.Stat == response.RequiredStat.Value);
+        if (statEntry == null)
             return false;
 
-        return PlayerStats[response.RequiredStat.Value] >= response.RequiredStatLevel.Value;
+        return statEntry.Value >= response.RequiredStatLevel.Value;
     }
 
     public string GetBlockReason(DialogueResponse response)

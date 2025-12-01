@@ -138,9 +138,14 @@ public static class RouteParser
         reverseRoute.TerrainCategories.AddRange(forwardRoute.TerrainCategories);
 
         // Copy weather modifications
-        foreach (KeyValuePair<WeatherCondition, RouteModification> kvp in forwardRoute.WeatherModifications)
+        // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+        foreach (WeatherModificationEntry entry in forwardRoute.WeatherModifications)
         {
-            reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
+            reverseRoute.WeatherModifications.Add(new WeatherModificationEntry
+            {
+                Weather = entry.Weather,
+                Modification = entry.Modification
+            });
         }
 
         // Reverse the segments order for the return journey

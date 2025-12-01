@@ -35,14 +35,11 @@ public class RouteDiscoveryRepository
     /// <summary>
     /// Get the discovery context for a specific NPC and route
     /// HIGHLANDER: Accepts RouteOption and NPC objects, not string IDs
+    /// DOMAIN COLLECTION PRINCIPLE: Uses LINQ lookup instead of Dictionary
     /// </summary>
-    public RouteDiscoveryContext? GetDiscoveryContext(RouteOption route, NPC npc)
+    public RouteDiscoveryContext GetDiscoveryContext(RouteOption route, NPC npc)
     {
-        RouteDiscovery? discovery = GetDiscoveryForRoute(route);
-        if (discovery != null && discovery.DiscoveryContexts.TryGetValue(npc, out RouteDiscoveryContext? context))
-        {
-            return context;
-        }
-        return null;
+        RouteDiscovery discovery = GetDiscoveryForRoute(route);
+        return discovery?.GetContextForNPC(npc);
     }
 }

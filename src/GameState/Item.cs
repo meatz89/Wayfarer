@@ -53,7 +53,8 @@ public class Item
     public string Description { get; set; }
 
     // Token generation bonuses for equipment (flat integer additions, e.g., +1, +2)
-    public Dictionary<ConnectionType, int> TokenGenerationBonuses { get; set; } = new Dictionary<ConnectionType, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<ConnectionTypeTokenEntry> TokenGenerationBonuses { get; set; } = new List<ConnectionTypeTokenEntry>();
 
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();

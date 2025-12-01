@@ -157,6 +157,147 @@ public class SteppedThreshold
     public int Value { get; set; }
 }
 
+/// <summary>
+/// Helper class for stat threshold entries (replaces Dictionary<PlayerStatType, int>)
+/// Used in MentalCard, PhysicalCard for stat requirements
+/// </summary>
+public class StatThresholdEntry
+{
+    public PlayerStatType Stat { get; set; }
+    public int Threshold { get; set; }
+}
+
+/// <summary>
+/// Helper class for string-based stat requirement entries (replaces Dictionary<string, int>)
+/// Used in PathCard, SceneApproach for stat requirements
+/// </summary>
+public class StatRequirementEntry
+{
+    public string StatName { get; set; }
+    public int RequiredValue { get; set; }
+}
+
+/// <summary>
+/// Helper class for token requirement entries (replaces Dictionary<string, int>)
+/// Used in SocialCard for token requirements
+/// </summary>
+public class TokenRequirementEntry
+{
+    public string TokenType { get; set; }
+    public int RequiredAmount { get; set; }
+}
+
+/// <summary>
+/// Helper class for token gain entries (replaces Dictionary<string, int>)
+/// Used in PathCard for token gains
+/// </summary>
+public class TokenGainEntry
+{
+    public string TokenType { get; set; }
+    public int Amount { get; set; }
+}
+
+/// <summary>
+/// Helper class for weather modification entries (replaces Dictionary<WeatherCondition, RouteModification>)
+/// Used in RouteOption for weather-based route modifications
+/// </summary>
+public class WeatherModificationEntry
+{
+    public WeatherCondition Weather { get; set; }
+    public RouteModification Modification { get; set; }
+}
+
+/// <summary>
+/// Helper class for ConnectionType token entries (replaces Dictionary<ConnectionType, int>)
+/// Used in Item, ExchangeSession, ResourceState for token tracking
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties, not generic key-value
+/// </summary>
+public class ConnectionTypeTokenEntry
+{
+    public ConnectionType Type { get; set; }
+    public int Amount { get; set; }
+}
+
+/// <summary>
+/// Helper class for item count entries (replaces Dictionary<string, int>)
+/// Used in SessionResourceSnapshot for tracking items by name
+/// </summary>
+public class ItemCountEntry
+{
+    public string ItemName { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>
+/// Helper class for string token entries (replaces Dictionary<string, int>)
+/// Used in SituationReward for token rewards
+/// </summary>
+public class StringTokenEntry
+{
+    public string TokenType { get; set; }
+    public int Amount { get; set; }
+}
+
+/// <summary>
+/// Helper class for location visit entries (replaces Dictionary<string, int>)
+/// Used in SpawnConditions for visit count tracking
+/// </summary>
+public class LocationVisitEntry
+{
+    public string LocationId { get; set; }
+    public int VisitCount { get; set; }
+}
+
+/// <summary>
+/// Helper class for NPC bond entries (replaces Dictionary<string, int>)
+/// Used in SpawnConditions for bond requirements
+/// </summary>
+public class NPCBondEntry
+{
+    public string NpcId { get; set; }
+    public int BondStrength { get; set; }
+}
+
+/// <summary>
+/// Helper class for location reputation entries (replaces Dictionary<string, int>)
+/// Used in SpawnConditions for reputation requirements
+/// </summary>
+public class LocationReputationEntry
+{
+    public string LocationId { get; set; }
+    public int ReputationScore { get; set; }
+}
+
+/// <summary>
+/// Helper class for route travel count entries (replaces Dictionary<string, int>)
+/// Used in SpawnConditions for travel count requirements
+/// </summary>
+public class RouteTravelCountEntry
+{
+    public string RouteId { get; set; }
+    public int TravelCount { get; set; }
+}
+
+/// <summary>
+/// Helper class for player stat entries (replaces Dictionary<PlayerStatType, int>)
+/// Used in Context classes for player stat display
+/// </summary>
+public class PlayerStatEntry
+{
+    public PlayerStatType Stat { get; set; }
+    public int Value { get; set; }
+}
+
+/// <summary>
+/// Helper class for scale type entries (replaces Dictionary<ScaleType, int>)
+/// Used in SpawnConditions for stat threshold requirements
+/// </summary>
+public class ScaleTypeEntry
+{
+    public ScaleType Scale { get; set; }
+    public int Threshold { get; set; }
+}
+
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs
 // Extension methods hide domain logic and violate architecture principles
 // Use Player instance methods and GameWorld instance methods instead

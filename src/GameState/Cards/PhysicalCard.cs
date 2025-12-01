@@ -39,7 +39,8 @@ public class PhysicalCard
 
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
-    public Dictionary<PlayerStatType, int> StatThresholds { get; init; } = new Dictionary<PlayerStatType, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<StatThresholdEntry> StatThresholds { get; init; } = new List<StatThresholdEntry>();
     public int MinimumHealth { get; init; } = 0;
     public int MinimumStamina { get; init; } = 0;
 

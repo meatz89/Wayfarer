@@ -17,7 +17,8 @@ public class RouteObstacleContext
     public int MaxStamina { get; set; }
     public int CurrentHealth { get; set; }
     public int MaxHealth { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<PlayerStatEntry> PlayerStats { get; set; }
 
     // Display info
     public string TimeDisplay { get; set; }
@@ -26,6 +27,6 @@ public class RouteObstacleContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
+        PlayerStats = new List<PlayerStatEntry>();
     }
 }

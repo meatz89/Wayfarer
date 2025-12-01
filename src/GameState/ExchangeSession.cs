@@ -60,8 +60,9 @@ public class ExchangeSession
     /// <summary>
     /// Token state at the start of the session.
     /// Used to track token changes during the session.
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary.
     /// </summary>
-    public Dictionary<ConnectionType, int> InitialTokenState { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<ConnectionTypeTokenEntry> InitialTokenState { get; set; } = new List<ConnectionTypeTokenEntry>();
 
     /// <summary>
     /// Resource state at the start of the session.
@@ -190,7 +191,8 @@ public class SessionResourceSnapshot
     public int Health { get; set; }
     public int Stamina { get; set; }
     public int Attention { get; set; }
-    public Dictionary<string, int> Items { get; set; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<ItemCountEntry> Items { get; set; } = new List<ItemCountEntry>();
 
     /// <summary>
     /// Creates a snapshot from current player state.

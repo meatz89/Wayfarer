@@ -12,7 +12,8 @@ public class SceneApproach
 
     // Requirements
     public int StaminaRequired { get; set; }
-    public Dictionary<PlayerStatType, int> StatRequirements { get; set; } = new Dictionary<PlayerStatType, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<StatThresholdEntry> StatRequirements { get; set; } = new List<StatThresholdEntry>();
 
     // Outcomes
     public SceneOutcome SuccessOutcome { get; set; }
@@ -26,9 +27,9 @@ public class SceneApproach
         if (player.Stamina < StaminaRequired)
             return false;
 
-        foreach (KeyValuePair<PlayerStatType, int> statReq in StatRequirements)
+        foreach (StatThresholdEntry statReq in StatRequirements)
         {
-            int currentLevel = statReq.Key switch
+            int currentLevel = statReq.Stat switch
             {
                 PlayerStatType.Insight => player.Insight,
                 PlayerStatType.Rapport => player.Rapport,
@@ -37,7 +38,7 @@ public class SceneApproach
                 PlayerStatType.Cunning => player.Cunning,
                 _ => 0
             };
-            if (currentLevel < statReq.Value)
+            if (currentLevel < statReq.Threshold)
                 return false;
         }
 

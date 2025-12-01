@@ -14,7 +14,8 @@ public class ObservationContext
     // Player state
     public int CurrentFocus { get; set; }
     public int MaxFocus { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<PlayerStatEntry> PlayerStats { get; set; }
     public List<string> PlayerKnowledge { get; set; }
 
     // Examination tracking (HIGHLANDER: Object collection, not string IDs)
@@ -27,7 +28,7 @@ public class ObservationContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
+        PlayerStats = new List<PlayerStatEntry>();
         PlayerKnowledge = new List<string>();
         ExaminedPoints = new List<ExaminationPoint>();
     }
@@ -87,10 +88,12 @@ public class ObservationContext
         if (!point.RequiredStat.HasValue) return true;
         if (!point.RequiredStatLevel.HasValue) return true;
 
-        if (!PlayerStats.ContainsKey(point.RequiredStat.Value))
+        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary lookup
+        PlayerStatEntry statEntry = PlayerStats.FirstOrDefault(s => s.Stat == point.RequiredStat.Value);
+        if (statEntry == null)
             return false;
 
-        return PlayerStats[point.RequiredStat.Value] >= point.RequiredStatLevel.Value;
+        return statEntry.Value >= point.RequiredStatLevel.Value;
     }
 
     private bool MeetsKnowledgeRequirements(ExaminationPoint point)

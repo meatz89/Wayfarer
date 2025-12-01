@@ -1,16 +1,19 @@
-
-// Player's current resource state for UI display
+/// <summary>
+/// Player's current resource state for UI display.
+/// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary.
+/// </summary>
 public class ResourceState
 {
     public int Coins { get; set; }
     public int Health { get; set; }
     public int Hunger { get; set; }
     public int Stamina { get; set; }
-    public Dictionary<ConnectionType, int> Tokens { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<ConnectionTypeTokenEntry> Tokens { get; set; }
 
     public ResourceState()
     {
-        Tokens = new Dictionary<ConnectionType, int>();
+        Tokens = new List<ConnectionTypeTokenEntry>();
     }
 
     public static ResourceState FromPlayer(Player player)
@@ -21,7 +24,7 @@ public class ResourceState
             Health = player.Health,
             Hunger = player.Hunger,
             Stamina = player.Stamina,
-            Tokens = new Dictionary<ConnectionType, int>()
+            Tokens = new List<ConnectionTypeTokenEntry>()
         };
     }
 
@@ -33,7 +36,7 @@ public class ResourceState
             Health = playerState.Health,
             Hunger = playerState.Hunger,
             Stamina = playerState.Stamina,
-            Tokens = new Dictionary<ConnectionType, int>()
+            Tokens = new List<ConnectionTypeTokenEntry>()
         };
     }
 }

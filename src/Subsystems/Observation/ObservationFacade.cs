@@ -267,18 +267,20 @@ public class ObservationFacade
         return result;
     }
 
-    private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
+    /// <summary>
+    /// Build player stat entries for context.
+    /// DOMAIN COLLECTION PRINCIPLE: Returns List<T> instead of Dictionary.
+    /// </summary>
+    private List<PlayerStatEntry> BuildPlayerStats(Player player)
     {
-        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>
+        return new List<PlayerStatEntry>
         {
-            { PlayerStatType.Insight, player.Insight },
-            { PlayerStatType.Rapport, player.Rapport },
-            { PlayerStatType.Authority, player.Authority },
-            { PlayerStatType.Diplomacy, player.Diplomacy },
-            { PlayerStatType.Cunning, player.Cunning }
+            new PlayerStatEntry { Stat = PlayerStatType.Insight, Value = player.Insight },
+            new PlayerStatEntry { Stat = PlayerStatType.Rapport, Value = player.Rapport },
+            new PlayerStatEntry { Stat = PlayerStatType.Authority, Value = player.Authority },
+            new PlayerStatEntry { Stat = PlayerStatType.Diplomacy, Value = player.Diplomacy },
+            new PlayerStatEntry { Stat = PlayerStatType.Cunning, Value = player.Cunning }
         };
-
-        return stats;
     }
 
     /// <summary>

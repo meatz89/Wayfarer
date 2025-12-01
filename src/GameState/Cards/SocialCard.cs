@@ -58,7 +58,8 @@ public class SocialCard
     public IReadOnlyList<CardTrait> Traits { get; init; } = new List<CardTrait>();
 
     // Token requirements for signature cards
-    public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<TokenRequirementEntry> TokenRequirements { get; init; } = new List<TokenRequirementEntry>();
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(SocialSession session)
@@ -103,13 +104,14 @@ public class SocialCard
     /// <summary>
     /// Check if token requirements are met for this signature card
     /// </summary>
-    public bool CanAccessWithTokens(Dictionary<string, int> availableTokens)
+    public bool CanAccessWithTokens(List<TokenRequirementEntry> availableTokens)
     {
         if (TokenRequirements == null || !TokenRequirements.Any()) return true;
 
-        foreach (KeyValuePair<string, int> requirement in TokenRequirements)
+        foreach (TokenRequirementEntry requirement in TokenRequirements)
         {
-            if (!availableTokens.TryGetValue(requirement.Key, out int available) || available < requirement.Value)
+            TokenRequirementEntry available = availableTokens.FirstOrDefault(t => t.TokenType == requirement.TokenType);
+            if (available == null || available.RequiredAmount < requirement.RequiredAmount)
             {
                 return false;
             }
