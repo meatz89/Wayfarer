@@ -1057,7 +1057,6 @@ public class GameWorld
             existing.Safety = location.Safety;
             existing.Activity = location.Activity;
             existing.IsSkeleton = false; // Mark as no longer skeleton
-            existing.Tier = location.Tier;
             // Provenance intentionally NOT copied - preserve creation metadata
         }
         else

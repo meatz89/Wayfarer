@@ -762,7 +762,6 @@ public class PackageLoader
                 Name = dto.Name,
                 Description = dto.Description,
                 // Districts added later when LoadDistricts processes district → region links
-                Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
                 Population = dto.Population,
@@ -1003,7 +1002,6 @@ public class PackageLoader
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
                 existing.District = district;  // Object reference resolved immediately
-                existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
                 VenueType venueType = VenueType.Wilderness;
@@ -1142,7 +1140,6 @@ public class PackageLoader
                 existing.Description = parsed.Description;
                 existing.Role = parsed.Role;
                 existing.Profession = parsed.Profession;
-                existing.Tier = parsed.Tier;
                 existing.Level = parsed.Level;
                 existing.ConversationDifficulty = parsed.ConversationDifficulty;
                 existing.PersonalityDescription = parsed.PersonalityDescription;

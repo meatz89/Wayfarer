@@ -431,7 +431,6 @@ public class SceneFacade
             {
                 SceneTemplateId = template.Id,
                 DisplayName = displayName,
-                Tier = template.Tier,
                 ResolvedPlacementId = null, // Cannot resolve at preview time (requires FindOrCreate)
                 PlacementType = primaryPlacementType,
                 SituationCount = template.SituationTemplates.Count,

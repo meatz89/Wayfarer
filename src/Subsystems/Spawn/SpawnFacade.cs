@@ -177,7 +177,6 @@ public class SpawnFacade
             // PropertyReduction DELETED - old equipment system removed
             InteractionType = template.InteractionType,
             NavigationPayload = template.NavigationPayload,
-            Tier = template.Tier,
             Repeatable = template.Repeatable,
             GeneratedNarrative = null, // Don't copy cached narrative
             NarrativeHints = template.NarrativeHints,
