@@ -53,32 +53,31 @@ public static class SceneArchetypeCatalog
     /// </summary>
     public static SceneArchetypeDefinition Generate(
         SceneArchetypeType archetypeType,
-        int tier,
         GenerationContext context)
     {
         return archetypeType switch
         {
             // Service patterns (4)
-            SceneArchetypeType.InnLodging => GenerateInnLodging(tier, context),
-            SceneArchetypeType.ConsequenceReflection => GenerateConsequenceReflection(tier, context),
-            SceneArchetypeType.DeliveryContract => GenerateDeliveryContract(tier, context),
-            SceneArchetypeType.RouteSegmentTravel => GenerateRouteSegmentTravel(tier, context),
+            SceneArchetypeType.InnLodging => GenerateInnLodging(context),
+            SceneArchetypeType.ConsequenceReflection => GenerateConsequenceReflection(context),
+            SceneArchetypeType.DeliveryContract => GenerateDeliveryContract(context),
+            SceneArchetypeType.RouteSegmentTravel => GenerateRouteSegmentTravel(context),
 
             // Narrative patterns (9)
-            SceneArchetypeType.SeekAudience => GenerateSeekAudience(tier, context),
-            SceneArchetypeType.InvestigateLocation => GenerateInvestigateLocation(tier, context),
-            SceneArchetypeType.GatherTestimony => GenerateGatherTestimony(tier, context),
-            SceneArchetypeType.ConfrontAntagonist => GenerateConfrontAntagonist(tier, context),
-            SceneArchetypeType.MeetOrderMember => GenerateMeetOrderMember(tier, context),
-            SceneArchetypeType.DiscoverArtifact => GenerateDiscoverArtifact(tier, context),
-            SceneArchetypeType.UncoverConspiracy => GenerateUncoverConspiracy(tier, context),
-            SceneArchetypeType.UrgentDecision => GenerateUrgentDecision(tier, context),
-            SceneArchetypeType.MoralCrossroads => GenerateMoralCrossroads(tier, context),
+            SceneArchetypeType.SeekAudience => GenerateSeekAudience(context),
+            SceneArchetypeType.InvestigateLocation => GenerateInvestigateLocation(context),
+            SceneArchetypeType.GatherTestimony => GenerateGatherTestimony(context),
+            SceneArchetypeType.ConfrontAntagonist => GenerateConfrontAntagonist(context),
+            SceneArchetypeType.MeetOrderMember => GenerateMeetOrderMember(context),
+            SceneArchetypeType.DiscoverArtifact => GenerateDiscoverArtifact(context),
+            SceneArchetypeType.UncoverConspiracy => GenerateUncoverConspiracy(context),
+            SceneArchetypeType.UrgentDecision => GenerateUrgentDecision(context),
+            SceneArchetypeType.MoralCrossroads => GenerateMoralCrossroads(context),
 
             // Peaceful patterns (3)
-            SceneArchetypeType.QuietReflection => GenerateQuietReflection(tier, context),
-            SceneArchetypeType.CasualEncounter => GenerateCasualEncounter(tier, context),
-            SceneArchetypeType.ScholarlyPursuit => GenerateScholarlyPursuit(tier, context),
+            SceneArchetypeType.QuietReflection => GenerateQuietReflection(context),
+            SceneArchetypeType.CasualEncounter => GenerateCasualEncounter(context),
+            SceneArchetypeType.ScholarlyPursuit => GenerateScholarlyPursuit(context),
 
             _ => throw new InvalidOperationException($"Unhandled scene archetype type: {archetypeType}")
         };
@@ -222,7 +221,7 @@ public static class SceneArchetypeCatalog
     /// VERISIMILITUDE: Lodging at inn follows realistic flow - you negotiate access,
     /// use the room, then leave. Specific to inn lodging fiction, reusable anywhere.
     /// </summary>
-    private static SceneArchetypeDefinition GenerateInnLodging(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateInnLodging(GenerationContext context)
     {
         string sceneId = "inn_lodging";
         string negotiateSitId = $"{sceneId}_negotiate";
@@ -398,7 +397,7 @@ public static class SceneArchetypeCatalog
     /// VERISIMILITUDE: Reflective moment after consequences. Player must acknowledge
     /// reality and decide how to move forward. Single beat, then returns to world.
     /// </summary>
-    private static SceneArchetypeDefinition GenerateConsequenceReflection(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateConsequenceReflection(GenerationContext context)
     {
         string situationId = "consequence_reflection";
 
@@ -474,7 +473,7 @@ public static class SceneArchetypeCatalog
     /// player decides whether to engage, then negotiates specific terms. Reusable for any
     /// delivery contract throughout game. Tutorial adds A3 spawning when sequence == 2.
     /// </summary>
-    private static SceneArchetypeDefinition GenerateDeliveryContract(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateDeliveryContract(GenerationContext context)
     {
         string sceneId = "delivery_contract";
         string offerSitId = $"{sceneId}_offer";
@@ -647,7 +646,7 @@ public static class SceneArchetypeCatalog
     /// RhythmPattern determines choice structure for ALL situations uniformly.
     /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateRouteSegmentTravel(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateRouteSegmentTravel(GenerationContext context)
     {
         string sceneId = "route_segment_travel";
         string obstacle1SitId = $"{sceneId}_obstacle1";
@@ -915,7 +914,7 @@ public static class SceneArchetypeCatalog
     /// GUARANTEED PROGRESSION: Both situations have fallback choices with no requirements
     /// FINAL SITUATION: ALL choices spawn next A-scene (guaranteed forward progress)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateSeekAudience(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateSeekAudience(GenerationContext context)
     {
         string sceneId = "seek_audience";
 
@@ -1043,7 +1042,7 @@ public static class SceneArchetypeCatalog
     ///
     /// Classic investigation flow reusable for any location-based mystery beat.
     /// </summary>
-    private static SceneArchetypeDefinition GenerateInvestigateLocation(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateInvestigateLocation(GenerationContext context)
     {
         string sceneId = "investigate_location";
 
@@ -1176,7 +1175,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 2
     /// Pattern: Linear (approach → interview)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateGatherTestimony(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateGatherTestimony(GenerationContext context)
     {
         string sceneId = "gather_testimony";
 
@@ -1267,7 +1266,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 2
     /// Pattern: Linear (accusation → resolution)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateConfrontAntagonist(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateConfrontAntagonist(GenerationContext context)
     {
         string sceneId = "confront_antagonist";
 
@@ -1360,7 +1359,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 3
     /// Pattern: Linear (contact → negotiate_info → revelation)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateMeetOrderMember(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateMeetOrderMember(GenerationContext context)
     {
         string sceneId = "meet_order_member";
 
@@ -1483,7 +1482,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 2
     /// Pattern: Linear (locate → acquire)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateDiscoverArtifact(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateDiscoverArtifact(GenerationContext context)
     {
         string sceneId = "discover_artifact";
 
@@ -1584,7 +1583,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 4
     /// Pattern: Linear (suspect → gather_proof → expose → consequence)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateUncoverConspiracy(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateUncoverConspiracy(GenerationContext context)
     {
         string sceneId = "uncover_conspiracy";
 
@@ -1739,7 +1738,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 2
     /// Pattern: Linear (crisis → decision)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateUrgentDecision(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateUrgentDecision(GenerationContext context)
     {
         string sceneId = "urgent_decision";
 
@@ -1832,7 +1831,7 @@ public static class SceneArchetypeCatalog
     /// Situation Count: 3
     /// Pattern: Linear (dilemma → choice → consequence)
     /// </summary>
-    private static SceneArchetypeDefinition GenerateMoralCrossroads(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateMoralCrossroads(GenerationContext context)
     {
         string sceneId = "moral_crossroads";
 
@@ -1968,7 +1967,7 @@ public static class SceneArchetypeCatalog
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
     /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
-    private static SceneArchetypeDefinition GenerateQuietReflection(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateQuietReflection(GenerationContext context)
     {
         string sceneId = "quiet_reflection";
 
@@ -2067,7 +2066,7 @@ public static class SceneArchetypeCatalog
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
     /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
-    private static SceneArchetypeDefinition GenerateCasualEncounter(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateCasualEncounter(GenerationContext context)
     {
         string sceneId = "casual_encounter";
 
@@ -2169,7 +2168,7 @@ public static class SceneArchetypeCatalog
     /// ALL CHOICES POSITIVE: No stat requirements, no costs, only stat grants
     /// Appears every 8th sequence as structural respite from story rhythm
     /// </summary>
-    private static SceneArchetypeDefinition GenerateScholarlyPursuit(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateScholarlyPursuit(GenerationContext context)
     {
         string sceneId = "scholarly_pursuit";
 
