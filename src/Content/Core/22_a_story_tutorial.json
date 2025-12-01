@@ -5,22 +5,24 @@
     "timestamp": "2025-11-14T00:00:00Z",
     "description": "A-story tutorial scenes teaching core gameplay through three interconnected experiences: inn lodging, delivery contract, and route travel.",
     "author": "Wayfarer Team",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
-    "sceneTemplates": [
+    "sceneInstances": [
       {
         "id": "a1_secure_lodging",
+        "sceneArchetype": "InnLodging",
         "category": "MainStory",
         "mainStorySequence": 1,
-        "archetype": "Linear",
-        "sceneArchetype": "InnLodging",
+        "isStarter": true,
+        "tier": 0,
         "rhythmPattern": "Building",
+        "locationSafety": "Safe",
+        "locationPurpose": "Commerce",
+        "archetype": "Linear",
         "displayNameTemplate": "Secure Lodging",
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
-        "tier": 0,
-        "isStarter": true,
         "locationActivationFilter": {
           "placementType": "Location",
           "capabilities": ["Commercial", "Restful"]
@@ -34,16 +36,18 @@
       },
       {
         "id": "a2_morning",
+        "sceneArchetype": "DeliveryContract",
         "category": "MainStory",
         "mainStorySequence": 2,
-        "archetype": "Linear",
-        "sceneArchetype": "DeliveryContract",
+        "isStarter": false,
+        "tier": 1,
         "rhythmPattern": "Mixed",
+        "locationSafety": "Safe",
+        "locationPurpose": "Commerce",
+        "archetype": "Linear",
         "displayNameTemplate": "First Delivery",
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
-        "tier": 1,
-        "isStarter": false,
         "locationActivationFilter": {
           "placementType": "Location",
           "privacy": "SemiPublic",
@@ -58,16 +62,18 @@
       },
       {
         "id": "a3_route_travel",
+        "sceneArchetype": "RouteSegmentTravel",
         "category": "MainStory",
         "mainStorySequence": 3,
-        "archetype": "Linear",
-        "sceneArchetype": "RouteSegmentTravel",
+        "isStarter": false,
+        "tier": 1,
         "rhythmPattern": "Crisis",
+        "locationSafety": "Neutral",
+        "locationPurpose": "Transit",
+        "archetype": "Linear",
         "displayNameTemplate": "Journey Beyond Town",
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
-        "tier": 1,
-        "isStarter": false,
         "locationActivationFilter": {
           "placementType": "Location",
           "privacy": "SemiPublic",

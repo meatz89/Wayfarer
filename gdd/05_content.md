@@ -196,20 +196,27 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
 
-### Authored Scene Sequencing (Context Injection)
+### Scene Instance Creation (Context Injection)
 
-**Scene Instance = Template + Context.** Both are required to create a scene. The difference between authored and procedural is WHERE these come from.
+**Two concepts:**
 
-| Path | Template | Context | Source |
-|------|----------|---------|--------|
-| **Authored (A1-A10)** | Pre-defined | Pre-defined | DeferredStoryScenes |
-| **Procedural (A11+)** | Selected at spawn | Derived from GameWorld | Computed on demand |
+| Concept | What It Is | Example |
+|---------|------------|---------|
+| **SceneTemplate** | Pure archetype from catalog | InnLodging, SeekAudience, DeliveryContract |
+| **Scene** | Runtime instance (Situations from SituationTemplates) | Playable game state |
 
-**DeferredStoryScenes**: Contains complete (template, context) pairs for authored content. Content author specifies BOTH—no selection logic, no GameWorld derivation.
+**SceneInstanceDTO** is the shared contract for scene creation. Both authored and procedural content produce the same DTO:
+- `sceneArchetype`: Reference to SceneTemplate (InnLodging, etc.)
+- `tier`, `rhythmPattern`, `locationSafety`, `locationPurpose`: Complete non-nullable context
+- `mainStorySequence`, `isStarter`: A-story progression
+- `locationActivationFilter`: When scene activates
 
-**Procedural**: System selects template based on location/rhythm/history, then derives context from current GameWorld state.
+| Path | DTO Source | Context Source |
+|------|------------|----------------|
+| **Authored (A1-A10)** | JSON → SceneInstanceDTO | Pre-defined in JSON |
+| **Procedural (A11+)** | Code → SceneInstanceDTO | Derived from GameWorld |
 
-Both paths feed into the SAME parser pipeline. The parser cannot distinguish authored from procedural—it just receives (template, context) and produces a Scene Instance.
+Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of whether the DTO came from JSON or code.
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 

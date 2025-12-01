@@ -210,6 +210,13 @@ public class PackageContent
     public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
 
     /// <summary>
+    /// Scene instance definitions - template reference + complete context (arc42 §8.28)
+    /// Used by BOTH authored (JSON → DTO) and procedural (code → DTO) paths.
+    /// Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of source.
+    /// </summary>
+    public List<SceneInstanceDTO> SceneInstances { get; set; } = new List<SceneInstanceDTO>();
+
+    /// <summary>
     /// Scene instances - runtime instances spawned from templates with concrete placements
     /// Generated dynamically at spawn time, stored in dynamic packages
     /// DISTINCTION: SceneTemplates = reusable blueprints, Scenes = specific playthrough instances

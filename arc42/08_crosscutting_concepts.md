@@ -1032,108 +1032,73 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 ## 8.28 Context Injection (HIGHLANDER Scene Generation)
 
-**"Scene Instance = Template + Context. Both required, both complete."**
+**"One DTO, two sources. Parser doesn't know where it came from."**
 
-### Scene Templates vs Scene Instances
+### Two Concepts
 
-| Concept | What It Is | When Created | Stored In |
-|---------|------------|--------------|-----------|
-| **Scene Template** | Pre-authored archetype definition | Game initialization (from JSON) | GameWorld.SceneTemplates |
-| **Scene Instance** | Playable scene with concrete values | When scene spawns | GameWorld.Scenes |
+| Concept | What It Is | Contains |
+|---------|------------|----------|
+| **SceneTemplate** | Pure archetype | SituationTemplates (structure, choice patterns) |
+| **Scene** | Playable instance | Situations (concrete game state) |
 
-All scenes that may ever exist are built from templates. Templates are immutable archetypes; instances are concrete game state.
+**SceneTemplates** are pure archetypes (InnLodging, SeekAudience, etc.) containing SituationTemplates. Loaded at game start.
 
-### Creating Scene Instances
+**Scenes** are runtime instances created by parsing SceneInstanceDTO.
 
-To create a Scene Instance, two inputs are required:
+### One DTO, Two Sources
 
-| Input | What It Provides |
-|-------|------------------|
-| **Template** | The archetype - structure, situation types, choice patterns |
-| **Context** | The scaling - tier, location properties, rhythm phase, history |
+SceneInstanceDTO is the contract. It contains template reference + complete non-nullable context. Both authored and procedural content produce the SAME DTO:
 
-Both are packaged into a DTO and sent through: DTO → PackageLoader → Parser → Scene Instance
+| Source | How DTO is Created |
+|--------|-------------------|
+| **Authored** | JSON → SceneInstanceDTO |
+| **Procedural** | Code creates SceneInstanceDTO directly |
 
-### The Two Paths
+Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of source.
 
-| Path | Template Source | Context Source | Stored In |
-|------|-----------------|----------------|-----------|
-| **Authored** | Pre-defined | Pre-defined | DeferredStoryScenes |
-| **Procedural** | Selected at spawn time | Derived from GameWorld | Computed on demand |
+### SceneInstanceDTO Structure
 
-**DeferredStoryScenes**: A GameWorld collection containing complete (template reference, full context) pairs for authored content. Both template and context are specified by the content author—no selection, no derivation needed.
+| Property | Type | Required |
+|----------|------|----------|
+| **SceneArchetype** | string | Yes (template reference) |
+| **MainStorySequence** | int | Yes (for A-story) |
+| **LocationSafety** | string | Yes |
+| **LocationPurpose** | string | Yes |
+| **RhythmPattern** | string | Yes |
+| **Tier** | int | Yes |
+| **LocationActivationFilter** | PlacementFilterDTO | Yes |
+| **IsStarter** | bool | Yes |
 
-**Authored Path:**
-1. Retrieve pre-defined (template, context) pair from DeferredStoryScenes
-2. Package into DTO
-3. Send through parser pipeline
-4. Scene Instance created with deterministic outcome
-
-**Procedural Path:**
-1. Select template based on selection logic (location, rhythm, history, anti-repetition)
-2. Derive context from current GameWorld state
-3. Package into DTO
-4. Send through parser pipeline
-5. Scene Instance created based on current game state
-
-### Why This Matters
-
-| Problem | Caused By | Solution |
-|---------|-----------|----------|
-| **Authored sequences unpredictable** | Template/context derived at spawn time | Pre-define both in DeferredStoryScenes |
-| **Two code paths** | Branching on "authored vs procedural" | Same parser pipeline, different input source |
-| **Testing difficulty** | Generation depends on GameWorld state | Complete (template, context) pairs as input |
+No nullable context properties. No defaults. Complete at parse time.
 
 ### HIGHLANDER Compliance
 
-The parser pipeline is IDENTICAL for both paths. It receives (template, context) and produces Scene Instance. The pipeline cannot distinguish authored from procedural—it just processes inputs.
-
 | Principle | How It's Upheld |
 |-----------|-----------------|
-| **Same code path** | Same parser pipeline for both |
-| **No nulls, no defaults** | Both template and context are complete before parsing |
-| **No conditional branching** | No "if authored" checks in parser |
+| **Same DTO type** | SceneInstanceDTO for both paths |
+| **Same parser** | Parser processes DTO, not source |
+| **No nulls, no defaults** | Context complete before parsing |
+
+### Process Flow
+
+| Step | Authored | Procedural |
+|------|----------|------------|
+| **1. Create DTO** | Deserialize from JSON | Construct in code |
+| **2. Parse** | Parser → Scene | Parser → Scene |
+| **3. Store** | Add to GameWorld.Scenes | Add to GameWorld.Scenes |
+
+Steps 2-3 are identical. Only step 1 differs (source of DTO).
 
 ### Forbidden Patterns
 
 | Pattern | Why It's Wrong |
 |---------|----------------|
-| Nullable context properties with fallbacks | Violates no-null policy |
-| `HasAuthoredContext` checks | Creates branching based on source |
-| Template selection for authored content | Authored path retrieves pre-defined template |
-| Context derivation for authored content | Authored path retrieves pre-defined context |
-
-### Context Properties
-
-Context provides scaling information for the parser:
-
-| Property | What It Controls |
-|----------|------------------|
-| **LocationSafety** | Danger level affecting archetype selection |
-| **LocationPurpose** | Venue type affecting available actions |
-| **RhythmPhase** | Accumulation/Test/Recovery affecting choice structure |
-| **Tier** | Difficulty scaling (0-3) |
-| **IntensityHistory** | Recent scene patterns for anti-repetition |
-
-### Process Flow
-
-| Step | Authored Path | Procedural Path |
-|------|---------------|-----------------|
-| **1. Trigger** | Player completes scene with spawn reward | Player completes scene with spawn reward |
-| **2. Get Template** | Retrieve from DeferredStoryScenes | Select based on location/rhythm/history |
-| **3. Get Context** | Retrieve from DeferredStoryScenes | Derive from current GameWorld |
-| **4. Build DTO** | Package (template, context) | Package (template, context) |
-| **5. Parse** | Parser creates Scene Instance | Parser creates Scene Instance |
-| **6. Store** | Add to GameWorld.Scenes | Add to GameWorld.Scenes |
-
-**Key Insight:** Steps 4-6 are identical. The only difference is WHERE (template, context) comes from.
-
-**Forbidden:**
-- GameWorld reads inside generation methods
-- TargetCategory or similar override parameters
-- Current player state influencing selection
-- Sequence-based rotation
-- Different method signatures or code paths for authored vs procedural
+| Separate DTO types for authored/procedural | Violates HIGHLANDER |
+| Nullable context properties | Violates no-null policy |
+| `HasAuthoredContext` checks | Parser shouldn't know source |
+| Fallback defaults (`??`) | Hides missing data |
+| Context on SceneTemplate | Templates are pure archetypes |
+| RhythmPhase enum | Redundant with RhythmPattern |
 
 **Cross-References:**
 - §8.1 HIGHLANDER: One code path for all scene generation

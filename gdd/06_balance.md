@@ -578,18 +578,18 @@ The 8-sequence rotation above serves as a **base rotation baseline**. The actual
 
 **Context Injection Principle (HIGHLANDER Compliance):**
 
-**Scene Instance = Template + Context.** Both required. The difference is WHERE they come from.
+**Two concepts:** SceneTemplate (pure archetype), Scene (runtime instance).
 
-| Path | Template | Context | Source |
-|------|----------|---------|--------|
-| **Authored** | Pre-defined | Pre-defined | DeferredStoryScenes |
-| **Procedural** | Selected at spawn | Derived from GameWorld | Computed on demand |
+**One DTO, two sources:** SceneInstanceDTO is the shared contract. Both authored and procedural produce the same DTO:
 
-**DeferredStoryScenes**: Complete (template, context) pairs for authored content. Author specifies BOTH.
+| Path | DTO Source | Context Source |
+|------|------------|----------------|
+| **Authored** | JSON → SceneInstanceDTO | Pre-defined in JSON |
+| **Procedural** | Code → SceneInstanceDTO | Derived from GameWorld |
 
-**Procedural**: System selects template + derives context from current GameWorld.
+SceneInstanceDTO contains template ref + complete context (tier, rhythmPattern, locationSafety, locationPurpose). No nullable properties.
 
-Same parser pipeline handles both—cannot distinguish source. No "HasAuthoredContext" checks.
+Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of source.
 
 See arc42/08 §8.28 for technical implementation pattern.
 
