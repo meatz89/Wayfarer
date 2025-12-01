@@ -1047,12 +1047,23 @@ Scene generation uses a single code path for both authored and procedural conten
 
 ### The Pattern
 
-| Source | Who Builds Context | What It Contains |
-|--------|-------------------|------------------|
-| **Authored** | Content author via SceneSpawnReward | Hardcoded categorical properties that produce desired scene |
-| **Procedural** | Caller computes from GameWorld | Derived from location context, intensity history |
+Context properties follow the standard policy: **no nulls, no defaults, no fallbacks, no overrides.** This naturally means context is always complete before use.
 
-Both paths produce identical SceneSelectionInputs. Generator receives inputs and applies SAME selection logic. The only difference is WHERE inputs come from—not HOW they're processed.
+| Source | When Context is Built | Who Builds It |
+|--------|----------------------|---------------|
+| **Authored** | Parse time | Content author specifies in JSON |
+| **Procedural** | Spawn time (player selects last choice) | System computes from GameWorld |
+
+By the time selection logic runs, context is populated—the logic cannot distinguish authored from procedural.
+
+| Forbidden Pattern | Why It's Wrong |
+|-------------------|----------------|
+| Nullable context properties | Violates no-null policy |
+| Fallback/default values | Violates no-default policy |
+| `HasAuthoredContext` checks | Creates branching based on source |
+| Override parameters | Violates HIGHLANDER |
+
+Both paths produce identical SceneSelectionInputs. Generator receives inputs and applies SAME selection logic. The difference is WHEN context is built.
 
 ### Two Context Layers
 
@@ -1065,10 +1076,10 @@ Context injection operates at TWO distinct layers with different purposes:
 
 **Scene Selection Context (Layer 1):**
 - Input to archetype category selection
-- Primary drivers: Location context, intensity history, rhythm phase
-- Secondary drivers: NPC context, tier, anti-repetition
-- Authored content provides hardcoded inputs; procedural derives from history
-- SAME selection logic processes both—no overrides, no bypasses
+- Primary drivers: Location context (Safety, Purpose), intensity history, rhythm phase
+- Secondary drivers: Tier, anti-repetition (recent categories/archetypes)
+- Authored: specified in content at parse time; Procedural: derived from GameWorld at spawn time
+- SAME selection logic processes both—cannot distinguish source
 - Output: Archetype category and intensity (Investigation/Recovery, Crisis/Demanding, etc.)
 
 **What NEVER Influences Selection:**
@@ -1091,18 +1102,18 @@ Context injection operates at TWO distinct layers with different purposes:
 
 ### Process Flow
 
-| Step | What Happens | Context Source |
-|------|--------------|----------------|
-| **1. Trigger** | SceneSpawnReward evaluated | None yet |
-| **2. Build Selection Inputs** | Caller builds SceneSelectionInputs | Authored: hardcoded / Procedural: history + location |
-| **3. Select Archetype** | Selection logic processes inputs | SceneSelectionInputs (same logic always) |
+| Step | What Happens | Context |
+|------|--------------|---------|
+| **1. Trigger** | Player selects last choice of current scene | — |
+| **2. Build Selection Inputs** | Context populated | Authored: from SceneSpawnReward (parse time) / Procedural: from GameWorld (now) |
+| **3. Select Archetype** | Selection logic processes inputs | Source indistinguishable |
 | **4. Build DTO** | Generator creates SceneTemplateDTO | Selected archetype + tier |
 | **5. Parse Template** | PackageLoader → Parser → Catalogue | Categorical properties |
 | **6. Resolve Entities** | Placement filter matches entities | Template filters |
 | **7. Build Generation Context** | Entities → GenerationContext | Resolved entity properties |
 | **8. Generate Situations** | Archetype + GenerationContext → Situations | Full context |
 
-**Key Insight:** Step 3 is identical for authored and procedural. The selection logic doesn't know which source built the inputs—it just processes categorical properties and produces archetype selection.
+**Key Insight:** By step 3, context is populated. Selection logic cannot distinguish authored from procedural.
 
 ### HIGHLANDER Compliance
 

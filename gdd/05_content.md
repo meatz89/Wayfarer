@@ -198,24 +198,27 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 ### Authored Scene Sequencing (Context Injection)
 
-When authored content spawns the next A-story scene, it specifies **generation context** to control the outcome:
+Context properties follow the standard policy: **no nulls, no defaults, no fallbacks, no overrides.** The difference between authored and procedural is WHEN context is built.
 
 | Context Property | What It Controls |
 |------------------|------------------|
-| **TargetCategory** | Archetype category (Investigation, Social, Confrontation, Crisis, Peaceful) |
-| **LocationContext** | Safety/Purpose values that influence category selection |
-| **IntensityHint** | Override intensity balance scoring |
-| **RhythmPhase** | Building, Crisis, or Mixed rhythm for choice structure |
-| **Exclusions** | Archetypes to avoid (anti-repetition) |
+| **LocationSafety** | Safe/Neutral/Dangerous—influences category selection |
+| **LocationPurpose** | Civic/Commerce/Governance/etc.—influences category selection |
+| **RhythmPhase** | Accumulation/Test/Recovery—determines choice structure |
+| **Tier** | Story tier 0-3—determines difficulty scaling |
+| **IntensityHistory** | Recent demanding/recovery counts—feeds rhythm calculation |
+| **RecentCategories** | Anti-repetition—avoids immediate repeats |
 
-**Authored vs Procedural Context:**
+**Authored vs Procedural—WHEN Context is Built:**
 
-| Flow | Context Source |
-|------|----------------|
-| **Tutorial (A1-A10)** | Author specifies exact context in spawn reward: "next scene is Investigation at Safe location with Building rhythm" |
-| **Infinite (A11+)** | System reads current GameWorld state and passes as context |
+| Flow | When Built | Who Builds |
+|------|-----------|------------|
+| **Tutorial (A1-A10)** | Parse time | Content author specifies in JSON |
+| **Infinite (A11+)** | Spawn time | System derives from GameWorld |
 
-Same generation code handles both flows—no special tutorial code paths. Author control is achieved through context specification, not conditional logic.
+By the time selection runs, context is populated and source is indistinguishable. No "HasAuthoredContext" checks.
+
+Same generation code handles both flows—no special tutorial code paths.
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 
