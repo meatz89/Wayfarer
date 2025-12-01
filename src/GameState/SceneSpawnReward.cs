@@ -4,9 +4,10 @@
 /// THE source of RhythmPattern context for scene selection.
 ///
 /// CONTEXT INJECTION (arc42 §8.28):
-/// - RhythmPatternContext: If set, use it for selection
-/// - If null: Derive RhythmPattern from intensity history
-/// - ONE INPUT: RhythmPattern only (LocationSafety/Purpose/Tier REMOVED)
+/// - RhythmPatternContext MUST be set before use
+/// - For authored content: set explicitly in JSON
+/// - For procedural content: computed and SET at activation time
+/// - NO derivation at consumption time - spawn reward is THE source
 ///
 /// WHY CONTEXT ON SPAWN REWARD:
 /// Different choices in the same situation can spawn scenes with different contexts.
@@ -30,36 +31,37 @@ public class SceneSpawnReward
 
     /// <summary>
     /// Rhythm pattern for scene selection.
-    /// If set: Use this RhythmPattern for archetype category selection.
-    /// If null: Derive from intensity history at spawn time.
+    /// MUST be set before use - either authored or computed at activation.
     /// </summary>
     public RhythmPattern? RhythmPatternContext { get; set; }
 
     /// <summary>
-    /// TRUE if RhythmPattern context is authored.
-    /// When true, selection uses this value directly.
-    /// When false, selection derives from intensity history.
+    /// Get RhythmPattern, throwing if not set.
+    /// Call EnsureRhythmPatternSet() before using this.
     /// </summary>
-    public bool HasAuthoredContext => RhythmPatternContext.HasValue;
-
-    /// <summary>
-    /// Build SceneSelectionInputs from authored RhythmPattern context.
-    /// REQUIRES: RhythmPatternContext is set.
-    /// </summary>
-    public SceneSelectionInputs BuildAuthoredInputs()
+    public RhythmPattern GetRhythmPattern()
     {
         if (!RhythmPatternContext.HasValue)
         {
             throw new InvalidOperationException(
-                "SceneSpawnReward.BuildAuthoredInputs() called but RhythmPatternContext is null. " +
-                "Check HasAuthoredContext before calling.");
+                "SceneSpawnReward.RhythmPatternContext is not set. " +
+                "Call EnsureRhythmPatternSet() before using spawn reward. " +
+                "arc42 §8.28: Context MUST be on spawn reward, no derivation at consumption.");
         }
+        return RhythmPatternContext.Value;
+    }
 
+    /// <summary>
+    /// Build SceneSelectionInputs from spawn reward context.
+    /// REQUIRES: RhythmPatternContext is set.
+    /// </summary>
+    public SceneSelectionInputs BuildSelectionInputs(List<string> recentCategories, List<string> recentArchetypes)
+    {
         return new SceneSelectionInputs
         {
-            RhythmPattern = RhythmPatternContext.Value,
-            RecentCategories = new List<string>(),
-            RecentArchetypes = new List<string>()
+            RhythmPattern = GetRhythmPattern(),
+            RecentCategories = recentCategories ?? new List<string>(),
+            RecentArchetypes = recentArchetypes ?? new List<string>()
         };
     }
 }

@@ -17,7 +17,6 @@ public class NPCDTO
     public List<string> Services { get; set; } = new List<string>();
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
-    public int Tier { get; set; }
     public int Level { get; set; } = 1; // Level 1-5 for difficulty/content progression and XP scaling
     public int ConversationDifficulty { get; set; } = 1; // Level 1-3 for XP multipliers
 

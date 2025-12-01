@@ -69,8 +69,6 @@ public static class LocationParser
         // EXPLICIT INITIALIZATION: Flow modifier (0 = neutral, can be positive/negative)
         location.FlowModifier = 0;
 
-        location.Tier = 1;
-
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties - FAIL-FAST: all required, no silent failures

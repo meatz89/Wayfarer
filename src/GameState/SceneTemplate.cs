@@ -104,17 +104,6 @@ public class SceneTemplate
     public string IntroNarrativeTemplate { get; init; }
 
     /// <summary>
-    /// Tier classification for this Scene
-    /// 0 = Safety net (simple, repeatable, minimal requirements)
-    /// 1 = Low complexity (0-3 Resolve, simple requirements)
-    /// 2 = Standard complexity (5-8 Resolve, moderate requirements)
-    /// 3 = High complexity (10-15 Resolve, complex requirements, deep cascades)
-    /// 4 = Climactic moments (18-25 Resolve, very complex, resolution content)
-    /// Used for difficulty scaling and requirement formula calculation
-    /// </summary>
-    public int Tier { get; init; } = 1;
-
-    /// <summary>
     /// Story category classification for narrative role
     /// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
     /// SideStory = B-story content (optional, unlocked by A-story progression)

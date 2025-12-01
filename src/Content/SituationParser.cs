@@ -84,7 +84,6 @@ public static class SituationParser
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
             SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name, gameWorld),
             FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name, gameWorld),
-            Tier = dto.Tier,
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)

@@ -54,7 +54,6 @@ public class Location
 
     // NO DEFAULTS: All numeric properties must be explicitly set
     public int FlowModifier { get; set; }
-    public int Tier { get; set; }
 
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }

@@ -207,16 +207,17 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in consequence.ScenesToSpawn)
         {
+            // CONTEXT INJECTION (arc42 §8.28): Ensure RhythmPattern is SET on spawn reward
+            // This is the CREATION point - compute and set if not already authored
+            EnsureRhythmPatternSet(sceneSpawn);
+
             SceneTemplate template;
 
             if (sceneSpawn.SpawnNextMainStoryScene)
             {
                 // MAINSTORY SEQUENCING - NO ID STRINGS
-                // Use the CURRENT SCENE's sequence (the one being completed), not player's tracked progress
-                // Player.CurrentMainStorySequence is updated AFTER scene completion by SituationCompletionHandler
-                // If we use player's sequence here, we'd spawn the same scene again
                 int currentSequence = currentSituation?.ParentScene?.MainStorySequence ?? player.CurrentMainStorySequence;
-                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence} (from Scene={currentSituation?.ParentScene?.MainStorySequence}, Player={player.CurrentMainStorySequence})");
+                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence}");
 
                 // Try to find authored template for next sequence
                 template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
@@ -224,12 +225,14 @@ public class RewardApplicationService
                 if (template == null)
                 {
                     // No authored template exists - generate procedurally
-                    // CONTEXT INJECTION (arc42 §8.28): Context from spawn reward only
+                    // CONTEXT INJECTION: spawn reward now has RhythmPattern SET (not derived)
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
                     AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
 
-                    // Build selection inputs from spawn reward context
-                    SceneSelectionInputs selectionInputs = BuildSelectionInputs(sceneSpawn);
+                    // Build selection inputs from spawn reward - RhythmPattern is GUARANTEED set
+                    List<string> recentCategories = GetRecentCategories();
+                    List<string> recentArchetypes = GetRecentArchetypes();
+                    SceneSelectionInputs selectionInputs = sceneSpawn.BuildSelectionInputs(recentCategories, recentArchetypes);
 
                     await _proceduralAStoryService.GenerateNextATemplate(
                         currentSequence + 1, aStoryContext, selectionInputs);
@@ -247,17 +250,14 @@ public class RewardApplicationService
             }
             else if (sceneSpawn.Template != null)
             {
-                // NON-MAINSTORY: Direct template reference (resolved at parse time)
-                // NO ID STRINGS - object reference only
+                // NON-MAINSTORY: Direct template reference
                 template = sceneSpawn.Template;
                 Console.WriteLine($"[FinalizeSceneSpawns] Using direct template reference: '{template.Id}'");
             }
             else
             {
-                // Invalid spawn configuration
                 throw new InvalidOperationException(
-                    "SceneSpawnReward must have either SpawnNextMainStoryScene=true OR Template set. " +
-                    "NO ID STRINGS - use boolean flags and object references only.");
+                    "SceneSpawnReward must have either SpawnNextMainStoryScene=true OR Template set.");
             }
 
             // Resolve placement context
@@ -275,7 +275,7 @@ public class RewardApplicationService
                 CurrentRoute = currentRoute
             };
 
-            // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
+            // HIGHLANDER FLOW: Spawn scene directly
             string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
             if (!string.IsNullOrEmpty(packageJson))
             {
@@ -287,26 +287,58 @@ public class RewardApplicationService
     }
 
     /// <summary>
-    /// Build SceneSelectionInputs from SceneSpawnReward context.
-    /// CONTEXT INJECTION (arc42 §8.28): RhythmPattern from spawn reward OR derived from history.
+    /// Ensure RhythmPattern is SET on spawn reward.
+    /// CONTEXT INJECTION (arc42 §8.28): This is the CREATION point for context.
+    /// If authored, already set. If not, compute from history and SET it.
+    /// After this call, RhythmPatternContext is GUARANTEED to be set.
     /// </summary>
-    private SceneSelectionInputs BuildSelectionInputs(SceneSpawnReward sceneSpawn)
+    private void EnsureRhythmPatternSet(SceneSpawnReward sceneSpawn)
     {
-        if (sceneSpawn.HasAuthoredContext)
+        if (sceneSpawn.RhythmPatternContext.HasValue)
         {
-            // Authored RhythmPattern - use it directly
-            return sceneSpawn.BuildAuthoredInputs();
+            return; // Already set (authored)
         }
 
-        // No authored context - derive RhythmPattern from intensity history
-        return DeriveFromIntensityHistory();
+        // Compute RhythmPattern from intensity history and SET it
+        sceneSpawn.RhythmPatternContext = ComputeRhythmPatternFromHistory();
+        Console.WriteLine($"[EnsureRhythmPatternSet] Computed and SET RhythmPattern={sceneSpawn.RhythmPatternContext}");
     }
 
     /// <summary>
-    /// Derive SceneSelectionInputs from completed scene history.
-    /// Computes RhythmPattern and anti-repetition lists.
+    /// Get recent categories for anti-repetition.
     /// </summary>
-    private SceneSelectionInputs DeriveFromIntensityHistory()
+    private List<string> GetRecentCategories()
+    {
+        return _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.State == SceneState.Completed &&
+                        s.Template != null)
+            .OrderByDescending(s => s.MainStorySequence)
+            .Take(2)
+            .Select(s => ArchetypeCategorySelector.MapArchetypeToCategory(s.Template.SceneArchetype))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get recent archetypes for anti-repetition.
+    /// </summary>
+    private List<string> GetRecentArchetypes()
+    {
+        return _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.State == SceneState.Completed &&
+                        s.Template != null)
+            .OrderByDescending(s => s.MainStorySequence)
+            .Take(3)
+            .Select(s => s.Template.SceneArchetype.ToString())
+            .ToList();
+    }
+
+    /// <summary>
+    /// Compute RhythmPattern from completed scene intensity history.
+    /// Called at CREATION time to SET on spawn reward.
+    /// </summary>
+    private RhythmPattern ComputeRhythmPatternFromHistory()
     {
         List<Scene> completedScenes = _gameWorld.Scenes
             .Where(s => s.Category == StoryCategory.MainStory &&
@@ -315,17 +347,13 @@ public class RewardApplicationService
             .OrderBy(s => s.MainStorySequence)
             .ToList();
 
-        SceneSelectionInputs inputs = SceneSelectionInputs.CreateDefault();
-
         if (!completedScenes.Any())
         {
-            return inputs; // Default to Building rhythm
+            return RhythmPattern.Building; // Default for game start
         }
 
-        // Extract history for rhythm computation and anti-repetition
+        // Extract intensity and rhythm history
         List<ArchetypeIntensity> intensityHistory = new List<ArchetypeIntensity>();
-        List<string> categoryHistory = new List<string>();
-        List<string> archetypeHistory = new List<string>();
         List<RhythmPattern> rhythmHistory = new List<RhythmPattern>();
 
         foreach (Scene scene in completedScenes)
@@ -339,32 +367,8 @@ public class RewardApplicationService
 
             if (scene.Template != null)
             {
-                categoryHistory.Add(MapArchetypeToCategory(scene.Template.SceneArchetype));
-                archetypeHistory.Add(scene.Template.SceneArchetype.ToString());
                 rhythmHistory.Add(scene.Template.RhythmPattern);
             }
-        }
-
-        // Anti-repetition lists
-        inputs.RecentCategories = categoryHistory.TakeLast(2).ToList();
-        inputs.RecentArchetypes = archetypeHistory.TakeLast(3).ToList();
-
-        // Compute RhythmPattern from history
-        inputs.RhythmPattern = ComputeRhythmPatternFromHistory(intensityHistory, rhythmHistory);
-
-        return inputs;
-    }
-
-    /// <summary>
-    /// Compute RhythmPattern from intensity and rhythm history.
-    /// </summary>
-    private RhythmPattern ComputeRhythmPatternFromHistory(
-        List<ArchetypeIntensity> intensityHistory,
-        List<RhythmPattern> rhythmHistory)
-    {
-        if (!intensityHistory.Any())
-        {
-            return RhythmPattern.Building;
         }
 
         // Just after Crisis rhythm → Mixed (recovery phase)
@@ -378,7 +382,7 @@ public class RewardApplicationService
         int demandingCount = recent.Count(i => i == ArchetypeIntensity.Demanding);
         int recoveryCount = recent.Count(i => i == ArchetypeIntensity.Recovery);
 
-        // Intensity heavy (more Demanding than Recovery) → needs Mixed (recovery)
+        // Intensity heavy (more Demanding than Recovery) → needs Mixed
         if (demandingCount > recoveryCount)
         {
             return RhythmPattern.Mixed;
@@ -395,53 +399,14 @@ public class RewardApplicationService
             scenesSinceDemanding++;
         }
 
-        // Long time since Demanding → time for Crisis (test)
+        // Long time since Demanding → time for Crisis
         if (scenesSinceDemanding >= 4)
         {
             return RhythmPattern.Crisis;
         }
 
-        // Default: Building (accumulation phase)
+        // Default: Building
         return RhythmPattern.Building;
     }
 
-    /// <summary>
-    /// Map SceneArchetypeType to category string for selection tracking.
-    /// Categories: Investigation, Social, Confrontation, Crisis, Peaceful, Service
-    /// </summary>
-    private string MapArchetypeToCategory(SceneArchetypeType archetype)
-    {
-        return archetype switch
-        {
-            // Investigation category
-            SceneArchetypeType.InvestigateLocation => "Investigation",
-            SceneArchetypeType.GatherTestimony => "Investigation",
-            SceneArchetypeType.UncoverConspiracy => "Investigation",
-            SceneArchetypeType.DiscoverArtifact => "Investigation",
-
-            // Social category
-            SceneArchetypeType.SeekAudience => "Social",
-            SceneArchetypeType.MeetOrderMember => "Social",
-            SceneArchetypeType.CasualEncounter => "Social",
-
-            // Confrontation category
-            SceneArchetypeType.ConfrontAntagonist => "Confrontation",
-
-            // Crisis category
-            SceneArchetypeType.UrgentDecision => "Crisis",
-            SceneArchetypeType.MoralCrossroads => "Crisis",
-
-            // Peaceful category (Recovery intensity)
-            SceneArchetypeType.QuietReflection => "Peaceful",
-            SceneArchetypeType.ScholarlyPursuit => "Peaceful",
-
-            // Service category (C-story patterns)
-            SceneArchetypeType.InnLodging => "Service",
-            SceneArchetypeType.ConsequenceReflection => "Service",
-            SceneArchetypeType.DeliveryContract => "Service",
-            SceneArchetypeType.RouteSegmentTravel => "Service",
-
-            _ => "Investigation" // Default fallback
-        };
-    }
 }

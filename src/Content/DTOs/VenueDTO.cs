@@ -9,7 +9,6 @@ public class VenueDTO
     public string Name { get; set; }
     public string Description { get; set; }
     public string DistrictId { get; set; }
-    public int Tier { get; set; }
     public string LocationType { get; set; }
 
     /// <summary>

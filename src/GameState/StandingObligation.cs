@@ -42,9 +42,6 @@ public class StandingObligation
     public string Description { get; set; } = "";
     public string Source { get; set; } = ""; // NPC or entity that granted this obligation
 
-    // Tier system (1-5) for difficulty/content progression
-    public int Tier { get; set; } = 1;
-
     // Mechanics
     public List<ObligationEffect> BenefitEffects { get; set; } = new List<ObligationEffect>();
     public List<ObligationEffect> ConstraintEffects { get; set; } = new List<ObligationEffect>();

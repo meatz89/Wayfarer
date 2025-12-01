@@ -4,8 +4,8 @@
 /// Maps to Scene domain entity.
 ///
 /// CONTEXT INJECTION (arc42 §8.28):
-/// - Context properties (Tier, RhythmPattern, etc.) used at creation time
-/// - Runtime properties (State, CurrentSituationId) populated during play
+/// - RhythmPattern is THE context for scene selection
+/// - Choice scaling uses Location.Difficulty (orthogonal system)
 /// - Same DTO for both paths - parser has no knowledge of source
 /// </summary>
 public class SceneDTO
@@ -22,30 +22,13 @@ public class SceneDTO
     /// </summary>
     public string SceneArchetype { get; set; }
 
-    // ==================== CONTEXT (CREATION-TIME, ALL REQUIRED) ====================
+    // ==================== CONTEXT (CREATION-TIME) ====================
 
     /// <summary>
-    /// Complexity tier (0-3) - REQUIRED at creation, no defaults.
-    /// </summary>
-    public int Tier { get; set; }
-
-    /// <summary>
-    /// Sir Brante rhythm pattern - REQUIRED at creation, no defaults.
+    /// Sir Brante rhythm pattern - context for scene selection.
     /// Values: "Building", "Crisis", "Mixed"
     /// </summary>
     public string RhythmPattern { get; set; }
-
-    /// <summary>
-    /// Location safety context - REQUIRED at creation, no defaults.
-    /// Values: "Safe", "Neutral", "Dangerous"
-    /// </summary>
-    public string LocationSafety { get; set; }
-
-    /// <summary>
-    /// Location purpose context - REQUIRED at creation, no defaults.
-    /// Values: "Transit", "Dwelling", "Commerce", "Civic", etc.
-    /// </summary>
-    public string LocationPurpose { get; set; }
 
     /// <summary>
     /// Whether this scene is created at game start.

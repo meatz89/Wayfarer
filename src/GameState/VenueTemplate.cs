@@ -23,11 +23,6 @@ public class VenueTemplate
     public VenueType Type { get; set; } = VenueType.Wilderness;
 
     /// <summary>
-    /// Difficulty/progression tier (1-5)
-    /// </summary>
-    public int Tier { get; set; } = 1;
-
-    /// <summary>
     /// District ID to place venue in.
     /// null = inherit from context or default to wilderness
     /// </summary>

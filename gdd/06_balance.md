@@ -362,16 +362,16 @@ The Building/Crisis/Mixed classification is for AUTHORS, not displayed to PLAYER
 
 ### Categorical Scaling Preserves Rhythm
 
-The SAME rhythm operates at every tier - categorical properties scale VALUES, not STRUCTURE:
+The SAME rhythm operates at every location - categorical properties scale VALUES, not STRUCTURE:
 
 | What Scales | How It Scales |
 |-------------|---------------|
-| Stat thresholds | Tier base + NPC demeanor adjustment |
-| Resource costs | Tier base + quality adjustment |
-| Stat rewards | Tier base (higher tiers grant more per choice) |
-| Trade-off severity | Tier scales both gains AND losses |
+| Stat thresholds | Location.Difficulty base + NPC demeanor adjustment |
+| Resource costs | Location.Difficulty base + quality adjustment |
+| Stat rewards | Location.Difficulty base (further locations grant more per choice) |
+| Trade-off severity | Location.Difficulty scales both gains AND losses |
 
-**Critical:** Tutorial at Tier 0 and late-game at Tier 3 feel equally tight because margins scale proportionally. The rhythm is preserved; only the numbers change.
+**Critical:** Tutorial near origin and late-game at distance feel equally tight because margins scale proportionally. The rhythm is preserved; only the numbers change.
 
 ---
 
@@ -593,7 +593,7 @@ The 8-sequence rotation above serves as a **base rotation baseline**. The actual
 | **Authored** | JSON → SceneDTO | Pre-defined in JSON |
 | **Procedural** | Code → SceneDTO | Derived from GameWorld |
 
-SceneDTO contains template ref + complete context (tier, rhythmPattern, locationSafety, locationPurpose) + runtime state. No nullable context properties.
+SceneDTO contains template ref + RhythmPattern context + runtime state. Scene selection uses ONLY RhythmPattern; choice scaling uses Location.Difficulty (orthogonal systems).
 
 Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
 
@@ -605,7 +605,7 @@ See arc42/08 §8.28 for technical implementation pattern.
 |--------|-------------|--------|----------------|
 | Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | IMPLEMENTED (Player.TotalStatStrength) |
 | Location Difficulty | Hex distance from (0,0) / 5 | Further = higher requirements | IMPLEMENTED (LocationPlacementService) |
-| Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | PARTIAL (tier-based) |
+| Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | IMPLEMENTED (via RhythmPattern) |
 | NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
 | Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
 

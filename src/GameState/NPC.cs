@@ -30,9 +30,6 @@ public class NPC
     // Level system (1-5) for difficulty/content progression and XP scaling
     public int Level { get; set; } = 1;
 
-    // Tier system (1-5) for difficulty/content progression
-    public int Tier { get; set; } = 1;
-
     // Conversation difficulty level (1-3) for XP multipliers
     public int ConversationDifficulty { get; set; } = 1;
 

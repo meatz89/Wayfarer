@@ -231,20 +231,10 @@ public class Situation
     public List<SpawnRule> FailureSpawns { get; set; } = new List<SpawnRule>();
 
     /// <summary>
-    /// Situation complexity tier (0-4)
-    /// Tier 0: Safety net (zero requirements, infinite repeat, no Resolve cost)
-    /// Tier 1: Low complexity (0-3 Resolve, simple requirements)
-    /// Tier 2: Standard complexity (5-8 Resolve, moderate compound requirements)
-    /// Tier 3: High complexity (10-15 Resolve, complex requirements, deep cascades)
-    /// Tier 4: Climactic moments (18-25 Resolve, very complex, resolution content)
-    /// </summary>
-    public int Tier { get; set; } = 1;
-
-    /// <summary>
     /// Whether this situation can be repeated after completion
     /// true = Remains available after completion (work, services)
     /// false = Deleted after completion (one-time progression events)
-    /// Tier 0 safety net situations MUST be repeatable
+    /// Safety net situations MUST be repeatable
     /// </summary>
     public bool Repeatable { get; set; } = false;
 
