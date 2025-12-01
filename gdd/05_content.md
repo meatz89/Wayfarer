@@ -205,18 +205,18 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 | **SceneTemplate** | Pure archetype from catalog | InnLodging, SeekAudience, DeliveryContract |
 | **Scene** | Runtime instance (Situations from SituationTemplates) | Playable game state |
 
-**SceneInstanceDTO** is the shared contract for scene creation. Both authored and procedural content produce the same DTO:
+**SceneDTO** serves both creation and runtime. Both authored and procedural content use the same DTO:
 - `sceneArchetype`: Reference to SceneTemplate (InnLodging, etc.)
 - `tier`, `rhythmPattern`, `locationSafety`, `locationPurpose`: Complete non-nullable context
 - `mainStorySequence`, `isStarter`: A-story progression
-- `locationActivationFilter`: When scene activates
+- `state`, `currentSituationId`: Runtime state (populated during play)
 
 | Path | DTO Source | Context Source |
 |------|------------|----------------|
-| **Authored (A1-A10)** | JSON → SceneInstanceDTO | Pre-defined in JSON |
-| **Procedural (A11+)** | Code → SceneInstanceDTO | Derived from GameWorld |
+| **Authored (A1-A10)** | JSON → SceneDTO | Pre-defined in JSON |
+| **Procedural (A11+)** | Code → SceneDTO | Derived from GameWorld |
 
-Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of whether the DTO came from JSON or code.
+Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 

@@ -580,16 +580,16 @@ The 8-sequence rotation above serves as a **base rotation baseline**. The actual
 
 **Two concepts:** SceneTemplate (pure archetype), Scene (runtime instance).
 
-**One DTO, two sources:** SceneInstanceDTO is the shared contract. Both authored and procedural produce the same DTO:
+**One DTO, two sources:** SceneDTO serves both creation and runtime. Both authored and procedural use the same DTO:
 
 | Path | DTO Source | Context Source |
 |------|------------|----------------|
-| **Authored** | JSON → SceneInstanceDTO | Pre-defined in JSON |
-| **Procedural** | Code → SceneInstanceDTO | Derived from GameWorld |
+| **Authored** | JSON → SceneDTO | Pre-defined in JSON |
+| **Procedural** | Code → SceneDTO | Derived from GameWorld |
 
-SceneInstanceDTO contains template ref + complete context (tier, rhythmPattern, locationSafety, locationPurpose). No nullable properties.
+SceneDTO contains template ref + complete context (tier, rhythmPattern, locationSafety, locationPurpose) + runtime state. No nullable context properties.
 
-Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of source.
+Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
 
 See arc42/08 §8.28 for technical implementation pattern.
 

@@ -1043,51 +1043,37 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 **SceneTemplates** are pure archetypes (InnLodging, SeekAudience, etc.) containing SituationTemplates. Loaded at game start.
 
-**Scenes** are runtime instances created by parsing SceneInstanceDTO.
+**Scenes** are instances created by parsing SceneDTO.
 
 ### One DTO, Two Sources
 
-SceneInstanceDTO is the contract. It contains template reference + complete non-nullable context. Both authored and procedural content produce the SAME DTO:
+SceneDTO serves BOTH creation and runtime. It contains template reference + complete context + runtime state. Both authored and procedural content use the SAME DTO:
 
 | Source | How DTO is Created |
 |--------|-------------------|
-| **Authored** | JSON → SceneInstanceDTO |
-| **Procedural** | Code creates SceneInstanceDTO directly |
+| **Authored** | JSON → SceneDTO (context properties populated) |
+| **Procedural** | Code creates SceneDTO directly |
 
-Parser receives SceneInstanceDTO and produces Scene. Parser has no knowledge of source.
+Parser receives SceneDTO and produces Scene domain object. Parser has no knowledge of source.
 
-### SceneInstanceDTO Structure
+### SceneDTO Structure
 
-| Property | Type | Required |
-|----------|------|----------|
-| **SceneArchetype** | string | Yes (template reference) |
-| **MainStorySequence** | int | Yes (for A-story) |
-| **LocationSafety** | string | Yes |
-| **LocationPurpose** | string | Yes |
-| **RhythmPattern** | string | Yes |
-| **Tier** | int | Yes |
-| **LocationActivationFilter** | PlacementFilterDTO | Yes |
-| **IsStarter** | bool | Yes |
+| Section | Properties | Purpose |
+|---------|------------|---------|
+| **Context** | Tier, RhythmPattern, LocationSafety, LocationPurpose | Creation-time scaling |
+| **Identity** | SceneArchetype, Id, MainStorySequence, IsStarter | Template reference, A-story |
+| **Activation** | LocationActivationFilter, NpcActivationFilter, SpawnConditions | When scene triggers |
+| **Runtime** | State, CurrentSituationId, Situations | Populated during play |
 
-No nullable context properties. No defaults. Complete at parse time.
+Context properties are REQUIRED at creation, no defaults.
 
 ### HIGHLANDER Compliance
 
 | Principle | How It's Upheld |
 |-----------|-----------------|
-| **Same DTO type** | SceneInstanceDTO for both paths |
+| **Same DTO type** | SceneDTO for both paths |
 | **Same parser** | Parser processes DTO, not source |
 | **No nulls, no defaults** | Context complete before parsing |
-
-### Process Flow
-
-| Step | Authored | Procedural |
-|------|----------|------------|
-| **1. Create DTO** | Deserialize from JSON | Construct in code |
-| **2. Parse** | Parser → Scene | Parser → Scene |
-| **3. Store** | Add to GameWorld.Scenes | Add to GameWorld.Scenes |
-
-Steps 2-3 are identical. Only step 1 differs (source of DTO).
 
 ### Forbidden Patterns
 
