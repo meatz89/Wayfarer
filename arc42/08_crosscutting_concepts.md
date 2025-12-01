@@ -1032,104 +1032,101 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 ## 8.28 Context Injection (HIGHLANDER Scene Generation)
 
-**"Generation receives context as input; generation never discovers context."**
+**"Scene Instance = Template + Context. Both required, both complete."**
 
-Scene generation uses a single code path for both authored and procedural content. Context is always INJECTED, never discovered from GameWorld during generation.
+### Scene Templates vs Scene Instances
 
-### Why Context Injection
+| Concept | What It Is | When Created | Stored In |
+|---------|------------|--------------|-----------|
+| **Scene Template** | Pre-authored archetype definition | Game initialization (from JSON) | GameWorld.SceneTemplates |
+| **Scene Instance** | Playable scene with concrete values | When scene spawns | GameWorld.Scenes |
+
+All scenes that may ever exist are built from templates. Templates are immutable archetypes; instances are concrete game state.
+
+### Creating Scene Instances
+
+To create a Scene Instance, two inputs are required:
+
+| Input | What It Provides |
+|-------|------------------|
+| **Template** | The archetype - structure, situation types, choice patterns |
+| **Context** | The scaling - tier, location properties, rhythm phase, history |
+
+Both are packaged into a DTO and sent through: DTO → PackageLoader → Parser → Scene Instance
+
+### The Two Paths
+
+| Path | Template Source | Context Source | Stored In |
+|------|-----------------|----------------|-----------|
+| **Authored** | Pre-defined | Pre-defined | DeferredStoryScenes |
+| **Procedural** | Selected at spawn time | Derived from GameWorld | Computed on demand |
+
+**DeferredStoryScenes**: A GameWorld collection containing complete (template reference, full context) pairs for authored content. Both template and context are specified by the content author—no selection, no derivation needed.
+
+**Authored Path:**
+1. Retrieve pre-defined (template, context) pair from DeferredStoryScenes
+2. Package into DTO
+3. Send through parser pipeline
+4. Scene Instance created with deterministic outcome
+
+**Procedural Path:**
+1. Select template based on selection logic (location, rhythm, history, anti-repetition)
+2. Derive context from current GameWorld state
+3. Package into DTO
+4. Send through parser pipeline
+5. Scene Instance created based on current game state
+
+### Why This Matters
 
 | Problem | Caused By | Solution |
 |---------|-----------|----------|
-| **Authored sequences unpredictable** | Generation reads GameWorld state | Inject explicit context |
-| **Two code paths** | Branching on "authored vs procedural" | Single path, different inputs |
-| **Testing difficulty** | Generation depends on GameWorld state | Pure function with inputs |
-| **Determinism impossible** | State changes between scenes | Context frozen at call time |
-
-### The Pattern
-
-Context properties follow the standard policy: **no nulls, no defaults, no fallbacks, no overrides.** This naturally means context is always complete before use.
-
-| Source | When Context is Built | Who Builds It |
-|--------|----------------------|---------------|
-| **Authored** | Parse time | Content author specifies in JSON |
-| **Procedural** | Spawn time (player selects last choice) | System computes from GameWorld |
-
-By the time selection logic runs, context is populated—the logic cannot distinguish authored from procedural.
-
-| Forbidden Pattern | Why It's Wrong |
-|-------------------|----------------|
-| Nullable context properties | Violates no-null policy |
-| Fallback/default values | Violates no-default policy |
-| `HasAuthoredContext` checks | Creates branching based on source |
-| Override parameters | Violates HIGHLANDER |
-
-Both paths produce identical SceneSelectionInputs. Generator receives inputs and applies SAME selection logic. The difference is WHEN context is built.
-
-### Two Context Layers
-
-Context injection operates at TWO distinct layers with different purposes:
-
-| Layer | DTO | Purpose | When |
-|-------|-----|---------|------|
-| **Scene Selection** | SceneSelectionInputs | Determines WHICH archetype category to generate | Before template creation |
-| **Situation Scaling** | GenerationContext | Determines HOW to scale archetype values | During situation instantiation |
-
-**Scene Selection Context (Layer 1):**
-- Input to archetype category selection
-- Primary drivers: Location context (Safety, Purpose), intensity history, rhythm phase
-- Secondary drivers: Tier, anti-repetition (recent categories/archetypes)
-- Authored: specified in content at parse time; Procedural: derived from GameWorld at spawn time
-- SAME selection logic processes both—cannot distinguish source
-- Output: Archetype category and intensity (Investigation/Recovery, Crisis/Demanding, etc.)
-
-**What NEVER Influences Selection:**
-- Current player Resolve level
-- Current player stat values
-- Current player resource counts
-- Sequence-based rotation (arbitrary, not rhythm-based)
-
-**Situation Scaling Context (Layer 2):**
-- Input to catalogue generation and choice scaling
-- Contains: Tier, categorical properties (Danger, Stakes, Urgency, Power, Quality), entity references
-- Derived from resolved entities at instantiation time
-- Output: Scaled requirements, costs, rewards matching context
-
-**Why Two Layers:**
-- Selection happens BEFORE entities exist (choosing template type)
-- Scaling happens AFTER entities resolve (adjusting values)
-- Different data sources: Selection uses history/state; Scaling uses entity properties
-- Single-layer approach would require premature entity resolution
-
-### Process Flow
-
-| Step | What Happens | Context |
-|------|--------------|---------|
-| **1. Trigger** | Player selects last choice of current scene | — |
-| **2. Build Selection Inputs** | Context populated | Authored: from SceneSpawnReward (parse time) / Procedural: from GameWorld (now) |
-| **3. Select Archetype** | Selection logic processes inputs | Source indistinguishable |
-| **4. Build DTO** | Generator creates SceneTemplateDTO | Selected archetype + tier |
-| **5. Parse Template** | PackageLoader → Parser → Catalogue | Categorical properties |
-| **6. Resolve Entities** | Placement filter matches entities | Template filters |
-| **7. Build Generation Context** | Entities → GenerationContext | Resolved entity properties |
-| **8. Generate Situations** | Archetype + GenerationContext → Situations | Full context |
-
-**Key Insight:** By step 3, context is populated. Selection logic cannot distinguish authored from procedural.
+| **Authored sequences unpredictable** | Template/context derived at spawn time | Pre-define both in DeferredStoryScenes |
+| **Two code paths** | Branching on "authored vs procedural" | Same parser pipeline, different input source |
+| **Testing difficulty** | Generation depends on GameWorld state | Complete (template, context) pairs as input |
 
 ### HIGHLANDER Compliance
 
-| Principle | How Context Injection Upholds It |
-|-----------|----------------------------------|
-| **Same code path** | Both authored and procedural use identical generation logic |
-| **Single source of truth** | Context is THE input, not discovered state |
-| **No optional parameters** | All inputs required, no conditional bypasses |
-| **Parse-time translation** | Context fields translate to entities via Catalogue |
+The parser pipeline is IDENTICAL for both paths. It receives (template, context) and produces Scene Instance. The pipeline cannot distinguish authored from procedural—it just processes inputs.
 
-### Consequences
+| Principle | How It's Upheld |
+|-----------|-----------------|
+| **Same code path** | Same parser pipeline for both |
+| **No nulls, no defaults** | Both template and context are complete before parsing |
+| **No conditional branching** | No "if authored" checks in parser |
 
-- **Authored tutorial sequences are deterministic** - author provides categorical inputs that naturally produce desired scene types
-- **Procedural sequences are history-driven** - context computed from intensity history, rhythm phase, location
-- **Generation is testable** - pass inputs, verify output, no GameWorld mocking needed
-- **No special cases** - same selection logic regardless of source
+### Forbidden Patterns
+
+| Pattern | Why It's Wrong |
+|---------|----------------|
+| Nullable context properties with fallbacks | Violates no-null policy |
+| `HasAuthoredContext` checks | Creates branching based on source |
+| Template selection for authored content | Authored path retrieves pre-defined template |
+| Context derivation for authored content | Authored path retrieves pre-defined context |
+
+### Context Properties
+
+Context provides scaling information for the parser:
+
+| Property | What It Controls |
+|----------|------------------|
+| **LocationSafety** | Danger level affecting archetype selection |
+| **LocationPurpose** | Venue type affecting available actions |
+| **RhythmPhase** | Accumulation/Test/Recovery affecting choice structure |
+| **Tier** | Difficulty scaling (0-3) |
+| **IntensityHistory** | Recent scene patterns for anti-repetition |
+
+### Process Flow
+
+| Step | Authored Path | Procedural Path |
+|------|---------------|-----------------|
+| **1. Trigger** | Player completes scene with spawn reward | Player completes scene with spawn reward |
+| **2. Get Template** | Retrieve from DeferredStoryScenes | Select based on location/rhythm/history |
+| **3. Get Context** | Retrieve from DeferredStoryScenes | Derive from current GameWorld |
+| **4. Build DTO** | Package (template, context) | Package (template, context) |
+| **5. Parse** | Parser creates Scene Instance | Parser creates Scene Instance |
+| **6. Store** | Add to GameWorld.Scenes | Add to GameWorld.Scenes |
+
+**Key Insight:** Steps 4-6 are identical. The only difference is WHERE (template, context) comes from.
 
 **Forbidden:**
 - GameWorld reads inside generation methods

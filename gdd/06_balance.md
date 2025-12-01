@@ -574,26 +574,22 @@ The 8-sequence rotation above serves as a **base rotation baseline**. The actual
 - **Peaceful is Earned:** Heavy demanding history (multiple high-intensity scenes) triggers Peaceful selection via intensity balance scoring
 - **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection (Challenge Philosophy)
 - **Intensity Recording:** Each completed A-story scene records its intensity for future context-aware decisions
-- **Context Injection:** No nulls, no defaults—context built at different times for authored vs procedural
+- **Context Injection:** Scene Instance = Template + Context; difference is WHERE they come from
 
 **Context Injection Principle (HIGHLANDER Compliance):**
 
-Context properties follow the standard policy: **no nulls, no defaults, no fallbacks, no overrides.** The difference is WHEN context is built.
+**Scene Instance = Template + Context.** Both required. The difference is WHERE they come from.
 
-| Content Type | When Context Built | Who Builds |
-|--------------|-------------------|------------|
-| **Authored** | Parse time | Content author specifies in JSON |
-| **Procedural** | Spawn time (player selects last choice) | System derives from GameWorld |
+| Path | Template | Context | Source |
+|------|----------|---------|--------|
+| **Authored** | Pre-defined | Pre-defined | DeferredStoryScenes |
+| **Procedural** | Selected at spawn | Derived from GameWorld | Computed on demand |
 
-By the time selection runs, context is populated—source is indistinguishable. No "HasAuthoredContext" checks.
+**DeferredStoryScenes**: Complete (template, context) pairs for authored content. Author specifies BOTH.
 
-Same generation code handles both — no special cases for tutorial vs infinite progression.
+**Procedural**: System selects template + derives context from current GameWorld.
 
-**Why this matters:**
-- Authored tutorial sequences (A1-A10) need predictable outcomes
-- Author specifies context explicitly in content at parse time
-- Procedural computes context from GameWorld at spawn time
-- Selection logic cannot distinguish source
+Same parser pipeline handles both—cannot distinguish source. No "HasAuthoredContext" checks.
 
 See arc42/08 §8.28 for technical implementation pattern.
 

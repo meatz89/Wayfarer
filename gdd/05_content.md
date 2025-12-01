@@ -198,27 +198,18 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 ### Authored Scene Sequencing (Context Injection)
 
-Context properties follow the standard policy: **no nulls, no defaults, no fallbacks, no overrides.** The difference between authored and procedural is WHEN context is built.
+**Scene Instance = Template + Context.** Both are required to create a scene. The difference between authored and procedural is WHERE these come from.
 
-| Context Property | What It Controls |
-|------------------|------------------|
-| **LocationSafety** | Safe/Neutral/Dangerous—influences category selection |
-| **LocationPurpose** | Civic/Commerce/Governance/etc.—influences category selection |
-| **RhythmPhase** | Accumulation/Test/Recovery—determines choice structure |
-| **Tier** | Story tier 0-3—determines difficulty scaling |
-| **IntensityHistory** | Recent demanding/recovery counts—feeds rhythm calculation |
-| **RecentCategories** | Anti-repetition—avoids immediate repeats |
+| Path | Template | Context | Source |
+|------|----------|---------|--------|
+| **Authored (A1-A10)** | Pre-defined | Pre-defined | DeferredStoryScenes |
+| **Procedural (A11+)** | Selected at spawn | Derived from GameWorld | Computed on demand |
 
-**Authored vs Procedural—WHEN Context is Built:**
+**DeferredStoryScenes**: Contains complete (template, context) pairs for authored content. Content author specifies BOTH—no selection logic, no GameWorld derivation.
 
-| Flow | When Built | Who Builds |
-|------|-----------|------------|
-| **Tutorial (A1-A10)** | Parse time | Content author specifies in JSON |
-| **Infinite (A11+)** | Spawn time | System derives from GameWorld |
+**Procedural**: System selects template based on location/rhythm/history, then derives context from current GameWorld state.
 
-By the time selection runs, context is populated and source is indistinguishable. No "HasAuthoredContext" checks.
-
-Same generation code handles both flows—no special tutorial code paths.
+Both paths feed into the SAME parser pipeline. The parser cannot distinguish authored from procedural—it just receives (template, context) and produces a Scene Instance.
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 
