@@ -224,13 +224,12 @@ public class RewardApplicationService
                 if (template == null)
                 {
                     // No authored template exists - generate procedurally
-                    // CONTEXT INJECTION (HIGHLANDER): Build inputs from authored context OR GameWorld
+                    // CONTEXT INJECTION (arc42 §8.28): Context from spawn reward only
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
                     AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
 
-                    // Build selection inputs: authored context if available, else from GameWorld
-                    SceneSelectionInputs selectionInputs = BuildSelectionInputs(
-                        currentSequence + 1, sceneSpawn, player, currentSituation?.Location);
+                    // Build selection inputs from spawn reward context
+                    SceneSelectionInputs selectionInputs = BuildSelectionInputs(sceneSpawn);
 
                     await _proceduralAStoryService.GenerateNextATemplate(
                         currentSequence + 1, aStoryContext, selectionInputs);
@@ -288,50 +287,22 @@ public class RewardApplicationService
     }
 
     /// <summary>
-    /// Build SceneSelectionInputs for procedural generation.
-    /// HIGHLANDER: One unified merge path - authored values override game-derived.
-    /// No branching based on "is this authored" - same merge logic always.
-    ///
-    /// CONTEXT INJECTION (arc42 §8.28):
-    /// - Authored content: provides explicit categorical values
-    /// - Procedural content: derives from game state
-    /// - Merge: authored values take precedence, nulls derive from game state
-    ///
-    /// HISTORY-DRIVEN (gdd/01 §1.8):
-    /// - Selection based on intensity history + location context + rhythm pattern
-    /// - Current player state (Resolve, stats) NEVER influences selection
+    /// Build SceneSelectionInputs from SceneSpawnReward context.
+    /// CONTEXT INJECTION (arc42 §8.28): Context ONLY comes from spawn reward.
+    /// For SpawnNextMainStoryScene, procedural system handles context separately.
     /// </summary>
-    private SceneSelectionInputs BuildSelectionInputs(
-        int sequence,
-        SceneSpawnReward sceneSpawn,
-        Player player,
-        Location currentLocation)
+    private SceneSelectionInputs BuildSelectionInputs(SceneSpawnReward sceneSpawn)
     {
-        SceneSelectionInputs inputs = SceneSelectionInputs.CreateDefault();
+        // SceneSpawnReward is THE source of context - no game state derivation here
+        // For SpawnNextMainStoryScene without context, procedural system provides context
+        if (!sceneSpawn.HasAuthoredContext)
+        {
+            // No context on spawn reward - use defaults (procedural will override)
+            return SceneSelectionInputs.CreateDefault();
+        }
 
-        // HIGHLANDER: Unified merge - authored values override game-derived
-        // Each property: use authored if present, else derive from game state
-
-        // Location context: authored OR current location OR safe defaults
-        // NULL COALESCING RATIONALE (FAIL-FAST compatible):
-        // currentLocation can be null during early procedural generation when spawning
-        // before player has entered any location (game start, between-scene transitions).
-        // Defaults represent "neutral/safe starting point" - NOT hiding missing data.
-        inputs.LocationSafety = sceneSpawn.LocationSafetyContext
-            ?? currentLocation?.Safety
-            ?? LocationSafety.Safe;
-        inputs.LocationPurpose = sceneSpawn.LocationPurposeContext
-            ?? currentLocation?.Purpose
-            ?? LocationPurpose.Civic;
-
-        // Tier: authored OR computed from sequence
-        inputs.Tier = sceneSpawn.TierContext ?? ComputeTierFromSequence(sequence);
-
-        // Populate intensity history and compute RhythmPattern from GameWorld
-        // Authored RhythmPattern takes precedence if provided
-        PopulateIntensityHistory(inputs, sceneSpawn.RhythmPatternContext);
-
-        return inputs;
+        // Authored context - validates completeness, returns context from spawn reward
+        return sceneSpawn.BuildAuthoredInputs();
     }
 
     /// <summary>
@@ -348,9 +319,9 @@ public class RewardApplicationService
     /// <summary>
     /// Populate intensity tracking fields from completed A-story scenes.
     /// Computes recent intensity counts, scene gaps, rhythm pattern from GameWorld history.
-    /// If rhythmPatternOverride is provided (authored content), use that instead of computing.
+    /// All context derived from game state - no overrides.
     /// </summary>
-    private void PopulateIntensityHistory(SceneSelectionInputs inputs, RhythmPattern? rhythmPatternOverride)
+    private void PopulateIntensityHistory(SceneSelectionInputs inputs)
     {
         // Get completed A-story scenes ordered by sequence
         List<Scene> completedScenes = _gameWorld.Scenes
@@ -362,8 +333,8 @@ public class RewardApplicationService
 
         if (!completedScenes.Any())
         {
-            // No history - use authored override if provided, else default to Building
-            inputs.RhythmPattern = rhythmPatternOverride ?? RhythmPattern.Building;
+            // No history - default to Building (game start)
+            inputs.RhythmPattern = RhythmPattern.Building;
             return;
         }
 
@@ -430,15 +401,8 @@ public class RewardApplicationService
         inputs.RecentCategories = categoryHistory.TakeLast(2).ToList();
         inputs.RecentArchetypes = archetypeHistory.TakeLast(3).ToList();
 
-        // Compute RhythmPattern from history (unless authored override)
-        if (rhythmPatternOverride.HasValue)
-        {
-            inputs.RhythmPattern = rhythmPatternOverride.Value;
-        }
-        else
-        {
-            inputs.RhythmPattern = ComputeRhythmPattern(inputs, rhythmHistory);
-        }
+        // Compute RhythmPattern from history - all context from game state
+        inputs.RhythmPattern = ComputeRhythmPattern(inputs, rhythmHistory);
     }
 
     /// <summary>
