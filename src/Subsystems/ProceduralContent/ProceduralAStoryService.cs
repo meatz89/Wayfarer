@@ -34,7 +34,7 @@
 /// 4. Load via PackageLoaderFacade (JSON → PackageLoader → Parser → Entity)
 /// 5. Template added to GameWorld.SceneTemplates, available for spawning
 ///
-/// INTEGRATION POINT: Called from SpawnFacade when A-story scene completes.
+/// INTEGRATION POINT: Called from SpawnService when A-story scene completes.
 /// Detection: scene.Category == MainStory && scene.MainStorySequence.HasValue
 /// Trigger: Generate MainStorySequence + 1 template if not already exists
 ///

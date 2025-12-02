@@ -8,20 +8,20 @@ public class SituationCompletionHandler
     private readonly GameWorld _gameWorld;
     private readonly ObligationActivity _obligationActivity;
     private readonly TimeManager _timeManager;
-    private readonly SpawnFacade _spawnFacade;
+    private readonly SpawnService _spawnService;
     private readonly RewardApplicationService _rewardApplicationService;
 
     public SituationCompletionHandler(
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
-        SpawnFacade spawnFacade,
+        SpawnService spawnService,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
+        _spawnService = spawnService ?? throw new ArgumentNullException(nameof(spawnService));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
@@ -80,7 +80,7 @@ public class SituationCompletionHandler
         // PHASE 3: Execute SuccessSpawns - recursive situation spawning
         if (situation.SuccessSpawns != null && situation.SuccessSpawns.Count > 0)
         {
-            _spawnFacade.ExecuteSpawnRules(situation.SuccessSpawns, situation);
+            _spawnService.ExecuteSpawnRules(situation.SuccessSpawns, situation);
         }
 
         // PHASE 1.3: Scene state machine - advance to next situation
@@ -208,7 +208,7 @@ public class SituationCompletionHandler
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
         if (situation.FailureSpawns != null && situation.FailureSpawns.Count > 0)
         {
-            _spawnFacade.ExecuteSpawnRules(situation.FailureSpawns, situation);
+            _spawnService.ExecuteSpawnRules(situation.FailureSpawns, situation);
         }
 
         // PHASE 1.3: Scene state machine - advance to next situation with OnFailure

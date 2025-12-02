@@ -271,7 +271,7 @@ public class ProceduralTracingTests
         SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.GetNodeForScene(scene);
         SituationSpawnNode parentNode = gameWorld.ProceduralTracer.GetNodeForSituation(parentSituation);
 
-        // Act - Simulate SpawnFacade.ExecuteSpawnRules
+        // Act - Simulate SpawnService.ExecuteSpawnRules
         gameWorld.ProceduralTracer.PushSituationContext(parentNode);
         SituationSpawnNode childNode = gameWorld.ProceduralTracer.RecordSituationSpawn(
             childSituation,

@@ -15,7 +15,7 @@
 /// This validator catches SOFT LOCK conditions: Player completes previous scene,
 /// next scene spawns successfully, but player cannot interact with it.
 ///
-/// USAGE: Called after scene spawn (SpawnFacade, SceneInstanceFacade)
+/// USAGE: Called after scene spawn (SpawnService, SceneInstantiator)
 /// THROWS: InvalidOperationException with diagnostic info if scene unplayable
 /// </summary>
 public class SpawnedScenePlayabilityValidator

@@ -61,7 +61,6 @@ public static class ServiceConfiguration
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
         services.AddSingleton<SceneFacade>();
-        services.AddSingleton<SpawnFacade>();
         services.AddSingleton<RewardApplicationService>();
 
         // Unified Action Architecture - Executors (FALLBACK SCENE ARCHITECTURE)
@@ -89,6 +88,7 @@ public static class ServiceConfiguration
 
         // Scene and Situation Services - Situation visibility filtering with property + access requirements
         services.AddSingleton<SituationCompletionHandler>();
+        services.AddSingleton<SpawnService>();
         services.AddSingleton<DifficultyCalculationService>();
         // SceneFacade removed - old architecture deleted
 

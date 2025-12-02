@@ -38,7 +38,6 @@ public class GameOrchestrator
     private readonly SituationChoiceExecutor _situationChoiceExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly RewardApplicationService _rewardApplicationService;
-    private readonly SpawnFacade _spawnFacade;
     private readonly SceneFacade _sceneFacade;
     private readonly SituationCompletionHandler _situationCompletionHandler;
     private readonly SceneInstantiator _sceneInstantiator;
@@ -75,7 +74,6 @@ public class GameOrchestrator
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
-        SpawnFacade spawnFacade,
         SceneFacade sceneFacade,
         SituationCompletionHandler situationCompletionHandler,
         SceneInstantiator sceneInstantiator,
@@ -107,7 +105,6 @@ public class GameOrchestrator
         _situationChoiceExecutor = situationChoiceExecutor ?? throw new ArgumentNullException(nameof(situationChoiceExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
-        _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
