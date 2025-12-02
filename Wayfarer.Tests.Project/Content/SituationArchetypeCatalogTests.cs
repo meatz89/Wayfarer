@@ -101,10 +101,9 @@ public class SituationArchetypeCatalogTests
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.MeditationAndReflection);
         GenerationContext context = new GenerationContext
         {
-            RhythmPattern = "Building",
-            NPCDemeanor = NPCDemeanor.Friendly,
-            EnvironmentQuality = EnvironmentQuality.Standard,
-            Tier = 1
+            Rhythm = RhythmPattern.Building,
+            NpcDemeanor = NPCDemeanor.Friendly,
+            Environment = EnvironmentQuality.Standard
         };
 
         List<ChoiceTemplate> choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
@@ -126,10 +125,9 @@ public class SituationArchetypeCatalogTests
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(type);
         GenerationContext context = new GenerationContext
         {
-            RhythmPattern = "Building",
-            NPCDemeanor = NPCDemeanor.Friendly,
-            EnvironmentQuality = EnvironmentQuality.Standard,
-            Tier = 1
+            Rhythm = RhythmPattern.Building,
+            NpcDemeanor = NPCDemeanor.Friendly,
+            Environment = EnvironmentQuality.Standard
         };
 
         // This should not throw - if it does, the archetype has invalid stats

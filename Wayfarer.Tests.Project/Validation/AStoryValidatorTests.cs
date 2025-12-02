@@ -23,7 +23,6 @@ public class AStoryValidatorTests
             Id = $"a{sequence}_test",
             Category = StoryCategory.MainStory,
             MainStorySequence = sequence,
-            Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
                 new SituationTemplate
@@ -172,7 +171,6 @@ public class AStoryValidatorTests
             Id = "a1_test",
             Category = StoryCategory.MainStory,
             MainStorySequence = null,
-            Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
                 new SituationTemplate
@@ -216,7 +214,6 @@ public class AStoryValidatorTests
             Id = "a1_test",
             Category = StoryCategory.MainStory,
             MainStorySequence = 1,
-            Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
                 new SituationTemplate
@@ -269,7 +266,6 @@ public class AStoryValidatorTests
             Id = "a1_test",
             Category = StoryCategory.MainStory,
             MainStorySequence = 1,
-            Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
                 new SituationTemplate
@@ -325,7 +321,6 @@ public class AStoryValidatorTests
             Id = "b1_test",
             Category = StoryCategory.SideStory,
             MainStorySequence = null,
-            Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
                 new SituationTemplate

@@ -81,8 +81,7 @@ public class LocationDifficultyTests
         Location location = new Location("DistantLocation")
         {
             Difficulty = 5,
-            HexPosition = new AxialCoordinates(25, 0),
-            Tier = 2
+            HexPosition = new AxialCoordinates(25, 0)
         };
 
         Player player = new Player
@@ -108,8 +107,7 @@ public class LocationDifficultyTests
         Location location = new Location("StartingLocation")
         {
             Difficulty = 0,
-            HexPosition = new AxialCoordinates(0, 0),
-            Tier = 1
+            HexPosition = new AxialCoordinates(0, 0)
         };
 
         Player newPlayer = new Player
@@ -135,7 +133,7 @@ public class LocationDifficultyTests
     private GameWorld CreateMinimalGameWorld()
     {
         GameWorld gameWorld = new GameWorld();
-        gameWorld.InitializeHexGrid(100);
+        // WorldHexGrid is auto-initialized in GameWorld constructor
         return gameWorld;
     }
 }
