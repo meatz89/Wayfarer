@@ -1593,15 +1593,13 @@ public class GameOrchestrator
             plan = _situationChoiceExecutor.ValidateAndExtract(
                 action.ChoiceTemplate,
                 action.Name,
-                player,
-                _gameWorld,
                 action.ScaledRequirement,    // Pre-scaled by SceneFacade
                 action.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {
             // ATMOSPHERIC ACTION (FALLBACK SCENE): Use LocationActionExecutor
-            plan = _locationActionExecutor.ValidateAndExtract(action, player);
+            plan = _locationActionExecutor.ValidateAndExtract(action);
         }
 
         if (!plan.IsValid)
@@ -1711,8 +1709,6 @@ public class GameOrchestrator
         ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(
             action.ChoiceTemplate,
             action.Name,
-            player,
-            _gameWorld,
             action.ScaledRequirement,    // Pre-scaled by SceneFacade
             action.ScaledConsequence);   // Pre-scaled by SceneFacade
 
@@ -1818,15 +1814,13 @@ public class GameOrchestrator
             plan = _situationChoiceExecutor.ValidateAndExtract(
                 card.ChoiceTemplate,
                 card.Name,
-                player,
-                _gameWorld,
                 card.ScaledRequirement,    // Pre-scaled by SceneFacade
                 card.ScaledConsequence);   // Pre-scaled by SceneFacade
         }
         else
         {
             // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Use LocationActionExecutor
-            plan = _locationActionExecutor.ValidateAtmosphericPathCard(card, player);
+            plan = _locationActionExecutor.ValidateAtmosphericPathCard(card);
         }
 
         if (!plan.IsValid)

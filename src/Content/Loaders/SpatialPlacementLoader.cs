@@ -46,7 +46,7 @@ public class SpatialPlacementLoader
     {
         foreach (Location location in _gameWorld.Locations)
         {
-            _locationValidator.ValidateLocation(location, _gameWorld);
+            _locationValidator.ValidateLocation(location);
         }
     }
 
@@ -91,8 +91,8 @@ public class SpatialPlacementLoader
 
         Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place");
 
-        VenueGeneratorService venueGenerator = new VenueGeneratorService();
-        venueGenerator.PlaceAuthoredVenues(venuesToPlace, _gameWorld);
+        VenueGeneratorService venueGenerator = new VenueGeneratorService(_gameWorld);
+        venueGenerator.PlaceAuthoredVenues(venuesToPlace);
 
         Console.WriteLine($"[VenuePlacement] Completed procedural placement for {venuesToPlace.Count} authored venues");
     }
@@ -119,7 +119,7 @@ public class SpatialPlacementLoader
         {
             string distanceHint = location.DistanceHintForPlacement ?? "medium";
             Console.WriteLine($"[LocationPlacement] Processing location '{location.Name}' with distance hint '{distanceHint}'");
-            _locationPlacementService.PlaceLocation(location, distanceHint, player);
+            _locationPlacementService.PlaceLocation(location, distanceHint);
         }
 
         Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {orderedLocations.Count} locations");

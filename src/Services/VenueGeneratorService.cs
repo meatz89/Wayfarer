@@ -4,21 +4,25 @@
 /// </summary>
 public class VenueGeneratorService
 {
-    public VenueGeneratorService()
+    private readonly GameWorld _gameWorld;
+
+    public VenueGeneratorService(GameWorld gameWorld)
     {
+        _gameWorld = gameWorld;
     }
 
     /// <summary>
     /// Place all authored venues procedurally using deterministic algorithm.
     /// Called ONCE after all packages loaded, BEFORE location placement.
     /// HIGHLANDER: Same spatial logic as runtime venue generation, deterministic variant.
+    /// GameWorld accessed via _gameWorld (never passed as parameter).
     /// </summary>
-    public void PlaceAuthoredVenues(List<Venue> authoredVenues, GameWorld gameWorld)
+    public void PlaceAuthoredVenues(List<Venue> authoredVenues)
     {
         Console.WriteLine($"[VenuePlacement] Placing {authoredVenues.Count} authored venues procedurally");
 
         // Track allocated hexes to maintain venue separation BEFORE locations are placed
-        HashSet<AxialCoordinates> allocatedHexes = new HashSet<AxialCoordinates>();
+        List<AxialCoordinates> allocatedHexes = new List<AxialCoordinates>();
 
         foreach (Venue venue in authoredVenues)
         {
@@ -26,7 +30,6 @@ public class VenueGeneratorService
             // Pass allocated hexes to avoid overlaps
             AxialCoordinates centerHex = FindUnoccupiedClusterForAuthoredVenues(
                 venue.HexAllocation,
-                gameWorld,
                 allocatedHexes
             );
 
@@ -60,16 +63,15 @@ public class VenueGeneratorService
     /// </summary>
     private AxialCoordinates FindUnoccupiedClusterForAuthoredVenues(
         HexAllocationStrategy strategy,
-        GameWorld gameWorld,
-        HashSet<AxialCoordinates> allocatedHexes)
+        List<AxialCoordinates> allocatedHexes)
     {
         int searchRadius = 1;
         int maxRadius = 50;
 
         while (searchRadius <= maxRadius)
         {
-            List<Hex> candidateHexes = gameWorld.WorldHexGrid.Hexes
-                .Where(h => CalculateDistance(h.Coordinates, gameWorld.WorldHexGrid.Origin) == searchRadius)
+            List<Hex> candidateHexes = _gameWorld.WorldHexGrid.Hexes
+                .Where(h => CalculateDistance(h.Coordinates, _gameWorld.WorldHexGrid.Origin) == searchRadius)
                 .ToList();
 
             // Deterministic order (no shuffle for authored venues)
@@ -97,7 +99,7 @@ public class VenueGeneratorService
     private bool IsClusterUnoccupiedForAuthoredVenues(
         AxialCoordinates center,
         HexAllocationStrategy strategy,
-        HashSet<AxialCoordinates> allocatedHexes)
+        List<AxialCoordinates> allocatedHexes)
     {
         if (strategy == HexAllocationStrategy.SingleHex)
         {
@@ -144,8 +146,9 @@ public class VenueGeneratorService
     /// <summary>
     /// Generate venue from template with hex allocation.
     /// Finds unoccupied hex cluster, creates venue entity, marks hexes as allocated.
+    /// GameWorld accessed via _gameWorld (never passed as parameter).
     /// </summary>
-    public Venue GenerateVenue(VenueTemplate template, SceneSpawnContext context, GameWorld gameWorld)
+    public Venue GenerateVenue(VenueTemplate template, SceneSpawnContext context)
     {
         // 1. Resolve district from template or context
         // HIGHLANDER: Resolve district name to District object
@@ -163,10 +166,10 @@ public class VenueGeneratorService
         }
 
         // Look up District entity (assume it exists, created during world initialization)
-        District district = gameWorld.Districts.FirstOrDefault(d => d.Name == districtName);
+        District district = _gameWorld.Districts.FirstOrDefault(d => d.Name == districtName);
 
-        // 2. Find unoccupied hex cluster based on allocation strategy (NON-deterministic for runtime variety)
-        AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation, gameWorld, deterministic: false);
+        // 2. Find unoccupied hex cluster based on allocation strategy (DETERMINISTIC per architecture rules)
+        AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation);
 
         // 3. Replace placeholders in name/description
         string venueName = ReplacePlaceholders(template.NamePattern, context, districtName);
@@ -186,7 +189,7 @@ public class VenueGeneratorService
         };
 
         // 6. Add to GameWorld.Venues
-        gameWorld.Venues.Add(venue);
+        _gameWorld.Venues.Add(venue);
 
         // 7. Mark hexes as part of this venue (for routing/travel rules)
         // Note: Individual locations will set their own HexPosition and sync with hex grid
@@ -198,31 +201,26 @@ public class VenueGeneratorService
     /// <summary>
     /// Find unoccupied hex cluster for venue placement.
     /// Returns center hex coordinates for the venue.
-    /// HIGHLANDER: Single algorithm for both authored (deterministic) and runtime (randomized) venues.
+    /// DETERMINISM PRINCIPLE: All venue placement is deterministic for reproducible worlds.
     /// </summary>
-    private AxialCoordinates FindUnoccupiedCluster(HexAllocationStrategy strategy, GameWorld gameWorld, bool deterministic = false)
+    private AxialCoordinates FindUnoccupiedCluster(HexAllocationStrategy strategy)
     {
         int searchRadius = 1;
         int maxRadius = 50;
 
         while (searchRadius <= maxRadius)
         {
-            List<Hex> candidateHexes = gameWorld.WorldHexGrid.Hexes
-                .Where(h => CalculateDistance(h.Coordinates, gameWorld.WorldHexGrid.Origin) == searchRadius)
+            List<Hex> candidateHexes = _gameWorld.WorldHexGrid.Hexes
+                .Where(h => CalculateDistance(h.Coordinates, _gameWorld.WorldHexGrid.Origin) == searchRadius)
                 .ToList();
 
-            // HIGHLANDER: Conditional shuffle based on deterministic flag
-            // Authored venues: deterministic=true → No shuffle, use hex grid natural order
-            // Runtime venues: deterministic=false → Shuffle for procedural variety
-            if (!deterministic)
-            {
-                ShuffleList(candidateHexes);
-            }
-            // Else: Use natural hex grid order (deterministic placement for authored venues)
+            // DETERMINISM PRINCIPLE: All venue placement is deterministic
+            // Natural hex grid order ensures reproducible world generation
+            // Variety comes from hex grid shape and venue order, not randomness
 
             foreach (Hex candidate in candidateHexes)
             {
-                if (IsClusterUnoccupied(candidate.Coordinates, strategy, gameWorld))
+                if (IsClusterUnoccupied(candidate.Coordinates, strategy))
                 {
                     return candidate.Coordinates;
                 }
@@ -237,41 +235,28 @@ public class VenueGeneratorService
         );
     }
 
-    private void ShuffleList<T>(List<T> list)
-    {
-        int n = list.Count;
-        while (n > 1)
-        {
-            n--;
-            int k = Random.Shared.Next(n + 1);
-            T value = list[k];
-            list[k] = list[n];
-            list[n] = value;
-        }
-    }
-
     /// <summary>
     /// Check if hex cluster is unoccupied (no locations present) AND separated from other venues.
     /// Enforces venue separation: minimum 1-hex gap between venues (non-adjacency rule).
     /// </summary>
-    private bool IsClusterUnoccupied(AxialCoordinates center, HexAllocationStrategy strategy, GameWorld gameWorld)
+    private bool IsClusterUnoccupied(AxialCoordinates center, HexAllocationStrategy strategy)
     {
         if (strategy == HexAllocationStrategy.SingleHex)
         {
-            Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
+            Hex centerHex = _gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
             // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
-            if (centerHex == null || gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
+            if (centerHex == null || _gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
             {
                 return false;
             }
 
-            return IsHexSeparatedFromVenues(center, gameWorld);
+            return IsHexSeparatedFromVenues(center);
         }
         else // ClusterOf7
         {
-            Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
+            Hex centerHex = _gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
             // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
-            if (centerHex == null || gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
+            if (centerHex == null || _gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
             {
                 return false;
             }
@@ -279,22 +264,22 @@ public class VenueGeneratorService
             AxialCoordinates[] neighbors = center.GetNeighbors();
             foreach (AxialCoordinates neighbor in neighbors)
             {
-                Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighbor.Q, neighbor.R);
+                Hex neighborHex = _gameWorld.WorldHexGrid.GetHex(neighbor.Q, neighbor.R);
                 // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
-                if (neighborHex == null || gameWorld.GetLocationsAtHex(neighbor.Q, neighbor.R).Count > 0)
+                if (neighborHex == null || _gameWorld.GetLocationsAtHex(neighbor.Q, neighbor.R).Count > 0)
                 {
                     return false;
                 }
             }
 
-            if (!IsHexSeparatedFromVenues(center, gameWorld))
+            if (!IsHexSeparatedFromVenues(center))
             {
                 return false;
             }
 
             foreach (AxialCoordinates neighbor in neighbors)
             {
-                if (!IsHexSeparatedFromVenues(neighbor, gameWorld))
+                if (!IsHexSeparatedFromVenues(neighbor))
                 {
                     return false;
                 }
@@ -309,20 +294,20 @@ public class VenueGeneratorService
     /// Enforces minimum 1-hex gap: no hex in cluster can be adjacent to hex occupied by another venue.
     /// HIGHLANDER: Use Location object references directly
     /// </summary>
-    private bool IsHexSeparatedFromVenues(AxialCoordinates hexCoords, GameWorld gameWorld)
+    private bool IsHexSeparatedFromVenues(AxialCoordinates hexCoords)
     {
         AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
 
         foreach (AxialCoordinates neighborCoords in neighbors)
         {
-            Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighborCoords.Q, neighborCoords.R);
+            Hex neighborHex = _gameWorld.WorldHexGrid.GetHex(neighborCoords.Q, neighborCoords.R);
             if (neighborHex == null)
             {
                 continue;
             }
 
             // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
-            List<Location> locationsAtHex = gameWorld.GetLocationsAtHex(neighborCoords.Q, neighborCoords.R);
+            List<Location> locationsAtHex = _gameWorld.GetLocationsAtHex(neighborCoords.Q, neighborCoords.R);
             foreach (Location location in locationsAtHex)
             {
                 // Location already exists on this hex - check if it belongs to a venue

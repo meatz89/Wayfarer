@@ -4,11 +4,20 @@
 /// </summary>
 public class PlayerExertionCalculator
 {
+    private readonly GameWorld _gameWorld;
+
+    public PlayerExertionCalculator(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+    }
+
     /// <summary>
     /// Calculate exertion state from player's current resources
+    /// Accesses Player via _gameWorld.GetPlayer() (never passed as parameter)
     /// </summary>
-    public PlayerExertionState CalculateExertion(Player player)
+    public PlayerExertionState CalculateExertion()
     {
+        Player player = _gameWorld.GetPlayer();
         return new PlayerExertionState
         {
             Physical = CalculatePhysicalExertion(player),

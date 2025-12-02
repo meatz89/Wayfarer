@@ -27,7 +27,7 @@ public class HighlanderSceneGenerationTests
         // Create minimal valid dependencies to satisfy constructor validation
         GameWorld gameWorld = new GameWorld();
         SceneGenerationFacade sceneGenFacade = new SceneGenerationFacade(gameWorld);
-        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator();
+        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator(gameWorld);
         LocationPlacementService locationPlacementService = new LocationPlacementService(gameWorld);
         ContentGenerationFacade contentFacade = new ContentGenerationFacade();
         PackageLoader packageLoader = new PackageLoader(gameWorld, sceneGenFacade, locationValidator, locationPlacementService);

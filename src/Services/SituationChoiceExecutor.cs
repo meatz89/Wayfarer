@@ -11,6 +11,13 @@
 /// </summary>
 public class SituationChoiceExecutor
 {
+    private readonly GameWorld _gameWorld;
+
+    public SituationChoiceExecutor(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+    }
+
     /// <summary>
     /// Validate ChoiceTemplate and extract execution plan for scene-based actions
     /// Used by: LocationAction (scene-based), NPCAction (all), PathCard (scene-based)
@@ -18,15 +25,16 @@ public class SituationChoiceExecutor
     /// TWO-PHASE SCALING: Accepts optional pre-scaled requirement/consequence.
     /// If scaledRequirement/scaledConsequence provided, uses those for validation/execution.
     /// Otherwise falls back to template values (unscaled).
+    /// GameWorld accessed via _gameWorld (never passed as parameter).
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(
         ChoiceTemplate template,
         string actionName,
-        Player player,
-        GameWorld gameWorld,
         CompoundRequirement scaledRequirement = null,
         Consequence scaledConsequence = null)
     {
+        Player player = _gameWorld.GetPlayer();
         // TWO-PHASE SCALING: Use pre-scaled values if provided, otherwise use template values
         // Perfect Information compliance: display = execution (arc42 §8.26)
         CompoundRequirement effectiveRequirement = scaledRequirement ?? template.RequirementFormula;
@@ -35,7 +43,7 @@ public class SituationChoiceExecutor
         // STEP 1: Validate authored CompoundRequirements using EFFECTIVE values (stats, items, etc.)
         if (effectiveRequirement != null && effectiveRequirement.OrPaths.Count > 0)
         {
-            bool requirementsMet = effectiveRequirement.IsAnySatisfied(player, gameWorld);
+            bool requirementsMet = effectiveRequirement.IsAnySatisfied(player, _gameWorld);
             if (!requirementsMet)
             {
                 return ActionExecutionPlan.Invalid("Requirements not met");
@@ -53,9 +61,9 @@ public class SituationChoiceExecutor
         if (consequence.Stamina < 0) resourcePath.StaminaRequired = -consequence.Stamina;
         if (consequence.Focus < 0) resourcePath.FocusRequired = -consequence.Focus;
         if (consequence.Hunger > 0) resourcePath.HungerCapacityRequired = consequence.Hunger;
-        if (!resourcePath.IsSatisfied(player, gameWorld))
+        if (!resourcePath.IsSatisfied(player, _gameWorld))
         {
-            PathProjection projection = resourcePath.GetProjection(player, gameWorld);
+            PathProjection projection = resourcePath.GetProjection(player, _gameWorld);
             List<string> missing = projection.Requirements
                 .Where(r => !r.IsSatisfied)
                 .Select(r => $"{r.Label} (have {r.CurrentValue})")

@@ -25,7 +25,7 @@ public static class GameWorldInitializer
         SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
 
         // Create validation services required by PackageLoader
-        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator();
+        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator(gameWorld);
 
         // Load content from the specified directory
         // Parsers resolve object references during parsing
@@ -54,11 +54,11 @@ public static class GameWorldInitializer
         SpawnConditionsEvaluator spawnConditionsEvaluator = new SpawnConditionsEvaluator(gameWorld);
         SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
         SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
-        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator();
+        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator(gameWorld);
         LocationPlacementService locationPlacementService = new LocationPlacementService(gameWorld);
         PackageLoader packageLoader = new PackageLoader(gameWorld, sceneGenerationFacade, locationValidator, locationPlacementService);
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
-        VenueGeneratorService venueGenerator = new VenueGeneratorService();
+        VenueGeneratorService venueGenerator = new VenueGeneratorService(gameWorld);
 
         SceneInstantiator sceneInstantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator, packageLoader);
         MessageSystem messageSystem = new MessageSystem(gameWorld);
