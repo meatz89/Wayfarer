@@ -20,8 +20,8 @@ public static class SceneParser
         // =====================================================
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidDataException("Scene DTO missing required field 'Id'");
-        if (string.IsNullOrEmpty(dto.TemplateId))
-            throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'TemplateId'");
+        if (string.IsNullOrEmpty(dto.SceneArchetype))
+            throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'SceneArchetype'");
         if (string.IsNullOrEmpty(dto.State))
             throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'State'");
 
@@ -75,11 +75,11 @@ public static class SceneParser
         // HIGHLANDER PATTERN A: Template Reference Resolution
         // =====================================================
         // ID from JSON (persistence), object resolved at parse time (runtime navigation)
-        SceneTemplate template = gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == dto.TemplateId);
+        SceneTemplate template = gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == dto.SceneArchetype);
         if (template == null)
         {
             throw new InvalidDataException(
-                $"Scene '{dto.Id}' references non-existent SceneTemplate '{dto.TemplateId}'. " +
+                $"Scene '{dto.Id}' references non-existent SceneTemplate '{dto.SceneArchetype}'. " +
                 $"Available templates: {string.Join(", ", gameWorld.SceneTemplates.Select(t => t.Id))}");
         }
 
@@ -90,7 +90,7 @@ public static class SceneParser
         // Scene is narrative container with no specific location/NPC/route
         Scene scene = new Scene
         {
-            TemplateId = dto.TemplateId,
+            TemplateId = dto.SceneArchetype,
             Template = template,
             State = state,
             ExpiresOnDay = dto.ExpiresOnDay,
