@@ -137,16 +137,12 @@ public static class RouteParser
         // Copy terrain categories
         reverseRoute.TerrainCategories.AddRange(forwardRoute.TerrainCategories);
 
-        // Copy weather modifications
-        // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-        foreach (WeatherModificationEntry entry in forwardRoute.WeatherModifications)
-        {
-            reverseRoute.WeatherModifications.Add(new WeatherModificationEntry
-            {
-                Weather = entry.Weather,
-                Modification = entry.Modification
-            });
-        }
+        // Copy weather modifications - DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum
+        reverseRoute.ClearWeatherModification = forwardRoute.ClearWeatherModification;
+        reverseRoute.RainWeatherModification = forwardRoute.RainWeatherModification;
+        reverseRoute.SnowWeatherModification = forwardRoute.SnowWeatherModification;
+        reverseRoute.FogWeatherModification = forwardRoute.FogWeatherModification;
+        reverseRoute.StormWeatherModification = forwardRoute.StormWeatherModification;
 
         // Reverse the segments order for the return journey
         List<RouteSegment> reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();

@@ -39,8 +39,23 @@ public class MentalCard
 
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
-    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    public List<StatThresholdEntry> StatThresholds { get; init; } = new List<StatThresholdEntry>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (PlayerStatType)
+    public int InsightThreshold { get; init; } = 0;
+    public int RapportThreshold { get; init; } = 0;
+    public int AuthorityThreshold { get; init; } = 0;
+    public int DiplomacyThreshold { get; init; } = 0;
+    public int CunningThreshold { get; init; } = 0;
+
+    public int GetStatThreshold(PlayerStatType stat) => stat switch
+    {
+        PlayerStatType.Insight => InsightThreshold,
+        PlayerStatType.Rapport => RapportThreshold,
+        PlayerStatType.Authority => AuthorityThreshold,
+        PlayerStatType.Diplomacy => DiplomacyThreshold,
+        PlayerStatType.Cunning => CunningThreshold,
+        _ => 0
+    };
+
     public int MinimumHealth { get; init; } = 0;
     public int MinimumStamina { get; init; } = 0;
 

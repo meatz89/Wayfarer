@@ -108,7 +108,12 @@ public class ConversationTreeFacade
             CurrentFocus = player.Focus,
             MaxFocus = player.MaxFocus,
             CurrentRelationship = relationship,
-            PlayerStats = BuildPlayerStats(player),
+            // DOMAIN COLLECTION PRINCIPLE: Explicit properties for player stats
+            InsightLevel = player.Insight,
+            RapportLevel = player.Rapport,
+            AuthorityLevel = player.Authority,
+            DiplomacyLevel = player.Diplomacy,
+            CunningLevel = player.Cunning,
             PlayerKnowledge = new List<string>(player.Knowledge),
             LocationName = GetLocationName(),
             TimeDisplay = _timeManager.GetSegmentDisplay()
@@ -243,21 +248,6 @@ public class ConversationTreeFacade
         }
     }
 
-    /// <summary>
-    /// Build player stat entries for context.
-    /// DOMAIN COLLECTION PRINCIPLE: Returns List<T> instead of Dictionary.
-    /// </summary>
-    private List<PlayerStatEntry> BuildPlayerStats(Player player)
-    {
-        return new List<PlayerStatEntry>
-        {
-            new PlayerStatEntry { Stat = PlayerStatType.Insight, Value = player.Insight },
-            new PlayerStatEntry { Stat = PlayerStatType.Rapport, Value = player.Rapport },
-            new PlayerStatEntry { Stat = PlayerStatType.Authority, Value = player.Authority },
-            new PlayerStatEntry { Stat = PlayerStatType.Diplomacy, Value = player.Diplomacy },
-            new PlayerStatEntry { Stat = PlayerStatType.Cunning, Value = player.Cunning }
-        };
-    }
 
     private string GetLocationName()
     {

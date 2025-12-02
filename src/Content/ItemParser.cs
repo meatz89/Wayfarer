@@ -38,17 +38,27 @@ public static class ItemParser
             }
         }
 
-        // Parse token generation bonuses - DTO has inline init, trust it
-        // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+        // Parse token generation bonuses - set explicit properties via switch
+        // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum values
         foreach (TokenEntryDTO entry in dto.TokenGenerationBonuses)
         {
             if (Enum.TryParse<ConnectionType>(entry.TokenType, out ConnectionType connectionType))
             {
-                item.TokenGenerationBonuses.Add(new ConnectionTypeTokenEntry
+                switch (connectionType)
                 {
-                    Type = connectionType,
-                    Amount = entry.Amount
-                });
+                    case ConnectionType.Trust:
+                        item.TrustGenerationBonus = entry.Amount;
+                        break;
+                    case ConnectionType.Diplomacy:
+                        item.DiplomacyGenerationBonus = entry.Amount;
+                        break;
+                    case ConnectionType.Status:
+                        item.StatusGenerationBonus = entry.Amount;
+                        break;
+                    case ConnectionType.Shadow:
+                        item.ShadowGenerationBonus = entry.Amount;
+                        break;
+                }
             }
         }
 

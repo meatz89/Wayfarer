@@ -233,12 +233,12 @@ public class TokenUnlockManager
     }
 
     /// <summary>
-    /// Get unlock requirements for an NPC
-    /// HIGHLANDER: Accept typed NPC object
+    /// Get unlock requirements for an NPC.
+    /// DOMAIN COLLECTION PRINCIPLE: Return List with explicit entry type, not key-value pattern.
     /// </summary>
-    public Dictionary<string, TokenRequirement> GetUnlockRequirements(NPC npc)
+    public List<UnlockRequirementEntry> GetUnlockRequirements(NPC npc)
     {
-        Dictionary<string, TokenRequirement> requirements = new Dictionary<string, TokenRequirement>();
+        List<UnlockRequirementEntry> requirements = new List<UnlockRequirementEntry>();
 
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
@@ -249,12 +249,16 @@ public class TokenUnlockManager
             foreach (UnlockDefinition unlock in unlocks)
             {
                 string unlockId = $"unlock_{type}_{unlock.Threshold}";
-                requirements[unlockId] = new TokenRequirement
+                requirements.Add(new UnlockRequirementEntry
                 {
-                    Npc = npc,
-                    TokenType = type,
-                    MinimumCount = unlock.Threshold
-                };
+                    UnlockId = unlockId,
+                    Requirement = new TokenRequirement
+                    {
+                        Npc = npc,
+                        TokenType = type,
+                        MinimumCount = unlock.Threshold
+                    }
+                });
             }
         }
 
@@ -337,4 +341,14 @@ public class RelationshipMilestone
 {
     public int Threshold { get; init; }
     public string Name { get; init; }
+}
+
+/// <summary>
+/// Entry for unlock requirements.
+/// DOMAIN COLLECTION PRINCIPLE: Explicit entry type instead of key-value pattern.
+/// </summary>
+public class UnlockRequirementEntry
+{
+    public string UnlockId { get; set; }
+    public TokenRequirement Requirement { get; set; }
 }

@@ -68,9 +68,22 @@ public class RouteOption
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }
 
-    // Route condition variations
-    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    public List<WeatherModificationEntry> WeatherModifications { get; set; } = new List<WeatherModificationEntry>();
+    // Route condition variations - DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum
+    public RouteModification ClearWeatherModification { get; set; }
+    public RouteModification RainWeatherModification { get; set; }
+    public RouteModification SnowWeatherModification { get; set; }
+    public RouteModification FogWeatherModification { get; set; }
+    public RouteModification StormWeatherModification { get; set; }
+
+    public RouteModification GetWeatherModification(WeatherCondition weather) => weather switch
+    {
+        WeatherCondition.Clear => ClearWeatherModification,
+        WeatherCondition.Rain => RainWeatherModification,
+        WeatherCondition.Snow => SnowWeatherModification,
+        WeatherCondition.Fog => FogWeatherModification,
+        WeatherCondition.Storm => StormWeatherModification,
+        _ => null
+    };
 
     public RouteType RouteType { get; set; }
 
@@ -281,12 +294,11 @@ public class RouteOption
         int itemCount = player.Inventory.GetAllItems().Count(i => i != null);
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
-        // Apply weather modifications
-        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary.TryGetValue
-        WeatherModificationEntry weatherMod = WeatherModifications.FirstOrDefault(w => w.Weather == weather);
+        // Apply weather modifications - DOMAIN COLLECTION PRINCIPLE: Use explicit properties
+        RouteModification weatherMod = GetWeatherModification(weather);
         if (weatherMod != null)
         {
-            baseCost += weatherMod.Modification.StaminaCostModifier;
+            baseCost += weatherMod.StaminaCostModifier;
         }
 
         return Math.Max(1, baseCost);

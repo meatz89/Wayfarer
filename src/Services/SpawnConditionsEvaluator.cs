@@ -52,19 +52,19 @@ public class SpawnConditionsEvaluator
         if (conditions == null)
             return true; // No player state conditions = pass
 
-        // Check MinStats (scale thresholds)
-        // DOMAIN COLLECTION PRINCIPLE: Iterate List<ScaleTypeEntry>, not Dictionary
-        if (conditions.MinStats != null && conditions.MinStats.Count > 0)
-        {
-            foreach (ScaleTypeEntry entry in conditions.MinStats)
-            {
-                int currentValue = GetPlayerScale(player, entry.Scale);
-                if (currentValue < entry.Threshold)
-                {
-                    return false; // Stat below threshold
-                }
-            }
-        }
+        // Check MinStats (scale thresholds) - DOMAIN COLLECTION PRINCIPLE: Explicit properties
+        if (conditions.MinMorality.HasValue && GetPlayerScale(player, ScaleType.Morality) < conditions.MinMorality.Value)
+            return false;
+        if (conditions.MinLawfulness.HasValue && GetPlayerScale(player, ScaleType.Lawfulness) < conditions.MinLawfulness.Value)
+            return false;
+        if (conditions.MinMethod.HasValue && GetPlayerScale(player, ScaleType.Method) < conditions.MinMethod.Value)
+            return false;
+        if (conditions.MinCaution.HasValue && GetPlayerScale(player, ScaleType.Caution) < conditions.MinCaution.Value)
+            return false;
+        if (conditions.MinTransparency.HasValue && GetPlayerScale(player, ScaleType.Transparency) < conditions.MinTransparency.Value)
+            return false;
+        if (conditions.MinFame.HasValue && GetPlayerScale(player, ScaleType.Fame) < conditions.MinFame.Value)
+            return false;
 
         // Check RequiredItems
         if (conditions.RequiredItems != null && conditions.RequiredItems.Count > 0)

@@ -1,6 +1,6 @@
 /// <summary>
 /// Player's current resource state for UI display.
-/// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary.
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum values.
 /// </summary>
 public class ResourceState
 {
@@ -8,13 +8,22 @@ public class ResourceState
     public int Health { get; set; }
     public int Hunger { get; set; }
     public int Stamina { get; set; }
-    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    public List<ConnectionTypeTokenEntry> Tokens { get; set; }
 
-    public ResourceState()
+    // EXPLICIT TOKEN PROPERTIES - ConnectionType is fixed enum, use direct properties
+    public int TrustTokens { get; set; }
+    public int DiplomacyTokens { get; set; }
+    public int StatusTokens { get; set; }
+    public int ShadowTokens { get; set; }
+
+    // Helper for enum-based access when needed
+    public int GetTokens(ConnectionType type) => type switch
     {
-        Tokens = new List<ConnectionTypeTokenEntry>();
-    }
+        ConnectionType.Trust => TrustTokens,
+        ConnectionType.Diplomacy => DiplomacyTokens,
+        ConnectionType.Status => StatusTokens,
+        ConnectionType.Shadow => ShadowTokens,
+        _ => 0
+    };
 
     public static ResourceState FromPlayer(Player player)
     {
@@ -23,8 +32,7 @@ public class ResourceState
             Coins = player.Coins,
             Health = player.Health,
             Hunger = player.Hunger,
-            Stamina = player.Stamina,
-            Tokens = new List<ConnectionTypeTokenEntry>()
+            Stamina = player.Stamina
         };
     }
 
@@ -35,8 +43,7 @@ public class ResourceState
             Coins = playerState.Coins,
             Health = playerState.Health,
             Hunger = playerState.Hunger,
-            Stamina = playerState.Stamina,
-            Tokens = new List<ConnectionTypeTokenEntry>()
+            Stamina = playerState.Stamina
         };
     }
 }

@@ -44,8 +44,8 @@ public static class SpawnConditionsParser
         if (dto == null)
             return new PlayerStateConditions();
 
-        // Validate and convert MinStats list (ScaleType enum keys)
-        List<ScaleTypeEntry> minStats = new List<ScaleTypeEntry>();
+        // Parse MinStats - DOMAIN COLLECTION PRINCIPLE: Set explicit properties via switch
+        int? minMorality = null, minLawfulness = null, minMethod = null, minCaution = null, minTransparency = null, minFame = null;
         if (dto.MinStats != null)
         {
             foreach (StatThresholdDTO statDto in dto.MinStats)
@@ -54,7 +54,15 @@ public static class SpawnConditionsParser
                 {
                     throw new InvalidOperationException($"SpawnConditions.PlayerState.MinStats has invalid ScaleType key: '{statDto.Stat}'. Must be valid ScaleType enum value.");
                 }
-                minStats.Add(new ScaleTypeEntry { Scale = scaleType, Threshold = statDto.Threshold });
+                switch (scaleType)
+                {
+                    case ScaleType.Morality: minMorality = statDto.Threshold; break;
+                    case ScaleType.Lawfulness: minLawfulness = statDto.Threshold; break;
+                    case ScaleType.Method: minMethod = statDto.Threshold; break;
+                    case ScaleType.Caution: minCaution = statDto.Threshold; break;
+                    case ScaleType.Transparency: minTransparency = statDto.Threshold; break;
+                    case ScaleType.Fame: minFame = statDto.Threshold; break;
+                }
             }
         }
 
@@ -74,7 +82,12 @@ public static class SpawnConditionsParser
 
         return new PlayerStateConditions
         {
-            MinStats = minStats,
+            MinMorality = minMorality,
+            MinLawfulness = minLawfulness,
+            MinMethod = minMethod,
+            MinCaution = minCaution,
+            MinTransparency = minTransparency,
+            MinFame = minFame,
             RequiredItems = dto.RequiredItems ?? new List<string>(),
             LocationVisits = locationVisits
         };

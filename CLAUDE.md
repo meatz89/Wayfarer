@@ -359,48 +359,43 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 # DOMAIN COLLECTION PRINCIPLE
 
-**Rule:** Use `List<T>` with strongly-typed entry classes. Dictionary and KeyValuePair are FORBIDDEN at ALL layers - JSON, DTOs, Parsers, and Entities.
+**Rule:** Dictionary, KeyValuePair, and wrapper classes are FORBIDDEN. Use explicit properties on entities.
 
 **Why:**
-- Dictionary key-value patterns hide semantic meaning (what IS the key? what IS the value?)
+- Dictionary patterns hide semantic meaning (what IS the key? what IS the value?)
 - KeyValuePair iteration obscures domain concepts behind generic `.Key`/`.Value` accessors
-- Performance is irrelevant (~20 NPCs, ~30 Locations - O(1) vs O(n) saves 0.0009ms)
+- Wrapper classes (Entry classes on entities) are Dictionary patterns in disguise - they still require iteration/filtering to access values
 
-**The Principle Applies EVERYWHERE:**
+**CRITICAL: Wrapper Classes Are The Same Antipattern**
+
+A `List<TimeBlockEntry>` that you search with `.FirstOrDefault(e => e.TimeBlock == TimeBlocks.Morning)` is functionally identical to `Dictionary<TimeBlocks, List<Actions>>`. BOTH require iteration to find values. BOTH hide semantic meaning.
+
+| Pattern | Problem | Solution |
+|---------|---------|----------|
+| `List<ConnectionTypeTokenEntry>` | Must iterate to find Trust | Explicit `TrustTokens`, `DiplomacyTokens`, etc. |
+| `List<TimeBlockProfessionsEntry>` | Must iterate to find Morning | Explicit `MorningProfessions`, `MiddayProfessions`, etc. |
+| `List<StatThresholdEntry>` | Must iterate to find Insight | Explicit `InsightThreshold`, `RapportThreshold`, etc. |
+
+**Correct Pattern for Fixed Enums:**
+When the "key" is a FIXED ENUM (TimeBlocks, ConnectionType, PlayerStatType), use EXPLICIT PROPERTIES on the entity. Access by property name, not by iteration.
+
+**Correct Pattern for Variable Collections:**
+When the collection contains truly VARIABLE items (NPCs, Locations, Items), use `List<T>` with object references and LINQ queries. The key difference: variable collections don't have predetermined keys.
+
+**The Principle at Each Layer:**
 
 | Layer | Forbidden | Required |
 |-------|-----------|----------|
 | **JSON** | `{ "Insight": 5, "Rapport": 3 }` | `[ { "stat": "Insight", "value": 5 }, ... ]` |
 | **DTO** | `Dictionary<string, int>` | `List<StatRequirementDTO>` |
-| **Parser** | `foreach (KeyValuePair kvp ...)` | Direct mapping (no conversion needed) |
-| **Entity** | `Dictionary<K, V>` | `List<Entry>` with explicit properties |
+| **Parser** | `foreach (KeyValuePair kvp ...)` | Direct mapping via switch on enum |
+| **Entity** | `List<WrapperEntry>` for fixed enums | Explicit properties per enum value |
 
-**Correct JSON Pattern:**
-```json
-{
-  "statRequirements": [
-    { "stat": "Insight", "value": 5 },
-    { "stat": "Rapport", "value": 3 }
-  ]
-}
-```
-
-**Correct DTO Pattern:**
-```csharp
-public List<StatRequirementDTO> StatRequirements { get; set; }
-
-public class StatRequirementDTO
-{
-    public string Stat { get; set; }
-    public int Value { get; set; }
-}
-```
-
-**Benefits:**
-- Semantic clarity: `entry.Stat` and `entry.Value` vs `kvp.Key` and `kvp.Value`
-- No conversion logic needed in parsers
-- LINQ queries work uniformly across all layers
-- IDE autocomplete on property names
+**FORBIDDEN:**
+- Dictionary, HashSet at any layer
+- KeyValuePair iteration
+- Wrapper/Entry classes for fixed enums on entities
+- Files like CollectionEntries.cs containing wrapper class definitions
 
 **Exception:** Dictionary acceptable ONLY for:
 - Blazor framework parameters (required by framework)

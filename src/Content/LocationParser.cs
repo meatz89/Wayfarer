@@ -163,8 +163,7 @@ public static class LocationParser
         }
         location.Purpose = purpose;
 
-        // Parse available professions by time
-        // DOMAIN COLLECTION PRINCIPLE: Build List<TimeBlockProfessionsEntry> instead of Dictionary
+        // Parse available professions by time - EXPLICIT PROPERTIES, not wrapper classes
         if (dto.AvailableProfessionsByTime != null)
         {
             foreach (ProfessionsByTimeEntry entry in dto.AvailableProfessionsByTime)
@@ -179,11 +178,22 @@ public static class LocationParser
                             professions.Add(profession);
                         }
                     }
-                    location.AvailableProfessionsByTime.Add(new TimeBlockProfessionsEntry
+                    // Set explicit property based on time block
+                    switch (timeBlock)
                     {
-                        TimeBlock = timeBlock,
-                        Professions = professions
-                    });
+                        case TimeBlocks.Morning:
+                            location.MorningProfessions = professions;
+                            break;
+                        case TimeBlocks.Midday:
+                            location.MiddayProfessions = professions;
+                            break;
+                        case TimeBlocks.Afternoon:
+                            location.AfternoonProfessions = professions;
+                            break;
+                        case TimeBlocks.Evening:
+                            location.EveningProfessions = professions;
+                            break;
+                    }
                 }
             }
         }

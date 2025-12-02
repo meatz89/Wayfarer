@@ -112,5 +112,3 @@ public class DiscoveryEntry
     public List<string> Discoveries { get; set; } = new List<string>();
 }
 
-// ConnectionTypeTokenEntry moved to CollectionEntries.cs for reuse across files
-

@@ -240,8 +240,9 @@ public class TokenFacade
 
     /// <summary>
     /// Get all active token bonuses from equipment (flat integer additions)
+    /// DOMAIN COLLECTION PRINCIPLE: Return explicit properties, not Dictionary
     /// </summary>
-    public Dictionary<ConnectionType, int> GetActiveBonuses()
+    public TokenBonuses GetActiveBonuses()
     {
         return _tokenEffectProcessor.GetActiveBonuses();
     }
@@ -275,10 +276,10 @@ public class TokenFacade
     }
 
     /// <summary>
-    /// Get unlock requirements for an NPC
-    /// HIGHLANDER: Accept typed NPC object
+    /// Get unlock requirements for an NPC.
+    /// DOMAIN COLLECTION PRINCIPLE: Return List with explicit entry type, not key-value pattern.
     /// </summary>
-    public Dictionary<string, TokenRequirement> GetUnlockRequirements(NPC npc)
+    public List<UnlockRequirementEntry> GetUnlockRequirements(NPC npc)
     {
         return _tokenUnlockManager.GetUnlockRequirements(npc);
     }
@@ -302,24 +303,18 @@ public class TokenFacade
     }
 
     /// <summary>
-    /// Get debt to a specific NPC
-    /// HIGHLANDER: Accept typed NPC object
+    /// Get debt to a specific NPC.
+    /// DOMAIN COLLECTION PRINCIPLE: Return explicit properties, not key-value pattern.
     /// </summary>
-    public Dictionary<ConnectionType, int> GetDebtToNPC(NPC npc)
+    public TokenDebts GetDebtToNPC(NPC npc)
     {
-        Dictionary<ConnectionType, int> debt = new Dictionary<ConnectionType, int>();
-        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        return new TokenDebts
         {
-            if (type != ConnectionType.None)
-            {
-                int leverage = GetLeverage(npc, type);
-                if (leverage > 0)
-                {
-                    debt[type] = leverage;
-                }
-            }
-        }
-        return debt;
+            TrustDebt = GetLeverage(npc, ConnectionType.Trust),
+            DiplomacyDebt = GetLeverage(npc, ConnectionType.Diplomacy),
+            StatusDebt = GetLeverage(npc, ConnectionType.Status),
+            ShadowDebt = GetLeverage(npc, ConnectionType.Shadow)
+        };
     }
 
     // ========== QUERY OPERATIONS ==========
@@ -361,7 +356,8 @@ public class TokenSummary
     public int TotalShadow { get; set; }
     public int NPCsWithRelationships { get; set; }
     public int TotalDebts { get; set; }
-    public Dictionary<ConnectionType, int> ActiveBonuses { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (ConnectionType)
+    public TokenBonuses ActiveBonuses { get; set; }
 }
 
 public class DebtInfo
@@ -391,4 +387,27 @@ public enum RelationshipTier
     CloseFriend = 3,    // 6-8 tokens
     Confidant = 4,      // 9-12 tokens
     InnerCircle = 5     // 13+ tokens
+}
+
+/// <summary>
+/// Token debts by connection type.
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (ConnectionType).
+/// </summary>
+public class TokenDebts
+{
+    public int TrustDebt { get; set; }
+    public int DiplomacyDebt { get; set; }
+    public int StatusDebt { get; set; }
+    public int ShadowDebt { get; set; }
+
+    public int GetDebt(ConnectionType type) => type switch
+    {
+        ConnectionType.Trust => TrustDebt,
+        ConnectionType.Diplomacy => DiplomacyDebt,
+        ConnectionType.Status => StatusDebt,
+        ConnectionType.Shadow => ShadowDebt,
+        _ => 0
+    };
+
+    public bool HasAnyDebt() => TrustDebt > 0 || DiplomacyDebt > 0 || StatusDebt > 0 || ShadowDebt > 0;
 }

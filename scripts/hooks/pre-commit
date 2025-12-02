@@ -111,7 +111,43 @@ if [ -n "$DOMAIN_CS" ]; then
     done
 fi
 
-# 2.3 var keyword (warning - high false positives with LINQ)
+# 2.3 KeyValuePair in domain code (Dictionary iteration pattern in disguise)
+# Only matches explicit KeyValuePair usage, not nullable .Value access
+if [ -n "$DOMAIN_CS" ]; then
+    for file in $DOMAIN_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'KeyValuePair<\|kvp\.Key\|kvp\.Value' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [TYPE]: KeyValuePair pattern in $file (use List with typed entries):"
+                echo "$MATCHES" | head -3
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# 2.4 Wrapper class dictionary-lookup patterns (FirstOrDefault(e => e.Type ==))
+# These patterns indicate List<Entry> used as dictionary substitute for fixed enums
+# WARNING only - some valid uses exist for variable-key collections
+ENTITY_CS=$(echo "$STAGED_CS" | grep -E 'GameState|Content' | grep -v 'DTO\|Parser\|Catalog\|Session\|Manager' || true)
+if [ -n "$ENTITY_CS" ]; then
+    for file in $ENTITY_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'FirstOrDefault.*\.Type ==\|FirstOrDefault.*\.Stat ==\|FirstOrDefault.*\.State ==' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  WARNING [TYPE]: Wrapper class lookup pattern in $file (consider explicit properties):"
+                echo "$MATCHES" | head -3
+                echo "    For fixed enums, use explicit properties (e.g., TrustTokens) instead of List<Entry>"
+                WARNINGS=$((WARNINGS+1))
+            fi
+        fi
+    done
+fi
+
+# 2.5 Removed - CollectionEntries.cs contains valid entry classes for variable-key collections
+# (LocationVisitEntry, NPCBondEntry, etc. - these are NOT fixed enum patterns)
+
+# 2.6 var keyword (warning - high false positives with LINQ)
 if [ -n "$STAGED_CS" ]; then
     for file in $STAGED_CS; do
         if [ -f "$file" ]; then
@@ -131,7 +167,8 @@ fi
 echo "[HIGHLANDER] Entity Identity Model..."
 
 # 3.1 Instance ID properties on domain entities
-ENTITY_FILES=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services' | grep -v 'Template\|DTO' || true)
+# Exclude: Template files, DTOs, Cards (templates), CollectionEntries (entry classes), Sessions (ephemeral tracking)
+ENTITY_FILES=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services' | grep -v 'Template\|DTO\|/Cards/\|CollectionEntries\|Session' || true)
 if [ -n "$ENTITY_FILES" ]; then
     for file in $ENTITY_FILES; do
         if [ -f "$file" ]; then

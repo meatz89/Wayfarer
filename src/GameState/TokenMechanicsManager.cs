@@ -276,17 +276,19 @@ public class TokenMechanicsManager
     }
 
     // Helper method to check and announce relationship milestones
+    // DOMAIN COLLECTION PRINCIPLE: Use switch expression instead of Dictionary lookup
     private void CheckRelationshipMilestone(NPC npc, int totalTokens)
     {
-        Dictionary<int, string> milestones = new Dictionary<int, string>
-    {
-        { 3, $"{npc.Name} now trusts you enough to share private correspondence." },
-        { 5, $"Your bond with {npc.Name} has deepened. They'll offer more valuable letters." },
-        { 8, $"{npc.Name} considers you among their most trusted associates. Premium letters are now available." },
-        { 12, $"Few people enjoy the level of trust {npc.Name} has in you." }
-    };
+        string message = totalTokens switch
+        {
+            3 => $"{npc.Name} now trusts you enough to share private correspondence.",
+            5 => $"Your bond with {npc.Name} has deepened. They'll offer more valuable letters.",
+            8 => $"{npc.Name} considers you among their most trusted associates. Premium letters are now available.",
+            12 => $"Few people enjoy the level of trust {npc.Name} has in you.",
+            _ => null
+        };
 
-        if (milestones.TryGetValue(totalTokens, out string? message))
+        if (message != null)
         {
             _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
         }
@@ -303,19 +305,12 @@ public class TokenMechanicsManager
         int totalBonus = 0;
 
         // Check all items in inventory for token bonuses
-        // DOMAIN COLLECTION PRINCIPLE: Use LINQ instead of Dictionary.TryGetValue
+        // DOMAIN COLLECTION PRINCIPLE: Use explicit properties on Item
         foreach (Item item in player.Inventory.GetAllItems())
         {
             if (item == null) continue;
-            if (item.TokenGenerationBonuses != null)
-            {
-                ConnectionTypeTokenEntry entry = item.TokenGenerationBonuses.FirstOrDefault(e => e.Type == tokenType);
-                if (entry != null)
-                {
-                    // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
-                    totalBonus = totalBonus + entry.Amount;
-                }
-            }
+            // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+            totalBonus = totalBonus + item.GetTokenGenerationBonus(tokenType);
         }
 
         return totalBonus;

@@ -82,36 +82,37 @@ public class TokenEffectProcessor
 
     /// <summary>
     /// Get all active token bonuses from equipment (flat integer additions)
+    /// DOMAIN COLLECTION PRINCIPLE: Return explicit properties, not Dictionary
     /// </summary>
-    public Dictionary<ConnectionType, int> GetActiveBonuses()
+    public TokenBonuses GetActiveBonuses()
     {
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> activeBonuses = new Dictionary<ConnectionType, int>();
-
-        // Initialize all types to 0 (no bonus)
-        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
-        {
-            if (type != ConnectionType.None)
-            {
-                activeBonuses[type] = 0;
-            }
-        }
+        int trustBonus = 0;
+        int diplomacyBonus = 0;
+        int statusBonus = 0;
+        int shadowBonus = 0;
 
         // Apply equipment bonuses (additive stacking)
-        // DOMAIN COLLECTION PRINCIPLE: List<ConnectionTypeTokenEntry> with strongly-typed entries
+        // DOMAIN COLLECTION PRINCIPLE: Use explicit properties on Item
         foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (item != null && item.TokenGenerationBonuses != null)
+            if (item != null)
             {
-                foreach (ConnectionTypeTokenEntry bonus in item.TokenGenerationBonuses)
-                {
-                    // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
-                    activeBonuses[bonus.Type] = activeBonuses[bonus.Type] + bonus.Amount;
-                }
+                // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
+                trustBonus = trustBonus + item.TrustGenerationBonus;
+                diplomacyBonus = diplomacyBonus + item.DiplomacyGenerationBonus;
+                statusBonus = statusBonus + item.StatusGenerationBonus;
+                shadowBonus = shadowBonus + item.ShadowGenerationBonus;
             }
         }
 
-        return activeBonuses;
+        return new TokenBonuses
+        {
+            TrustBonus = trustBonus,
+            DiplomacyBonus = diplomacyBonus,
+            StatusBonus = statusBonus,
+            ShadowBonus = shadowBonus
+        };
     }
 
     /// <summary>
@@ -174,14 +175,13 @@ public class TokenEffectProcessor
         int totalBonus = 0;
 
         // Check all items in inventory for token bonuses
+        // DOMAIN COLLECTION PRINCIPLE: Use explicit properties on Item
         foreach (Item item in player.Inventory.GetAllItems())
         {
-            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
-            if (item != null && item.TokenGenerationBonuses != null &&
-                item.TokenGenerationBonuses.TryGetValue(tokenType, out int bonus))
+            if (item != null)
             {
                 // Add bonuses together
-                totalBonus = totalBonus + bonus;
+                totalBonus = totalBonus + item.GetTokenGenerationBonus(tokenType);
             }
         }
 
@@ -257,4 +257,25 @@ public class TokenEffectProcessor
                 return 1;
         }
     }
+}
+
+/// <summary>
+/// Token bonuses from equipment (flat integer additions).
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (ConnectionType)
+/// </summary>
+public class TokenBonuses
+{
+    public int TrustBonus { get; set; }
+    public int DiplomacyBonus { get; set; }
+    public int StatusBonus { get; set; }
+    public int ShadowBonus { get; set; }
+
+    public int GetBonus(ConnectionType type) => type switch
+    {
+        ConnectionType.Trust => TrustBonus,
+        ConnectionType.Diplomacy => DiplomacyBonus,
+        ConnectionType.Status => StatusBonus,
+        ConnectionType.Shadow => ShadowBonus,
+        _ => 0
+    };
 }

@@ -63,10 +63,26 @@ public record PlayerStateConditions
 {
     /// <summary>
     /// Minimum stat requirements (scale thresholds)
-    /// Example: ScaleType.Morality with Threshold 5 = spawn only if player Morality >= 5
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    /// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (ScaleType)
+    /// Example: MinMorality = 5 means spawn only if player Morality >= 5
     /// </summary>
-    public List<ScaleTypeEntry> MinStats { get; init; } = new List<ScaleTypeEntry>();
+    public int? MinMorality { get; init; }
+    public int? MinLawfulness { get; init; }
+    public int? MinMethod { get; init; }
+    public int? MinCaution { get; init; }
+    public int? MinTransparency { get; init; }
+    public int? MinFame { get; init; }
+
+    public int? GetMinScale(ScaleType scale) => scale switch
+    {
+        ScaleType.Morality => MinMorality,
+        ScaleType.Lawfulness => MinLawfulness,
+        ScaleType.Method => MinMethod,
+        ScaleType.Caution => MinCaution,
+        ScaleType.Transparency => MinTransparency,
+        ScaleType.Fame => MinFame,
+        _ => null
+    };
 
     /// <summary>
     /// Required inventory items
