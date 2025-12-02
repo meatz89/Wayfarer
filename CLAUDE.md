@@ -69,6 +69,47 @@ Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementa
 
 ---
 
+# ABSOLUTE ENFORCEMENT: NO BYPASSING
+
+**THE RULE:** You may NEVER decide on your own to ignore test failures or pre-commit hook violations. All failures must be resolved before committing.
+
+**Non-Negotiable Requirements:**
+- Every test must pass before commit
+- Every pre-commit hook check must pass before commit
+- "Pre-existing" violations are NOT an excuse - fix them holistically
+- `--no-verify` is FORBIDDEN unless explicitly approved by the user for a specific case
+
+**Why Pre-Existing Problems Are Your Problem:**
+- If you touch a file with violations, YOU own fixing those violations
+- "It was already broken" is not acceptable - you make it right
+- Holistic fixing prevents violation debt from accumulating
+- The codebase improves with every commit, never degrades
+
+**What To Do When Blocked:**
+
+| Blocker | Required Action |
+|---------|-----------------|
+| Test failure | Fix the test OR fix the code causing failure |
+| Pre-commit hook violation | Fix ALL violations in touched files |
+| False positive in hook | Ask user for explicit approval to bypass |
+| Systemic violation | Fix holistically (all instances across codebase) |
+
+**FORBIDDEN:**
+- Deciding on your own that a failure is "acceptable"
+- Using `--no-verify` without explicit user approval
+- Claiming "it was already broken" as justification
+- Partial fixes that leave some violations behind
+- Moving forward with failing tests
+
+**Correct Pattern:**
+1. Run tests and hooks BEFORE declaring work complete
+2. If blocked, investigate and fix the root cause
+3. If false positive, explain to user and request explicit bypass approval
+4. If systemic issue, fix ALL instances (use agents for thorough search)
+5. Only commit when ALL checks pass
+
+---
+
 # DOCUMENTATION AND BOUNDARIES FIRST
 
 **THE RULE:** Before implementing ANY feature or refactoring, update documentation and define boundaries FIRST.
