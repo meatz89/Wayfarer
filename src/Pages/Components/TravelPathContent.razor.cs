@@ -407,9 +407,9 @@ namespace Wayfarer.Pages.Components
             if (card.StatRequirements != null && card.StatRequirements.Count > 0)
             {
                 Player player = GameOrchestrator.GetPlayer();
-                foreach (KeyValuePair<string, int> statReq in card.StatRequirements)
+                foreach (StatRequirementDTO statReq in card.StatRequirements)
                 {
-                    if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                    if (Enum.TryParse<PlayerStatType>(statReq.Stat, true, out PlayerStatType statType))
                     {
                         string statName = GetStatDisplayName(statType);
                         int required = statReq.Value;

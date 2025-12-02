@@ -417,7 +417,7 @@ public class LocationActionExecutorTests
             TravelTimeSegments = travelTimeSegments,
             HungerEffect = hungerEffect,
             PermitRequirement = permitRequirement,
-            StatRequirements = new Dictionary<string, int>(),
+            // DOMAIN COLLECTION PRINCIPLE: Explicit stat properties default to 0
             ChoiceTemplate = null  // ATMOSPHERIC PATTERN
         };
     }

@@ -258,7 +258,7 @@
                                     {
                                         @foreach (var token in revealedCard.TokenGains)
                                         {
-                                            <div class="effect-item token"><span class="icon-token"></span> +@token.Value @token.Key</div>
+                                            <div class="effect-item token"><span class="icon-token"></span> +@token.Amount @token.TokenType</div>
                                         }
                                     }
                                 </div>
@@ -562,7 +562,7 @@
                                                     int required = statReq.Value;
                                                     int current = 0;
 
-                                                    if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                                                    if (Enum.TryParse<PlayerStatType>(statReq.Stat, true, out PlayerStatType statType))
                                                     {
                                                         statName = GetStatDisplayName(statType);
                                                         current = statType switch
@@ -577,7 +577,7 @@
                                                         meetsRequirement = current >= required;
                                                     }
                                                     <div class="stat-requirement @(meetsRequirement ? "met" : "unmet")">
-                                                        <span class="stat-icon @GetStatIconClass(statReq.Key)"></span>
+                                                        <span class="stat-icon @GetStatIconClass(statReq.Stat)"></span>
                                                         <span class="stat-info">@statName @required+</span>
                                                         @if (!meetsRequirement)
                                                         {
@@ -673,7 +673,7 @@
                                                 {
                                                     @foreach (var token in card.TokenGains)
                                                     {
-                                                        <div class="path-tokens"><span class="icon-token"></span> +@token.Value @token.Key token@(token.Value > 1 ? "s" : "")</div>
+                                                        <div class="path-tokens"><span class="icon-token"></span> +@token.Amount @token.TokenType token@(token.Amount > 1 ? "s" : "")</div>
                                                     }
                                                 }
 

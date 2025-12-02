@@ -22,8 +22,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetDiscoveredLocationCount()
         {
-            Player player = GameWorld.GetPlayer();
-            return player.LocationFamiliarity.Count;
+            // HIGHLANDER: Familiarity stored directly on Location.Familiarity
+            return GameWorld.Locations.Count(l => l.Familiarity > 0);
         }
 
         protected int GetTotalLocationCount()
@@ -33,10 +33,9 @@ namespace Wayfarer.Pages.Components
 
         protected List<Location> GetDiscoveredLocations()
         {
-            Player player = GameWorld.GetPlayer();
-            // HIGHLANDER: Object reference comparison, not string ID comparison
+            // HIGHLANDER: Familiarity stored directly on Location.Familiarity
             return GameWorld.Locations
-                .Where(l => player.LocationFamiliarity.Any(f => f.Location == l))
+                .Where(l => l.Familiarity > 0)
                 .OrderBy(l => l.Name)
                 .ToList();
         }

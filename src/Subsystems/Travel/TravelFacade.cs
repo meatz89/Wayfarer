@@ -388,13 +388,12 @@ public class TravelFacade
         }
 
         // Check stat requirements
-        // DOMAIN COLLECTION PRINCIPLE: List<StatRequirementEntry> with strongly-typed entries
+        // DOMAIN COLLECTION PRINCIPLE: DTOs use List<StatRequirementDTO> with .Stat and .Value
         if (card.StatRequirements != null && card.StatRequirements.Count > 0)
         {
-            foreach (StatRequirementEntry statRequirement in card.StatRequirements)
+            foreach (StatRequirementDTO statReq in card.StatRequirements)
             {
-                // Convert string stat name to PlayerStatType enum
-                if (Enum.TryParse<PlayerStatType>(statRequirement.StatName, true, out PlayerStatType statType))
+                if (Enum.TryParse<PlayerStatType>(statReq.Stat, true, out PlayerStatType statType))
                 {
                     int currentLevel = statType switch
                     {
@@ -405,18 +404,18 @@ public class TravelFacade
                         PlayerStatType.Cunning => player.Cunning,
                         _ => 0
                     };
-                    if (currentLevel < statRequirement.RequiredValue)
+                    if (currentLevel < statReq.Value)
                     {
                         return new PathCardAvailability
                         {
                             CanPlay = false,
-                            Reason = $"Requires {statRequirement.StatName} level {statRequirement.RequiredValue}, have {currentLevel}"
+                            Reason = $"Requires {statReq.Stat} level {statReq.Value}, have {currentLevel}"
                         };
                     }
                 }
                 else
                 {
-                    return new PathCardAvailability { CanPlay = false, Reason = $"Invalid stat requirement: {statRequirement.StatName}" };
+                    return new PathCardAvailability { CanPlay = false, Reason = $"Invalid stat requirement: {statReq.Stat}" };
                 }
             }
         }

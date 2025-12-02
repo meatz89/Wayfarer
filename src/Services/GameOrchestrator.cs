@@ -1163,7 +1163,7 @@ public class GameOrchestrator
         // EMERGENCY CHECKING: Check for active emergencies at sync points
         // Emergencies interrupt normal gameplay and demand immediate response
         // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
-        ActiveEmergencyState activeEmergency = _emergencyFacade.CheckForActiveEmergency(_gameWorld.GetPlayer());
+        ActiveEmergencyState activeEmergency = _emergencyFacade.CheckForActiveEmergency();
         if (activeEmergency != null)
         {
             _gameWorld.ActiveEmergency = activeEmergency;
@@ -1870,10 +1870,11 @@ public class GameOrchestrator
                 await _rewardApplicationService.ApplyConsequence(pathCardEffects, situation);
 
                 // Token gains (future implementation)
-                // DOMAIN COLLECTION PRINCIPLE: List<TokenGainEntry> with strongly-typed entries
-                foreach (TokenGainEntry tokenGain in card.TokenGains)
+                // DOMAIN COLLECTION PRINCIPLE: Explicit properties for ConnectionType (fixed enum)
+                if (card.HasAnyTokenGains())
                 {
                     // Token system integration (future implementation)
+                    // Access via card.TrustTokenGain, card.DiplomacyTokenGain, etc.
                 }
             }
             else if (plan.Consequence != null)

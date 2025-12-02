@@ -422,27 +422,16 @@ namespace Wayfarer.Pages.Components
         // DISCOVERY TRACKING SYSTEM
         // =============================================
 
-        protected Dictionary<DiscoveryType, List<string>> GetDiscoveries()
-        {
-            if (Session == null)
-                throw new InvalidOperationException("Session is null");
-            if (Session.Discoveries == null)
-                throw new InvalidOperationException("Session.Discoveries is null");
-            return Session.Discoveries;
-        }
-
         protected List<string> GetDiscoveriesOfType(DiscoveryType type)
         {
-            if (Session?.Discoveries == null) return new List<string>();
-            return Session.Discoveries.TryGetValue(type, out List<string> discoveries)
-                ? discoveries
-                : new List<string>();
+            if (Session == null) return new List<string>();
+            return Session.GetDiscoveriesForType(type);
         }
 
         protected int GetTotalDiscoveryCount()
         {
-            if (Session?.Discoveries == null) return 0;
-            return Session.Discoveries.Values.Sum(list => list.Count);
+            if (Session == null) return 0;
+            return Session.GetTotalDiscoveryCount();
         }
 
         protected bool HasDiscoveries()
@@ -498,13 +487,11 @@ namespace Wayfarer.Pages.Components
             return Session.GetCategoryCount(category);
         }
 
-        protected Dictionary<MentalCategory, int> GetAllCategoryCounts()
+        protected int GetTotalCategoryPlayCount()
         {
-            if (Session == null)
-                throw new InvalidOperationException("Session is null");
-            if (Session.CategoryCounts == null)
-                throw new InvalidOperationException("Session.CategoryCounts is null");
-            return Session.CategoryCounts;
+            if (Session == null) return 0;
+            return Session.AnalyticalCount + Session.PhysicalCount +
+                   Session.ObservationalCount + Session.SocialCount + Session.SynthesisCount;
         }
 
         // =============================================

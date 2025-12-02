@@ -31,9 +31,6 @@ public class LocationDTO
     public string WorkType { get; set; }
     public int WorkPay { get; set; }
 
-    // NOTE: Old SceneDTO system deleted - ObservationScene (Mental) and TravelScene (Physical) are SEPARATE systems
-    // NEW Scene-Situation architecture uses GameWorld.Scenes with PlacementType/PlacementId filtering
-
     // Gameplay properties moved from LocationDTO
     public string Role { get; set; }
     public bool IsStartingLocation { get; set; }

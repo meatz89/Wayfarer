@@ -78,15 +78,7 @@ public class SteppedThreshold
 
 // StatThresholdEntry DELETED - use explicit properties (InsightThreshold, RapportThreshold, etc.)
 
-/// <summary>
-/// Entry for string-based stat requirements.
-/// Used in PathCard, SceneApproach for stat requirements.
-/// </summary>
-public class StatRequirementEntry
-{
-    public string StatName { get; set; }
-    public int RequiredValue { get; set; }
-}
+// StatRequirementEntry DELETED - use explicit properties (InsightRequirement, RapportRequirement, etc.)
 
 /// <summary>
 /// Entry for token requirements.
@@ -98,15 +90,7 @@ public class TokenRequirementEntry
     public int RequiredAmount { get; set; }
 }
 
-/// <summary>
-/// Entry for token gains.
-/// Used in PathCard for token gains.
-/// </summary>
-public class TokenGainEntry
-{
-    public string TokenType { get; set; }
-    public int Amount { get; set; }
-}
+// TokenGainEntry DELETED - use explicit properties (TrustTokenGain, DiplomacyTokenGain, etc.)
 
 // WeatherModificationEntry DELETED - use explicit properties (ClearWeatherModification, RainWeatherModification, etc.)
 

@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 [assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
 /// <summary>

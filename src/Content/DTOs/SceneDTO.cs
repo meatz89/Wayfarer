@@ -17,6 +17,12 @@ public class SceneDTO
     public string Id { get; set; }
 
     /// <summary>
+    /// Reference to SceneTemplate ID that generated this instance.
+    /// Links back to source template for traceability.
+    /// </summary>
+    public string TemplateId { get; set; }
+
+    /// <summary>
     /// Reference to SceneTemplate archetype from catalog.
     /// Values: InnLodging, DeliveryContract, RouteSegmentTravel, SeekAudience, etc.
     /// </summary>

@@ -1,10 +1,4 @@
-﻿public class ListenDrawCountEntry
-{
-    public ConnectionState State { get; set; }
-    public int DrawCount { get; set; }
-}
-
-public class LevelBonus
+﻿public class LevelBonus
 {
     public int Level { get; set; }
     public int SuccessBonus { get; set; }
@@ -62,10 +56,11 @@ public class GameRules
             throw new System.InvalidOperationException($"ListenDrawCounts not loaded from package content. Ensure 05_gameplay.json contains listenDrawCounts configuration.");
         }
 
-        ListenDrawCountEntry? entry = ListenDrawCounts.FirstOrDefault(e => e.State == state);
+        ListenDrawCountEntry entry = ListenDrawCounts.FirstOrDefault(e =>
+            Enum.TryParse<ConnectionState>(e.ConnectionState, out ConnectionState parsed) && parsed == state);
         if (entry == null)
         {
-            throw new System.InvalidOperationException($"No draw count configured for connection state {state}. Available states: {string.Join(", ", ListenDrawCounts.Select(e => e.State))}");
+            throw new System.InvalidOperationException($"No draw count configured for connection state {state}. Available states: {string.Join(", ", ListenDrawCounts.Select(e => e.ConnectionState))}");
         }
 
         return entry.DrawCount;

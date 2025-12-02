@@ -180,7 +180,7 @@ public static class SpawnConditionsParser
                 locationReputation.Add(new LocationReputationEntry
                 {
                     LocationId = entry.LocationId,
-                    ReputationScore = entry.Reputation
+                    ReputationScore = entry.ReputationScore
                 });
             }
         }

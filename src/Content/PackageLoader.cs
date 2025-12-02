@@ -607,27 +607,17 @@ public class PackageLoader
 
         // DOMAIN COLLECTION PRINCIPLE: List<ListenDrawCountEntry> instead of Dictionary
         // Parse string ConnectionState to enum and create domain entries
-        List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
-
+        // Validate all connection state strings before accepting
         foreach (ListenDrawCountEntry entry in listenDrawCounts)
         {
-            // Parse connection state from string
-            if (Enum.TryParse<ConnectionState>(entry.ConnectionState.ToUpper(), out ConnectionState state))
-            {
-                drawCountEntries.Add(new ListenDrawCountEntry
-                {
-                    State = state,
-                    DrawCount = entry.DrawCount
-                });
-            }
-            else
+            if (!Enum.TryParse<ConnectionState>(entry.ConnectionState, true, out ConnectionState _))
             {
                 throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{entry.ConnectionState}'");
             }
         }
 
-        // Apply to GameRules
-        GameRules.StandardRuleset.ListenDrawCounts = drawCountEntries;
+        // Apply directly to GameRules - GetListenDrawCount parses strings at lookup time
+        GameRules.StandardRuleset.ListenDrawCounts = listenDrawCounts;
     }
 
     private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons)

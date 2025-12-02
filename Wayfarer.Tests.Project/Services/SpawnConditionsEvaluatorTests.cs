@@ -116,10 +116,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 }
-                }
+                MinMorality = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -145,10 +142,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 }
-                }
+                MinMorality = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -176,12 +170,9 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 },
-                    { ScaleType.Lawfulness, 7 },
-                    { ScaleType.Fame, 5 }
-                }
+                MinMorality = 5,
+                MinLawfulness = 7,
+                MinFame = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -209,12 +200,9 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 },
-                    { ScaleType.Lawfulness, 7 },
-                    { ScaleType.Fame, 5 }
-                }
+                MinMorality = 5,
+                MinLawfulness = 7,
+                MinFame = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -239,7 +227,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>() // Empty
+                // DOMAIN COLLECTION PRINCIPLE: Explicit properties, all null by default (no requirements)
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -410,9 +398,9 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                LocationVisits = new Dictionary<string, int>
+                LocationVisits = new List<LocationVisitEntry>
                 {
-                    { "Tavern", 2 } // Require 2 visits (familiarity maps to visits)
+                    new LocationVisitEntry { LocationId = "Tavern", VisitCount = 2 } // Require 2 visits (familiarity maps to visits)
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -442,9 +430,9 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                LocationVisits = new Dictionary<string, int>
+                LocationVisits = new List<LocationVisitEntry>
                 {
-                    { "Tavern", 3 } // Require 3 visits
+                    new LocationVisitEntry { LocationId = "Tavern", VisitCount = 3 } // Require 3 visits
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -814,10 +802,7 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 }
-                }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -843,10 +828,7 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 }
-                }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -874,11 +856,11 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>
+                NPCBond = new List<NPCBondEntry>
                 {
-                    { "elena", 10 },
-                    { "marcus", 10 },
-                    { "sara", 5 }
+                    new NPCBondEntry { NpcId = "elena", BondStrength = 10 },
+                    new NPCBondEntry { NpcId = "marcus", BondStrength = 10 },
+                    new NPCBondEntry { NpcId = "sara", BondStrength = 5 }
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -907,11 +889,11 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>
+                NPCBond = new List<NPCBondEntry>
                 {
-                    { "elena", 10 },
-                    { "marcus", 10 },
-                    { "sara", 5 }
+                    new NPCBondEntry { NpcId = "elena", BondStrength = 10 },
+                    new NPCBondEntry { NpcId = "marcus", BondStrength = 10 },
+                    new NPCBondEntry { NpcId = "sara", BondStrength = 5 }
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -937,7 +919,7 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>() // Empty
+                // DOMAIN COLLECTION PRINCIPLE: NPCBond defaults to empty List (no requirements)
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -966,9 +948,9 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                RouteTravelCount = new Dictionary<string, int>
+                RouteTravelCount = new List<RouteTravelCountEntry>
                 {
-                    { "mountain_pass", 3 }
+                    new RouteTravelCountEntry { RouteId = "mountain_pass", TravelCount = 3 }
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -998,9 +980,9 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                RouteTravelCount = new Dictionary<string, int>
+                RouteTravelCount = new List<RouteTravelCountEntry>
                 {
-                    { "mountain_pass", 3 }
+                    new RouteTravelCountEntry { RouteId = "mountain_pass", TravelCount = 3 }
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -1028,9 +1010,9 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                RouteTravelCount = new Dictionary<string, int>
+                RouteTravelCount = new List<RouteTravelCountEntry>
                 {
-                    { "mountain_pass", 3 }
+                    new RouteTravelCountEntry { RouteId = "mountain_pass", TravelCount = 3 }
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -1056,9 +1038,9 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                LocationReputation = new Dictionary<string, int>
+                LocationReputation = new List<LocationReputationEntry>
                 {
-                    { "market_square", 10 } // Not implemented, should pass
+                    new LocationReputationEntry { LocationId = "market_square", ReputationScore = 10 } // Not implemented, should pass
                 }
             },
             CombinationLogic = CombinationLogic.AND
@@ -1090,7 +1072,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1098,7 +1080,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -1127,7 +1109,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1135,7 +1117,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -1164,7 +1146,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1172,7 +1154,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -1201,7 +1183,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1209,7 +1191,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -1238,7 +1220,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1246,7 +1228,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.AND
         };
@@ -1275,7 +1257,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1283,7 +1265,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.OR
         };
@@ -1312,7 +1294,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1320,7 +1302,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.OR
         };
@@ -1349,7 +1331,7 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
@@ -1357,7 +1339,7 @@ public class SpawnConditionsEvaluatorTests
             },
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
+                NPCBond = new List<NPCBondEntry> { new NPCBondEntry { NpcId = "elena", BondStrength = 10 } }
             },
             CombinationLogic = CombinationLogic.OR
         };
