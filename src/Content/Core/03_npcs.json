@@ -28,9 +28,12 @@
         "socialStanding": "Notable",
         "storyRole": "Obstacle",
         "knowledgeLevel": "Informed",
-        "initialTokens": {
-          "Trust": 0
-        },
+        "initialTokens": [
+          {
+            "tokenType": "Trust",
+            "amount": 0
+          }
+        ],
         "conversationDifficulty": 2
       },
       {
@@ -52,9 +55,12 @@
         "socialStanding": "Commoner",
         "storyRole": "Neutral",
         "knowledgeLevel": "Ignorant",
-        "initialTokens": {
-          "Trust": 0
-        },
+        "initialTokens": [
+          {
+            "tokenType": "Trust",
+            "amount": 0
+          }
+        ],
         "conversationDifficulty": 1
       },
       {
@@ -76,9 +82,12 @@
         "socialStanding": "Commoner",
         "storyRole": "Neutral",
         "knowledgeLevel": "Ignorant",
-        "initialTokens": {
-          "Trust": 0
-        },
+        "initialTokens": [
+          {
+            "tokenType": "Trust",
+            "amount": 0
+          }
+        ],
         "conversationDifficulty": 1
       }
     ]

@@ -17,7 +17,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 10,
-        "grantedItems": ["rope"]
+        "grantedItems": [
+          "rope"
+        ]
       },
       {
         "id": "buy_waders",
@@ -28,7 +30,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 12,
-        "grantedItems": ["waders"]
+        "grantedItems": [
+          "waders"
+        ]
       },
       {
         "id": "buy_lantern",
@@ -39,7 +43,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 15,
-        "grantedItems": ["lantern"]
+        "grantedItems": [
+          "lantern"
+        ]
       },
       {
         "id": "buy_tools",
@@ -50,7 +56,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 20,
-        "grantedItems": ["tools"]
+        "grantedItems": [
+          "tools"
+        ]
       },
       {
         "id": "buy_quality_clothing",
@@ -61,7 +69,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 25,
-        "grantedItems": ["quality_clothing"]
+        "grantedItems": [
+          "quality_clothing"
+        ]
       },
       {
         "id": "buy_rations",
@@ -72,7 +82,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 5,
-        "grantedItems": ["rations"]
+        "grantedItems": [
+          "rations"
+        ]
       },
       {
         "id": "buy_climbing_gear",
@@ -83,7 +95,9 @@
         },
         "giveCurrency": "Coins",
         "giveAmount": 30,
-        "grantedItems": ["climbing_gear"]
+        "grantedItems": [
+          "climbing_gear"
+        ]
       }
     ]
   }

@@ -28,5 +28,6 @@ public class SocialCardDTO
     // Parser handles null with semantically valid defaults, not bug hiding
     public string ConnectionType { get; set; } // Token type (Trust/Diplomacy/Status/Shadow) - defaults to Trust
     public CardEffectsDTO Effects { get; set; } // Legacy effects structure - returns None if null
-    public Dictionary<string, int> TokenRequirement { get; set; } // Signature card requirements - empty dict if null
+    // DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
+    public List<TokenEntryDTO> TokenRequirement { get; set; } // Signature card requirements - empty list if null
 }

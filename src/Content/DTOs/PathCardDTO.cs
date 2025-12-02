@@ -26,9 +26,9 @@ public class PathCardDTO
 
     /// <summary>
     /// Stat requirements - minimum stat levels required (ATMOSPHERIC PATTERN)
-    /// Dictionary key = stat name, value = minimum level
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> StatRequirements { get; set; } = new Dictionary<string, int>();
+    public List<StatRequirementDTO> StatRequirements { get; set; } = new List<StatRequirementDTO>();
 
     /// <summary>
     /// Stamina cost to use this path (ATMOSPHERIC PATTERN)
@@ -68,8 +68,9 @@ public class PathCardDTO
 
     /// <summary>
     /// Token gains from using this path (ATMOSPHERIC PATTERN)
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> TokenGains { get; set; } = new Dictionary<string, int>();
+    public List<TokenEntryDTO> TokenGains { get; set; } = new List<TokenEntryDTO>();
 
     /// <summary>
     /// List of path card IDs revealed when this path is used (ATMOSPHERIC PATTERN)

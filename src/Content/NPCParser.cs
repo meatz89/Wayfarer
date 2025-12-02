@@ -78,15 +78,15 @@ public static class NPCParser
         {
             // These would be set during game initialization after player is created
             // For now, store the values to be applied later
-            foreach (KeyValuePair<string, int> kvp in dto.InitialTokens)
+            foreach (TokenEntryDTO entry in dto.InitialTokens)
             {
                 // Parse string token ID to ConnectionType enum
-                if (Enum.TryParse<ConnectionType>(kvp.Key, true, out ConnectionType tokenType))
+                if (Enum.TryParse<ConnectionType>(entry.TokenType, true, out ConnectionType tokenType))
                 {
                     npc.InitialTokenValues.Add(new InitialTokenValue
                     {
                         TokenType = tokenType,
-                        Value = kvp.Value
+                        Value = entry.Amount
                     });
                 }
             }

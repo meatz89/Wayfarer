@@ -24,7 +24,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 1,
@@ -46,7 +46,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 2,
@@ -68,7 +68,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 2,
@@ -90,9 +90,12 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {
-            "Insight": 2
-          }
+          "stats": [
+            {
+              "stat": "Insight",
+              "threshold": 2
+            }
+          ]
         },
         "effects": {
           "progress": 2,
@@ -114,9 +117,12 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {
-            "Cunning": 2
-          }
+          "stats": [
+            {
+              "stat": "Cunning",
+              "threshold": 2
+            }
+          ]
         },
         "effects": {
           "progress": 3,

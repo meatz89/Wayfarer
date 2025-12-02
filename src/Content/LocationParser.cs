@@ -164,21 +164,26 @@ public static class LocationParser
         location.Purpose = purpose;
 
         // Parse available professions by time
+        // DOMAIN COLLECTION PRINCIPLE: Build List<TimeBlockProfessionsEntry> instead of Dictionary
         if (dto.AvailableProfessionsByTime != null)
         {
-            foreach (KeyValuePair<string, List<string>> kvp in dto.AvailableProfessionsByTime)
+            foreach (ProfessionsByTimeEntry entry in dto.AvailableProfessionsByTime)
             {
-                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                if (EnumParser.TryParse<TimeBlocks>(entry.TimeBlock, out TimeBlocks timeBlock))
                 {
                     List<Professions> professions = new List<Professions>();
-                    foreach (string professionStr in kvp.Value)
+                    foreach (string professionStr in entry.Professions)
                     {
                         if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
                         {
                             professions.Add(profession);
                         }
                     }
-                    location.AvailableProfessionsByTime[timeBlock] = professions;
+                    location.AvailableProfessionsByTime.Add(new TimeBlockProfessionsEntry
+                    {
+                        TimeBlock = timeBlock,
+                        Professions = professions
+                    });
                 }
             }
         }

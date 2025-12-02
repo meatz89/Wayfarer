@@ -35,9 +35,9 @@ public class PlayerStateConditionsDTO
 {
     /// <summary>
     /// Minimum stat requirements
-    /// Key = ScaleType string, Value = minimum threshold
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> MinStats { get; set; } = new Dictionary<string, int>();
+    public List<StatThresholdDTO> MinStats { get; set; } = new List<StatThresholdDTO>();
 
     /// <summary>
     /// Required inventory items
@@ -46,9 +46,8 @@ public class PlayerStateConditionsDTO
 
     /// <summary>
     /// Location visit count requirements
-    /// Key = LocationId, Value = minimum visit count
     /// </summary>
-    public Dictionary<string, int> LocationVisits { get; set; } = new Dictionary<string, int>();
+    public List<LocationVisitEntry> LocationVisits { get; set; } = new List<LocationVisitEntry>();
 }
 
 /// <summary>
@@ -89,21 +88,18 @@ public class EntityStateConditionsDTO
 {
     /// <summary>
     /// NPC bond requirements
-    /// Key = NpcId, Value = minimum bond strength
     /// </summary>
-    public Dictionary<string, int> NPCBond { get; set; } = new Dictionary<string, int>();
+    public List<NPCBondEntry> NPCBond { get; set; } = new List<NPCBondEntry>();
 
     /// <summary>
     /// Location reputation requirements
-    /// Key = LocationId, Value = minimum reputation score
     /// </summary>
-    public Dictionary<string, int> LocationReputation { get; set; } = new Dictionary<string, int>();
+    public List<LocationReputationEntry> LocationReputation { get; set; } = new List<LocationReputationEntry>();
 
     /// <summary>
     /// Route travel count requirements
-    /// Key = RouteId, Value = minimum travel count
     /// </summary>
-    public Dictionary<string, int> RouteTravelCount { get; set; } = new Dictionary<string, int>();
+    public List<RouteTravelCountEntry> RouteTravelCount { get; set; } = new List<RouteTravelCountEntry>();
 
     /// <summary>
     /// Required entity properties

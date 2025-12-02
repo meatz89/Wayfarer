@@ -62,9 +62,10 @@ public class Location
     public int VisitCount { get; set; }
     public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
 
-    public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
-    public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
-    public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
+    // DOMAIN COLLECTION PRINCIPLE: List<Entry> instead of Dictionary
+    public List<TimeBlockProfessionsEntry> AvailableProfessionsByTime { get; set; } = new List<TimeBlockProfessionsEntry>();
+    public List<TimeBlockActionsEntry> AvailableActions { get; private set; } = new List<TimeBlockActionsEntry>();
+    public List<TimeBlockDescriptionEntry> TimeSpecificDescription { get; private set; } = new List<TimeBlockDescriptionEntry>();
     public List<string> ConnectedVenueIds { get; internal set; }
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }

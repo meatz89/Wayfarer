@@ -13,13 +13,24 @@
         "id": "lowmarch_vale",
         "name": "Lowmarch Vale",
         "description": "A frontier region where the King's Road meets the Wildlands. Small towns dot the trade route, serving as last bastions of civilization before the untamed territories.",
-        "districtNames": ["town_center", "town_outskirts"],
+        "districtNames": [
+          "town_center",
+          "town_outskirts"
+        ],
         "tier": 1,
         "government": "Provincial Magistrate",
         "culture": "Frontier Trade",
         "population": 0,
-        "majorExports": ["Timber", "Furs", "Iron Ore"],
-        "majorImports": ["Grain", "Textiles", "Tools"]
+        "majorExports": [
+          "Timber",
+          "Furs",
+          "Iron Ore"
+        ],
+        "majorImports": [
+          "Grain",
+          "Textiles",
+          "Tools"
+        ]
       }
     ],
     "districts": [
@@ -28,20 +39,33 @@
         "name": "Town Center",
         "description": "The bustling heart of the settlement where merchants, travelers, and locals converge. Well-lit streets and established businesses provide safety and commerce.",
         "regionName": "lowmarch_vale",
-        "venueIds": ["brass_bell_inn", "town_square"],
+        "venueIds": [
+          "brass_bell_inn",
+          "town_square"
+        ],
         "districtType": "Commercial",
         "dangerLevel": 0,
-        "characteristics": ["Well-Lit", "Guarded", "Prosperous"]
+        "characteristics": [
+          "Well-Lit",
+          "Guarded",
+          "Prosperous"
+        ]
       },
       {
         "id": "town_outskirts",
         "name": "Town Outskirts",
         "description": "The quieter edges of settlement where civilization fades into wilderness. Abandoned structures and overgrown paths mark the boundary between order and wild.",
         "regionName": "lowmarch_vale",
-        "venueIds": ["old_mill"],
+        "venueIds": [
+          "old_mill"
+        ],
         "districtType": "Rural",
         "dangerLevel": 1,
-        "characteristics": ["Isolated", "Overgrown", "Quiet"]
+        "characteristics": [
+          "Isolated",
+          "Overgrown",
+          "Quiet"
+        ]
       }
     ],
     "venues": [

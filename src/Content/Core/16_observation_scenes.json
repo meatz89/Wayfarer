@@ -26,7 +26,9 @@
           "description": "The innkeeper moves with practiced efficiency, but her eyes linger on certain customers longer than others.",
           "focusCost": 1,
           "timeCost": 1,
-          "grantedKnowledge": ["elena_is_observant"],
+          "grantedKnowledge": [
+            "elena_is_observant"
+          ],
           "isHidden": false
         },
         {
@@ -37,7 +39,9 @@
           "timeCost": 1,
           "requiredStat": "Insight",
           "requiredStatLevel": 2,
-          "grantedKnowledge": ["suspicious_guest_noted"],
+          "grantedKnowledge": [
+            "suspicious_guest_noted"
+          ],
           "revealsExaminationPointId": "check_upstairs",
           "isHidden": false
         },
@@ -47,7 +51,9 @@
           "description": "Patrons speak in low tones about supply shortages and delayed caravans. One mentions bandits on the eastern road, but another dismisses it as rumor.",
           "focusCost": 1,
           "timeCost": 2,
-          "grantedKnowledge": ["heard_bandit_rumors"],
+          "grantedKnowledge": [
+            "heard_bandit_rumors"
+          ],
           "isHidden": false
         },
         {
@@ -56,8 +62,12 @@
           "description": "The stairs lead to the guest rooms. One door has a makeshift lock - recently installed and crude. Someone wanted extra security.",
           "focusCost": 2,
           "timeCost": 1,
-          "requiredKnowledge": ["suspicious_guest_noted"],
-          "grantedKnowledge": ["locked_room_noted"],
+          "requiredKnowledge": [
+            "suspicious_guest_noted"
+          ],
+          "grantedKnowledge": [
+            "locked_room_noted"
+          ],
           "isHidden": true
         },
         {
@@ -66,7 +76,9 @@
           "description": "The foreman keeps checking the door as if expecting someone. He's worried, but trying to hide it. Whatever he's waiting for isn't coming.",
           "focusCost": 1,
           "timeCost": 1,
-          "grantedKnowledge": ["thomas_expects_delivery"],
+          "grantedKnowledge": [
+            "thomas_expects_delivery"
+          ],
           "isHidden": false
         }
       ]
@@ -91,7 +103,10 @@
           "description": "Three main roads connect here: north to the merchant district, east toward farms, south to the lower wards. The eastern road looks less traveled than it should.",
           "focusCost": 1,
           "timeCost": 1,
-          "grantedKnowledge": ["knows_town_layout", "eastern_road_quiet"],
+          "grantedKnowledge": [
+            "knows_town_layout",
+            "eastern_road_quiet"
+          ],
           "isHidden": false
         },
         {
@@ -102,7 +117,9 @@
           "timeCost": 2,
           "requiredStat": "Insight",
           "requiredStatLevel": 3,
-          "grantedKnowledge": ["eastern_road_avoided"],
+          "grantedKnowledge": [
+            "eastern_road_avoided"
+          ],
           "revealsExaminationPointId": "eastern_road_entrance",
           "isHidden": false
         },
@@ -112,7 +129,9 @@
           "description": "Several stalls display goods, but one - a grain merchant's post - stands empty with a weathered 'Closed' sign. Dust suggests it's been days.",
           "focusCost": 1,
           "timeCost": 1,
-          "grantedKnowledge": ["grain_stall_closed"],
+          "grantedKnowledge": [
+            "grain_stall_closed"
+          ],
           "isHidden": false
         },
         {
@@ -121,8 +140,12 @@
           "description": "Fresh wagon tracks lead east, but none return. Someone left recently, but the road seems to have swallowed them.",
           "focusCost": 2,
           "timeCost": 1,
-          "requiredKnowledge": ["eastern_road_avoided"],
-          "grantedKnowledge": ["wagon_tracks_one_way"],
+          "requiredKnowledge": [
+            "eastern_road_avoided"
+          ],
+          "grantedKnowledge": [
+            "wagon_tracks_one_way"
+          ],
           "isHidden": true
         },
         {
@@ -131,7 +154,9 @@
           "description": "A small guard post overlooks the square. The guard on duty looks bored but alert. This town takes security seriously.",
           "focusCost": 1,
           "timeCost": 1,
-          "grantedKnowledge": ["town_has_guards"],
+          "grantedKnowledge": [
+            "town_has_guards"
+          ],
           "isHidden": false
         }
       ]
@@ -147,7 +172,9 @@
         "activity": "Busy",
         "purpose": "Commerce"
       },
-      "requiredKnowledge": ["thomas_grain_missing"],
+      "requiredKnowledge": [
+        "thomas_grain_missing"
+      ],
       "isRepeatable": false,
       "examinationPoints": [
         {
@@ -158,7 +185,10 @@
           "timeCost": 2,
           "requiredStat": "Insight",
           "requiredStatLevel": 3,
-          "grantedKnowledge": ["merchant_went_to_crossroads", "delivery_five_days_overdue"],
+          "grantedKnowledge": [
+            "merchant_went_to_crossroads",
+            "delivery_five_days_overdue"
+          ],
           "revealsExaminationPointId": "search_for_witnesses",
           "isHidden": false
         },
@@ -168,8 +198,13 @@
           "description": "You ask around discreetly. A stable hand remembers the grain merchant leaving with two wagons. 'Seemed confident,' he says. 'Like he'd done it a hundred times.'",
           "focusCost": 3,
           "timeCost": 2,
-          "requiredKnowledge": ["merchant_went_to_crossroads"],
-          "grantedKnowledge": ["merchant_had_two_wagons", "merchant_was_confident"],
+          "requiredKnowledge": [
+            "merchant_went_to_crossroads"
+          ],
+          "grantedKnowledge": [
+            "merchant_had_two_wagons",
+            "merchant_was_confident"
+          ],
           "isHidden": true
         },
         {
@@ -180,7 +215,10 @@
           "timeCost": 1,
           "requiredStat": "Authority",
           "requiredStatLevel": 2,
-          "grantedKnowledge": ["guards_saw_nothing", "no_bandit_reports"],
+          "grantedKnowledge": [
+            "guards_saw_nothing",
+            "no_bandit_reports"
+          ],
           "isHidden": false
         },
         {
@@ -191,8 +229,13 @@
           "timeCost": 2,
           "requiredStat": "Insight",
           "requiredStatLevel": 4,
-          "requiredKnowledge": ["wagon_tracks_one_way"],
-          "grantedKnowledge": ["someone_followed_merchant", "mystery_deepens"],
+          "requiredKnowledge": [
+            "wagon_tracks_one_way"
+          ],
+          "grantedKnowledge": [
+            "someone_followed_merchant",
+            "mystery_deepens"
+          ],
           "isHidden": false
         }
       ]
@@ -208,7 +251,9 @@
         "activity": "Moderate",
         "purpose": "Dwelling"
       },
-      "requiredKnowledge": ["locked_room_noted"],
+      "requiredKnowledge": [
+        "locked_room_noted"
+      ],
       "isRepeatable": false,
       "examinationPoints": [
         {
@@ -217,7 +262,9 @@
           "description": "You press your ear to the door. Silence. But there's a faint smell - old leather and road dust. Whoever stays here travels frequently.",
           "focusCost": 2,
           "timeCost": 1,
-          "grantedKnowledge": ["occupant_is_traveler"],
+          "grantedKnowledge": [
+            "occupant_is_traveler"
+          ],
           "isHidden": false
         },
         {
@@ -228,7 +275,9 @@
           "timeCost": 2,
           "requiredStat": "Insight",
           "requiredStatLevel": 4,
-          "grantedKnowledge": ["elena_knows_occupant"],
+          "grantedKnowledge": [
+            "elena_knows_occupant"
+          ],
           "revealsExaminationPointId": "search_guest_ledger",
           "isHidden": false
         },
@@ -238,10 +287,15 @@
           "description": "When Elena steps away, you check the ledger. The name beside the question mark is 'Corvus.' No surname, no business listed. Paid for a full week in advance.",
           "focusCost": 4,
           "timeCost": 2,
-          "requiredKnowledge": ["elena_knows_occupant"],
+          "requiredKnowledge": [
+            "elena_knows_occupant"
+          ],
           "requiredStat": "Cunning",
           "requiredStatLevel": 3,
-          "grantedKnowledge": ["mystery_guest_is_corvus", "corvus_paid_advance"],
+          "grantedKnowledge": [
+            "mystery_guest_is_corvus",
+            "corvus_paid_advance"
+          ],
           "isHidden": true
         },
         {
@@ -250,7 +304,10 @@
           "description": "Fresh mud tracks lead to and from the room. The pattern matches riding boots - expensive ones. This guest has money and a horse.",
           "focusCost": 2,
           "timeCost": 1,
-          "grantedKnowledge": ["corvus_has_horse", "corvus_wealthy"],
+          "grantedKnowledge": [
+            "corvus_has_horse",
+            "corvus_wealthy"
+          ],
           "isHidden": false
         }
       ]

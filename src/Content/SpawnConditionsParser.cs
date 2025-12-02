@@ -44,17 +44,31 @@ public static class SpawnConditionsParser
         if (dto == null)
             return new PlayerStateConditions();
 
-        // Validate and convert MinStats dictionary (ScaleType enum keys)
-        Dictionary<ScaleType, int> minStats = new Dictionary<ScaleType, int>();
+        // Validate and convert MinStats list (ScaleType enum keys)
+        List<ScaleTypeEntry> minStats = new List<ScaleTypeEntry>();
         if (dto.MinStats != null)
         {
-            foreach (KeyValuePair<string, int> kvp in dto.MinStats)
+            foreach (StatThresholdDTO statDto in dto.MinStats)
             {
-                if (!Enum.TryParse<ScaleType>(kvp.Key, true, out ScaleType scaleType))
+                if (!Enum.TryParse<ScaleType>(statDto.Stat, true, out ScaleType scaleType))
                 {
-                    throw new InvalidOperationException($"SpawnConditions.PlayerState.MinStats has invalid ScaleType key: '{kvp.Key}'. Must be valid ScaleType enum value.");
+                    throw new InvalidOperationException($"SpawnConditions.PlayerState.MinStats has invalid ScaleType key: '{statDto.Stat}'. Must be valid ScaleType enum value.");
                 }
-                minStats[scaleType] = kvp.Value;
+                minStats.Add(new ScaleTypeEntry { Scale = scaleType, Threshold = statDto.Threshold });
+            }
+        }
+
+        // Convert LocationVisits from DTO to domain entry
+        List<LocationVisitEntry> locationVisits = new List<LocationVisitEntry>();
+        if (dto.LocationVisits != null)
+        {
+            foreach (LocationVisitEntry entry in dto.LocationVisits)
+            {
+                locationVisits.Add(new LocationVisitEntry
+                {
+                    LocationId = entry.LocationId,
+                    VisitCount = entry.VisitCount
+                });
             }
         }
 
@@ -62,7 +76,7 @@ public static class SpawnConditionsParser
         {
             MinStats = minStats,
             RequiredItems = dto.RequiredItems ?? new List<string>(),
-            LocationVisits = dto.LocationVisits ?? new Dictionary<string, int>()
+            LocationVisits = locationVisits
         };
     }
 
@@ -123,18 +137,60 @@ public static class SpawnConditionsParser
 
     /// <summary>
     /// Parse EntityStateConditions from DTO
-    /// All properties are string-keyed dictionaries/lists - no enum validation needed
+    /// Converts DTO entry lists to domain entry lists
     /// </summary>
     private static EntityStateConditions ParseEntityStateConditions(EntityStateConditionsDTO dto)
     {
         if (dto == null)
             return new EntityStateConditions();
 
+        // Convert NPCBond list from DTO to domain entry
+        List<NPCBondEntry> npcBond = new List<NPCBondEntry>();
+        if (dto.NPCBond != null)
+        {
+            foreach (NPCBondEntry entry in dto.NPCBond)
+            {
+                npcBond.Add(new NPCBondEntry
+                {
+                    NpcId = entry.NpcId,
+                    BondStrength = entry.BondStrength
+                });
+            }
+        }
+
+        // Convert LocationReputation list from DTO to domain entry
+        List<LocationReputationEntry> locationReputation = new List<LocationReputationEntry>();
+        if (dto.LocationReputation != null)
+        {
+            foreach (LocationReputationEntry entry in dto.LocationReputation)
+            {
+                locationReputation.Add(new LocationReputationEntry
+                {
+                    LocationId = entry.LocationId,
+                    ReputationScore = entry.Reputation
+                });
+            }
+        }
+
+        // Convert RouteTravelCount list from DTO to domain entry
+        List<RouteTravelCountEntry> routeTravelCount = new List<RouteTravelCountEntry>();
+        if (dto.RouteTravelCount != null)
+        {
+            foreach (RouteTravelCountEntry entry in dto.RouteTravelCount)
+            {
+                routeTravelCount.Add(new RouteTravelCountEntry
+                {
+                    RouteId = entry.RouteId,
+                    TravelCount = entry.TravelCount
+                });
+            }
+        }
+
         return new EntityStateConditions
         {
-            NPCBond = dto.NPCBond ?? new Dictionary<string, int>(),
-            LocationReputation = dto.LocationReputation ?? new Dictionary<string, int>(),
-            RouteTravelCount = dto.RouteTravelCount ?? new Dictionary<string, int>(),
+            NPCBond = npcBond,
+            LocationReputation = locationReputation,
+            RouteTravelCount = routeTravelCount,
             Properties = dto.Properties ?? new List<string>()
         };
     }

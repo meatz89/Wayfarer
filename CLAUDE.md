@@ -359,14 +359,55 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 # DOMAIN COLLECTION PRINCIPLE
 
-**Rule:** Use `List<T>` for all domain entity collections. Never Dictionary or HashSet.
+**Rule:** Use `List<T>` with strongly-typed entry classes. Dictionary and KeyValuePair are FORBIDDEN at ALL layers - JSON, DTOs, Parsers, and Entities.
 
-**Why:** Game has ~20 NPCs, ~30 Locations. Dictionary O(1) vs List O(n) saves 0.0009ms. Browser render takes 16ms. Human reaction takes 200ms. **Performance optimization is unmeasurable and premature.**
+**Why:**
+- Dictionary key-value patterns hide semantic meaning (what IS the key? what IS the value?)
+- KeyValuePair iteration obscures domain concepts behind generic `.Key`/`.Value` accessors
+- Performance is irrelevant (~20 NPCs, ~30 Locations - O(1) vs O(n) saves 0.0009ms)
 
-**Correct:** `List<NPC>`, `List<Location>` with LINQ queries.
-**Forbidden:** `Dictionary<string, NPC>`, `HashSet<Location>`.
+**The Principle Applies EVERYWHERE:**
 
-**Exception:** Dictionary acceptable only for framework requirements (Blazor parameters) or external API caching.
+| Layer | Forbidden | Required |
+|-------|-----------|----------|
+| **JSON** | `{ "Insight": 5, "Rapport": 3 }` | `[ { "stat": "Insight", "value": 5 }, ... ]` |
+| **DTO** | `Dictionary<string, int>` | `List<StatRequirementDTO>` |
+| **Parser** | `foreach (KeyValuePair kvp ...)` | Direct mapping (no conversion needed) |
+| **Entity** | `Dictionary<K, V>` | `List<Entry>` with explicit properties |
+
+**Correct JSON Pattern:**
+```json
+{
+  "statRequirements": [
+    { "stat": "Insight", "value": 5 },
+    { "stat": "Rapport", "value": 3 }
+  ]
+}
+```
+
+**Correct DTO Pattern:**
+```csharp
+public List<StatRequirementDTO> StatRequirements { get; set; }
+
+public class StatRequirementDTO
+{
+    public string Stat { get; set; }
+    public int Value { get; set; }
+}
+```
+
+**Benefits:**
+- Semantic clarity: `entry.Stat` and `entry.Value` vs `kvp.Key` and `kvp.Value`
+- No conversion logic needed in parsers
+- LINQ queries work uniformly across all layers
+- IDE autocomplete on property names
+
+**Exception:** Dictionary acceptable ONLY for:
+- Blazor framework parameters (required by framework)
+- External API caching (ephemeral, not domain state)
+- Never for game state or content
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.29
 
 ---
 

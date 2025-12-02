@@ -32,8 +32,7 @@ public class AchievementDTO
 
     /// <summary>
     /// Conditions required to grant this achievement
-    /// Currently stored as generic dictionary, will be parsed into strongly-typed conditions
-    /// Example keys: "bondStrengthWithAnyNpc", "completedObligations", "moralityScale", "coinsEarned"
+    /// Example condition types: "bondStrengthWithAnyNpc", "completedObligations", "moralityScale", "coinsEarned"
     /// </summary>
-    public Dictionary<string, int> GrantConditions { get; set; } = new Dictionary<string, int>();
+    public List<AchievementConditionEntry> GrantConditions { get; set; } = new List<AchievementConditionEntry>();
 }

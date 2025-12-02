@@ -6,5 +6,5 @@
 public class CardDeckDTO
 {
     public string Id { get; set; }
-    public Dictionary<string, int> CardCounts { get; set; } = new Dictionary<string, int>();
+    public List<CardCountEntry> CardCounts { get; set; } = new List<CardCountEntry>();
 }

@@ -250,6 +250,36 @@ public class SegmentEventDrawEntry
     public string EventId { get; set; }
 }
 
+/// <summary>
+/// Helper class for available professions by time block (replaces Dictionary<TimeBlocks, List<Professions>>)
+/// Used in Location entity
+/// </summary>
+public class TimeBlockProfessionsEntry
+{
+    public TimeBlocks TimeBlock { get; set; }
+    public List<Professions> Professions { get; set; } = new List<Professions>();
+}
+
+/// <summary>
+/// Helper class for available actions by time block (replaces Dictionary<TimeBlocks, List<string>>)
+/// Used in Location entity
+/// </summary>
+public class TimeBlockActionsEntry
+{
+    public TimeBlocks TimeBlock { get; set; }
+    public List<string> Actions { get; set; } = new List<string>();
+}
+
+/// <summary>
+/// Helper class for time-specific descriptions (replaces Dictionary<TimeBlocks, string>)
+/// Used in Location entity
+/// </summary>
+public class TimeBlockDescriptionEntry
+{
+    public TimeBlocks TimeBlock { get; set; }
+    public string Description { get; set; }
+}
+
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs
 // Extension methods hide domain logic and violate architecture principles
 // Use Player instance methods and GameWorld instance methods instead

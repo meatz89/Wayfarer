@@ -40,14 +40,14 @@ public static class ItemParser
 
         // Parse token generation bonuses - DTO has inline init, trust it
         // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-        foreach (KeyValuePair<string, int> kvp in dto.TokenGenerationBonuses)
+        foreach (TokenEntryDTO entry in dto.TokenGenerationBonuses)
         {
-            if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
+            if (Enum.TryParse<ConnectionType>(entry.TokenType, out ConnectionType connectionType))
             {
                 item.TokenGenerationBonuses.Add(new ConnectionTypeTokenEntry
                 {
                     Type = connectionType,
-                    Amount = kvp.Value
+                    Amount = entry.Amount
                 });
             }
         }

@@ -27,14 +27,15 @@ public class MentalCardParser
             discipline, category, method, boundStat, dto.Depth);
 
         // Parse stat requirements
-        Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
+        // DOMAIN COLLECTION PRINCIPLE: List<StatThresholdEntry> instead of Dictionary
+        List<StatThresholdEntry> statThresholds = new List<StatThresholdEntry>();
         if (dto.Requirements?.Stats != null)
         {
-            foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
+            foreach (StatThresholdDTO statDto in dto.Requirements.Stats)
             {
-                if (!Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
-                    throw new InvalidOperationException($"MentalCard '{dto.Id}' has invalid stat requirement '{kvp.Key}'");
-                statThresholds[statType] = kvp.Value;
+                if (!Enum.TryParse<PlayerStatType>(statDto.Stat, out PlayerStatType statType))
+                    throw new InvalidOperationException($"MentalCard '{dto.Id}' has invalid stat requirement '{statDto.Stat}'");
+                statThresholds.Add(new StatThresholdEntry { Stat = statType, Threshold = statDto.Threshold });
             }
         }
 

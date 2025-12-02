@@ -7,7 +7,7 @@ public class RouteDiscoveryDTO
     public string RouteId { get; set; }
     public List<string> KnownByNPCs { get; set; } = new List<string>();
     public int RequiredTokensWithNPC { get; set; } = 3;
-    public Dictionary<string, RouteDiscoveryContextDTO> DiscoveryContexts { get; set; } = new Dictionary<string, RouteDiscoveryContextDTO>();
+    public List<RouteDiscoveryContextEntry> DiscoveryContexts { get; set; } = new List<RouteDiscoveryContextEntry>();
 }
 
 /// <summary>

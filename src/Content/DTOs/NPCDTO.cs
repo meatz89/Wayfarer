@@ -21,7 +21,8 @@ public class NPCDTO
     public int ConversationDifficulty { get; set; } = 1; // Level 1-3 for XP multipliers
 
     public string CurrentState { get; set; }
-    public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
+    public List<TokenEntryDTO> InitialTokens { get; set; } = new List<TokenEntryDTO>();
 
     // Orthogonal Categorical Dimensions (Entity Resolution)
     // String values from JSON parsed to enums by NPCParser

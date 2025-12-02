@@ -1101,6 +1101,81 @@ SceneSpawnReward is THE source of RhythmPattern context. Choice scaling reads fr
 
 ---
 
+## 8.29 Domain Collection Principle (No Key-Value Patterns)
+
+**"Explicit properties, not generic key-value pairs."**
+
+Dictionary and KeyValuePair patterns are forbidden at ALL layers - JSON content, DTOs, parsers, and domain entities. Use `List<T>` with strongly-typed entry classes throughout.
+
+### Why Key-Value Patterns Are Forbidden
+
+| Problem | Impact |
+|---------|--------|
+| **Hidden semantics** | `kvp.Key` and `kvp.Value` reveal nothing about domain meaning |
+| **Parser complexity** | Dictionary-to-List conversion adds unnecessary translation layer |
+| **Inconsistent patterns** | JSON uses objects, DTOs use Dictionary, entities use List - confusion |
+| **LINQ impedance** | Dictionary iteration differs from List iteration |
+
+### The Principle: Arrays of Objects Everywhere
+
+| Layer | Pattern |
+|-------|---------|
+| **JSON** | Arrays of objects with explicit properties |
+| **DTO** | `List<EntryDTO>` with explicit properties |
+| **Parser** | Direct mapping (no conversion needed) |
+| **Entity** | `List<Entry>` with explicit properties |
+
+### Transformation Example
+
+**Before (Forbidden):**
+
+JSON: `{ "statRequirements": { "Insight": 5, "Rapport": 3 } }`
+
+DTO: `public Dictionary<string, int> StatRequirements { get; set; }`
+
+Parser: `foreach (KeyValuePair<string, int> kvp in dto.StatRequirements)`
+
+**After (Required):**
+
+JSON: `{ "statRequirements": [ { "stat": "Insight", "value": 5 }, { "stat": "Rapport", "value": 3 } ] }`
+
+DTO: `public List<StatRequirementDTO> StatRequirements { get; set; }`
+
+Parser: `dto.StatRequirements.Select(r => new StatRequirementEntry { ... })`
+
+### Benefits
+
+| Benefit | How Achieved |
+|---------|--------------|
+| **Semantic clarity** | Property names describe meaning (`entry.Stat` not `kvp.Key`) |
+| **No conversion** | Same structure flows JSON → DTO → Entity |
+| **Uniform LINQ** | All layers use identical `.Where()`, `.Select()`, `.FirstOrDefault()` |
+| **IDE support** | Autocomplete on all property names |
+| **Validation** | Parse-time type checking on entry class properties |
+
+### Acceptable Exception
+
+Dictionary acceptable ONLY for:
+- Blazor framework parameters (framework requirement)
+- External API response caching (ephemeral, not domain state)
+
+**Never acceptable for:** Game content, DTOs, domain entities, or any persistent state.
+
+### Enforcement
+
+| Mechanism | What It Catches |
+|-----------|-----------------|
+| **Pre-commit hook** | `Dictionary<` pattern in domain code |
+| **CI tests** | Architecture tests verify no Dictionary in GameState/ |
+| **Code review** | CLAUDE.md guidance on JSON structure |
+
+**Cross-References:**
+- CLAUDE.md: DOMAIN COLLECTION PRINCIPLE (user-facing rule)
+- §8.3: Entity Identity Model (no instance IDs - related principle)
+- §8.19: Explicit Property Principle (strongly-typed over generic)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

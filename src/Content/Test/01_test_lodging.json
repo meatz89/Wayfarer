@@ -56,10 +56,18 @@
         "personalityType": "MERCANTILE",
         "spawnLocation": {
           "placementType": "Location",
-          "privacyLevels": ["SemiPublic"],
-          "safetyLevels": ["Safe"],
-          "activityLevels": ["Moderate"],
-          "purposes": ["Dwelling"]
+          "privacyLevels": [
+            "SemiPublic"
+          ],
+          "safetyLevels": [
+            "Safe"
+          ],
+          "activityLevels": [
+            "Moderate"
+          ],
+          "purposes": [
+            "Dwelling"
+          ]
         },
         "bondStrength": 0,
         "Profession": "Innkeeper",

@@ -22,12 +22,13 @@ public class PhysicalCardDTO
 }
 
 /// <summary>
-/// Requirements nested object - only stats dictionary appears in JSON
+/// Requirements nested object - only stats list appears in JSON
+/// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
 /// </summary>
 public class PhysicalCardRequirementsDTO
 {
-    // REQUIRED: Stats dictionary (always present, may be empty)
-    public Dictionary<string, int> Stats { get; set; } = new Dictionary<string, int>();
+    // REQUIRED: Stats list (always present, may be empty)
+    public List<StatThresholdDTO> Stats { get; set; } = new List<StatThresholdDTO>();
 }
 
 /// <summary>
