@@ -47,9 +47,8 @@ public class GameOrchestrator
     private readonly ContentGenerationFacade _contentGenerationFacade;
 
     // Composed services (extracted via COMPOSITION OVER INHERITANCE)
+    // Only DebugCommandHandler remains - it's compliant (uses RewardApplicationService, not facades)
     private readonly DebugCommandHandler _debugCommandHandler;
-    private readonly InteractionHistoryRecorder _interactionHistoryRecorder;
-    private readonly TimeAdvancementOrchestrator _timeAdvancementOrchestrator;
 
     public GameOrchestrator(
         GameWorld gameWorld,
@@ -83,9 +82,7 @@ public class GameOrchestrator
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
         ContentGenerationFacade contentGenerationFacade,
-        DebugCommandHandler debugCommandHandler,
-        InteractionHistoryRecorder interactionHistoryRecorder,
-        TimeAdvancementOrchestrator timeAdvancementOrchestrator)
+        DebugCommandHandler debugCommandHandler)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -118,8 +115,6 @@ public class GameOrchestrator
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _debugCommandHandler = debugCommandHandler ?? throw new ArgumentNullException(nameof(debugCommandHandler));
-        _interactionHistoryRecorder = interactionHistoryRecorder ?? throw new ArgumentNullException(nameof(interactionHistoryRecorder));
-        _timeAdvancementOrchestrator = timeAdvancementOrchestrator ?? throw new ArgumentNullException(nameof(timeAdvancementOrchestrator));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1155,7 +1150,54 @@ public class GameOrchestrator
     /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
     /// </summary>
     private async Task ProcessTimeAdvancement(TimeAdvancementResult result)
-        => await _timeAdvancementOrchestrator.ProcessTimeAdvancement(result);
+    {
+        // HUNGER: +5 per segment (universal time cost)
+        // This is THE ONLY place hunger increases due to time
+        int hungerIncrease = result.SegmentsAdvanced * 5;
+        await _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
+
+        // DAY TRANSITION: Process dawn effects (NPC decay)
+        // Only when crossing into Morning (new day starts)
+        if (result.CrossedDayBoundary && result.NewTimeBlock == TimeBlocks.Morning)
+        {
+            _resourceFacade.ProcessDayTransition();
+        }
+
+        // EMERGENCY CHECKING: Check for active emergencies at sync points
+        // Emergencies interrupt normal gameplay and demand immediate response
+        // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
+        ActiveEmergencyState activeEmergency = _emergencyFacade.CheckForActiveEmergency(_gameWorld.GetPlayer());
+        if (activeEmergency != null)
+        {
+            _gameWorld.ActiveEmergency = activeEmergency;
+            _messageSystem.AddSystemMessage(
+                $"EMERGENCY: {activeEmergency.Template.Name}",
+                SystemMessageTypes.Warning);
+        }
+
+        // SCENE EXPIRATION ENFORCEMENT (HIGHLANDER sync point for time-based state changes)
+        // Check all active scenes for expiration based on current day
+        // Scenes with ExpiresOnDay <= CurrentDay transition to Expired state
+        // Expired scenes filtered out from SceneFacade queries (no longer visible to player)
+        int currentDay = _gameWorld.CurrentDay;
+        List<Scene> activeScenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active && s.ExpiresOnDay.HasValue)
+            .ToList();
+
+        foreach (Scene scene in activeScenes)
+        {
+            if (currentDay >= scene.ExpiresOnDay.Value)
+            {
+                scene.State = SceneState.Expired;
+
+                // PROCEDURAL CONTENT TRACING: Update scene state to Expired
+                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+                {
+                    _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
+                }
+            }
+        }
+    }
 
 
     /// <summary>
@@ -1876,17 +1918,100 @@ public class GameOrchestrator
     // ========== HELPER METHODS ==========
 
     // ============================================
-    // INTERACTION HISTORY (delegated to InteractionHistoryRecorder)
+    // INTERACTION HISTORY
+    // Records player interactions using update-in-place pattern (ONE record per entity)
     // ============================================
 
+    /// <summary>
+    /// Record location visit in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per location (replaces previous timestamp)
+    /// </summary>
     private void RecordLocationVisit(Location location)
-        => _interactionHistoryRecorder.RecordLocationVisit(location);
+    {
+        Player player = _gameWorld.GetPlayer();
 
+        LocationVisitRecord existingRecord = player.LocationVisits
+            .FirstOrDefault(record => record.Location == location);
+
+        if (existingRecord != null)
+        {
+            existingRecord.LastVisitDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastVisitSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            player.LocationVisits.Add(new LocationVisitRecord
+            {
+                Location = location,
+                LastVisitDay = _timeFacade.GetCurrentDay(),
+                LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastVisitSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
+
+    /// <summary>
+    /// Record NPC interaction in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per NPC (replaces previous timestamp)
+    /// HIGHLANDER: Accept NPC object, use object equality
+    /// </summary>
     private void RecordNPCInteraction(NPC npc)
-        => _interactionHistoryRecorder.RecordNPCInteraction(npc);
+    {
+        Player player = _gameWorld.GetPlayer();
 
+        NPCInteractionRecord existingRecord = player.NPCInteractions
+            .FirstOrDefault(record => record.Npc == npc);
+
+        if (existingRecord != null)
+        {
+            existingRecord.LastInteractionDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastInteractionSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            player.NPCInteractions.Add(new NPCInteractionRecord
+            {
+                Npc = npc,
+                LastInteractionDay = _timeFacade.GetCurrentDay(),
+                LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastInteractionSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
+
+    /// <summary>
+    /// Record route traversal in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per route (replaces previous timestamp)
+    /// </summary>
     private void RecordRouteTraversal(RouteOption route)
-        => _interactionHistoryRecorder.RecordRouteTraversal(route);
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        RouteTraversalRecord existingRecord = player.RouteTraversals
+            .FirstOrDefault(record => record.Route == route);
+
+        if (existingRecord != null)
+        {
+            existingRecord.LastTraversalDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastTraversalSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            player.RouteTraversals.Add(new RouteTraversalRecord
+            {
+                Route = route,
+                LastTraversalDay = _timeFacade.GetCurrentDay(),
+                LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastTraversalSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
 
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {

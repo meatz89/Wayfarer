@@ -238,10 +238,11 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationFacade>();
         services.AddSingleton<EmergencyFacade>();
 
-        // Orchestrator Services - extracted from GameOrchestrator via composition
+        // Composed Services (FACADE ISOLATION compliant - only uses services, not facades)
+        // DebugCommandHandler is compliant: uses RewardApplicationService (a service), not facades
+        // InteractionHistoryRecorder and TimeAdvancementOrchestrator were rolled back into
+        // GameOrchestrator because they required facade access (violates "Service → never facades")
         services.AddSingleton<DebugCommandHandler>();
-        services.AddSingleton<InteractionHistoryRecorder>();
-        services.AddSingleton<TimeAdvancementOrchestrator>();
 
         // Game Orchestrator - THE single entry point for all UI-Backend communication
         // FACADE ISOLATION: Only GameOrchestrator can coordinate between facades
