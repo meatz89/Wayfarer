@@ -612,6 +612,7 @@ public class SceneInstantiator
         {
             Id = sceneId,
             TemplateId = template.Id,
+            SceneArchetype = template.Id, // REQUIRED: Template ID serves as archetype reference for SceneParser
             // Activation filter: Copied from template, determines activation trigger
             // Scenes activate via LOCATION ONLY when player enters matching location
             LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),

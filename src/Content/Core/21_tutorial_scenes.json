@@ -10,15 +10,15 @@
   "content": {
     "sceneTemplates": [
       {
-        "id": "tutorial_secure_lodging",
-        "category": "SideStory",
+        "id": "InnLodging",
+        "category": "MainStory",
+        "mainStorySequence": 1,
         "archetype": "Linear",
         "sceneArchetype": "InnLodging",
-        "rhythmPattern": "Mixed",
+        "rhythmPattern": "Building",
         "presentationMode": "Modal",
-        "progressionMode": "Breathe",
-        "tier": 0,
-        "isStarter": false,
+        "progressionMode": "Cascade",
+        "isStarter": true,
         "locationActivationFilter": {
           "placementType": "Location",
           "purpose": "Commerce",
@@ -30,6 +30,46 @@
         }
       },
       {
+        "id": "DeliveryContract",
+        "category": "MainStory",
+        "mainStorySequence": 2,
+        "archetype": "Linear",
+        "sceneArchetype": "DeliveryContract",
+        "rhythmPattern": "Mixed",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "isStarter": false,
+        "locationActivationFilter": {
+          "placementType": "Location",
+          "privacy": "SemiPublic",
+          "capabilities": ["Commercial"]
+        },
+        "npcActivationFilter": {
+          "placementType": "NPC",
+          "profession": "Merchant"
+        }
+      },
+      {
+        "id": "RouteSegmentTravel",
+        "category": "MainStory",
+        "mainStorySequence": 3,
+        "archetype": "Linear",
+        "sceneArchetype": "RouteSegmentTravel",
+        "rhythmPattern": "Crisis",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "isStarter": false,
+        "locationActivationFilter": {
+          "placementType": "Location",
+          "privacy": "SemiPublic",
+          "capabilities": ["Commercial"]
+        },
+        "npcActivationFilter": {
+          "placementType": "NPC",
+          "profession": "Merchant"
+        }
+      },
+      {
         "id": "tutorial_rough_morning",
         "category": "SideStory",
         "archetype": "Standalone",
@@ -37,7 +77,6 @@
         "rhythmPattern": "Mixed",
         "presentationMode": "Modal",
         "progressionMode": "Breathe",
-        "tier": 0,
         "isStarter": false,
         "locationActivationFilter": {
           "placementType": "Location",
