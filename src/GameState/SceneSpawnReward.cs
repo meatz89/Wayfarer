@@ -64,4 +64,14 @@ public class SceneSpawnReward
             RecentArchetypes = recentArchetypes ?? new List<string>()
         };
     }
+
+    /// <summary>
+    /// Build SceneSelectionInputs for authored content (no anti-repetition history).
+    /// Used for tutorial/authored scenes where history is not tracked.
+    /// REQUIRES: RhythmPatternContext is set.
+    /// </summary>
+    public SceneSelectionInputs BuildAuthoredInputs()
+    {
+        return BuildSelectionInputs(new List<string>(), new List<string>());
+    }
 }
