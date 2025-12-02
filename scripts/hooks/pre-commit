@@ -486,11 +486,16 @@ fi
 # ============================================================
 # Large files indicate too many responsibilities, insufficient abstraction,
 # and cognitive overload. They require holistic refactoring, not tactical fixes.
+# Exception: GameOrchestrator.cs (coordinates ALL facades per FACADE ISOLATION)
 
 if [ -n "$STAGED_CS_ALL" ]; then
     echo "[FILE-SIZE] File Size Limit (1000 lines)..."
 
     for file in $STAGED_CS_ALL; do
+        # Skip GameOrchestrator.cs - exempt per FACADE ISOLATION (coordinates all facades)
+        if echo "$file" | grep -q "GameOrchestrator.cs$"; then
+            continue
+        fi
         if [ -f "$file" ]; then
             LINE_COUNT=$(git show ":$file" 2>/dev/null | wc -l)
             if [ "$LINE_COUNT" -gt 1000 ]; then

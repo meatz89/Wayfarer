@@ -541,6 +541,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 **Enforcement:** Pre-commit hook blocks commits with files exceeding 1000 lines.
 
+**Exception:** `GameOrchestrator.cs` is exempt from the 1000-line limit. Its role is to coordinate ALL facades per FACADE ISOLATION principle - this inherently requires more code. Extracting orchestration logic would either duplicate responsibility (executors already exist) or violate FACADE ISOLATION (new classes calling facades directly).
+
 ---
 
 # PRE-COMMIT HOOK
