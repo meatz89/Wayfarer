@@ -1155,57 +1155,7 @@ public class GameOrchestrator
     /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
     /// </summary>
     private async Task ProcessTimeAdvancement(TimeAdvancementResult result)
-    {
-        // HUNGER: +5 per segment (universal time cost)
-        // This is THE ONLY place hunger increases due to time
-        int hungerIncrease = result.SegmentsAdvanced * 5;
-        await _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
-
-        // DAY TRANSITION: Process dawn effects (NPC decay)
-        // Only when crossing into Morning (new day starts)
-        if (result.CrossedDayBoundary && result.NewTimeBlock == TimeBlocks.Morning)
-        {
-            _resourceFacade.ProcessDayTransition();
-        }
-
-        // EMERGENCY CHECKING: Check for active emergencies at sync points
-        // Emergencies interrupt normal gameplay and demand immediate response
-        // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
-        ActiveEmergencyState activeEmergency = CheckForActiveEmergency();
-        if (activeEmergency != null)
-        {
-            _gameWorld.ActiveEmergency = activeEmergency;
-            _messageSystem.AddSystemMessage(
-                $"⚠️ EMERGENCY: {activeEmergency.Template.Name}",
-                SystemMessageTypes.Warning);
-        }
-
-        // SCENE EXPIRATION ENFORCEMENT (HIGHLANDER sync point for time-based state changes)
-        // Check all active scenes for expiration based on current day
-        // Scenes with ExpiresOnDay <= CurrentDay transition to Expired state
-        // Expired scenes filtered out from SceneFacade queries (no longer visible to player)
-        int currentDay = _gameWorld.CurrentDay;
-        List<Scene> activeScenes = _gameWorld.Scenes
-            .Where(s => s.State == SceneState.Active && s.ExpiresOnDay.HasValue)
-            .ToList();
-
-        foreach (Scene scene in activeScenes)
-        {
-            if (currentDay >= scene.ExpiresOnDay.Value)
-            {
-                scene.State = SceneState.Expired;
-
-                // PROCEDURAL CONTENT TRACING: Update scene state to Expired
-                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
-                {
-                    _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
-                }
-
-                // Optional: System message for player feedback (uncomment if desired)
-                // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
-            }
-        }
-    }
+        => await _timeAdvancementOrchestrator.ProcessTimeAdvancement(result);
 
 
     /// <summary>
@@ -1235,198 +1185,26 @@ public class GameOrchestrator
     }
 
     // ============================================
-    // DEBUG COMMANDS
+    // DEBUG COMMANDS (delegated to DebugCommandHandler)
     // ============================================
 
-    /// <summary>
-    /// Debug: Set player stat to specific level
-    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
-    /// </summary>
     public async Task<bool> DebugSetStatLevel(PlayerStatType statType, int level)
-    {
-        if (level < 0 || level > 10)
-        {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
-            return false;
-        }
+        => await _debugCommandHandler.SetStatLevel(statType, level);
 
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Calculate delta and apply via Consequence
-        int delta = 0;
-        switch (statType)
-        {
-            case PlayerStatType.Insight:
-                delta = level - player.Insight;
-                break;
-            case PlayerStatType.Rapport:
-                delta = level - player.Rapport;
-                break;
-            case PlayerStatType.Authority:
-                delta = level - player.Authority;
-                break;
-            case PlayerStatType.Diplomacy:
-                delta = level - player.Diplomacy;
-                break;
-            case PlayerStatType.Cunning:
-                delta = level - player.Cunning;
-                break;
-        }
-
-        Consequence statChange = statType switch
-        {
-            PlayerStatType.Insight => new Consequence { Insight = delta },
-            PlayerStatType.Rapport => new Consequence { Rapport = delta },
-            PlayerStatType.Authority => new Consequence { Authority = delta },
-            PlayerStatType.Diplomacy => new Consequence { Diplomacy = delta },
-            PlayerStatType.Cunning => new Consequence { Cunning = delta },
-            _ => new Consequence()
-        };
-        await _rewardApplicationService.ApplyConsequence(statChange, null);
-
-        _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success);
-        return true;
-    }
-
-    /// <summary>
-    /// Debug: Add points to a specific stat
-    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
-    /// </summary>
     public async Task<bool> DebugAddStatXP(PlayerStatType statType, int points)
-    {
-        if (points <= 0)
-        {
-            _messageSystem.AddSystemMessage($"Invalid points amount {points}. Must be positive.", SystemMessageTypes.Danger);
-            return false;
-        }
+        => await _debugCommandHandler.AddStatXP(statType, points);
 
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Apply stat change via Consequence
-        Consequence statChange = statType switch
-        {
-            PlayerStatType.Insight => new Consequence { Insight = points },
-            PlayerStatType.Rapport => new Consequence { Rapport = points },
-            PlayerStatType.Authority => new Consequence { Authority = points },
-            PlayerStatType.Diplomacy => new Consequence { Diplomacy = points },
-            PlayerStatType.Cunning => new Consequence { Cunning = points },
-            _ => new Consequence()
-        };
-        await _rewardApplicationService.ApplyConsequence(statChange, null);
-
-        int newValue = statType switch
-        {
-            PlayerStatType.Insight => player.Insight,
-            PlayerStatType.Rapport => player.Rapport,
-            PlayerStatType.Authority => player.Authority,
-            PlayerStatType.Diplomacy => player.Diplomacy,
-            PlayerStatType.Cunning => player.Cunning,
-            _ => 0
-        };
-        _messageSystem.AddSystemMessage($"Added {points} to {statType}. Now {newValue}", SystemMessageTypes.Success);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Debug: Set all stats to a specific level
-    /// TWO PILLARS: Uses async DebugSetStatLevel
-    /// </summary>
     public async Task DebugSetAllStats(int level)
-    {
-        if (level < 0 || level > 10)
-        {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
-            return;
-        }
+        => await _debugCommandHandler.SetAllStats(level);
 
-        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
-        {
-            await DebugSetStatLevel(statType, level);
-        }
-
-        _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success);
-    }
-
-    /// <summary>
-    /// Debug: Display current stat values
-    /// </summary>
     public string DebugGetStatInfo()
-    {
-        Player player = _gameWorld.GetPlayer();
-        StringBuilder statInfo = new StringBuilder();
+        => _debugCommandHandler.GetStatInfo();
 
-        statInfo.AppendLine("=== Player Stats ===");
-        statInfo.AppendLine($"Insight: {player.Insight}");
-        statInfo.AppendLine($"Rapport: {player.Rapport}");
-        statInfo.AppendLine($"Authority: {player.Authority}");
-        statInfo.AppendLine($"Diplomacy: {player.Diplomacy}");
-        statInfo.AppendLine($"Cunning: {player.Cunning}");
-
-        return statInfo.ToString();
-    }
-
-    /// <summary>
-    /// Debug: Grant resources (coins, health, etc.)
-    /// TWO PILLARS: Delegates mutations to RewardApplicationService
-    /// </summary>
     public async Task DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Build Consequence for all resource changes
-        Consequence debugConsequence = new Consequence
-        {
-            Coins = coins,
-            Health = health,
-            Hunger = hunger
-        };
-        await _rewardApplicationService.ApplyConsequence(debugConsequence, null);
-
-        if (coins != 0)
-        {
-            _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success);
-        }
-
-        if (health != 0)
-        {
-            _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
-        }
-
-        if (hunger != 0)
-        {
-            _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
-        }
-    }
+        => await _debugCommandHandler.GiveResources(coins, health, hunger);
 
     public void DebugTeleportToLocation(string venueName, string locationName)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationName);
-
-        if (location == null)
-        {
-            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning);
-            return;
-        }
-
-        if (!location.HexPosition.HasValue)
-        {
-            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
-            return;
-        }
-
-        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Name == venueName);
-        if (venue == null)
-        {
-            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning);
-            return;
-        }
-
-        player.CurrentPosition = location.HexPosition.Value;
-
-        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
-    }
+        => _debugCommandHandler.TeleportToLocation(venueName, locationName);
 
     // ========== OBLIGATION SYSTEM ==========
 
@@ -2097,105 +1875,18 @@ public class GameOrchestrator
 
     // ========== HELPER METHODS ==========
 
-    /// <summary>
-    /// Record location visit in player interaction history
-    /// Update-in-place pattern: Find existing record or create new
-    /// ONE record per location (replaces previous timestamp)
-    /// </summary>
+    // ============================================
+    // INTERACTION HISTORY (delegated to InteractionHistoryRecorder)
+    // ============================================
+
     private void RecordLocationVisit(Location location)
-    {
-        Player player = _gameWorld.GetPlayer();
+        => _interactionHistoryRecorder.RecordLocationVisit(location);
 
-        // Find existing record - HIGHLANDER: object equality
-        LocationVisitRecord existingRecord = player.LocationVisits
-            .FirstOrDefault(record => record.Location == location);
-
-        if (existingRecord != null)
-        {
-            // Update existing record with current timestamp
-            existingRecord.LastVisitDay = _timeFacade.GetCurrentDay();
-            existingRecord.LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            existingRecord.LastVisitSegment = _timeFacade.GetCurrentSegment();
-        }
-        else
-        {
-            // Create new record
-            player.LocationVisits.Add(new LocationVisitRecord
-            {
-                Location = location,
-                LastVisitDay = _timeFacade.GetCurrentDay(),
-                LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                LastVisitSegment = _timeFacade.GetCurrentSegment()
-            });
-        }
-    }
-
-    /// <summary>
-    /// Record NPC interaction in player interaction history
-    /// Update-in-place pattern: Find existing record or create new
-    /// ONE record per NPC (replaces previous timestamp)
-    /// HIGHLANDER: Accept NPC object, use object equality
-    /// </summary>
     private void RecordNPCInteraction(NPC npc)
-    {
-        Player player = _gameWorld.GetPlayer();
+        => _interactionHistoryRecorder.RecordNPCInteraction(npc);
 
-        // Find existing record using object equality
-        NPCInteractionRecord existingRecord = player.NPCInteractions
-            .FirstOrDefault(record => record.Npc == npc);
-
-        if (existingRecord != null)
-        {
-            // Update existing record with current timestamp
-            existingRecord.LastInteractionDay = _timeFacade.GetCurrentDay();
-            existingRecord.LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            existingRecord.LastInteractionSegment = _timeFacade.GetCurrentSegment();
-        }
-        else
-        {
-            // Create new record
-            player.NPCInteractions.Add(new NPCInteractionRecord
-            {
-                Npc = npc,
-                LastInteractionDay = _timeFacade.GetCurrentDay(),
-                LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                LastInteractionSegment = _timeFacade.GetCurrentSegment()
-            });
-        }
-    }
-
-    /// <summary>
-    /// Record route traversal in player interaction history
-    /// Update-in-place pattern: Find existing record or create new
-    /// ONE record per route (replaces previous timestamp)
-    /// </summary>
     private void RecordRouteTraversal(RouteOption route)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Find existing record - HIGHLANDER: object equality
-        RouteTraversalRecord existingRecord = player.RouteTraversals
-            .FirstOrDefault(record => record.Route == route);
-
-        if (existingRecord != null)
-        {
-            // Update existing record with current timestamp
-            existingRecord.LastTraversalDay = _timeFacade.GetCurrentDay();
-            existingRecord.LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            existingRecord.LastTraversalSegment = _timeFacade.GetCurrentSegment();
-        }
-        else
-        {
-            // Create new record
-            player.RouteTraversals.Add(new RouteTraversalRecord
-            {
-                Route = route,
-                LastTraversalDay = _timeFacade.GetCurrentDay(),
-                LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                LastTraversalSegment = _timeFacade.GetCurrentSegment()
-            });
-        }
-    }
+        => _interactionHistoryRecorder.RecordRouteTraversal(route);
 
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
