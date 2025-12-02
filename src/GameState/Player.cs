@@ -163,6 +163,7 @@ public class Player
 
     // Physical progression - Mastery cubes earned through repeated challenge success (0-10 per deck)
     // Reduces Physical Danger threshold for specific challenge types (Combat, Athletics, etc.)
+    // DOMAIN COLLECTION PRINCIPLE: ACCEPTABLE - Variable collection (deck IDs are content-defined, not fixed enum)
     public List<MasteryCubeEntry> MasteryCubes { get; set; } = new List<MasteryCubeEntry>();
 
     // Mental resource - Focus depletes with obligation, recovers with rest

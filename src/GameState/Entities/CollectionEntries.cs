@@ -80,15 +80,8 @@ public class SteppedThreshold
 
 // StatRequirementEntry DELETED - use explicit properties (InsightRequirement, RapportRequirement, etc.)
 
-/// <summary>
-/// Entry for token requirements.
-/// Used in SocialCard for token requirements.
-/// </summary>
-public class TokenRequirementEntry
-{
-    public string TokenType { get; set; }
-    public int RequiredAmount { get; set; }
-}
+// TokenRequirementEntry DELETED - DOMAIN COLLECTION PRINCIPLE
+// SocialCard now uses explicit properties: TrustTokenRequirement, DiplomacyTokenRequirement, etc.
 
 // TokenGainEntry DELETED - use explicit properties (TrustTokenGain, DiplomacyTokenGain, etc.)
 

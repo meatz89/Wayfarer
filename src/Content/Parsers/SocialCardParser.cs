@@ -9,20 +9,6 @@
 public static class SocialCardParser
 {
     /// <summary>
-    /// Get request card for conversation type from provided card data
-    /// </summary>
-    public static SocialCard GetSituationCard(string conversationTypeId, string npcId, string npcName,
-        Dictionary<string, SocialCardDTO> cardTemplates)
-    {
-        // Use conversation type ID directly to find request card template
-        string cardId = $"request_{conversationTypeId}";
-        if (!cardTemplates.TryGetValue(cardId, out SocialCardDTO dto))
-            return null;
-
-        return ParseCard(dto);
-    }
-
-    /// <summary>
     /// Convert a ConversationCardDTO to a ConversationCard domain model.
     ///
     /// IMPORTANT: This method only handles conversation cards with "effects" structure.
@@ -118,13 +104,22 @@ public static class SocialCardParser
         int requiredStatements = 0;
 
         // Parse token requirements (for signature cards)
-        // DOMAIN COLLECTION PRINCIPLE: List<TokenRequirementEntry> instead of Dictionary
-        List<TokenRequirementEntry> tokenRequirements = new List<TokenRequirementEntry>();
+        // DOMAIN COLLECTION PRINCIPLE: Switch on enum, map to explicit properties
+        int trustTokenReq = 0, diplomacyTokenReq = 0, statusTokenReq = 0, shadowTokenReq = 0;
         if (dto.TokenRequirement != null)
         {
             foreach (TokenEntryDTO entry in dto.TokenRequirement)
             {
-                tokenRequirements.Add(new TokenRequirementEntry { TokenType = entry.TokenType, RequiredAmount = entry.Amount });
+                if (Enum.TryParse<ConnectionType>(entry.TokenType, true, out ConnectionType reqTokenType))
+                {
+                    switch (reqTokenType)
+                    {
+                        case ConnectionType.Trust: trustTokenReq = entry.Amount; break;
+                        case ConnectionType.Diplomacy: diplomacyTokenReq = entry.Amount; break;
+                        case ConnectionType.Status: statusTokenReq = entry.Amount; break;
+                        case ConnectionType.Shadow: shadowTokenReq = entry.Amount; break;
+                    }
+                }
             }
         }
 
@@ -184,7 +179,10 @@ public static class SocialCardParser
             RequiredStat = requiredStat,
             RequiredStatements = requiredStatements,
             Traits = traits,
-            TokenRequirements = tokenRequirements
+            TrustTokenRequirement = trustTokenReq,
+            DiplomacyTokenRequirement = diplomacyTokenReq,
+            StatusTokenRequirement = statusTokenReq,
+            ShadowTokenRequirement = shadowTokenReq
         };
     }
 

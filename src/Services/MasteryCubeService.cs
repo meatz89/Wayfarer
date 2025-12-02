@@ -1,3 +1,8 @@
+/// <summary>
+/// Service for managing mastery cubes per challenge deck.
+/// DOMAIN COLLECTION PRINCIPLE: ACCEPTABLE - DeckId is content-defined (variable collection), not fixed enum.
+/// Different physical challenge decks (Combat, Athletics, Stealth, etc.) have independent mastery tracking.
+/// </summary>
 public class MasteryCubeService
 {
     public int GetMastery(List<MasteryCubeEntry> cubes, string deckId)

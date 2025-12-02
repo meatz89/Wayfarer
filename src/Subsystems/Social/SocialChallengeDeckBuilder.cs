@@ -110,9 +110,16 @@ public class SocialChallengeDeckBuilder
 
     /// <summary>
     /// Filter signature cards based on token requirements with the NPC
+    /// DOMAIN COLLECTION PRINCIPLE: Uses explicit token counts, not List<Entry>
     /// </summary>
     private List<CardInstance> FilterSignatureCardsByTokenRequirements(List<CardInstance> instances, NPC npc)
     {
+        // Get explicit token counts from TokenMechanicsManager
+        int trustTokens = _tokenManager.GetTokenCount(ConnectionType.Trust, npc);
+        int diplomacyTokens = _tokenManager.GetTokenCount(ConnectionType.Diplomacy, npc);
+        int statusTokens = _tokenManager.GetTokenCount(ConnectionType.Status, npc);
+        int shadowTokens = _tokenManager.GetTokenCount(ConnectionType.Shadow, npc);
+
         List<CardInstance> filteredInstances = new List<CardInstance>();
 
         foreach (CardInstance instance in instances)
@@ -120,14 +127,10 @@ public class SocialChallengeDeckBuilder
             SocialCard card = instance.SocialCardTemplate;
 
             // Check if this is a signature card (has token requirements)
-            if (card.TokenRequirements != null && card.TokenRequirements.Any())
+            if (card.HasAnyTokenRequirements())
             {
-                // Get player's tokens with this NPC
-                // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-                List<TokenRequirementEntry> playerTokens = GetPlayerTokensWithNPC(npc);
-
-                // Check if token requirements are met
-                if (card.CanAccessWithTokens(playerTokens))
+                // Check if token requirements are met using explicit counts
+                if (card.MeetsTokenRequirements(trustTokens, diplomacyTokens, statusTokens, shadowTokens))
                 {
                     filteredInstances.Add(instance);
                 }
@@ -143,28 +146,9 @@ public class SocialChallengeDeckBuilder
         return filteredInstances;
     }
 
-    /// <summary>
-    /// Get player's current token counts with the specified NPC
-    /// DOMAIN COLLECTION PRINCIPLE: Returns List<T> instead of Dictionary
-    /// </summary>
-    private List<TokenRequirementEntry> GetPlayerTokensWithNPC(NPC npc)
-    {
-        List<TokenRequirementEntry> tokens = new List<TokenRequirementEntry>();
-
-        // Get all connection types and their token counts
-        foreach (ConnectionType connectionType in Enum.GetValues<ConnectionType>())
-        {
-            // HIGHLANDER: Pass NPC object directly, not npc.ID
-            int tokenCount = _tokenManager.GetTokenCount(connectionType, npc);
-            tokens.Add(new TokenRequirementEntry
-            {
-                TokenType = connectionType.ToString(),
-                RequiredAmount = tokenCount
-            });
-        }
-
-        return tokens;
-    }
+    // GetPlayerTokensWithNPC DELETED - DOMAIN COLLECTION PRINCIPLE violation
+    // Was iterating ConnectionType enum to build List<TokenRequirementEntry>
+    // Now using explicit token counts directly from TokenMechanicsManager
 
     /// <summary>
     /// Get equipment categories provided by player's current items (parallel to Mental/Physical)

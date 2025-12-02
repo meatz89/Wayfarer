@@ -47,23 +47,36 @@ public class GameRules
     public string Name = "Wayfarer";
 
     // Conversation configuration - MUST be loaded from JSON
-    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for ConnectionState (fixed enum)
+    public int DisconnectedDrawCount { get; set; }
+    public int GuardedDrawCount { get; set; }
+    public int NeutralDrawCount { get; set; }
+    public int ReceptiveDrawCount { get; set; }
+    public int TrustingDrawCount { get; set; }
+
+    private bool _listenDrawCountsLoaded = false;
+
+    public void MarkListenDrawCountsLoaded()
+    {
+        _listenDrawCountsLoaded = true;
+    }
 
     public int GetListenDrawCount(ConnectionState state)
     {
-        if (ListenDrawCounts == null || ListenDrawCounts.Count == 0)
+        if (!_listenDrawCountsLoaded)
         {
             throw new System.InvalidOperationException($"ListenDrawCounts not loaded from package content. Ensure 05_gameplay.json contains listenDrawCounts configuration.");
         }
 
-        ListenDrawCountEntry entry = ListenDrawCounts.FirstOrDefault(e =>
-            Enum.TryParse<ConnectionState>(e.ConnectionState, out ConnectionState parsed) && parsed == state);
-        if (entry == null)
+        return state switch
         {
-            throw new System.InvalidOperationException($"No draw count configured for connection state {state}. Available states: {string.Join(", ", ListenDrawCounts.Select(e => e.ConnectionState))}");
-        }
-
-        return entry.DrawCount;
+            ConnectionState.DISCONNECTED => DisconnectedDrawCount,
+            ConnectionState.GUARDED => GuardedDrawCount,
+            ConnectionState.NEUTRAL => NeutralDrawCount,
+            ConnectionState.RECEPTIVE => ReceptiveDrawCount,
+            ConnectionState.TRUSTING => TrustingDrawCount,
+            _ => throw new System.InvalidOperationException($"Unknown connection state: {state}")
+        };
     }
 
     // Card progression configuration - MUST be loaded from JSON

@@ -58,8 +58,24 @@ public class SocialCard
     public IReadOnlyList<CardTrait> Traits { get; init; } = new List<CardTrait>();
 
     // Token requirements for signature cards
-    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    public List<TokenRequirementEntry> TokenRequirements { get; init; } = new List<TokenRequirementEntry>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for ConnectionType (fixed enum)
+    public int TrustTokenRequirement { get; init; }
+    public int DiplomacyTokenRequirement { get; init; }
+    public int StatusTokenRequirement { get; init; }
+    public int ShadowTokenRequirement { get; init; }
+
+    public bool HasAnyTokenRequirements() =>
+        TrustTokenRequirement > 0 || DiplomacyTokenRequirement > 0 ||
+        StatusTokenRequirement > 0 || ShadowTokenRequirement > 0;
+
+    public int GetTokenRequirement(ConnectionType type) => type switch
+    {
+        ConnectionType.Trust => TrustTokenRequirement,
+        ConnectionType.Diplomacy => DiplomacyTokenRequirement,
+        ConnectionType.Status => StatusTokenRequirement,
+        ConnectionType.Shadow => ShadowTokenRequirement,
+        _ => 0
+    };
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(SocialSession session)
@@ -103,20 +119,16 @@ public class SocialCard
 
     /// <summary>
     /// Check if token requirements are met for this signature card
+    /// DOMAIN COLLECTION PRINCIPLE: Accepts explicit token counts, not List<Entry>
     /// </summary>
-    public bool CanAccessWithTokens(List<TokenRequirementEntry> availableTokens)
+    public bool MeetsTokenRequirements(int trustTokens, int diplomacyTokens, int statusTokens, int shadowTokens)
     {
-        if (TokenRequirements == null || !TokenRequirements.Any()) return true;
+        if (!HasAnyTokenRequirements()) return true;
 
-        foreach (TokenRequirementEntry requirement in TokenRequirements)
-        {
-            TokenRequirementEntry available = availableTokens.FirstOrDefault(t => t.TokenType == requirement.TokenType);
-            if (available == null || available.RequiredAmount < requirement.RequiredAmount)
-            {
-                return false;
-            }
-        }
-        return true;
+        return trustTokens >= TrustTokenRequirement &&
+               diplomacyTokens >= DiplomacyTokenRequirement &&
+               statusTokens >= StatusTokenRequirement &&
+               shadowTokens >= ShadowTokenRequirement;
     }
 
     /// <summary>
