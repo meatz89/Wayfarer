@@ -8,7 +8,6 @@ public class SituationCompletionHandler
     private readonly GameWorld _gameWorld;
     private readonly ObligationActivity _obligationActivity;
     private readonly TimeManager _timeManager;
-    private readonly ConsequenceFacade _consequenceFacade;
     private readonly SpawnFacade _spawnFacade;
     private readonly RewardApplicationService _rewardApplicationService;
 
@@ -16,14 +15,12 @@ public class SituationCompletionHandler
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
-        ConsequenceFacade consequenceFacade,
         SpawnFacade spawnFacade,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
