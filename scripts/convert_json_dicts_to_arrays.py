@@ -39,6 +39,18 @@ CONVERSIONS = {
 
     # Professions by time (complex - list of strings as value)
     "availableProfessionsByTime": ("timeBlock", "professions"),
+
+    # Deck composition patterns
+    "listenDrawCounts": ("connectionState", "drawCount"),
+    "conversationDeck": ("cardId", "count"),
+    "requestDeck": ("cardId", "count"),
+    "exchangeDeck": ("cardId", "count"),
+    "startingTokens": ("npcId", "tokens"),  # Note: value is object, not primitive
+}
+
+# Special nested structures that need recursive conversion
+NESTED_CONVERSIONS = {
+    "npcDecks": "npcId",  # { "npc_id": { "exchangeDeck": {...} } } -> [{ "npcId": "npc_id", "exchangeDeck": [...] }]
 }
 
 def convert_dict_to_array(data, key_name, value_name):
@@ -47,15 +59,38 @@ def convert_dict_to_array(data, key_name, value_name):
         return data
     return [{key_name: k, value_name: v} for k, v in data.items()]
 
+def convert_nested_dict(data, key_name):
+    """Convert { "k1": {...}, "k2": {...} } to [{ key_name: "k1", ...spread(v1) }, ...]
+    For structures like npcDecks where value is an object that should be merged."""
+    if not isinstance(data, dict):
+        return data
+    result = []
+    for k, v in data.items():
+        if isinstance(v, dict):
+            entry = {key_name: k}
+            entry.update(v)
+            result.append(entry)
+        else:
+            result.append({key_name: k, "value": v})
+    return result
+
 def process_value(value, parent_key=None):
     """Recursively process a JSON value, converting dictionaries where needed."""
     if isinstance(value, dict):
         # Check if this dict should be converted based on parent key
         new_dict = {}
         for k, v in value.items():
-            if k in CONVERSIONS and isinstance(v, dict):
+            if k in NESTED_CONVERSIONS and isinstance(v, dict):
+                # Handle nested structures like npcDecks
+                key_name = NESTED_CONVERSIONS[k]
+                converted = convert_nested_dict(v, key_name)
+                # Recursively process the converted entries
+                new_dict[k] = [process_value(entry, k) for entry in converted]
+            elif k in CONVERSIONS and isinstance(v, dict):
                 key_name, value_name = CONVERSIONS[k]
-                new_dict[k] = convert_dict_to_array(v, key_name, value_name)
+                converted = convert_dict_to_array(v, key_name, value_name)
+                # Recursively process the converted entries
+                new_dict[k] = [process_value(entry, k) for entry in converted]
             else:
                 new_dict[k] = process_value(v, k)
         return new_dict

@@ -1,5 +1,6 @@
 /// <summary>
 /// Defines the card composition for NPC decks
+/// DOMAIN COLLECTION PRINCIPLE: All Dictionary patterns replaced with List<Entry>
 /// </summary>
 public class DeckCompositionDTO
 {
@@ -9,9 +10,10 @@ public class DeckCompositionDTO
     public PlayerDeckDefinitionDTO PlayerStarterDeck { get; set; }
 
     /// <summary>
-    /// NPC-specific deck compositions (key is NPC ID)
+    /// NPC-specific deck compositions
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, NPCDeckDefinitionDTO> NpcDecks { get; set; }
+    public List<NpcDeckEntry> NpcDecks { get; set; } = new List<NpcDeckEntry>();
 }
 
 /// <summary>
@@ -20,39 +22,9 @@ public class DeckCompositionDTO
 public class PlayerDeckDefinitionDTO
 {
     /// <summary>
-    /// Player's conversation deck card composition (card ID -> count)
+    /// Player's conversation deck card composition
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> ConversationDeck { get; set; }
-
-    // ObservationDeck system eliminated - replaced by transparent resource competition
-
-    public PlayerDeckDefinitionDTO()
-    {
-        ConversationDeck = new Dictionary<string, int>();
-        // ObservationDeck system eliminated
-    }
-}
-
-/// <summary>
-/// Defines the composition of an NPC's deck
-/// </summary>
-public class NPCDeckDefinitionDTO
-{
-    /// <summary>
-    /// Request deck card composition (card ID -> count)
-    /// Used to load request/promise cards that define conversation options
-    /// </summary>
-    public Dictionary<string, int> RequestDeck { get; set; }
-
-    /// <summary>
-    /// Exchange deck card composition (card ID -> count)
-    /// </summary>
-    public Dictionary<string, int> ExchangeDeck { get; set; }
-
-    public NPCDeckDefinitionDTO()
-    {
-        RequestDeck = new Dictionary<string, int>();
-        ExchangeDeck = new Dictionary<string, int>();
-    }
+    public List<CardCountEntry> ConversationDeck { get; set; } = new List<CardCountEntry>();
 }
 

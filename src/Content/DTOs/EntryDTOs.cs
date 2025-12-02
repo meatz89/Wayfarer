@@ -103,3 +103,34 @@ public class RouteDiscoveryContextEntry
     public string NpcId { get; set; }
     public RouteDiscoveryContextDTO Context { get; set; }
 }
+
+/// <summary>
+/// Entry for listen draw counts by connection state
+/// Used in: PackageContent.ListenDrawCounts
+/// </summary>
+public class ListenDrawCountEntry
+{
+    public string ConnectionState { get; set; }
+    public int DrawCount { get; set; }
+}
+
+/// <summary>
+/// Entry for NPC starting tokens
+/// Used in: PackageStartingConditions.StartingTokens
+/// </summary>
+public class NpcTokenStartEntry
+{
+    public string NpcId { get; set; }
+    public NPCTokenRelationship Tokens { get; set; }
+}
+
+/// <summary>
+/// Entry for NPC deck definition
+/// Used in: DeckCompositionDTO.NpcDecks
+/// </summary>
+public class NpcDeckEntry
+{
+    public string NpcId { get; set; }
+    public List<CardCountEntry> RequestDeck { get; set; } = new List<CardCountEntry>();
+    public List<CardCountEntry> ExchangeDeck { get; set; } = new List<CardCountEntry>();
+}

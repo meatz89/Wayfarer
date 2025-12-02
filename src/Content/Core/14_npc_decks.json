@@ -8,19 +8,41 @@
   },
   "content": {
     "deckCompositions": {
-      "npcDecks": {
-        "merchant_general": {
-          "exchangeDeck": {
-            "buy_rope": 1,
-            "buy_waders": 1,
-            "buy_lantern": 1,
-            "buy_tools": 1,
-            "buy_quality_clothing": 1,
-            "buy_rations": 1,
-            "buy_climbing_gear": 1
-          }
+      "npcDecks": [
+        {
+          "npcId": "merchant_general",
+          "exchangeDeck": [
+            {
+              "cardId": "buy_rope",
+              "count": 1
+            },
+            {
+              "cardId": "buy_waders",
+              "count": 1
+            },
+            {
+              "cardId": "buy_lantern",
+              "count": 1
+            },
+            {
+              "cardId": "buy_tools",
+              "count": 1
+            },
+            {
+              "cardId": "buy_quality_clothing",
+              "count": 1
+            },
+            {
+              "cardId": "buy_rations",
+              "count": 1
+            },
+            {
+              "cardId": "buy_climbing_gear",
+              "count": 1
+            }
+          ]
         }
-      }
+      ]
     }
   }
 }

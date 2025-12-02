@@ -464,19 +464,20 @@ public class PackageLoader
         }
 
         // Apply starting token relationships
+        // DOMAIN COLLECTION PRINCIPLE: List<NpcTokenStartEntry> instead of Dictionary
         if (conditions.StartingTokens != null)
         {
-            foreach (KeyValuePair<string, NPCTokenRelationship> kvp in conditions.StartingTokens)
+            foreach (NpcTokenStartEntry entry in conditions.StartingTokens)
             {
                 // HIGHLANDER: Resolve NPC name to NPC object
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == kvp.Key);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == entry.NpcId);
                 if (npc != null)
                 {
                     // HIGHLANDER: Set tokens directly on NPC
-                    npc.Trust = kvp.Value.Trust;
-                    npc.Diplomacy = kvp.Value.Diplomacy;
-                    npc.Status = kvp.Value.Status;
-                    npc.Shadow = kvp.Value.Shadow;
+                    npc.Trust = entry.Tokens.Trust;
+                    npc.Diplomacy = entry.Tokens.Diplomacy;
+                    npc.Status = entry.Tokens.Status;
+                    npc.Shadow = entry.Tokens.Shadow;
                 }
             }
         }
@@ -600,27 +601,28 @@ public class PackageLoader
         _gameWorld.StatProgression = parseResult.Progression;
     }
 
-    private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
+    private void LoadListenDrawCounts(List<ListenDrawCountEntry> listenDrawCounts)
     {
         if (listenDrawCounts == null) return;
 
-        // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
+        // DOMAIN COLLECTION PRINCIPLE: List<ListenDrawCountEntry> instead of Dictionary
+        // Parse string ConnectionState to enum and create domain entries
         List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
 
-        foreach (KeyValuePair<string, int> kvp in listenDrawCounts)
+        foreach (ListenDrawCountEntry entry in listenDrawCounts)
         {
-            // Parse connection state from string key
-            if (Enum.TryParse<ConnectionState>(kvp.Key.ToUpper(), out ConnectionState state))
+            // Parse connection state from string
+            if (Enum.TryParse<ConnectionState>(entry.ConnectionState.ToUpper(), out ConnectionState state))
             {
                 drawCountEntries.Add(new ListenDrawCountEntry
                 {
                     State = state,
-                    DrawCount = kvp.Value
+                    DrawCount = entry.DrawCount
                 });
             }
             else
             {
-                throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{kvp.Key}'");
+                throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{entry.ConnectionState}'");
             }
         }
 
@@ -1376,29 +1378,25 @@ public class PackageLoader
         {
             List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
 
-            // Check deck compositions for this NPC's exchange deck
-            NPCDeckDefinitionDTO deckDef = null;
-            if (deckCompositions != null)
+            // DOMAIN COLLECTION PRINCIPLE: NpcDecks is List<NpcDeckEntry>, find by NpcId
+            NpcDeckEntry deckEntry = null;
+            if (deckCompositions?.NpcDecks != null)
             {
-                // Check for NPC-specific deck first (use Name as key since NPC.ID deleted)
-                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.Name))
-                {
-                    deckDef = deckCompositions.NpcDecks[npc.Name];
-                }
-                // No default deck anymore - NPCs only have specific decks
+                deckEntry = deckCompositions.NpcDecks.FirstOrDefault(d => d.NpcId == npc.Name);
             }
 
             // Build exchange deck from composition
-            if (deckDef != null && deckDef.ExchangeDeck != null)
+            // DOMAIN COLLECTION PRINCIPLE: ExchangeDeck is List<CardCountEntry>
+            if (deckEntry?.ExchangeDeck != null)
             {
-                foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
+                foreach (CardCountEntry cardCount in deckEntry.ExchangeDeck)
                 {
-                    string cardId = kvp.Key;
-                    int count = kvp.Value;
+                    string cardId = cardCount.CardId;
+                    int count = cardCount.Count;
 
                     // Find the exchange card from the parsed exchange cards
                     // HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
-                    ExchangeCard? exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
+                    ExchangeCard exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
                     if (exchangeCard != null)
                     {
                         // Add the specified number of copies to the deck

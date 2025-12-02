@@ -411,6 +411,39 @@ public class StatRequirementDTO
 
 ---
 
+# HOLISTIC DATA LAYER CHANGES
+
+**THE RULE:** When modifying JSON, DTO, or Parser - you MUST modify ALL THREE together. They are a single conceptual unit.
+
+**The Data Flow Contract:**
+```
+JSON → DTO → Parser → Entity
+```
+
+These layers MUST match. Changing one without the others creates:
+- Parse-time crashes (JSON structure doesn't match DTO)
+- Type mismatches (DTO property type doesn't match parser expectation)
+- Silent data loss (parser ignores unrecognized JSON fields)
+
+**MANDATORY Checklist for Any Data Change:**
+
+| Step | Action | Verify |
+|------|--------|--------|
+| 1 | Change JSON structure | Valid JSON, correct property names |
+| 2 | Change DTO to match | Same property names and types as JSON |
+| 3 | Change Parser to match | Reads DTO correctly, produces correct entity |
+| 4 | Run parser tests | All data flows through without errors |
+
+**FORBIDDEN:**
+- Changing JSON without updating DTO
+- Changing DTO without updating JSON AND parser
+- Changing parser without verifying JSON and DTO match
+- "I'll fix the other layers later" - NO, fix NOW
+
+**This is a Vertical Slice:** JSON + DTO + Parser = ONE unit of change. Never commit partial changes.
+
+---
+
 # NO PARTIAL CLASSES
 
 **THE RULE:** The `partial class` keyword is FORBIDDEN. No exceptions except Blazor.

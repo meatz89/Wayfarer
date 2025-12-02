@@ -137,8 +137,9 @@ public class PackageContent
 
     /// <summary>
     /// Listen draw counts per connection state for conversation mechanics
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> ListenDrawCounts { get; set; }
+    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; }
 
     /// <summary>
     /// Obligation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
