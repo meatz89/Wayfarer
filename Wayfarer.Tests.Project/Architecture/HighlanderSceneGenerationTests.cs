@@ -13,9 +13,21 @@ namespace Wayfarer.Tests.Architecture;
 /// - RhythmPattern is THE ONLY driver for category selection
 /// - Anti-repetition prevents immediate repeats
 /// - LocationSafety/Purpose/Tier REMOVED (legacy)
+///
+/// NOTE: Tests call ACTUAL production code via InternalsVisibleTo.
+/// SelectArchetypeCategory is pure function (no instance dependencies).
 /// </summary>
 public class HighlanderSceneGenerationTests
 {
+    private readonly ProceduralAStoryService _service;
+
+    public HighlanderSceneGenerationTests()
+    {
+        // SelectArchetypeCategory is a pure function - doesn't use these dependencies
+        // Passing nulls is safe for testing the selection logic
+        _service = new ProceduralAStoryService(null, null, null);
+    }
+
     // ==================== IDENTICAL INPUT → IDENTICAL OUTPUT ====================
 
     [Fact]
@@ -31,8 +43,8 @@ public class HighlanderSceneGenerationTests
             rhythmPattern: RhythmPattern.Building);
 
         // Both should produce identical category
-        string categoryA = TestSelectArchetypeCategory(inputsA);
-        string categoryB = TestSelectArchetypeCategory(inputsB);
+        string categoryA = _service.SelectArchetypeCategory(inputsA);
+        string categoryB = _service.SelectArchetypeCategory(inputsB);
 
         Assert.Equal(categoryA, categoryB);
     }
@@ -49,8 +61,8 @@ public class HighlanderSceneGenerationTests
         SceneSelectionInputs inputs2 = CreateTestInputs(
             rhythmPattern: RhythmPattern.Building);
 
-        string category1 = TestSelectArchetypeCategory(inputs1);
-        string category2 = TestSelectArchetypeCategory(inputs2);
+        string category1 = _service.SelectArchetypeCategory(inputs1);
+        string category2 = _service.SelectArchetypeCategory(inputs2);
 
         Assert.Equal(category1, category2);
     }
@@ -66,7 +78,7 @@ public class HighlanderSceneGenerationTests
         // Each rhythm pattern should produce only appropriate categories
         SceneSelectionInputs inputs = CreateTestInputs(rhythmPattern: pattern);
 
-        string category = TestSelectArchetypeCategory(inputs);
+        string category = _service.SelectArchetypeCategory(inputs);
 
         Assert.Contains(category, expectedCategories);
     }
@@ -78,7 +90,7 @@ public class HighlanderSceneGenerationTests
         SceneSelectionInputs inputs = CreateTestInputs(
             rhythmPattern: RhythmPattern.Crisis);
 
-        string category = TestSelectArchetypeCategory(inputs);
+        string category = _service.SelectArchetypeCategory(inputs);
 
         Assert.True(category == "Crisis" || category == "Confrontation",
             $"Crisis pattern should produce Crisis or Confrontation, got: {category}");
@@ -90,7 +102,7 @@ public class HighlanderSceneGenerationTests
         // Mixed pattern should NOT produce Crisis category
         SceneSelectionInputs inputs = CreateTestInputs(rhythmPattern: RhythmPattern.Mixed);
 
-        string category = TestSelectArchetypeCategory(inputs);
+        string category = _service.SelectArchetypeCategory(inputs);
 
         Assert.NotEqual("Crisis", category);
     }
@@ -105,7 +117,7 @@ public class HighlanderSceneGenerationTests
             rhythmPattern: RhythmPattern.Building, // Allows Investigation/Social/Confrontation
             recentCategories: new List<string> { "Investigation", "Social" });
 
-        string category = TestSelectArchetypeCategory(inputs);
+        string category = _service.SelectArchetypeCategory(inputs);
 
         // Should pick Confrontation (only remaining option from Building pattern)
         Assert.Equal("Confrontation", category);
@@ -119,7 +131,7 @@ public class HighlanderSceneGenerationTests
             rhythmPattern: RhythmPattern.Building,
             recentCategories: new List<string> { "Investigation", "Social", "Confrontation" });
 
-        string category = TestSelectArchetypeCategory(inputs);
+        string category = _service.SelectArchetypeCategory(inputs);
 
         // Should fall back to one of the appropriate categories
         Assert.Contains(category, new[] { "Investigation", "Social", "Confrontation" });
@@ -186,8 +198,8 @@ public class HighlanderSceneGenerationTests
             rhythmPattern: RhythmPattern.Building);
 
         // Both should produce same category
-        string authoredCategory = TestSelectArchetypeCategory(authoredInputs);
-        string proceduralCategory = TestSelectArchetypeCategory(proceduralInputs);
+        string authoredCategory = _service.SelectArchetypeCategory(authoredInputs);
+        string proceduralCategory = _service.SelectArchetypeCategory(proceduralInputs);
 
         Assert.Equal(authoredCategory, proceduralCategory);
     }
@@ -238,36 +250,4 @@ public class HighlanderSceneGenerationTests
         };
     }
 
-    /// <summary>
-    /// Test implementation of SelectArchetypeCategory logic.
-    /// SIMPLIFIED: RhythmPattern + anti-repetition only.
-    ///
-    /// PRODUCTION IMPLEMENTATION LOCATION:
-    /// ProceduralAStoryService.SelectArchetypeCategory() in
-    /// src/Subsystems/ProceduralContent/ProceduralAStoryService.cs
-    /// </summary>
-    private string TestSelectArchetypeCategory(SceneSelectionInputs inputs)
-    {
-        // Get appropriate categories for rhythm pattern ONLY
-        List<string> appropriateCategories = inputs.RhythmPattern switch
-        {
-            RhythmPattern.Building => new List<string> { "Investigation", "Social", "Confrontation" },
-            RhythmPattern.Crisis => new List<string> { "Crisis", "Confrontation" },
-            RhythmPattern.Mixed => new List<string> { "Social", "Investigation" },
-            _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
-        };
-
-        // Apply anti-repetition
-        List<string> available = appropriateCategories
-            .Where(c => !inputs.RecentCategories.Contains(c))
-            .ToList();
-
-        if (!available.Any())
-        {
-            available = appropriateCategories;
-        }
-
-        // First available category for determinism
-        return available[0];
-    }
 }

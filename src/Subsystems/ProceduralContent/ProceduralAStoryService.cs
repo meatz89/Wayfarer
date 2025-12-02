@@ -1,3 +1,5 @@
+[assembly: InternalsVisibleTo("Wayfarer.Tests")]
+
 /// <summary>
 /// Service for generating procedural A-story scene templates.
 /// Creates infinite main story progression after authored tutorial completes.
@@ -102,7 +104,7 @@ public class ProceduralAStoryService
     /// - LocationSafety/Purpose/Tier REMOVED (legacy)
     /// - Current player state NEVER influences selection
     /// </summary>
-    private string SelectArchetypeCategory(SceneSelectionInputs inputs)
+    internal string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
         // Determine appropriate categories based on rhythm pattern ONLY
         List<string> appropriateCategories = GetCategoriesForRhythmPattern(inputs.RhythmPattern);
