@@ -329,28 +329,45 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
-# COMPOSITION OVER PARTIAL CLASSES
+# NO PARTIAL CLASSES
 
-**THE RULE:** Never use `partial class` to split large files. Use composition with separate service classes instead.
+**THE RULE:** The `partial class` keyword is FORBIDDEN. No exceptions except Blazor.
 
-**Why partial classes are FORBIDDEN:**
+**Why:**
 - Partial classes split files, not responsibilities
 - They hide complexity instead of reducing it
 - No clear boundaries between concerns
 - Testing remains difficult (one giant class)
-- Violates Single Responsibility Principle
 
-**Correct Pattern - Composition:**
-```
-WRONG: GameFacade.cs + GameFacade.Debug.cs (partial)
-RIGHT: GameFacade.cs → DebugService.cs (injected dependency)
-```
+**FORBIDDEN:**
+- `partial class` keyword in domain/service files
+- Splitting one class across multiple files
+- "Organizing" large files into partials
 
-| Problem | Wrong Solution | Right Solution |
-|---------|---------------|----------------|
+**Exception:** Blazor code-behind files (`.razor.cs`) require `partial class` because the `.razor` file generates the other partial. This is a framework requirement, not a design choice.
+
+**Enforcement:** Pre-commit hook blocks `partial class` patterns (except `.razor.cs` files).
+
+---
+
+# COMPOSITION OVER INHERITANCE
+
+**THE RULE:** Prefer has-a relationships (composition) over is-a relationships (inheritance).
+
+**Why:**
+- Inheritance creates tight coupling between base and derived
+- Composition allows runtime flexibility (swap implementations)
+- Smaller, focused classes are easier to test
+- Avoids fragile base class problem
+
+**Correct Pattern:**
+
+| Problem | Wrong (Inheritance) | Right (Composition) |
+|---------|---------------------|---------------------|
 | File too large | Split into partial files | Extract to composed services |
-| Multiple responsibilities | Multiple partial files | Multiple services with DI |
-| Debug methods bloating class | GameFacade.Debug.cs partial | DebugService injected into GameFacade |
+| Shared behavior | Base class with virtual methods | Inject shared service |
+| Multiple responsibilities | Deep inheritance hierarchy | Multiple injected services |
+| Debug methods bloating class | Inherit from DebugBase | Inject DebugService |
 
 **When file exceeds 1000 lines:**
 1. Identify cohesive method groups (seams)
@@ -360,13 +377,9 @@ RIGHT: GameFacade.cs → DebugService.cs (injected dependency)
 5. Original class becomes thin orchestrator
 
 **FORBIDDEN:**
-- `partial class` keyword in domain/service files
-- Splitting one class across multiple files
-- "Organizing" large files into partials
-
-**Exception:** Blazor code-behind files (`.razor.cs`) require `partial class` because the `.razor` file generates the other part. This is a framework requirement.
-
-**Enforcement:** Pre-commit hook blocks `partial class` patterns (except `.razor.cs` files).
+- Deep inheritance hierarchies (prefer flat + composition)
+- Base classes just to share code (use composition)
+- `protected` methods for subclass access (inject dependency instead)
 
 ---
 

@@ -453,28 +453,28 @@ if [ -n "$STAGED_CS" ]; then
 fi
 
 # ============================================================
-# SECTION 13: COMPOSITION OVER PARTIAL CLASSES
+# SECTION 13: NO PARTIAL CLASSES
 # ============================================================
-# Partial classes split files, not responsibilities. Use composition.
+# Partial classes split files, not responsibilities.
 # Exception: Blazor code-behind (.razor.cs) requires partial (framework requirement)
-# See CLAUDE.md "COMPOSITION OVER PARTIAL CLASSES"
+# See CLAUDE.md "NO PARTIAL CLASSES"
 
 # Exclude .razor.cs files (Blazor code-behind requires partial)
 NON_BLAZOR_CS=$(echo "$STAGED_CS_ALL" | grep -v '\.razor\.cs$' || true)
 if [ -n "$NON_BLAZOR_CS" ]; then
-    echo "[COMPOSITION] No Partial Classes..."
+    echo "[PARTIAL] No Partial Classes..."
 
     for file in $NON_BLAZOR_CS; do
         if [ -f "$file" ]; then
             MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'partial class\|partial struct\|partial interface' | grep -v '^\s*//' || true)
             if [ -n "$MATCHES" ]; then
-                echo "  ERROR [COMPOSITION]: Partial class in $file (use composition instead):"
+                echo "  ERROR [PARTIAL]: Partial class in $file:"
                 echo "$MATCHES" | head -3
                 echo ""
-                echo "    FORBIDDEN: partial class to split large files"
-                echo "    REQUIRED:  Extract to separate service, inject via DI"
+                echo "    FORBIDDEN: partial class keyword (except Blazor .razor.cs)"
+                echo "    REQUIRED:  Use composition - extract to separate service, inject via DI"
                 echo "    EXCEPTION: .razor.cs files (Blazor framework requirement)"
-                echo "    Reference: CLAUDE.md 'COMPOSITION OVER PARTIAL CLASSES'"
+                echo "    Reference: CLAUDE.md 'NO PARTIAL CLASSES'"
                 VIOLATIONS=$((VIOLATIONS+1))
             fi
         fi
