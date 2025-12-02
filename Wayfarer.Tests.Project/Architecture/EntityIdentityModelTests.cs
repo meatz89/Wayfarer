@@ -275,11 +275,11 @@ public class EntityIdentityModelTests
     [Fact]
     public void HelperEntries_UseObjectReferences()
     {
-        // KnownRouteEntry
-        Type knownRouteType = typeof(KnownRouteEntry);
-        PropertyInfo originProp = knownRouteType.GetProperty("OriginLocation");
-        Assert.NotNull(originProp);
-        Assert.Equal(typeof(Location), originProp.PropertyType);
+        // Player.KnownRoutes should be List<RouteOption> (no wrapper class needed)
+        Type playerType = typeof(Player);
+        PropertyInfo knownRoutesProp = playerType.GetProperty("KnownRoutes");
+        Assert.NotNull(knownRoutesProp);
+        Assert.Equal(typeof(List<RouteOption>), knownRoutesProp.PropertyType);
 
         // NPCExchangeCardEntry
         Type exchangeEntryType = typeof(NPCExchangeCardEntry);

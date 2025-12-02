@@ -244,7 +244,7 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>(),
+                    StatRequirements = new List<StatRequirementEntry>(),
 
                     // TWO-PHASE SCALING: Apply entity-derived adjustments for display
                     ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
@@ -316,7 +316,7 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>(),
+                    StatRequirements = new List<StatRequirementEntry>(),
 
                     // TWO-PHASE SCALING: Apply entity-derived adjustments for display
                     ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),

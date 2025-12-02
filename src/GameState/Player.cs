@@ -76,10 +76,9 @@ public class Player
     public AxialCoordinates CurrentPosition { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
-    public List<KnownRouteEntry> KnownRoutes { get; private set; } = new List<KnownRouteEntry>();
+    public List<RouteOption> KnownRoutes { get; private set; } = new List<RouteOption>();
 
     public List<MeetingObligation> MeetingObligations { get; set; } = new List<MeetingObligation>();
-    public List<NPCTokenEntry> NPCTokens { get; private set; } = new List<NPCTokenEntry>();
 
     // Physical DeliveryObligation Carrying
     public int MaxSatchelSize { get; set; } = 12; // Maximum size capacity for letters in satchel
@@ -116,12 +115,10 @@ public class Player
     // No ID lookups - objects stored directly
 
     // Route Familiarity System (0-5 scale per route)
-    // HIGHLANDER: Object reference to RouteOption, not string ID
-    public List<RouteFamiliarityEntry> RouteFamiliarity { get; set; } = new List<RouteFamiliarityEntry>();
+    // HIGHLANDER: Stored directly on RouteOption.Familiarity property
 
     // Location Familiarity System (Work Packet 1)
-    // HIGHLANDER: Object reference to Location, not string ID
-    public List<LocationFamiliarityEntry> LocationFamiliarity { get; set; } = new List<LocationFamiliarityEntry>();
+    // HIGHLANDER: Stored directly on Location.Familiarity property
 
     // ============================================
     // INTERACTION HISTORY (Procedural Content Generation - LeastRecent Selection Strategy)
@@ -317,149 +314,71 @@ public class Player
     public void AddKnownRoute(RouteOption route)
     {
         // ZERO NULL TOLERANCE: route must never be null (architectural guarantee from caller)
-        // HIGHLANDER: Use Location object for lookup, not string name
-        Location origin = route.OriginLocation;
-
-        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginLocation == origin);
-        if (routeEntry == null)
+        // HIGHLANDER: Check by origin + destination Location objects, not string IDs
+        if (!KnownRoutes.Any(r => r.OriginLocation == route.OriginLocation && r.DestinationLocation == route.DestinationLocation))
         {
-            routeEntry = new KnownRouteEntry { OriginLocation = origin };
-            KnownRoutes.Add(routeEntry);
-        }
-
-        // Only add if not already known
-        if (!routeEntry.Routes.Any(r => r.DestinationLocation == route.DestinationLocation))
-        {
-            routeEntry.Routes.Add(route);
+            KnownRoutes.Add(route);
         }
     }
 
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
-    /// HIGHLANDER: Uses object equality, not string comparison
+    /// HIGHLANDER: Reads directly from RouteOption.Familiarity property
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public int GetRouteFamiliarity(RouteOption route)
     {
-        RouteFamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.Route == route);
-        return entry != null ? entry.Level : 0;
+        return route.Familiarity;
     }
 
     /// <summary>
     /// Set route familiarity to a specific value (max 5)
-    /// HIGHLANDER: Uses object equality, not string comparison
+    /// HIGHLANDER: Writes directly to RouteOption.Familiarity property
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void SetRouteFamiliarity(RouteOption route, int level)
     {
-        RouteFamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.Route == route);
-        if (existing != null)
-        {
-            existing.Level = level;
-        }
-        else
-        {
-            RouteFamiliarity.Add(new RouteFamiliarityEntry { Route = route, Level = level });
-        }
+        route.Familiarity = Math.Min(5, Math.Max(0, level));
     }
 
     /// <summary>
     /// Increase route familiarity after successful travel (max 5)
-    /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// HIGHLANDER: Modifies RouteOption.Familiarity property directly
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void IncreaseRouteFamiliarity(RouteOption route, int amount = 1)
     {
-        int current = GetRouteFamiliarity(route);
-        SetRouteFamiliarity(route, Math.Min(5, current + amount));
+        route.Familiarity = Math.Min(5, route.Familiarity + amount);
     }
 
     /// <summary>
     /// Check if route is mastered (familiarity = 5)
-    /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// HIGHLANDER: Reads directly from RouteOption.Familiarity property
     /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public bool IsRouteMastered(RouteOption route)
     {
-        return GetRouteFamiliarity(route) >= 5;
+        return route.Familiarity >= 5;
     }
 
     /// <summary>
     /// Get familiarity level for a Location (0-3 scale)
-    /// HIGHLANDER: Uses object equality, not string comparison
+    /// HIGHLANDER: Reads directly from Location.Familiarity property
     /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public int GetLocationFamiliarity(Location location)
     {
-        LocationFamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.Location == location);
-        return entry != null ? entry.Level : 0;
+        return location.Familiarity;
     }
 
     /// <summary>
     /// Set Location familiarity to a specific value (max 3)
-    /// HIGHLANDER: Uses object equality, not string comparison
+    /// HIGHLANDER: Writes directly to Location.Familiarity property
     /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public void SetLocationFamiliarity(Location location, int value)
     {
-        int clampedValue = Math.Min(3, Math.Max(0, value));
-        LocationFamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.Location == location);
-        if (existing != null)
-        {
-            existing.Level = clampedValue;
-        }
-        else
-        {
-            LocationFamiliarity.Add(new LocationFamiliarityEntry { Location = location, Level = clampedValue });
-        }
-    }
-
-    // ============================================
-    // NPC TOKEN MANAGEMENT (Connection system)
-    // ============================================
-
-    /// <summary>
-    /// Get token count for specific NPC and connection type
-    /// HIGHLANDER: Accept NPC object, not string ID
-    /// ZERO NULL TOLERANCE: npc must never be null
-    /// </summary>
-    public int GetNPCTokenCount(NPC npc, ConnectionType type)
-    {
-        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
-        return entry != null ? entry.GetTokenCount(type) : 0;
-    }
-
-    /// <summary>
-    /// Set token count for specific NPC and connection type
-    /// HIGHLANDER: Accept NPC object, not string ID
-    /// ZERO NULL TOLERANCE: npc must never be null
-    /// </summary>
-    public void SetNPCTokenCount(NPC npc, ConnectionType type, int count)
-    {
-        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
-        if (entry == null)
-        {
-            entry = new NPCTokenEntry { Npc = npc };
-            NPCTokens.Add(entry);
-        }
-        entry.SetTokenCount(type, count);
-    }
-
-    /// <summary>
-    /// Get NPC token entry (creates if doesn't exist)
-    /// HIGHLANDER: Accepts NPC object, not string ID
-    /// </summary>
-    public NPCTokenEntry GetNPCTokenEntry(NPC npc)
-    {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
-        if (entry == null)
-        {
-            entry = new NPCTokenEntry { Npc = npc };
-            NPCTokens.Add(entry);
-        }
-        return entry;
+        location.Familiarity = Math.Min(3, Math.Max(0, value));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)

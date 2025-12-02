@@ -98,15 +98,15 @@ public class TokenEffectProcessor
         }
 
         // Apply equipment bonuses (additive stacking)
+        // DOMAIN COLLECTION PRINCIPLE: List<ConnectionTypeTokenEntry> with strongly-typed entries
         foreach (Item item in player.Inventory.GetAllItems())
         {
-            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.TokenGenerationBonuses != null)
             {
-                foreach (KeyValuePair<ConnectionType, int> bonus in item.TokenGenerationBonuses)
+                foreach (ConnectionTypeTokenEntry bonus in item.TokenGenerationBonuses)
                 {
                     // Add bonuses together (e.g., +1 from item A + +2 from item B = +3 total)
-                    activeBonuses[bonus.Key] = activeBonuses[bonus.Key] + bonus.Value;
+                    activeBonuses[bonus.Type] = activeBonuses[bonus.Type] + bonus.Amount;
                 }
             }
         }

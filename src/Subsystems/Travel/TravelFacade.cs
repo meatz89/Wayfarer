@@ -388,12 +388,13 @@ public class TravelFacade
         }
 
         // Check stat requirements
+        // DOMAIN COLLECTION PRINCIPLE: List<StatRequirementEntry> with strongly-typed entries
         if (card.StatRequirements != null && card.StatRequirements.Count > 0)
         {
-            foreach (KeyValuePair<string, int> statRequirement in card.StatRequirements)
+            foreach (StatRequirementEntry statRequirement in card.StatRequirements)
             {
                 // Convert string stat name to PlayerStatType enum
-                if (Enum.TryParse<PlayerStatType>(statRequirement.Key, true, out PlayerStatType statType))
+                if (Enum.TryParse<PlayerStatType>(statRequirement.StatName, true, out PlayerStatType statType))
                 {
                     int currentLevel = statType switch
                     {
@@ -404,18 +405,18 @@ public class TravelFacade
                         PlayerStatType.Cunning => player.Cunning,
                         _ => 0
                     };
-                    if (currentLevel < statRequirement.Value)
+                    if (currentLevel < statRequirement.RequiredValue)
                     {
                         return new PathCardAvailability
                         {
                             CanPlay = false,
-                            Reason = $"Requires {statRequirement.Key} level {statRequirement.Value}, have {currentLevel}"
+                            Reason = $"Requires {statRequirement.StatName} level {statRequirement.RequiredValue}, have {currentLevel}"
                         };
                     }
                 }
                 else
                 {
-                    return new PathCardAvailability { CanPlay = false, Reason = $"Invalid stat requirement: {statRequirement.Key}" };
+                    return new PathCardAvailability { CanPlay = false, Reason = $"Invalid stat requirement: {statRequirement.StatName}" };
                 }
             }
         }

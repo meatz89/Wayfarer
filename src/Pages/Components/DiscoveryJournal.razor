@@ -70,11 +70,11 @@
                                 <div class="location-hints">
                                     <div class="hints-title">Situations remaining at:</div>
                                     <div class="location-list">
-                                        @foreach (var kvp in locationCounts)
+                                        @foreach (LocationSituationCount entry in locationCounts)
                                         {
                                             <div class="location-tag">
-                                                @kvp.Key
-                                                <span class="location-count">@kvp.Value</span>
+                                                @entry.LocationName
+                                                <span class="location-count">@entry.SituationCount</span>
                                             </div>
                                         }
                                     </div>

@@ -67,30 +67,23 @@ namespace Wayfarer.Pages.Components
 
         protected int GetExploredRouteCount()
         {
-            return GameWorld.GetPlayer().KnownRoutes.Sum(kr => kr.Routes.Count);
+            return GameWorld.GetPlayer().KnownRoutes.Count;
         }
 
         protected List<RouteInfo> GetKnownRoutes()
         {
             Player player = GameWorld.GetPlayer();
-            List<RouteInfo> routes = new List<RouteInfo>();
 
-            foreach (KnownRouteEntry entry in player.KnownRoutes)
-            {
-                foreach (RouteOption route in entry.Routes)
+            return player.KnownRoutes
+                .Select(route => new RouteInfo
                 {
-                    routes.Add(new RouteInfo
-                    {
-                        Route = route,
-                        OriginName = route.OriginLocation.Name,
-                        DestinationName = route.DestinationLocation.Name,
-                        // HIGHLANDER: Pass RouteOption object directly
-                        Familiarity = player.GetRouteFamiliarity(route)
-                    });
-                }
-            }
-
-            return routes.OrderBy(r => r.OriginName).ToList();
+                    Route = route,
+                    OriginName = route.OriginLocation.Name,
+                    DestinationName = route.DestinationLocation.Name,
+                    Familiarity = player.GetRouteFamiliarity(route)
+                })
+                .OrderBy(r => r.OriginName)
+                .ToList();
         }
 
         protected int GetRouteFamiliarity(RouteInfo routeInfo)
@@ -156,14 +149,24 @@ namespace Wayfarer.Pages.Components
             return new List<ObligationPhaseDefinition>();
         }
 
-        protected Dictionary<string, int> GetRemainingSituationsByLocation(ActiveObligation activeInv)
+        protected List<LocationSituationCount> GetRemainingSituationsByLocation(ActiveObligation activeInv)
         {
             // NOTE: Obligation phases no longer reference situations directly
             // Situations are now contained within scenes spawned by obligations
             // This UI method needs redesign to show scene locations instead
-            // For now, return empty dictionary until scene-based UI is implemented
-            return new Dictionary<string, int>();
+            // For now, return empty list until scene-based UI is implemented
+            return new List<LocationSituationCount>();
         }
+    }
+
+    /// <summary>
+    /// UI-specific entry class for displaying situation counts by location.
+    /// DOMAIN COLLECTION PRINCIPLE: Strongly-typed entry instead of Dictionary.
+    /// </summary>
+    public class LocationSituationCount
+    {
+        public string LocationName { get; set; }
+        public int SituationCount { get; set; }
     }
 
     public class RouteInfo

@@ -1870,7 +1870,8 @@ public class GameOrchestrator
                 await _rewardApplicationService.ApplyConsequence(pathCardEffects, situation);
 
                 // Token gains (future implementation)
-                foreach (KeyValuePair<string, int> tokenGain in card.TokenGains)
+                // DOMAIN COLLECTION PRINCIPLE: List<TokenGainEntry> with strongly-typed entries
+                foreach (TokenGainEntry tokenGain in card.TokenGains)
                 {
                     // Token system integration (future implementation)
                 }

@@ -92,6 +92,9 @@ public class RouteOption
     // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
     public int ExplorationCubes { get; set; } = 0;
 
+    // Route familiarity - tracks player's knowledge of this specific route (0-5 scale)
+    public int Familiarity { get; set; } = 0;
+
     // HEX-BASED TRAVEL SYSTEM - Procedural route generation from spatial scaffolding
     /// <summary>
     /// Underlying hex path connecting origin to destination

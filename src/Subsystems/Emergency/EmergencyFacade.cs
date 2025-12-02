@@ -286,11 +286,11 @@ public class EmergencyFacade
         }
 
         // Apply specific NPC relationship changes
-        // HIGHLANDER: NPCRelationshipDeltas uses NPC object keys (no string IDs)
-        foreach (KeyValuePair<NPC, int> kvp in outcome.NPCRelationshipDeltas)
+        // DOMAIN COLLECTION PRINCIPLE: List<NPCRelationshipDelta> with strongly-typed entries
+        foreach (NPCRelationshipDelta entry in outcome.NPCRelationshipDeltas)
         {
-            NPC npc = kvp.Key;
-            int delta = kvp.Value;
+            NPC npc = entry.Npc;
+            int delta = entry.Delta;
 
             if (delta > 0)
             {

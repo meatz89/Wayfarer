@@ -472,11 +472,11 @@ public class PackageLoader
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == kvp.Key);
                 if (npc != null)
                 {
-                    NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(npc);
-                    tokenEntry.Trust = kvp.Value.Trust;
-                    tokenEntry.Diplomacy = kvp.Value.Diplomacy;
-                    tokenEntry.Status = kvp.Value.Status;
-                    tokenEntry.Shadow = kvp.Value.Shadow;
+                    // HIGHLANDER: Set tokens directly on NPC
+                    npc.Trust = kvp.Value.Trust;
+                    npc.Diplomacy = kvp.Value.Diplomacy;
+                    npc.Status = kvp.Value.Status;
+                    npc.Shadow = kvp.Value.Shadow;
                 }
             }
         }
