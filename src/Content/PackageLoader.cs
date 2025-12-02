@@ -205,7 +205,7 @@ public class PackageLoader
 
         // Final validation and initialization
         PackageLoaderValidation.ValidateCrossroadsConfiguration(_gameWorld);
-        InitializeTravelDiscoverySystem();
+        _travelLoader.InitializeTravelDiscoverySystem();
         InitializeObligationJournal();
     }
 
@@ -735,46 +735,6 @@ public class PackageLoader
         {
             StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto, _gameWorld);
             _gameWorld.StandingObligationTemplates.Add(obligation);
-        }
-    }
-
-    /// <summary>
-    /// Initialize the travel discovery system state after all content is loaded
-    /// </summary>
-    private void InitializeTravelDiscoverySystem()
-    {// Initialize PathCardDiscoveries from cards embedded in collections
-     // First from path collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.Select(c => c.Collection))
-        {
-            foreach (PathCardDTO pathCard in collection.PathCards)
-            {
-                _gameWorld.SetPathCardDiscovered(pathCard, pathCard.StartsRevealed);
-            }
-        }
-
-        // Also initialize discovery states for event cards in event collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.Select(c => c.Collection))
-        {
-            foreach (PathCardDTO eventCard in collection.EventCards)
-            {
-                _gameWorld.SetPathCardDiscovered(eventCard, eventCard.StartsRevealed);
-            }
-        }
-
-        // Cards are now embedded directly in collections
-        // No separate card dictionaries needed
-
-        // Initialize EventDeckPositions for routes with event pools
-        foreach (PathCollectionEntry entry in _gameWorld.AllEventCollections)
-        {
-            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-            string routeId = entry.Collection.Id;
-            string deckKey = $"route_{routeId}_events";
-
-            // Start at position 0 for deterministic event drawing
-            _gameWorld.SetEventDeckPosition(deckKey, 0);
-
-            int eventCount = entry.Collection.Events?.Count ?? 0;
         }
     }
 
