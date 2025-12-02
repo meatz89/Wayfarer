@@ -208,6 +208,7 @@ public class ServiceStatelessnessTests
                     p.ParameterType == typeof(GameWorld) ||
                     p.ParameterType == typeof(NPC) ||
                     p.ParameterType == typeof(Location) ||
+                    p.ParameterType == typeof(SocialSession) ||
                     p.Name.Contains("context", StringComparison.OrdinalIgnoreCase));
 
                 if (receivesState) methodsReceivingState++;
