@@ -107,7 +107,7 @@ public class GameWorld
     // Initialization data - stored in GameWorld, not passed between phases
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
-    // HIGHLANDER: Starting location as object reference (set by PackageLoader, used by GameFacade.StartGameAsync)
+    // HIGHLANDER: Starting location as object reference (set by PackageLoader, used by GameOrchestrator.StartGameAsync)
     // Player.CurrentPosition initialized from StartingLocation.HexPosition at game start
     public Location StartingLocation { get; set; }
 

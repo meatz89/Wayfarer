@@ -20,7 +20,7 @@ namespace Wayfarer.Pages.Components
     /// IMPLEMENTATION REQUIREMENTS:
     /// - LoadAvailableRoutes() fetches display data only (no mutations)
     /// - Route availability determined by backend (discovery, permits, etc.)
-    /// - Travel execution creates TravelIntent (processed by GameFacade)
+    /// - Travel execution creates TravelIntent (processed by GameOrchestrator)
     /// - Resource costs shown but not deducted in UI (backend validates)
     /// </summary>
     public class TravelContentBase : ComponentBase
@@ -28,7 +28,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public string CurrentLocation { get; set; }
         [Parameter] public EventCallback OnNavigate { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
         [Inject] protected TravelManager TravelManager { get; set; }
@@ -38,7 +38,7 @@ namespace Wayfarer.Pages.Components
         protected TravelContext CurrentTravelContext { get; set; }
 
         // Properties for template display
-        protected Player CurrentPlayer => GameFacade.GetPlayer();
+        protected Player CurrentPlayer => GameOrchestrator.GetPlayer();
         protected TimeBlocks CurrentTimeBlock => TimeManager.GetCurrentTimeBlock();
 
         protected override async Task OnInitializedAsync()
@@ -65,12 +65,12 @@ namespace Wayfarer.Pages.Components
 
         private void LoadAvailableRoutes()
         {
-            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            Venue currentVenue = GameOrchestrator.GetCurrentLocation().Venue;
             if (currentVenue == null)
             {
                 return;
             }
-            List<RouteOption> routes = GameFacade.GetAvailableRoutes(); foreach (RouteOption route in routes)
+            List<RouteOption> routes = GameOrchestrator.GetAvailableRoutes(); foreach (RouteOption route in routes)
             { }
 
             AvailableRoutes = routes.Select(r => new RouteViewModel
@@ -118,8 +118,8 @@ namespace Wayfarer.Pages.Components
 
             Venue venue = location.Venue;
             // HIGHLANDER: Pass Venue object to GetDistrictForLocation, not string
-            District district = GameFacade.GetDistrictForLocation(venue);
-            Region region = GameFacade.GetRegionForDistrict(district);
+            District district = GameOrchestrator.GetDistrictForLocation(venue);
+            Region region = GameOrchestrator.GetRegionForDistrict(district);
 
             if (region != null)
             {
@@ -146,7 +146,7 @@ namespace Wayfarer.Pages.Components
             int hungerCost = route.BaseStaminaCost; // This is the hunger cost in the data
 
             // Add load penalties
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
             int itemCount = player.Inventory.GetAllItems().Count;
             if (itemCount > 3) // Light load threshold
             {
@@ -270,21 +270,21 @@ namespace Wayfarer.Pages.Components
         protected bool CanTakeRoute(RouteViewModel route)
         {
             // Check coin cost
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
             if (player.Coins < route.Cost)
                 return false;
 
             // Check requirements (includes token requirements, time restrictions, etc.)
             // Requirements list is populated by GetRouteRequirements which checks tokens
             // If there are any unmet requirements, the route cannot be taken
-            // The actual token checking happens in GameFacade when building the requirements list
+            // The actual token checking happens in GameOrchestrator when building the requirements list
 
             return true; // All basic checks passed
         }
 
         protected string GetCannotTravelReason(RouteViewModel route)
         {
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             if (player.Coins < route.Cost)
                 return $"Need {route.Cost} coins";

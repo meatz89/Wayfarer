@@ -26,17 +26,17 @@ public class IntegrationTestBase
     }
 
     /// <summary>
-    /// Get or initialize GameFacade for testing.
+    /// Get or initialize GameOrchestrator for testing.
     /// Initializes full service container with all dependencies.
     /// </summary>
-    protected GameFacade GetGameFacade()
+    protected GameOrchestrator GetGameOrchestrator()
     {
         if (_serviceProvider == null)
         {
             InitializeServiceProvider();
         }
 
-        return _serviceProvider.GetRequiredService<GameFacade>();
+        return _serviceProvider.GetRequiredService<GameOrchestrator>();
     }
 
     /// <summary>

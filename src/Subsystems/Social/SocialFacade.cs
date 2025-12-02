@@ -182,8 +182,8 @@ public class SocialFacade
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
-        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
-        // PendingContext stays alive for GameFacade to process
+        // Rewards are strategic layer concern - GameOrchestrator applies them after receiving outcome
+        // PendingContext stays alive for GameOrchestrator to process
 
         _gameWorld.CurrentSocialSession.Deck.ResetForNewConversation();
         _gameWorld.CurrentSocialSession = null;
@@ -427,7 +427,7 @@ public class SocialFacade
 
     /// <summary>
     /// Create a conversation context for UI - returns typed context
-    /// NOTE: NPC-triggered scene activation is orchestrated by GameFacade BEFORE calling this method
+    /// NOTE: NPC-triggered scene activation is orchestrated by GameOrchestrator BEFORE calling this method
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {

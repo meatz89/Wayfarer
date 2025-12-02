@@ -449,7 +449,7 @@ public class PackageLoader
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
         // HIGHLANDER: Store starting location object reference in GameWorld
-        // GameFacade.StartGameAsync uses this to initialize Player.CurrentPosition
+        // GameOrchestrator.StartGameAsync uses this to initialize Player.CurrentPosition
         _gameWorld.StartingLocation = startingLocation;
 
         // Apply starting obligations

@@ -531,6 +531,35 @@ if [ -n "$CATALOG_CS" ]; then
 fi
 
 # ============================================================
+# SECTION 16: FACADE ISOLATION (NO LATERAL DEPENDENCIES)
+# ============================================================
+# Facades may never reference other facades - only GameOrchestrator can orchestrate
+# See CLAUDE.md "FACADE ISOLATION (NO LATERAL DEPENDENCIES)"
+
+FACADE_FILES=$(echo "$STAGED_CS" | grep -E 'Facade\.cs$' | grep -v 'GameOrchestrator\|GameOrchestrator' || true)
+if [ -n "$FACADE_FILES" ]; then
+    echo "[FACADE] Facade Isolation..."
+
+    for file in $FACADE_FILES; do
+        if [ -f "$file" ]; then
+            # Check for references to other facades (field declarations, constructor params, method calls)
+            # Pattern: XyzFacade (any word ending in Facade that's not the file's own facade)
+            BASENAME=$(basename "$file" .cs)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -nE '(private|readonly|public).*[A-Z][a-zA-Z]*Facade[^;]*;|[A-Z][a-zA-Z]*Facade [a-z]' | grep -v "^\s*//" | grep -v "$BASENAME" || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [FACADE]: Lateral facade dependency in $file:"
+                echo "$MATCHES" | head -5
+                echo ""
+                echo "    FORBIDDEN: Facades calling other facades directly"
+                echo "    REQUIRED:  GameOrchestrator coordinates between facades"
+                echo "    Reference: CLAUDE.md 'FACADE ISOLATION'"
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
 # SUMMARY
 # ============================================================
 echo ""

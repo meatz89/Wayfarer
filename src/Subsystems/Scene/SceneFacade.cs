@@ -8,7 +8,7 @@
 /// - Instantiate ChoiceTemplates into actions (LocationAction/NPCAction/PathCard)
 /// - Create provisional Scenes for actions with spawn rewards
 /// - Return display models to UI
-/// Does NOT execute actions (GameFacade handles execution)
+/// Does NOT execute actions (GameOrchestrator handles execution)
 /// </summary>
 public class SceneFacade
 {

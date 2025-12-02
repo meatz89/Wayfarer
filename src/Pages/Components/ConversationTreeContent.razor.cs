@@ -8,8 +8,8 @@ namespace Wayfarer.Pages.Components
     ///
     /// ARCHITECTURAL PRINCIPLES:
     /// - Follows the authoritative parent pattern - receives GameScreen via CascadingParameter
-    /// - ConversationTreeContext passed as Parameter from parent (created by GameFacade)
-    /// - All game state mutations go through GameFacade
+    /// - ConversationTreeContext passed as Parameter from parent (created by GameOrchestrator)
+    /// - All game state mutations go through GameOrchestrator
     /// - Simple dialogue tree navigation with potential escalation to Social challenges
     /// </summary>
     public class ConversationTreeContentBase : ComponentBase
@@ -18,22 +18,22 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
 
         protected async Task HandleSelectResponse(DialogueResponse response)
         {
             if (Context == null || !Context.IsValid) return;
             if (Context.CurrentNode == null) return;
 
-            ConversationTreeResult result = await GameFacade.SelectConversationResponse(
+            ConversationTreeResult result = await GameOrchestrator.SelectConversationResponse(
                 Context.Tree,
                 Context.CurrentNode,
                 response);
 
             if (!result.Success)
             {
-                // Show error message through GameFacade message system
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                // Show error message through GameOrchestrator message system
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to select response",
                     SystemMessageTypes.Danger);
                 return;
@@ -54,7 +54,7 @@ namespace Wayfarer.Pages.Components
             else if (result.NextNode != null)
             {
                 // Refresh context with new node
-                Context = GameFacade.CreateConversationTreeContext(Context.Tree);
+                Context = GameOrchestrator.CreateConversationTreeContext(Context.Tree);
                 StateHasChanged();
             }
         }

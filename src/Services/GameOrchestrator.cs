@@ -1,11 +1,11 @@
 using System.Text;
 
 /// <summary>
-/// GameFacade - Pure orchestrator for UI-Backend communication.
-/// Delegates ALL business logic to specialized facades.
-/// Coordinates cross-facade operations and handles UI-specific orchestration.
+/// GameOrchestrator - THE single entry point for UI-Backend communication.
+/// FACADE ISOLATION: Only this class can coordinate between facades.
+/// Facades may NEVER reference other facades directly - orchestration happens here.
 /// </summary>
-public class GameFacade
+public class GameOrchestrator
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
@@ -46,7 +46,12 @@ public class GameFacade
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
 
-    public GameFacade(
+    // Composed services (extracted via COMPOSITION OVER INHERITANCE)
+    private readonly DebugCommandHandler _debugCommandHandler;
+    private readonly InteractionHistoryRecorder _interactionHistoryRecorder;
+    private readonly TimeAdvancementOrchestrator _timeAdvancementOrchestrator;
+
+    public GameOrchestrator(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         SocialFacade conversationFacade,
@@ -77,7 +82,10 @@ public class GameFacade
         SceneInstantiator sceneInstantiator,
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
-        ContentGenerationFacade contentGenerationFacade)
+        ContentGenerationFacade contentGenerationFacade,
+        DebugCommandHandler debugCommandHandler,
+        InteractionHistoryRecorder interactionHistoryRecorder,
+        TimeAdvancementOrchestrator timeAdvancementOrchestrator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -109,6 +117,9 @@ public class GameFacade
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _debugCommandHandler = debugCommandHandler ?? throw new ArgumentNullException(nameof(debugCommandHandler));
+        _interactionHistoryRecorder = interactionHistoryRecorder ?? throw new ArgumentNullException(nameof(interactionHistoryRecorder));
+        _timeAdvancementOrchestrator = timeAdvancementOrchestrator ?? throw new ArgumentNullException(nameof(timeAdvancementOrchestrator));
     }
 
     // ========== CORE GAME STATE ==========
@@ -412,7 +423,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Play a conversation card - proper architectural flow through GameFacade
+    /// Play a conversation card - proper architectural flow through GameOrchestrator
     /// </summary>
     public async Task<SocialTurnResult> PlayConversationCard(CardInstance card)
     {
@@ -426,7 +437,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Execute listen action in current conversation - proper architectural flow through GameFacade
+    /// Execute listen action in current conversation - proper architectural flow through GameOrchestrator
     /// </summary>
     public async Task<SocialTurnResult> ExecuteListen()
     {
@@ -862,7 +873,7 @@ public class GameFacade
 
         // Execute with data from entity
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
+        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameOrchestrator controls time progression
         _resourceFacade.ExecuteWait(); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
@@ -927,7 +938,7 @@ public class GameFacade
 
         // Execute with data from entity - HIGHLANDER: Consequence is unified
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
+        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameOrchestrator controls time progression
         await _resourceFacade.ExecuteRest(action.Consequence); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
@@ -1616,7 +1627,7 @@ public class GameFacade
 
     /// <summary>
     /// HIGHLANDER ORCHESTRATOR: Spawn scene with dynamic content generation
-    /// GameFacade is SOLE orchestrator for multi-facade operations
+    /// GameOrchestrator is SOLE orchestrator for multi-facade operations
     /// LET IT CRASH: Pipeline succeeds completely or throws exception with stack trace
     /// </summary>
     public async Task<Scene> SpawnSceneWithDynamicContent(
@@ -1629,7 +1640,7 @@ public class GameFacade
 
         if (string.IsNullOrEmpty(packageJson))
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions");
+            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed spawn conditions");
             return null;
         }
 
@@ -1639,7 +1650,7 @@ public class GameFacade
 
         if (scene == null)
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed to load via PackageLoader");
+            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed to load via PackageLoader");
             return null;
         }
 
@@ -1727,11 +1738,11 @@ public class GameFacade
 
             if (scene == null)
             {
-                Console.WriteLine($"[GameFacade] Initial scene '{template.Id}' failed to spawn - skipping");
+                Console.WriteLine($"[GameOrchestrator] Initial scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
 
-            Console.WriteLine($"[GameFacade] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
+            Console.WriteLine($"[GameOrchestrator] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 
@@ -2226,7 +2237,7 @@ public class GameFacade
 
     /// <summary>
     /// Process social challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessSocialChallengeOutcome()
     {
@@ -2269,7 +2280,7 @@ public class GameFacade
 
     /// <summary>
     /// Process mental challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessMentalChallengeOutcome()
     {
@@ -2312,7 +2323,7 @@ public class GameFacade
 
     /// <summary>
     /// Process physical challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessPhysicalChallengeOutcome()
     {

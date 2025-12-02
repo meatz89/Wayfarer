@@ -21,7 +21,7 @@ namespace Wayfarer.Pages.Components
     /// IMPLEMENTATION REQUIREMENTS:
     /// - InitializeFromContext() only runs when Context.NpcId changes (safe guard)
     /// - Conversation state is ephemeral (OK to recreate on each render)
-    /// - All game state mutations go through GameFacade (has idempotence)
+    /// - All game state mutations go through GameOrchestrator (has idempotence)
     /// </summary>
     public class ConversationContentBase : ComponentBase
     {
@@ -30,7 +30,7 @@ namespace Wayfarer.Pages.Components
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
         [Inject] protected SocialFacade ConversationFacade { get; set; }
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected ItemRepository ItemRepository { get; set; }
         [Inject] protected SocialNarrativeService NarrativeService { get; set; }
@@ -124,7 +124,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to disable buttons
 
                 // Delegate to facade - all game logic handled there
-                SocialTurnResult listenResult = await GameFacade.ExecuteListen();
+                SocialTurnResult listenResult = await GameOrchestrator.ExecuteListen();
 
                 if (listenResult == null)
                 {
@@ -181,7 +181,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to disable buttons
 
                 // Delegate to facade - all game logic handled there
-                SocialTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
+                SocialTurnResult turnResult = await GameOrchestrator.PlayConversationCard(SelectedCard);
 
                 if (turnResult?.CardPlayResult == null)
                 {
@@ -398,7 +398,7 @@ namespace Wayfarer.Pages.Components
             if (IsConversationEnded) return false;
 
             // UI MUST ONLY ASK BACKEND - NO GAME LOGIC IN UI
-            return GameFacade.CanPlayCard(card, Session);
+            return GameOrchestrator.CanPlayCard(card, Session);
         }
 
         protected string GetProperCardName(CardInstance card)
@@ -419,8 +419,8 @@ namespace Wayfarer.Pages.Components
                 status.Add(npc.Profession.ToString());
 
             // Get current Venue name
-            if (GameFacade == null) return status;
-            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            if (GameOrchestrator == null) return status;
+            Venue currentVenue = GameOrchestrator.GetCurrentLocation().Venue;
             if (currentVenue != null && !string.IsNullOrEmpty(currentVenue.Name))
                 status.Add(currentVenue.Name);
 
@@ -443,11 +443,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null)
-                throw new InvalidOperationException("GameFacade is null");
+            if (GameOrchestrator == null)
+                throw new InvalidOperationException("GameOrchestrator is null");
 
-            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
-            Location currentSpot = GameFacade.GetCurrentLocation();
+            Venue currentVenue = GameOrchestrator.GetCurrentLocation().Venue;
+            Location currentSpot = GameOrchestrator.GetCurrentLocation();
 
             if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
@@ -837,7 +837,7 @@ namespace Wayfarer.Pages.Components
             try
             {
                 // Situation cards use PlayConversationCard - SocialFacade handles situation card logic
-                SocialTurnResult result = await GameFacade.PlayConversationCard(situationCard);
+                SocialTurnResult result = await GameOrchestrator.PlayConversationCard(situationCard);
 
                 if (result != null && result.Success)
                 {

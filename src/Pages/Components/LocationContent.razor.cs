@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 /// </summary>
 public class LocationContentBase : ComponentBase
 {
-    [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
     [Inject] protected GameWorld GameWorld { get; set; }
     [Inject] protected SceneFacade SceneFacade { get; set; }
 
@@ -45,17 +45,17 @@ public class LocationContentBase : ComponentBase
     private async Task RefreshLocationData()
     {
         // Evaluate obligation discovery
-        await GameFacade.EvaluateObligationDiscovery();
+        await GameOrchestrator.EvaluateObligationDiscovery();
 
         // ONE call to backend - receives ALL data pre-built
-        ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
+        ViewModel = GameOrchestrator.GetLocationFacade().GetLocationContentViewModel();
 
         // Load available conversation trees and observation scenes for current location
         Location currentLocation = GameWorld.GetPlayerCurrentLocation();
         if (currentLocation != null)
         {
-            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(currentLocation);
-            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(currentLocation);
+            AvailableConversationTrees = GameOrchestrator.GetAvailableConversationTreesAtLocation(currentLocation);
+            AvailableObservationScenes = GameOrchestrator.GetAvailableObservationScenesAtLocation(currentLocation);
 
             // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
             // Scene completed Situation 1 with ExitToWorld routing (different context required)
@@ -116,7 +116,7 @@ public class LocationContentBase : ComponentBase
         }
 
         // Execute via intent system - backend decides everything
-        IntentResult result = await GameFacade.ProcessIntent(intent);
+        IntentResult result = await GameOrchestrator.ProcessIntent(intent);
 
         // Interpret result without making decisions - just follow backend instructions
         if (result.Success)
@@ -140,7 +140,7 @@ public class LocationContentBase : ComponentBase
                 await OnActionExecuted.InvokeAsync();
 
                 // MODAL SCENE FORCING: Check if action triggered a forced modal scene
-                // ADR-007: GameFacade sets PendingForcedScene object after successful movement actions
+                // ADR-007: GameOrchestrator sets PendingForcedScene object after successful movement actions
                 // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
                 if (GameWorld.PendingForcedScene != null)
                 {
@@ -155,7 +155,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleCommitToSituation(Situation situation)
     {
         // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-        SituationSelectionResult result = await GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
+        SituationSelectionResult result = await GameOrchestrator.GetSituationFacade().SelectAndExecuteSituation(situation);
 
         if (!result.Success)
         {
@@ -200,7 +200,7 @@ public class LocationContentBase : ComponentBase
         else if (result.ResultType == SituationResultType.Navigation)
         {
             // Navigation - move player and optionally trigger scene at destination
-            bool success = await GameFacade.MoveToSpot(result.NavigationDestination);
+            bool success = await GameOrchestrator.MoveToSpot(result.NavigationDestination);
             if (success)
             {
                 ResetNavigation();
@@ -213,7 +213,7 @@ public class LocationContentBase : ComponentBase
 
     protected async Task MoveToSpot(Location spot)
     {
-        bool success = await GameFacade.MoveToSpot(spot);
+        bool success = await GameOrchestrator.MoveToSpot(spot);
 
         if (success)
         {
@@ -222,7 +222,7 @@ public class LocationContentBase : ComponentBase
             await OnActionExecuted.InvokeAsync();
 
             // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
-            // ADR-007: GameFacade sets PendingForcedScene object after successful movement
+            // ADR-007: GameOrchestrator sets PendingForcedScene object after successful movement
             // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
             if (GameWorld.PendingForcedScene != null)
             {
@@ -325,7 +325,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleAcceptJob(DeliveryJob job)
     {
         // Execute through intent system - backend handles validation
-        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(job));
+        IntentResult result = await GameOrchestrator.ProcessIntent(new AcceptDeliveryJobIntent(job));
 
         if (result.Success)
         {
@@ -411,8 +411,8 @@ public class LocationContentBase : ComponentBase
 
     protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
     {
-        // Execute NPCAction through GameFacade (direct object reference)
-        IntentResult result = await GameFacade.ExecuteNPCAction(action.SourceAction);
+        // Execute NPCAction through GameOrchestrator (direct object reference)
+        IntentResult result = await GameOrchestrator.ExecuteNPCAction(action.SourceAction);
 
         if (result.Success)
         {

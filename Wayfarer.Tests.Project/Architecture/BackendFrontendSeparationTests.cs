@@ -209,7 +209,7 @@ public class BackendFrontendSeparationTests
             .Where(v => !v.Contains("TimeFacade.GetTimeBlockDisplayName")) // Domain vocabulary (Morning, Midday, etc.)
             .Where(v => !v.Contains("TimeFacade.GetDayName"))       // Domain vocabulary (Monday, Tuesday, etc.)
             .Where(v => !v.Contains("TimeFacade.GetShortDayName"))  // Domain vocabulary (MON, TUE, etc.)
-            .Where(v => !v.Contains("GameFacade.GetFormattedTimeDisplay")) // Delegation to TimeFacade
+            .Where(v => !v.Contains("GameOrchestrator.GetFormattedTimeDisplay")) // Delegation to TimeFacade
             .Where(v => !v.Contains("TimeFacade.GetNextAvailableTimeDisplay")) // Domain-semantic availability representation
             .ToList();
 

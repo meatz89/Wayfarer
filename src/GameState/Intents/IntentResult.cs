@@ -1,5 +1,5 @@
 /// <summary>
-/// Result of processing a PlayerIntent through GameFacade.ProcessIntent().
+/// Result of processing a PlayerIntent through GameOrchestrator.ProcessIntent().
 /// Backend authority: Backend determines success, navigation, and refresh requirements.
 /// UI interprets result without making decisions.
 /// Strongly typed: NO object properties, only concrete types.

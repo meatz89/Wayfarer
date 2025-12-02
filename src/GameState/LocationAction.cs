@@ -95,7 +95,7 @@ public class LocationAction
     /// HIGHLANDER: Object reference ONLY, no SituationId
     /// Links ephemeral action to source Situation for cleanup after execution
     /// Actions are QUERY-TIME instances (Tier 3), created when Situation activates
-    /// After action executes, GameFacade deletes ALL actions for this Situation
+    /// After action executes, GameOrchestrator deletes ALL actions for this Situation
     /// Next time player enters context, actions recreated fresh from ChoiceTemplates
     /// </summary>
     public Situation Situation { get; set; }

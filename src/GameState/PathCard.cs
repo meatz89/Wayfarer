@@ -163,7 +163,7 @@ public class PathCard
     /// HIGHLANDER: Object reference ONLY, no SituationId
     /// Links ephemeral path card to source Situation for cleanup after execution
     /// Path cards are QUERY-TIME instances (Tier 3), created when Situation activates
-    /// After card executes, GameFacade deletes ALL path cards for this Situation
+    /// After card executes, GameOrchestrator deletes ALL path cards for this Situation
     /// Next time player enters route context, cards recreated fresh from ChoiceTemplates
     /// NOTE: Scene property above is for EXISTING scenes on route, NOT for scene spawns
     /// </summary>

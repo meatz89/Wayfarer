@@ -556,7 +556,7 @@
                                             <div class="path-stat-requirements">
                                                 @foreach (var statReq in card.StatRequirements)
                                                 {
-                                                    Player player = GameFacade.GetPlayer();
+                                                    Player player = GameOrchestrator.GetPlayer();
                                                     bool meetsRequirement = false;
                                                     string statName = "";
                                                     int required = statReq.Value;
@@ -795,8 +795,8 @@ else
         if (TravelContext?.CurrentRoute == null)
             return "Origin";
 
-        var player = GameFacade.GetPlayer();
-        Location currentLocation = GameFacade.GetPlayerCurrentLocation();
+        var player = GameOrchestrator.GetPlayer();
+        Location currentLocation = GameOrchestrator.GetPlayerCurrentLocation();
         // ADR-007: Use Venue object reference instead of deleted VenueId
         if (currentLocation?.Venue != null)
         {

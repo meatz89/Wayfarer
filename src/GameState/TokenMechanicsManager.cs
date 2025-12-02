@@ -100,7 +100,7 @@ public class TokenMechanicsManager
 
         // Category service removed - letters created through conversation choices only
 
-        // Token change notifications are handled by GameFacade orchestration
+        // Token change notifications are handled by GameOrchestrator orchestration
     }
 
     // Spend tokens with specific NPC context (for queue manipulation)
@@ -223,7 +223,7 @@ public class TokenMechanicsManager
             );
         }
 
-        // Token change notifications are handled by GameFacade orchestration
+        // Token change notifications are handled by GameOrchestrator orchestration
     }
 
     // Get total tokens of a specific type across all NPCs

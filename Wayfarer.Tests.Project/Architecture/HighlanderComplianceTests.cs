@@ -196,7 +196,7 @@ public class HighlanderComplianceTests
         // Filter known exceptions (documented stateless patterns)
         violations = violations
             .Where(v => !v.Contains("TimeManager")) // TimeManager is special - it IS state
-            .Where(v => !v.Contains("GameFacade"))  // GameFacade is coordinator, not service
+            .Where(v => !v.Contains("GameOrchestrator"))  // GameOrchestrator is coordinator, not service
             .ToList();
 
         Assert.Empty(violations);

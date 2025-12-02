@@ -383,6 +383,40 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
+# FACADE ISOLATION (NO LATERAL DEPENDENCIES)
+
+**THE RULE:** Facade/subsystem classes may NEVER reference or call other facades/subsystems directly. Only GameOrchestrator can orchestrate between facades.
+
+**Architecture:**
+
+| Class Type | Can Call |
+|------------|----------|
+| GameOrchestrator | Any facade, any service |
+| Facade (e.g., TravelFacade, SocialFacade) | Own domain services, GameWorld, never other facades |
+| Service | Domain entities, never facades |
+| UI Component | GameOrchestrator only |
+
+**Why:**
+- Prevents circular dependencies between subsystems
+- Single point of coordination (GameOrchestrator)
+- Clear responsibility boundaries per facade
+- Testable isolation (mock GameOrchestrator, test facade in isolation)
+
+**FORBIDDEN:**
+- `TravelFacade` calling `ResourceFacade` directly
+- `SocialFacade` injecting `LocationFacade`
+- Any `*Facade` depending on another `*Facade`
+
+**Correct Pattern:** When facade A needs facade B's functionality:
+1. GameOrchestrator coordinates the call
+2. GameOrchestrator calls A, gets result
+3. GameOrchestrator calls B with result
+4. GameOrchestrator returns combined result to UI
+
+**Enforcement:** Pre-commit hook blocks facade classes that reference other facades.
+
+---
+
 # ICON SYSTEM (NO EMOJIS)
 
 **Policy:**

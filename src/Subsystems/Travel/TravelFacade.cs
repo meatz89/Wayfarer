@@ -197,8 +197,8 @@ public class TravelFacade
             }
         }
 
-        // Return travel information for GameFacade to execute
-        // GameFacade will handle coin deduction and Location update
+        // Return travel information for GameOrchestrator to execute
+        // GameOrchestrator will handle coin deduction and Location update
         return new TravelResult
         {
             Success = true,

@@ -8,8 +8,8 @@ namespace Wayfarer.Pages.Components
     ///
     /// ARCHITECTURAL PRINCIPLES:
     /// - Follows the authoritative parent pattern - receives GameScreen via CascadingParameter
-    /// - EmergencyContext passed as Parameter from parent (created by GameFacade)
-    /// - All game state mutations go through GameFacade
+    /// - EmergencyContext passed as Parameter from parent (created by GameOrchestrator)
+    /// - All game state mutations go through GameOrchestrator
     /// - Time pressure mechanics with consequences for ignoring
     /// </summary>
     public class EmergencyContentBase : ComponentBase
@@ -18,18 +18,18 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnEmergencyEnd { get; set; }
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
 
         protected async Task HandleSelectResponse(EmergencyResponse response)
         {
             if (Context == null || !Context.IsValid) return;
 
-            EmergencyResult result = GameFacade.SelectEmergencyResponse(Context.EmergencyState, response);
+            EmergencyResult result = GameOrchestrator.SelectEmergencyResponse(Context.EmergencyState, response);
 
             if (!result.Success)
             {
-                // Show error message through GameFacade message system
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                // Show error message through GameOrchestrator message system
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to select response",
                     SystemMessageTypes.Danger);
                 return;
@@ -38,7 +38,7 @@ namespace Wayfarer.Pages.Components
             // Show result narrative
             if (!string.IsNullOrEmpty(result.Message))
             {
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message,
                     SystemMessageTypes.Info);
             }
@@ -51,11 +51,11 @@ namespace Wayfarer.Pages.Components
         {
             if (Context == null || !Context.IsValid) return;
 
-            EmergencyResult result = GameFacade.IgnoreEmergency(Context.EmergencyState);
+            EmergencyResult result = GameOrchestrator.IgnoreEmergency(Context.EmergencyState);
 
             if (!result.Success)
             {
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to ignore emergency",
                     SystemMessageTypes.Danger);
                 return;
@@ -64,7 +64,7 @@ namespace Wayfarer.Pages.Components
             // Show result narrative
             if (!string.IsNullOrEmpty(result.Message))
             {
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message,
                     SystemMessageTypes.Warning);
             }

@@ -447,7 +447,7 @@ public class TravelManager
 
     /// <summary>
     /// Resolve pending scene after player completes scene situations
-    /// Called by GameFacade after scene intensity reaches 0
+    /// Called by GameOrchestrator after scene intensity reaches 0
     /// ADR-007: Accept Scene object (not sceneId string)
     /// </summary>
     public bool ResolveScene(Scene scene)

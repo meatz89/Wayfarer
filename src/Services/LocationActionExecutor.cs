@@ -1,6 +1,6 @@
 /// <summary>
 /// LocationActionExecutor - Validator for ATMOSPHERIC (fallback scene) LocationActions
-/// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute
+/// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameOrchestrator to execute
 /// FALLBACK SCENE ARCHITECTURE: Validates default/baseline actions (Travel, Work, Rest)
 /// Scene-based actions validated by SituationChoiceExecutor (HIGHLANDER)
 /// </summary>
@@ -10,7 +10,7 @@ public class LocationActionExecutor
     /// Validate atmospheric LocationAction and extract execution plan
     /// FALLBACK SCENE: These are permanent actions that prevent soft-locks
     /// Examples: Travel, Work, Rest, IntraVenueMove
-    /// GameFacade applies the plan via facades
+    /// GameOrchestrator applies the plan via facades
     ///
     /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
     /// Negative values = costs, Positive values = rewards.
@@ -102,7 +102,7 @@ public class LocationActionExecutor
 
         // PathCard rewards (CoinReward, StaminaRestore, HealthEffect, etc.)
         // Note: PathCard uses individual reward properties (specific to travel mechanic)
-        // GameFacade handles these specifically for PathCard execution
+        // GameOrchestrator handles these specifically for PathCard execution
         plan.ActionType = ChoiceActionType.Instant;  // Atmospheric path cards execute instantly
         plan.ActionName = card.Name;
         plan.IsAtmosphericAction = true;  // Atmospheric pattern (fallback scene)

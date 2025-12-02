@@ -1,7 +1,7 @@
 
 /// <summary>
 /// HIGHLANDER: Centralized service for applying Consequence (the ONLY class for resource outcomes)
-/// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
+/// Used by GameOrchestrator (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
 /// On-demand template generation: Procedural A-story templates generated when spawning if don't exist yet

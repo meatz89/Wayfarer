@@ -238,8 +238,14 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationFacade>();
         services.AddSingleton<EmergencyFacade>();
 
-        // Game Facade - THE single entry point for all UI-Backend communication
-        services.AddSingleton<GameFacade>();
+        // Orchestrator Services - extracted from GameOrchestrator via composition
+        services.AddSingleton<DebugCommandHandler>();
+        services.AddSingleton<InteractionHistoryRecorder>();
+        services.AddSingleton<TimeAdvancementOrchestrator>();
+
+        // Game Orchestrator - THE single entry point for all UI-Backend communication
+        // FACADE ISOLATION: Only GameOrchestrator can coordinate between facades
+        services.AddSingleton<GameOrchestrator>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 

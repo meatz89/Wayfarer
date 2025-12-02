@@ -1,7 +1,7 @@
 
 /// <summary>
 /// Public facade for all location-related operations.
-/// Coordinates between Venue managers and provides a clean API for GameFacade.
+/// Coordinates between Venue managers and provides a clean API for GameOrchestrator.
 /// </summary>
 public class LocationFacade
 {
@@ -150,7 +150,7 @@ public class LocationFacade
     /// <summary>
     /// Get the complete Venue screen view model with all Venue data.
     /// </summary>
-    /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
+    /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameOrchestrator from ConversationFacade</param>
     public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
     {
         Player player = _gameWorld.GetPlayer();
@@ -605,7 +605,7 @@ public class LocationFacade
         // ZERO NULL TOLERANCE: Fail-fast with clear diagnostic message
         if (spot == null)
         {
-            throw new InvalidOperationException("CRITICAL: GetCurrentLocation() returned null. This indicates hex grid initialization failure. Check GameFacade.StartGameAsync() validation.");
+            throw new InvalidOperationException("CRITICAL: GetCurrentLocation() returned null. This indicates hex grid initialization failure. Check GameOrchestrator.StartGameAsync() validation.");
         }
 
         Venue venue = spot.Venue;

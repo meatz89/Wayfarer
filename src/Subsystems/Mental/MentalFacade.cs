@@ -451,8 +451,8 @@ public class MentalFacade
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
-        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
-        // PendingContext stays alive for GameFacade to process
+        // Rewards are strategic layer concern - GameOrchestrator applies them after receiving outcome
+        // PendingContext stays alive for GameOrchestrator to process
 
         // ADR-007: Clear session and context (CurrentMentalSituationId/ObligationId deleted)
         _gameWorld.CurrentMentalSession.Deck.Clear();

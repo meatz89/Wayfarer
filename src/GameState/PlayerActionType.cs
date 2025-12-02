@@ -6,7 +6,7 @@
 /// ADD NEW ACTIONS:
 /// 1. Add enum value here
 /// 2. Create intent class in PlayerIntent.cs
-/// 3. Add handler in GameFacade.ProcessIntent()
+/// 3. Add handler in GameOrchestrator.ProcessIntent()
 /// 4. Add JSON entry in playerActions array
 /// </summary>
 public enum PlayerActionType

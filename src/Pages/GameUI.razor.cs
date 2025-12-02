@@ -27,7 +27,7 @@ namespace Wayfarer.Pages;
 public class GameUIBase : ComponentBase, IDisposable
 {
     [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public GameFacade GameFacade { get; set; }
+    [Inject] public GameOrchestrator GameOrchestrator { get; set; }
     [Inject] public TimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
@@ -46,7 +46,7 @@ public class GameUIBase : ComponentBase, IDisposable
         Console.WriteLine("[GameUI.OnInitializedAsync] Starting initialization");
 
         // Start the game (idempotent - checks IsGameStarted internally)
-        await GameFacade.StartGameAsync();
+        await GameOrchestrator.StartGameAsync();
         CurrentView = CurrentViews.LocationScreen;
         StateHasChanged();
     }
@@ -66,7 +66,7 @@ public class GameUIBase : ComponentBase, IDisposable
 
     public async Task HandleCharacterCreated(Player player)
     {
-        await GameFacade.StartGameAsync(); CurrentView = CurrentViews.LocationScreen;
+        await GameOrchestrator.StartGameAsync(); CurrentView = CurrentViews.LocationScreen;
         StateHasChanged();
     }
 

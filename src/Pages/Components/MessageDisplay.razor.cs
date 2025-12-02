@@ -11,7 +11,7 @@ public class MessageSegment
 
 public class MessageDisplayBase : ComponentBase, IDisposable
 {
-    [Inject] public GameFacade GameFacade { get; set; }
+    [Inject] public GameOrchestrator GameOrchestrator { get; set; }
 
     protected List<SystemMessage> Messages { get; private set; } = new();
     protected bool HasMessages => Messages.Any();
@@ -34,7 +34,7 @@ public class MessageDisplayBase : ComponentBase, IDisposable
 
     private void RefreshMessages()
     {
-        List<SystemMessage> allMessages = GameFacade.GetSystemMessages();
+        List<SystemMessage> allMessages = GameOrchestrator.GetSystemMessages();
 
         // Check if player has taken a new action (more messages added)
         if (allMessages.Count > _lastActionCount && _lastActionCount > 0)

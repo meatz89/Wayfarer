@@ -16,7 +16,7 @@
 /// - SituationFacade.ResolveInstantSituation() - After instant situation resolution (cascading)
 /// - SituationCompletionHandler.CompleteSituation() - After challenge completion (cascading)
 ///
-/// NO EVENTS - Synchronous execution orchestrated by GameFacade (facades never call each other)
+/// NO EVENTS - Synchronous execution orchestrated by GameOrchestrator (facades never call each other)
 /// </summary>
 public class SpawnFacade
 {

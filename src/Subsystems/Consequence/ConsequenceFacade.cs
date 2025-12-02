@@ -10,7 +10,7 @@
 /// - SituationFacade.ResolveInstantSituation() - for instant situations
 /// - SituationCompletionHandler.CompleteSituation() - after challenge completion
 ///
-/// NO EVENTS - Synchronous application orchestrated by GameFacade
+/// NO EVENTS - Synchronous application orchestrated by GameOrchestrator
 /// </summary>
 public class ConsequenceFacade
 {

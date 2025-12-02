@@ -24,7 +24,7 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
-        GameFacade gameFacade = GetGameFacade();
+        GameOrchestrator gameFacade = GetGameOrchestrator();
         await gameFacade.StartGameAsync();
 
         Player player = gameWorld.GetPlayer();

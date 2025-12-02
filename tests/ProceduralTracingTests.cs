@@ -242,7 +242,7 @@ public class ProceduralTracingTests
         // Simulate challenge success
         gameWorld.LastSocialOutcome = new SocialOutcome { Success = true };
 
-        // Act - Part 2: Process outcome (simulates GameFacade.ProcessSocialChallengeOutcome)
+        // Act - Part 2: Process outcome (simulates GameOrchestrator.ProcessSocialChallengeOutcome)
         ChoiceExecutionNode storedChoice = gameWorld.PendingSocialContext.ChoiceExecution;
         Assert.Same(choiceNode, storedChoice); // Verify object identity
 
