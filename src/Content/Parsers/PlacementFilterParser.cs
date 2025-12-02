@@ -33,8 +33,6 @@ public static class PlacementFilterParser
             PersonalityType = ParsePersonalityType(dto.PersonalityType, contextId),
             Profession = ParseProfession(dto.Profession, contextId),
             RequiredRelationship = ParseNPCRelationship(dto.RequiredRelationship, contextId),
-            MinTier = dto.MinTier,
-            MaxTier = dto.MaxTier,
             MinBond = dto.MinBond,
             MaxBond = dto.MaxBond,
             NpcTags = dto.NpcTags,
@@ -55,7 +53,6 @@ public static class PlacementFilterParser
             // Route filters - SINGULAR (orthogonal)
             Terrain = ParseTerrainType(dto.Terrain, contextId),
             Structure = ParseStructureType(dto.Structure, contextId),
-            RouteTier = dto.RouteTier,
             MinDifficulty = dto.MinDifficulty,
             MaxDifficulty = dto.MaxDifficulty,
             RouteTags = dto.RouteTags,

@@ -110,27 +110,6 @@ public class RouteOption
     public int DangerRating { get; set; } = 0;
 
     /// <summary>
-    /// Route difficulty tier calculated from DangerRating
-    /// Tier 1 (Safe): 0-20 danger
-    /// Tier 2 (Moderate): 21-40 danger
-    /// Tier 3 (Dangerous): 41-60 danger
-    /// Tier 4 (Perilous): 61-80 danger
-    /// Tier 5 (Deadly): 81-100 danger
-    /// Used for Scene template filtering
-    /// </summary>
-    public int Tier
-    {
-        get
-        {
-            if (DangerRating <= 20) return 1;
-            if (DangerRating <= 40) return 2;
-            if (DangerRating <= 60) return 3;
-            if (DangerRating <= 80) return 4;
-            return 5;
-        }
-    }
-
-    /// <summary>
     /// Get dominant terrain type from HexPath for Scene template filtering
     /// Returns first terrain category as string, or "Urban" if no categories
     /// PlacementFilter expects List of string terrain types, not enum

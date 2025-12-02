@@ -23,5 +23,4 @@ public class PlacementFilterSnapshot
     // Route filters (orthogonal)
     public TerrainType? Terrain { get; set; }
     public StructureType? Structure { get; set; }
-    public int? RouteTier { get; set; }
 }

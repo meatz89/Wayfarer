@@ -3,30 +3,6 @@
 /// Creates infinite main story progression after authored tutorial completes.
 /// Works from ANY sequence - if tutorial is A1-A3, generates A4+.
 ///
-/// ========================================================================
-/// CONTEXT-AWARE SCENE SELECTION (IMPLEMENTED)
-/// ========================================================================
-/// Uses weighted scoring across multiple factors for archetype category selection.
-/// Deterministic: same inputs always produce same output.
-///
-/// SELECTION FACTORS (via ArchetypeCategorySelector):
-/// - Base rotation score (maintains some sequence-based predictability)
-/// - Location context (STRONG influence - Safety and Purpose drive category)
-/// - Intensity balance (balances Recovery/Standard/Demanding in recent history)
-/// - Rhythm phase (accumulation → test → recovery narrative flow)
-/// - Anti-repetition (penalizes recently used categories)
-///
-/// CHALLENGE PHILOSOPHY: Player resources (Health, Stamina, Resolve) are NOT considered.
-/// Fair rhythm emerges from story structure and location context, not player state filtering.
-/// Peaceful is earned through intensity history, not granted when player struggles.
-///
-/// CHOICE VALUE SCALING (via RuntimeScalingContext):
-/// - Player strength (TotalStatStrength) vs Location difficulty (hex distance)
-/// - NPC demeanor (Friendly/Neutral/Hostile) scales stat requirements
-/// - Environment quality scales resource costs
-/// - Net Challenge = LocationDifficulty - (PlayerStrength / 5), clamped [-3, +3]
-/// ========================================================================
-///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
 /// 1. Select archetype based on rhythm phase + location context + history
 /// 2. Generate SceneTemplateDTO with categorical properties
@@ -142,9 +118,10 @@ public class ProceduralAStoryService
             availableCategories = appropriateCategories;
         }
 
-        // Deterministic selection based on category count
-        // First available category for determinism
-        return availableCategories[0];
+        // Deterministic selection using RhythmPattern as categorical property
+        // Pattern ordinal selects different indices: Building(0), Crisis(1), Mixed(2)
+        int selectionIndex = ((int)inputs.RhythmPattern) % availableCategories.Count;
+        return availableCategories[selectionIndex];
     }
 
     /// <summary>

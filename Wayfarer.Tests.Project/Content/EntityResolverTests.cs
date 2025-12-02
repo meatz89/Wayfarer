@@ -137,8 +137,7 @@ public class EntityResolverTests
         {
             Name = "Existing Guard",
             Profession = Professions.Guard,
-            PersonalityType = PersonalityType.STEADFAST,
-            Tier = 2
+            PersonalityType = PersonalityType.STEADFAST
         };
         world.NPCs.Add(existingNPC);
 
@@ -189,34 +188,6 @@ public class EntityResolverTests
         Assert.Equal("filter", exception.ParamName);
     }
 
-    [Fact]
-    public void FindNPC_TierFilter_MatchesRange()
-    {
-        // Arrange: NPCs with different tiers
-        (GameWorld world, EntityResolver resolver) = CreateTestContext();
-
-        NPC npcTier1 = new NPC { Name = "Novice", Tier = 1, Profession = Professions.Guard };
-        NPC npcTier3 = new NPC { Name = "Veteran", Tier = 3, Profession = Professions.Guard };
-        NPC npcTier5 = new NPC { Name = "Elite", Tier = 5, Profession = Professions.Guard };
-
-        world.NPCs.Add(npcTier1);
-        world.NPCs.Add(npcTier3);
-        world.NPCs.Add(npcTier5);
-
-        PlacementFilter filter = new PlacementFilter
-        {
-            PlacementType = PlacementType.NPC,
-            Profession = Professions.Guard,
-            MinTier = 2,
-            MaxTier = 4
-        };
-
-        // Act
-        NPC result = resolver.FindNPC(filter, null);
-
-        // Assert: Finds tier 3 NPC (within range 2-4)
-        Assert.Same(npcTier3, result);
-    }
 
     [Fact]
     public void FindNPC_RelationshipFilter_MatchesRelationship()

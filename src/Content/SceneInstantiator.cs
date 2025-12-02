@@ -379,7 +379,6 @@ public class SceneInstantiator
             PersonalityType = (filter.PersonalityType ?? PersonalityType.Neutral).ToString(),
             CurrentState = "Neutral",
             SpawnLocation = new PlacementFilterDTO { PlacementType = "Location" },
-            Tier = filter.MinTier ?? 1,
             Role = "Generated NPC",
             Description = "A person you've encountered"
         };
@@ -507,12 +506,6 @@ public class SceneInstantiator
             filterProvided.Add("StoryRole");
         else
             generated.Add("StoryRole");
-
-        // Tier (from MinTier)
-        if (filter.MinTier.HasValue)
-            filterProvided.Add("Tier");
-        else
-            generated.Add("Tier");
 
         return EntityResolutionMetadata.ForCreated(filterSnapshot, filterProvided, generated);
     }
@@ -790,8 +783,6 @@ public class SceneInstantiator
         // Route filters
         if (filter.Terrain != null)
             criteria.Add($"Terrain: {filter.Terrain}");
-        if (filter.RouteTier.HasValue)
-            criteria.Add($"Route Tier: {filter.RouteTier.Value}");
         if (filter.MinDifficulty.HasValue)
             criteria.Add($"Min Difficulty: {filter.MinDifficulty.Value}");
         if (filter.MaxDifficulty.HasValue)
@@ -842,7 +833,7 @@ public class SceneInstantiator
                 int routeCount = _gameWorld.Routes.Count;
                 List<string> routeSummaries = _gameWorld.Routes
                     .Take(10)
-                    .Select(route => $"  - {route.Name}: Tier={route.Tier}, Danger={route.DangerRating}")
+                    .Select(route => $"  - {route.Name}: Danger={route.DangerRating}")
                     .ToList();
                 if (routeCount > 10)
                     routeSummaries.Add($"  ... and {routeCount - 10} more routes");
@@ -904,8 +895,6 @@ public class SceneInstantiator
             PersonalityType = filter.PersonalityType?.ToString(),
             Profession = filter.Profession?.ToString(),
             RequiredRelationship = filter.RequiredRelationship?.ToString(),
-            MinTier = filter.MinTier,
-            MaxTier = filter.MaxTier,
             MinBond = filter.MinBond,
             MaxBond = filter.MaxBond,
             NpcTags = filter.NpcTags,
@@ -925,7 +914,6 @@ public class SceneInstantiator
             Purpose = filter.Purpose?.ToString(),
             // Route filters
             Terrain = filter.Terrain?.ToString(),
-            RouteTier = filter.RouteTier,
             MinDifficulty = filter.MinDifficulty,
             MaxDifficulty = filter.MaxDifficulty,
             RouteTags = filter.RouteTags,
