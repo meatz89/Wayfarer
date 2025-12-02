@@ -1223,7 +1223,6 @@ public class GameFacade
         return _gameWorld.Venues;
     }
 
-
     // ============================================
     // DEBUG COMMANDS
     // ============================================

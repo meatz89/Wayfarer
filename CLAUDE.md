@@ -329,6 +329,47 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 ---
 
+# COMPOSITION OVER PARTIAL CLASSES
+
+**THE RULE:** Never use `partial class` to split large files. Use composition with separate service classes instead.
+
+**Why partial classes are FORBIDDEN:**
+- Partial classes split files, not responsibilities
+- They hide complexity instead of reducing it
+- No clear boundaries between concerns
+- Testing remains difficult (one giant class)
+- Violates Single Responsibility Principle
+
+**Correct Pattern - Composition:**
+```
+WRONG: GameFacade.cs + GameFacade.Debug.cs (partial)
+RIGHT: GameFacade.cs → DebugService.cs (injected dependency)
+```
+
+| Problem | Wrong Solution | Right Solution |
+|---------|---------------|----------------|
+| File too large | Split into partial files | Extract to composed services |
+| Multiple responsibilities | Multiple partial files | Multiple services with DI |
+| Debug methods bloating class | GameFacade.Debug.cs partial | DebugService injected into GameFacade |
+
+**When file exceeds 1000 lines:**
+1. Identify cohesive method groups (seams)
+2. Create new service class for each seam
+3. Inject new service via constructor
+4. Delegate to composed service
+5. Original class becomes thin orchestrator
+
+**FORBIDDEN:**
+- `partial class` keyword in domain/service files
+- Splitting one class across multiple files
+- "Organizing" large files into partials
+
+**Exception:** Blazor code-behind files (`.razor.cs`) require `partial class` because the `.razor` file generates the other part. This is a framework requirement.
+
+**Enforcement:** Pre-commit hook blocks `partial class` patterns (except `.razor.cs` files).
+
+---
+
 # ICON SYSTEM (NO EMOJIS)
 
 **Policy:**

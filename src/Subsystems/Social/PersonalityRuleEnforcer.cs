@@ -70,9 +70,9 @@ public class PersonalityRuleEnforcer
                 int cardInitiative = GetCardInitiativeCost(card);
                 if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)
                 {
-                    int momentumBonus = _modifier.Parameters.ContainsKey("momentumBonus")
-                        ? _modifier.Parameters["momentumBonus"]
-                        : 3;
+                    // DOMAIN COLLECTION PRINCIPLE: Use GetParameter helper (returns 0 if not found)
+                    int momentumBonus = _modifier.GetParameter("momentumBonus");
+                    if (momentumBonus == 0) momentumBonus = 3; // Default value
                     modifiedChange += momentumBonus;
                 }
                 break;
@@ -81,9 +81,9 @@ public class PersonalityRuleEnforcer
                 // Devoted: When momentum would decrease, add additional loss (additive, not multiplicative)
                 if (baseMomentumChange < 0)
                 {
-                    int additionalLoss = _modifier.Parameters.ContainsKey("additionalLoss")
-                        ? _modifier.Parameters["additionalLoss"]
-                        : 2;
+                    // DOMAIN COLLECTION PRINCIPLE: Use GetParameter helper (returns 0 if not found)
+                    int additionalLoss = _modifier.GetParameter("additionalLoss");
+                    if (additionalLoss == 0) additionalLoss = 2; // Default value
                     modifiedChange -= additionalLoss; // Subtract additional loss (making it more negative)
                 }
                 break;
@@ -94,18 +94,18 @@ public class PersonalityRuleEnforcer
                 int lastInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : -1;
                 if (lastInitiative != -1 && cunningCardInitiative == lastInitiative)
                 {
-                    int penalty = _modifier.Parameters.ContainsKey("penalty")
-                        ? _modifier.Parameters["penalty"]
-                        : -2;
+                    // DOMAIN COLLECTION PRINCIPLE: Use GetParameter helper (returns 0 if not found)
+                    int penalty = _modifier.GetParameter("penalty");
+                    if (penalty == 0) penalty = -2; // Default value
                     modifiedChange += penalty;
                 }
                 break;
 
             case PersonalityModifierType.RapportChangeCap:
                 // Steadfast: All momentum changes capped at ±2
-                int cap = _modifier.Parameters.ContainsKey("cap")
-                    ? _modifier.Parameters["cap"]
-                    : 2;
+                // DOMAIN COLLECTION PRINCIPLE: Use GetParameter helper (returns 0 if not found)
+                int cap = _modifier.GetParameter("cap");
+                if (cap == 0) cap = 2; // Default value
                 modifiedChange = Math.Max(-cap, Math.Min(cap, modifiedChange));
                 break;
         }

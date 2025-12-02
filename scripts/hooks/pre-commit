@@ -453,7 +453,36 @@ if [ -n "$STAGED_CS" ]; then
 fi
 
 # ============================================================
-# SECTION 13: FILE SIZE LIMIT (1000 LINES MAX)
+# SECTION 13: COMPOSITION OVER PARTIAL CLASSES
+# ============================================================
+# Partial classes split files, not responsibilities. Use composition.
+# Exception: Blazor code-behind (.razor.cs) requires partial (framework requirement)
+# See CLAUDE.md "COMPOSITION OVER PARTIAL CLASSES"
+
+# Exclude .razor.cs files (Blazor code-behind requires partial)
+NON_BLAZOR_CS=$(echo "$STAGED_CS_ALL" | grep -v '\.razor\.cs$' || true)
+if [ -n "$NON_BLAZOR_CS" ]; then
+    echo "[COMPOSITION] No Partial Classes..."
+
+    for file in $NON_BLAZOR_CS; do
+        if [ -f "$file" ]; then
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'partial class\|partial struct\|partial interface' | grep -v '^\s*//' || true)
+            if [ -n "$MATCHES" ]; then
+                echo "  ERROR [COMPOSITION]: Partial class in $file (use composition instead):"
+                echo "$MATCHES" | head -3
+                echo ""
+                echo "    FORBIDDEN: partial class to split large files"
+                echo "    REQUIRED:  Extract to separate service, inject via DI"
+                echo "    EXCEPTION: .razor.cs files (Blazor framework requirement)"
+                echo "    Reference: CLAUDE.md 'COMPOSITION OVER PARTIAL CLASSES'"
+                VIOLATIONS=$((VIOLATIONS+1))
+            fi
+        fi
+    done
+fi
+
+# ============================================================
+# SECTION 14: FILE SIZE LIMIT (1000 LINES MAX)
 # ============================================================
 # Large files indicate too many responsibilities, insufficient abstraction,
 # and cognitive overload. They require holistic refactoring, not tactical fixes.
@@ -478,7 +507,7 @@ if [ -n "$STAGED_CS_ALL" ]; then
 fi
 
 # ============================================================
-# SECTION 14: ARCHETYPE REUSABILITY (NO TUTORIAL HARDCODING)
+# SECTION 15: ARCHETYPE REUSABILITY (NO TUTORIAL HARDCODING)
 # ============================================================
 # Archetypes must be context-agnostic - no story sequence checks
 # See arc42/08_crosscutting_concepts.md #8.23

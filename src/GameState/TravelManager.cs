@@ -229,18 +229,19 @@ public class TravelManager
     /// </summary>
     private string GetOrDrawEventForSegment(RouteSegment segment, TravelSession session, List<string> eventIds)
     {
-        // Check if we already drew an event for this segment
+        // DOMAIN COLLECTION PRINCIPLE: Use LINQ lookup on List<SegmentEventDrawEntry>
         string key = $"seg_{segment.SegmentNumber}_event";
-        if (session.SegmentEventDraws.Any(kvp => kvp.Key == key))
+        SegmentEventDrawEntry existingEntry = session.SegmentEventDraws.FirstOrDefault(e => e.SegmentId == key);
+        if (existingEntry != null)
         {
-            return session.SegmentEventDraws[key];
+            return existingEntry.EventId;
         }
 
         // DDR-007: Deterministic event selection based on segment number
         // Same segment number always produces same event (predictable)
         int deterministicIndex = segment.SegmentNumber % eventIds.Count;
         string eventId = eventIds[deterministicIndex];
-        session.SegmentEventDraws[key] = eventId;
+        session.SegmentEventDraws.Add(new SegmentEventDrawEntry { SegmentId = key, EventId = eventId });
 
         return eventId;
     }

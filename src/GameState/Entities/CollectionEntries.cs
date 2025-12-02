@@ -298,6 +298,36 @@ public class ScaleTypeEntry
     public int Threshold { get; set; }
 }
 
+/// <summary>
+/// Helper class for connection state modifier entries (replaces Dictionary<ConnectionState, int>)
+/// Used in CardMechanics for state-based modifiers
+/// </summary>
+public class ConnectionStateModifierEntry
+{
+    public ConnectionState State { get; set; }
+    public int Modifier { get; set; }
+}
+
+/// <summary>
+/// Helper class for modifier parameter entries (replaces Dictionary<string, int>)
+/// Used in PersonalityModifier for personality-specific parameters
+/// </summary>
+public class ModifierParameterEntry
+{
+    public string ParameterName { get; set; }
+    public int Value { get; set; }
+}
+
+/// <summary>
+/// Helper class for segment event draw entries (replaces Dictionary<string, string>)
+/// Used in TravelSession for tracking which event was drawn for each segment
+/// </summary>
+public class SegmentEventDrawEntry
+{
+    public string SegmentId { get; set; }
+    public string EventId { get; set; }
+}
+
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs
 // Extension methods hide domain logic and violate architecture principles
 // Use Player instance methods and GameWorld instance methods instead
