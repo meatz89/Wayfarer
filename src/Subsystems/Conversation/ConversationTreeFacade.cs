@@ -7,24 +7,21 @@ public class ConversationTreeFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly ResourceFacade _resourceFacade;
-    private readonly TimeFacade _timeFacade;
-    private readonly TokenFacade _tokenFacade;
+    private readonly TimeManager _timeManager;
+    private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly RewardApplicationService _rewardApplicationService;
 
     public ConversationTreeFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        ResourceFacade resourceFacade,
-        TimeFacade timeFacade,
-        TokenFacade tokenFacade,
+        TimeManager timeManager,
+        ConnectionTokenManager connectionTokenManager,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-        _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _connectionTokenManager = connectionTokenManager ?? throw new ArgumentNullException(nameof(connectionTokenManager));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
@@ -57,7 +54,7 @@ public class ConversationTreeFacade
 
         // Check availability conditions
         // HIGHLANDER: Pass NPC object directly, not npc.ID
-        int relationship = _tokenFacade.GetTokenCount(npc, ConnectionType.Trust);
+        int relationship = _connectionTokenManager.GetTokenCount(npc, ConnectionType.Trust);
         if (relationship < tree.MinimumRelationship)
         {
             return new ConversationTreeContext
@@ -68,7 +65,7 @@ public class ConversationTreeFacade
         }
 
         // Check time blocks
-        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.CurrentTimeBlock;
         if (tree.AvailableTimeBlocks.Count > 0 && !tree.AvailableTimeBlocks.Contains(currentTime))
         {
             return new ConversationTreeContext
@@ -114,7 +111,7 @@ public class ConversationTreeFacade
             PlayerStats = BuildPlayerStats(player),
             PlayerKnowledge = new List<string>(player.Knowledge),
             LocationName = GetLocationName(),
-            TimeDisplay = _timeFacade.GetTimeString()
+            TimeDisplay = _timeManager.GetSegmentDisplay()
         };
     }
 
@@ -177,7 +174,7 @@ public class ConversationTreeFacade
         }
         if (response.TimeCost > 0)
         {
-            _timeFacade.AdvanceSegments(response.TimeCost);
+            _timeManager.AdvanceSegments(response.TimeCost);
         }
 
         // Apply relationship changes
@@ -188,11 +185,11 @@ public class ConversationTreeFacade
             {
                 if (response.RelationshipDelta > 0)
                 {
-                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc);
                 }
                 else
                 {
-                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc);
+                    _connectionTokenManager.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc);
                 }
 
                 string deltaText = response.RelationshipDelta > 0
@@ -275,7 +272,7 @@ public class ConversationTreeFacade
     public List<ConversationTree> GetAvailableTreesAtLocation(Location location)
     {
         Player player = _gameWorld.GetPlayer();
-        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.CurrentTimeBlock;
 
         return _gameWorld.ConversationTrees
             .Where(t =>
@@ -292,7 +289,7 @@ public class ConversationTreeFacade
 
                 // Check relationship requirement
                 // HIGHLANDER: Pass NPC object directly, not npc.ID
-                int relationship = _tokenFacade.GetTokenCount(npc, ConnectionType.Trust);
+                int relationship = _connectionTokenManager.GetTokenCount(npc, ConnectionType.Trust);
                 if (relationship < t.MinimumRelationship) return false;
 
                 // Check time blocks (empty list = always available)

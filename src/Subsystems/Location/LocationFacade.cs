@@ -24,9 +24,7 @@ public class LocationFacade
     private readonly NarrativeRenderer _narrativeRenderer;
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
-    private readonly SceneFacade _sceneFacade;
     private readonly SceneInstantiator _sceneInstantiator;
-    private readonly ContentGenerationFacade _contentGenerationFacade;
     private readonly PackageLoader _packageLoader;
 
     public LocationFacade(
@@ -46,9 +44,7 @@ public class LocationFacade
         NarrativeRenderer narrativeRenderer,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository,
-        SceneFacade sceneFacade,
         SceneInstantiator sceneInstantiator,
-        ContentGenerationFacade contentGenerationFacade,
         PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
@@ -67,9 +63,7 @@ public class LocationFacade
         _narrativeRenderer = narrativeRenderer;
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
-        _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
-        _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
