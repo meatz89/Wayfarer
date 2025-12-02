@@ -148,7 +148,7 @@ public class Scene
     /// null = no expiration (Scene remains until completed)
     /// Positive value = Scene expires on this day automatically
     /// Calculated at spawn time from SceneTemplate.ExpirationDays: CurrentDay + ExpirationDays
-    /// Enforcement happens in GameFacade.ProcessTimeAdvancement (HIGHLANDER sync point)
+    /// Enforcement happens in GameOrchestrator.ProcessTimeAdvancement (HIGHLANDER sync point)
     /// Enables time-limited content (rumors, opportunities, urgent requests)
     /// Expired scenes filtered out from SceneFacade queries
     /// </summary>

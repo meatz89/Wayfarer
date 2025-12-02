@@ -45,7 +45,6 @@ public class SceneGenerationFacade
     /// </summary>
     public SceneArchetypeDefinition GenerateSceneFromArchetype(
         SceneArchetypeType archetypeType,
-        int tier,
         NPC contextNPC,
         Location contextLocation,
         int? mainStorySequence = null,
@@ -53,10 +52,10 @@ public class SceneGenerationFacade
     {
         Player contextPlayer = _gameWorld.GetPlayer();
 
-        GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence, rhythm);
+        GenerationContext context = GenerationContext.FromEntities(contextNPC, contextLocation, contextPlayer, mainStorySequence, rhythm);
 
         // HIGHLANDER: ONE catalogue handles ALL 13 archetypes (service + narrative)
-        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, tier, context);
+        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, context);
 
         return definition;
     }
@@ -67,7 +66,6 @@ public class SceneGenerationFacade
     /// </summary>
     public SceneArchetypeDefinition GenerateSceneFromArchetype(
         string archetypeId,
-        int tier,
         NPC contextNPC,
         Location contextLocation,
         int? mainStorySequence = null)
@@ -82,7 +80,7 @@ public class SceneGenerationFacade
                 $"Valid archetypes: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
         }
 
-        return GenerateSceneFromArchetype(archetypeType, tier, contextNPC, contextLocation, mainStorySequence);
+        return GenerateSceneFromArchetype(archetypeType, contextNPC, contextLocation, mainStorySequence);
     }
 
     /// <summary>

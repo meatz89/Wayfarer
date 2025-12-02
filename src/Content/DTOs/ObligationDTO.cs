@@ -26,7 +26,7 @@ public class ObligationDTO
     // Completion rewards (NPCCommissioned obligations)
     public int CompletionRewardCoins { get; set; } = 0;
     public List<string> CompletionRewardItems { get; set; } = new List<string>();
-    public Dictionary<string, int> CompletionRewardXP { get; set; } = new Dictionary<string, int>(); // JSON: {"Insight": 10, "Rapport": 5}
+    public List<StatXPEntry> CompletionRewardXP { get; set; } = new List<StatXPEntry>();
     public List<string> SpawnedObligationIds { get; set; } = new List<string>();
 
     public List<ObligationPhaseDTO> Phases { get; set; } = new List<ObligationPhaseDTO>();
@@ -54,7 +54,7 @@ public class ObligationPhaseDTO
 /// </summary>
 public class PhaseRequirementsDTO
 {
-    public Dictionary<string, int> DiscoveryQuantities { get; set; } = new Dictionary<string, int>();
+    public List<DiscoveryQuantityEntry> DiscoveryQuantities { get; set; } = new List<DiscoveryQuantityEntry>();
     public List<string> SpecificDiscoveries { get; set; } = new List<string>();
     // CompletedSituations, Equipment, Knowledge system eliminated - all boolean gates removed
 }

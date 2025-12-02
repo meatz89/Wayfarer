@@ -179,7 +179,6 @@ public class VenueGeneratorService
         {
             Description = venueDescription,
             Type = template.Type,
-            Tier = template.Tier,
             District = district, // Object reference
             MaxLocations = template.MaxLocations,
             CenterHex = centerHex,

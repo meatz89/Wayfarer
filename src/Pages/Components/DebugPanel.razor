@@ -1,6 +1,6 @@
 @namespace Wayfarer.Pages.Components
 @using Wayfarer.Pages.Components.SpawnTrace
-@inject GameFacade GameFacade
+@inject GameOrchestrator GameOrchestrator
 @inject MessageSystem MessageSystem
 @inject NavigationManager NavigationManager
 
@@ -72,7 +72,7 @@
                 </div>
                 @if (showSpawnTrace)
                 {
-                    <SpawnGraphViewer Tracer="@GameFacade.GameWorld.ProceduralTracer" />
+                    <SpawnGraphViewer Tracer="@GameOrchestrator.GameWorld.ProceduralTracer" />
                 }
             </div>
         </div>
@@ -101,31 +101,31 @@
 
     private async Task SetStatLevel(PlayerStatType statType, int level)
     {
-        await GameFacade.DebugSetStatLevel(statType, level);
+        await GameOrchestrator.DebugSetStatLevel(statType, level);
         StateHasChanged();
     }
 
     private async Task AddStatXP(PlayerStatType statType, int xp)
     {
-        await GameFacade.DebugAddStatXP(statType, xp);
+        await GameOrchestrator.DebugAddStatXP(statType, xp);
         StateHasChanged();
     }
 
     private async Task SetAllStats(int level)
     {
-        await GameFacade.DebugSetAllStats(level);
+        await GameOrchestrator.DebugSetAllStats(level);
         StateHasChanged();
     }
 
     private void ShowStatInfo()
     {
-        string info = GameFacade.DebugGetStatInfo();
+        string info = GameOrchestrator.DebugGetStatInfo();
         MessageSystem.AddSystemMessage(info, SystemMessageTypes.Info);
     }
 
     private async Task GiveResources(int coins, int health, int hunger)
     {
-        await GameFacade.DebugGiveResources(coins, health, hunger);
+        await GameOrchestrator.DebugGiveResources(coins, health, hunger);
         StateHasChanged();
     }
 
@@ -149,7 +149,7 @@
 
     private void TeleportToElena()
     {
-        GameFacade.DebugTeleportToLocation("copper_kettle_tavern", "corner_table");
+        GameOrchestrator.DebugTeleportToLocation("copper_kettle_tavern", "corner_table");
         StateHasChanged();
     }
 }

@@ -17,12 +17,12 @@ public class NPCDTO
     public List<string> Services { get; set; } = new List<string>();
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
-    public int Tier { get; set; }
     public int Level { get; set; } = 1; // Level 1-5 for difficulty/content progression and XP scaling
     public int ConversationDifficulty { get; set; } = 1; // Level 1-3 for XP multipliers
 
     public string CurrentState { get; set; }
-    public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
+    public List<TokenEntryDTO> InitialTokens { get; set; } = new List<TokenEntryDTO>();
 
     // Orthogonal Categorical Dimensions (Entity Resolution)
     // String values from JSON parsed to enums by NPCParser

@@ -1,6 +1,7 @@
 /// <summary>
 /// V4 Physical Session - runtime state for active physical challenge
 /// Unified architecture with MentalSession
+/// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
 /// </summary>
 public class PhysicalSession
 {
@@ -14,14 +15,16 @@ public class PhysicalSession
     public int MaxExertion { get; set; } = 10;
     public int CurrentUnderstanding { get; set; } = 0;
     public List<int> UnlockedTiers { get; set; } = new List<int> { 1 };
-    public Dictionary<PhysicalCategory, int> CategoryCounts { get; set; } = new Dictionary<PhysicalCategory, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<PhysicalCategoryCountEntry> CategoryCounts { get; set; } = new List<PhysicalCategoryCountEntry>();
 
     // Challenge-Local Resources (reset between challenges)
     public int CurrentBreakthrough { get; set; } = 0; // Breakthrough toward victory threshold
     public int CurrentDanger { get; set; } = 0; // Cumulative risk/exposure
     public int Aggression { get; set; } = 0; // Range -10 to +10, balance tracker (EXECUTE increases, ASSESS decreases)
     public int ApproachHistory { get; set; } = 0; // Count of Execute actions (for Decisive card requirements)
-    public Dictionary<DiscoveryType, List<string>> Discoveries { get; set; } = new Dictionary<DiscoveryType, List<string>>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<DiscoveryEntry> Discoveries { get; set; } = new List<DiscoveryEntry>();
 
     // Timing
     public int TimeSegmentsSpent { get; set; } = 0;
@@ -50,7 +53,20 @@ public class PhysicalSession
 
     public int GetCategoryCount(PhysicalCategory category)
     {
-        return CategoryCounts.TryGetValue(category, out int count) ? count : 0;
+        return CategoryCounts.FirstOrDefault(e => e.Category == category)?.Count ?? 0;
+    }
+
+    public void IncrementCategoryCount(PhysicalCategory category)
+    {
+        PhysicalCategoryCountEntry entry = CategoryCounts.FirstOrDefault(e => e.Category == category);
+        if (entry != null)
+        {
+            entry.Count++;
+        }
+        else
+        {
+            CategoryCounts.Add(new PhysicalCategoryCountEntry { Category = category, Count = 1 });
+        }
     }
 
     // Facade helper methods

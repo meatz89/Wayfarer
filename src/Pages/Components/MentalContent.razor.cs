@@ -8,7 +8,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnChallengeEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected ItemRepository ItemRepository { get; set; }
         [Inject] protected DifficultyCalculationService DifficultyService { get; set; }
@@ -22,8 +22,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected MentalEffectResolver EffectResolver { get; set; }
 
         protected MentalSession Session => Context?.Session;
-        protected List<CardInstance> Hand => GameFacade?.IsMentalSessionActive() == true
-            ? GameFacade.GetMentalFacade().GetHand()
+        protected List<CardInstance> Hand => GameOrchestrator?.IsMentalSessionActive() == true
+            ? GameOrchestrator.GetMentalFacade().GetHand()
             : new List<CardInstance>();
         protected CardInstance SelectedCard { get; set; }
         protected string LastNarrative { get; set; }
@@ -109,15 +109,15 @@ namespace Wayfarer.Pages.Components
 
         protected int GetDeckCount()
         {
-            return GameFacade?.IsMentalSessionActive() == true
-                ? GameFacade.GetMentalFacade().GetDeckCount()
+            return GameOrchestrator?.IsMentalSessionActive() == true
+                ? GameOrchestrator.GetMentalFacade().GetDeckCount()
                 : 0;
         }
 
         protected int GetDiscardCount()
         {
-            return GameFacade?.IsMentalSessionActive() == true
-                ? GameFacade.GetMentalFacade().GetDiscardCount()
+            return GameOrchestrator?.IsMentalSessionActive() == true
+                ? GameOrchestrator.GetMentalFacade().GetDiscardCount()
                 : 0;
         }
 
@@ -136,7 +136,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                MentalTurnResult result = await GameFacade.ExecuteObserve();
+                MentalTurnResult result = await GameOrchestrator.ExecuteObserve();
 
                 if (result == null)
                 {
@@ -178,7 +178,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                MentalTurnResult result = await GameFacade.ExecuteAct(SelectedCard);
+                MentalTurnResult result = await GameOrchestrator.ExecuteAct(SelectedCard);
 
                 if (result == null)
                 {
@@ -220,7 +220,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                MentalOutcome outcome = GameFacade.EndMentalSession();
+                MentalOutcome outcome = GameOrchestrator.EndMentalSession();
 
                 if (outcome != null)
                 {
@@ -247,9 +247,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.MentalCardTemplate == null) return "";
             if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (GameOrchestrator == null) return "";
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // PROJECTION: Get effect projection using Act as default action (positive action for preview)
             MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, MentalActionType.Act);
@@ -265,9 +265,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.MentalCardTemplate == null) return "";
             if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (GameOrchestrator == null) return "";
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // Use Act as default action type for preview
             MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, MentalActionType.Act);
@@ -282,9 +282,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.MentalCardTemplate == null) return null;
             if (Session == null) return null;
-            if (GameFacade == null) return null;
+            if (GameOrchestrator == null) return null;
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // Get full projection with bonus tracking
             MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, actionType);
@@ -531,11 +531,11 @@ namespace Wayfarer.Pages.Components
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null)
-                throw new InvalidOperationException("GameFacade is null");
+            if (GameOrchestrator == null)
+                throw new InvalidOperationException("GameOrchestrator is null");
 
-            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
-            Location currentSpot = GameFacade.GetCurrentLocation();
+            Venue currentVenue = GameOrchestrator.GetCurrentLocation().Venue;
+            Location currentSpot = GameOrchestrator.GetCurrentLocation();
 
             if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
@@ -779,7 +779,7 @@ namespace Wayfarer.Pages.Components
             try
             {
                 // Situation cards use ExecuteAct - MentalFacade handles situation card logic
-                MentalTurnResult result = await GameFacade.ExecuteAct(situationCard);
+                MentalTurnResult result = await GameOrchestrator.ExecuteAct(situationCard);
 
                 if (result != null && result.Success)
                 {

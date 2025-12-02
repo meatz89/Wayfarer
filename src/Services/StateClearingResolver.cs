@@ -17,7 +17,7 @@
 /// 2. Resolver queries Player.ActiveStates and State definitions
 /// 3. Resolver returns List<StateType> of states that should be cleared
 /// 4. Facade applies clearing (removes from Player.ActiveStates)
-/// 5. Facade triggers cascade (SpawnFacade.EvaluateDormantSituations)
+/// 5. Service triggers cascade (SpawnService.ExecuteSpawnRules)
 /// </summary>
 public class StateClearingResolver
 {

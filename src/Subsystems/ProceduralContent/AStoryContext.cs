@@ -85,7 +85,7 @@ public class AStoryContext
     /// A-story progressively unlocks new regions for B/C story content
     /// Tracks narrative progression across geography
     /// </summary>
-    public List<string> UnlockedRegionIds { get; set; } = new List<string>();
+    public List<string> UnlockedRegionNames { get; set; } = new List<string>();
 
     /// <summary>
     /// Order members player has met
@@ -199,7 +199,7 @@ public class AStoryContext
             RecentArchetypes = new List<SceneArchetypeType>(),
             RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
-            UnlockedRegionIds = new List<string>(),
+            UnlockedRegionNames = new List<string>(),
             EncounteredOrderMemberIds = new List<string>(),
             CollectedArtifactIds = new List<string>(),
             UncoveredRevelationIds = new List<string>(),

@@ -503,7 +503,7 @@ public class ExchangeResult
 }
 
 /// <summary>
-/// Data for GameFacade to execute an exchange operation
+/// Data for GameOrchestrator to execute an exchange operation
 /// </summary>
 public class ExchangeOperationData
 {

@@ -1,14 +1,14 @@
 /// <summary>
-/// ActionExecutionPlan - Instructions for GameFacade on how to execute an action
+/// ActionExecutionPlan - Instructions for GameOrchestrator on how to execute an action
 /// PURE DATA - No logic, just validated instructions
-/// Executors return this, GameFacade applies it via facades
+/// Executors return this, GameOrchestrator applies it via facades
 /// </summary>
 public class ActionExecutionPlan
 {
     public bool IsValid { get; set; }
     public string FailureReason { get; set; }
 
-    // Strategic costs to consume (GameFacade applies these)
+    // Strategic costs to consume (GameOrchestrator applies these)
     public int ResolveCoins { get; set; }
     public int CoinsCost { get; set; }
     public int TimeSegments { get; set; }

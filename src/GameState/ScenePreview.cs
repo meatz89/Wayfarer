@@ -24,12 +24,6 @@ public class ScenePreview
     public string DisplayName { get; set; }
 
     /// <summary>
-    /// Scene complexity tier (0-4)
-    /// Tier 0: Safety net, Tier 1: Low, Tier 2: Standard, Tier 3: High, Tier 4: Climactic
-    /// </summary>
-    public int Tier { get; set; }
-
-    /// <summary>
     /// Resolved placement ID where scene will spawn
     /// Determined by evaluating PlacementFilter categories at action generation time
     /// Categories → FindOrGenerate → Concrete ID stored here

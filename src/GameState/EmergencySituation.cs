@@ -67,8 +67,8 @@ public class EmergencyResponse
 public class EmergencyOutcome
 {
     public int RelationshipDelta { get; set; }  // General reputation change
-    // HIGHLANDER: Object references ONLY, no NPCRelationshipDeltas with IDs
-    public Dictionary<NPC, int> NPCRelationshipDeltas { get; set; } = new Dictionary<NPC, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<NPCRelationshipDelta> NPCRelationshipDeltas { get; set; } = new List<NPCRelationshipDelta>();
     public List<string> GrantedKnowledge { get; set; } = new List<string>();
     // HIGHLANDER: Object references ONLY, no SpawnedSituationIds
     public List<Situation> SpawnedSituations { get; set; } = new List<Situation>();
@@ -76,4 +76,14 @@ public class EmergencyOutcome
     public List<Item> GrantedItems { get; set; } = new List<Item>();
     public int CoinReward { get; set; }
     public string NarrativeResult { get; set; }
+}
+
+/// <summary>
+/// Relationship delta for a specific NPC in emergency outcomes.
+/// DOMAIN COLLECTION PRINCIPLE: Used in List instead of Dictionary.
+/// </summary>
+public class NPCRelationshipDelta
+{
+    public NPC Npc { get; set; }
+    public int Delta { get; set; }
 }

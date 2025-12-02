@@ -123,7 +123,8 @@ public class SocialChallengeDeckBuilder
             if (card.TokenRequirements != null && card.TokenRequirements.Any())
             {
                 // Get player's tokens with this NPC
-                Dictionary<string, int> playerTokens = GetPlayerTokensWithNPC(npc);
+                // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+                List<TokenRequirementEntry> playerTokens = GetPlayerTokensWithNPC(npc);
 
                 // Check if token requirements are met
                 if (card.CanAccessWithTokens(playerTokens))
@@ -144,17 +145,22 @@ public class SocialChallengeDeckBuilder
 
     /// <summary>
     /// Get player's current token counts with the specified NPC
+    /// DOMAIN COLLECTION PRINCIPLE: Returns List<T> instead of Dictionary
     /// </summary>
-    private Dictionary<string, int> GetPlayerTokensWithNPC(NPC npc)
+    private List<TokenRequirementEntry> GetPlayerTokensWithNPC(NPC npc)
     {
-        Dictionary<string, int> tokens = new Dictionary<string, int>();
+        List<TokenRequirementEntry> tokens = new List<TokenRequirementEntry>();
 
         // Get all connection types and their token counts
         foreach (ConnectionType connectionType in Enum.GetValues<ConnectionType>())
         {
             // HIGHLANDER: Pass NPC object directly, not npc.ID
             int tokenCount = _tokenManager.GetTokenCount(connectionType, npc);
-            tokens[connectionType.ToString()] = tokenCount;
+            tokens.Add(new TokenRequirementEntry
+            {
+                TokenType = connectionType.ToString(),
+                RequiredAmount = tokenCount
+            });
         }
 
         return tokens;

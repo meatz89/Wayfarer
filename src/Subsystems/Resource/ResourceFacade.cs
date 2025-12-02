@@ -224,7 +224,7 @@ public class ResourceFacade
     /// <summary>
     /// Process day transition effects (NPC decay at dawn).
     /// ONLY called when transitioning to Morning (new day starts).
-    /// HIGHLANDER: Hunger increase happens in GameFacade.ProcessTimeAdvancement (one place only).
+    /// HIGHLANDER: Hunger increase happens in GameOrchestrator.ProcessTimeAdvancement (one place only).
     /// </summary>
     public void ProcessDayTransition()
     {
@@ -320,7 +320,7 @@ public class ResourceFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
+        // TIME PROGRESSION: Handled by GameOrchestrator orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No need to manually modify hunger here
 
@@ -376,13 +376,13 @@ public class ResourceFacade
 
     /// <summary>
     /// Execute Wait action: Pass time with no resource recovery.
-    /// TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
+    /// TIME PROGRESSION: Handled by GameOrchestrator orchestration (calls TimeFacade.AdvanceSegments before this method)
     /// Hunger increases by +5 automatically via time progression.
     /// Global action available everywhere.
     /// </summary>
     public void ExecuteWait()
     {
-        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
+        // TIME PROGRESSION: Handled by GameOrchestrator orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No resource recovery - just passing time
 

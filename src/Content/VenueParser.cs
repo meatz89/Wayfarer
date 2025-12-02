@@ -44,7 +44,6 @@ public static class VenueParser
         {
             Description = dto.Description,
             // District object reference resolved in second pass by PackageLoader (LinkRegionDistrictVenueReferences)
-            Tier = dto.Tier,
             Type = venueType,  // Strongly-typed enum (replaces LocationTypeString)
             // SPATIAL PROPERTIES:
             // CenterHex NOT set here - calculated procedurally by VenueGeneratorService.PlaceAuthoredVenues()

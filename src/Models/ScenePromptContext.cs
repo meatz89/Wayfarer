@@ -13,7 +13,6 @@ public class ScenePromptContext
 
     // Situation/Scene metadata
     public string ArchetypeId { get; set; }
-    public int Tier { get; set; }
     public string SceneDisplayName { get; set; }
 
     // Narrative hints from template

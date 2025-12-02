@@ -8,7 +8,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnChallengeEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected ItemRepository ItemRepository { get; set; }
         [Inject] protected DifficultyCalculationService DifficultyService { get; set; }
@@ -22,8 +22,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected PhysicalEffectResolver EffectResolver { get; set; }
 
         protected PhysicalSession Session => Context?.Session;
-        protected List<CardInstance> Hand => GameFacade?.IsPhysicalSessionActive() == true
-            ? GameFacade.GetPhysicalFacade().GetHand()
+        protected List<CardInstance> Hand => GameOrchestrator?.IsPhysicalSessionActive() == true
+            ? GameOrchestrator.GetPhysicalFacade().GetHand()
             : new List<CardInstance>();
         protected CardInstance SelectedCard { get; set; }
         protected string LastNarrative { get; set; }
@@ -138,22 +138,22 @@ namespace Wayfarer.Pages.Components
 
         protected int GetDeckCount()
         {
-            return GameFacade?.IsPhysicalSessionActive() == true
-                ? GameFacade.GetPhysicalFacade().GetDeckCount()
+            return GameOrchestrator?.IsPhysicalSessionActive() == true
+                ? GameOrchestrator.GetPhysicalFacade().GetDeckCount()
                 : 0;
         }
 
         protected int GetExhaustCount()
         {
-            return GameFacade?.IsPhysicalSessionActive() == true
-                ? GameFacade.GetPhysicalFacade().GetExhaustCount()
+            return GameOrchestrator?.IsPhysicalSessionActive() == true
+                ? GameOrchestrator.GetPhysicalFacade().GetExhaustCount()
                 : 0;
         }
 
         protected List<CardInstance> GetLockedCards()
         {
-            return GameFacade?.IsPhysicalSessionActive() == true
-                ? GameFacade.GetPhysicalFacade().GetLockedCards()
+            return GameOrchestrator?.IsPhysicalSessionActive() == true
+                ? GameOrchestrator.GetPhysicalFacade().GetLockedCards()
                 : new List<CardInstance>();
         }
 
@@ -172,7 +172,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalTurnResult result = await GameFacade.ExecuteAssess();
+                PhysicalTurnResult result = await GameOrchestrator.ExecuteAssess();
 
                 if (result == null)
                 {
@@ -214,7 +214,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalTurnResult result = await GameFacade.ExecuteExecute(SelectedCard);
+                PhysicalTurnResult result = await GameOrchestrator.ExecuteExecute(SelectedCard);
 
                 if (result == null)
                 {
@@ -256,7 +256,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalOutcome outcome = await GameFacade.EndPhysicalSession();
+                PhysicalOutcome outcome = await GameOrchestrator.EndPhysicalSession();
 
                 if (outcome != null)
                 {
@@ -283,9 +283,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.PhysicalCardTemplate == null) return "";
             if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (GameOrchestrator == null) return "";
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // PROJECTION: Get effect projection using Execute as default action (positive action for preview)
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
@@ -301,9 +301,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.PhysicalCardTemplate == null) return "";
             if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (GameOrchestrator == null) return "";
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // Use Execute as default action type for preview
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
@@ -318,9 +318,9 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.PhysicalCardTemplate == null) return null;
             if (Session == null) return null;
-            if (GameFacade == null) return null;
+            if (GameOrchestrator == null) return null;
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // Get full projection with bonus tracking
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, actionType);
@@ -613,11 +613,11 @@ namespace Wayfarer.Pages.Components
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null)
-                throw new InvalidOperationException("GameFacade is null");
+            if (GameOrchestrator == null)
+                throw new InvalidOperationException("GameOrchestrator is null");
 
-            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
-            Location currentSpot = GameFacade.GetCurrentLocation();
+            Venue currentVenue = GameOrchestrator.GetCurrentLocation().Venue;
+            Location currentSpot = GameOrchestrator.GetCurrentLocation();
 
             if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
@@ -873,7 +873,7 @@ namespace Wayfarer.Pages.Components
             try
             {
                 // Situation cards use ExecuteExecute - PhysicalFacade handles situation card logic
-                PhysicalTurnResult result = await GameFacade.ExecuteExecute(situationCard);
+                PhysicalTurnResult result = await GameOrchestrator.ExecuteExecute(situationCard);
 
                 if (result != null && result.Success)
                 {

@@ -4,7 +4,7 @@ namespace Wayfarer.Pages.Components
 {
     public class StrangerListBase : ComponentBase
     {
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
 
         [Parameter] public Venue Venue { get; set; }
@@ -29,14 +29,14 @@ namespace Wayfarer.Pages.Components
             if (Venue == null)
             {
                 // Get current Venue if not specified
-                Venue = GameFacade.GetCurrentLocation().Venue;
+                Venue = GameOrchestrator.GetCurrentLocation().Venue;
                 if (Venue == null)
                 {
                     throw new InvalidOperationException("Current location not found");
                 }
             }
 
-            AvailableStrangers = GameFacade.GetAvailableStrangers(Venue);
+            AvailableStrangers = GameOrchestrator.GetAvailableStrangers(Venue);
         }
 
         protected bool CanAffordConversation(string requestId)

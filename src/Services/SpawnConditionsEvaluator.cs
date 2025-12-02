@@ -52,18 +52,19 @@ public class SpawnConditionsEvaluator
         if (conditions == null)
             return true; // No player state conditions = pass
 
-        // Check MinStats (scale thresholds)
-        if (conditions.MinStats != null && conditions.MinStats.Count > 0)
-        {
-            foreach (KeyValuePair<ScaleType, int> kvp in conditions.MinStats)
-            {
-                int currentValue = GetPlayerScale(player, kvp.Key);
-                if (currentValue < kvp.Value)
-                {
-                    return false; // Stat below threshold
-                }
-            }
-        }
+        // Check MinStats (scale thresholds) - DOMAIN COLLECTION PRINCIPLE: Explicit properties
+        if (conditions.MinMorality.HasValue && GetPlayerScale(player, ScaleType.Morality) < conditions.MinMorality.Value)
+            return false;
+        if (conditions.MinLawfulness.HasValue && GetPlayerScale(player, ScaleType.Lawfulness) < conditions.MinLawfulness.Value)
+            return false;
+        if (conditions.MinMethod.HasValue && GetPlayerScale(player, ScaleType.Method) < conditions.MinMethod.Value)
+            return false;
+        if (conditions.MinCaution.HasValue && GetPlayerScale(player, ScaleType.Caution) < conditions.MinCaution.Value)
+            return false;
+        if (conditions.MinTransparency.HasValue && GetPlayerScale(player, ScaleType.Transparency) < conditions.MinTransparency.Value)
+            return false;
+        if (conditions.MinFame.HasValue && GetPlayerScale(player, ScaleType.Fame) < conditions.MinFame.Value)
+            return false;
 
         // Check RequiredItems
         if (conditions.RequiredItems != null && conditions.RequiredItems.Count > 0)
@@ -78,18 +79,19 @@ public class SpawnConditionsEvaluator
             }
         }
 
+        // DOMAIN COLLECTION PRINCIPLE: Iterate List<LocationVisitEntry>, not Dictionary
         if (conditions.LocationVisits != null && conditions.LocationVisits.Count > 0)
         {
-            foreach (KeyValuePair<string, int> kvp in conditions.LocationVisits)
+            foreach (LocationVisitEntry entry in conditions.LocationVisits)
             {
                 // Resolve location name to Location object
-                Location location = _gameWorld.Locations.FirstOrDefault(loc => loc.Name == kvp.Key);
+                Location location = _gameWorld.Locations.FirstOrDefault(loc => loc.Name == entry.LocationId);
                 if (location == null) continue; // Skip if location not found
 
                 // For now, use LocationFamiliarity as proxy (familiarity increases with visits)
                 int familiarityLevel = player.GetLocationFamiliarity(location);
                 // Rough mapping: 0 visits = 0 familiarity, 3+ visits = 3 familiarity
-                if (familiarityLevel < Math.Min(kvp.Value, 3))
+                if (familiarityLevel < Math.Min(entry.VisitCount, 3))
                 {
                     return false; // Location visit count/familiarity below threshold
                 }
@@ -187,12 +189,13 @@ public class SpawnConditionsEvaluator
             return true; // No entity state conditions = pass
 
         // Check NPCBond requirements
+        // DOMAIN COLLECTION PRINCIPLE: Iterate List<NPCBondEntry>, not Dictionary
         if (conditions.NPCBond != null && conditions.NPCBond.Count > 0)
         {
-            foreach (KeyValuePair<string, int> kvp in conditions.NPCBond)
+            foreach (NPCBondEntry entry in conditions.NPCBond)
             {
-                int currentBond = player.Relationships.GetLevel(kvp.Key);
-                if (currentBond < kvp.Value)
+                int currentBond = player.Relationships.GetLevel(entry.NpcId);
+                if (currentBond < entry.BondStrength)
                 {
                     return false; // NPC bond below threshold
                 }
@@ -200,21 +203,23 @@ public class SpawnConditionsEvaluator
         }
 
         // Check LocationReputation requirements
+        // DOMAIN COLLECTION PRINCIPLE: Iterate List<LocationReputationEntry>, not Dictionary
         if (conditions.LocationReputation != null && conditions.LocationReputation.Count > 0)
         {
-            foreach (KeyValuePair<string, int> kvp in conditions.LocationReputation)
+            foreach (LocationReputationEntry entry in conditions.LocationReputation)
             {
                 // NOTE: Location reputation system not yet implemented in Player
             }
         }
 
         // Check RouteTravelCount requirements
+        // DOMAIN COLLECTION PRINCIPLE: Iterate List<RouteTravelCountEntry>, not Dictionary
         if (conditions.RouteTravelCount != null && conditions.RouteTravelCount.Count > 0)
         {
-            foreach (KeyValuePair<string, int> kvp in conditions.RouteTravelCount)
+            foreach (RouteTravelCountEntry entry in conditions.RouteTravelCount)
             {
                 // HIGHLANDER: Resolve route name to RouteOption object
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Name == kvp.Key);
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Name == entry.RouteId);
                 if (route == null)
                 {
                     return false; // Route not found
@@ -225,7 +230,7 @@ public class SpawnConditionsEvaluator
                 // HIGHLANDER: Pass RouteOption object to Player API
                 int routeFamiliarity = player.GetRouteFamiliarity(route);
                 // Rough mapping: 0 travels = 0 familiarity, 5+ travels = 5 familiarity
-                if (routeFamiliarity < Math.Min(kvp.Value, 5))
+                if (routeFamiliarity < Math.Min(entry.TravelCount, 5))
                 {
                     return false; // Route travel count/familiarity below threshold
                 }

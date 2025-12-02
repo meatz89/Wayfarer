@@ -1,6 +1,7 @@
 /// <summary>
 /// Represents how a route can be discovered through NPC relationships
 /// HIGHLANDER: All entity references are typed objects
+/// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
 /// </summary>
 public class RouteDiscovery
 {
@@ -20,9 +21,28 @@ public class RouteDiscovery
     public int RequiredTokensWithNPC { get; set; } = 3;
 
     /// <summary>
-    /// Context-specific discovery information for each NPC who knows this route (keyed by NPC object)
+    /// Context-specific discovery information for each NPC who knows this route.
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> with NPC property instead of Dictionary.
     /// </summary>
-    public Dictionary<NPC, RouteDiscoveryContext> DiscoveryContexts { get; set; } = new Dictionary<NPC, RouteDiscoveryContext>();
+    public List<NPCDiscoveryContextEntry> DiscoveryContexts { get; set; } = new List<NPCDiscoveryContextEntry>();
+
+    /// <summary>
+    /// Get discovery context for a specific NPC via LINQ lookup.
+    /// </summary>
+    public RouteDiscoveryContext GetContextForNPC(NPC npc)
+    {
+        return DiscoveryContexts.FirstOrDefault(e => e.Npc == npc)?.Context;
+    }
+}
+
+/// <summary>
+/// Entry linking an NPC to their route discovery context.
+/// DOMAIN COLLECTION PRINCIPLE: Used in List instead of Dictionary.
+/// </summary>
+public class NPCDiscoveryContextEntry
+{
+    public NPC Npc { get; set; }
+    public RouteDiscoveryContext Context { get; set; }
 }
 
 /// <summary>

@@ -19,7 +19,10 @@
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
-      "availableTimeBlocks": ["Evening", "Night"],
+      "availableTimeBlocks": [
+        "Evening",
+        "Night"
+      ],
       "startingNodeId": "welcome_node",
       "isRepeatable": false,
       "nodes": [
@@ -34,7 +37,9 @@
               "timeCost": 1,
               "nextNodeId": "room_response",
               "relationshipDelta": 1,
-              "grantedKnowledge": ["knows_room_cost"]
+              "grantedKnowledge": [
+                "knows_room_cost"
+              ]
             },
             {
               "id": "ask_about_work",
@@ -43,7 +48,9 @@
               "timeCost": 1,
               "nextNodeId": "work_response",
               "relationshipDelta": 0,
-              "grantedKnowledge": ["knows_work_available"]
+              "grantedKnowledge": [
+                "knows_work_available"
+              ]
             },
             {
               "id": "polite_exit",
@@ -66,7 +73,9 @@
               "timeCost": 1,
               "nextNodeId": "work_response",
               "relationshipDelta": 1,
-              "grantedKnowledge": ["knows_work_available"]
+              "grantedKnowledge": [
+                "knows_work_available"
+              ]
             },
             {
               "id": "thank_leave",
@@ -89,7 +98,9 @@
               "timeCost": 0,
               "nextNodeId": null,
               "relationshipDelta": 2,
-              "grantedKnowledge": ["elena_suggested_thomas"]
+              "grantedKnowledge": [
+                "elena_suggested_thomas"
+              ]
             }
           ]
         }
@@ -108,7 +119,9 @@
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
-      "availableTimeBlocks": ["Evening"],
+      "availableTimeBlocks": [
+        "Evening"
+      ],
       "startingNodeId": "thomas_intro",
       "isRepeatable": false,
       "nodes": [
@@ -125,7 +138,9 @@
               "requiredStatLevel": 2,
               "nextNodeId": "delivery_explanation",
               "relationshipDelta": 1,
-              "grantedKnowledge": ["thomas_grain_missing"]
+              "grantedKnowledge": [
+                "thomas_grain_missing"
+              ]
             },
             {
               "id": "offer_help",
@@ -156,7 +171,9 @@
               "timeCost": 1,
               "nextNodeId": "investigation_offered",
               "relationshipDelta": -1,
-              "grantedKnowledge": ["can_investigate_grain"]
+              "grantedKnowledge": [
+                "can_investigate_grain"
+              ]
             },
             {
               "id": "sympathize",
@@ -179,7 +196,9 @@
               "timeCost": 1,
               "nextNodeId": "quest_details",
               "relationshipDelta": 2,
-              "grantedKnowledge": ["accepted_grain_quest"]
+              "grantedKnowledge": [
+                "accepted_grain_quest"
+              ]
             },
             {
               "id": "decline",
@@ -202,7 +221,9 @@
               "timeCost": 0,
               "nextNodeId": "quest_details",
               "relationshipDelta": 0,
-              "grantedKnowledge": ["accepted_grain_quest"]
+              "grantedKnowledge": [
+                "accepted_grain_quest"
+              ]
             },
             {
               "id": "decline_offer",
@@ -228,8 +249,12 @@
         "knowledgeLevel": "Informed"
       },
       "minimumRelationship": 3,
-      "requiredKnowledge": ["knows_room_cost"],
-      "availableTimeBlocks": ["Night"],
+      "requiredKnowledge": [
+        "knows_room_cost"
+      ],
+      "availableTimeBlocks": [
+        "Night"
+      ],
       "startingNodeId": "late_night_start",
       "isRepeatable": true,
       "nodes": [
@@ -246,7 +271,9 @@
               "requiredStatLevel": 3,
               "nextNodeId": "town_truth",
               "relationshipDelta": 2,
-              "grantedKnowledge": ["elena_town_insight"]
+              "grantedKnowledge": [
+                "elena_town_insight"
+              ]
             },
             {
               "id": "ask_about_elena",
@@ -279,7 +306,9 @@
               "requiredStatLevel": 4,
               "nextNodeId": null,
               "relationshipDelta": 1,
-              "grantedKnowledge": ["elena_hints_conspiracy"]
+              "grantedKnowledge": [
+                "elena_hints_conspiracy"
+              ]
             },
             {
               "id": "accept_wisdom",
@@ -320,7 +349,10 @@
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
-      "availableTimeBlocks": ["Morning", "Afternoon"],
+      "availableTimeBlocks": [
+        "Morning",
+        "Afternoon"
+      ],
       "startingNodeId": "merchant_greeting",
       "isRepeatable": true,
       "nodes": [
@@ -341,10 +373,14 @@
               "responseText": "I heard there's a grain shortage. Know anything about that?",
               "focusCost": 1,
               "timeCost": 1,
-              "requiredKnowledge": ["thomas_grain_missing"],
+              "requiredKnowledge": [
+                "thomas_grain_missing"
+              ],
               "nextNodeId": "grain_response",
               "relationshipDelta": 1,
-              "grantedKnowledge": ["merchant_knows_routes"]
+              "grantedKnowledge": [
+                "merchant_knows_routes"
+              ]
             },
             {
               "id": "just_browsing",
@@ -381,7 +417,9 @@
               "timeCost": 0,
               "nextNodeId": null,
               "relationshipDelta": 1,
-              "grantedKnowledge": ["investigate_eastern_road"]
+              "grantedKnowledge": [
+                "investigate_eastern_road"
+              ]
             }
           ]
         }

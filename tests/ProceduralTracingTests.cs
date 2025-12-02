@@ -242,7 +242,7 @@ public class ProceduralTracingTests
         // Simulate challenge success
         gameWorld.LastSocialOutcome = new SocialOutcome { Success = true };
 
-        // Act - Part 2: Process outcome (simulates GameFacade.ProcessSocialChallengeOutcome)
+        // Act - Part 2: Process outcome (simulates GameOrchestrator.ProcessSocialChallengeOutcome)
         ChoiceExecutionNode storedChoice = gameWorld.PendingSocialContext.ChoiceExecution;
         Assert.Same(choiceNode, storedChoice); // Verify object identity
 
@@ -271,7 +271,7 @@ public class ProceduralTracingTests
         SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.GetNodeForScene(scene);
         SituationSpawnNode parentNode = gameWorld.ProceduralTracer.GetNodeForSituation(parentSituation);
 
-        // Act - Simulate SpawnFacade.ExecuteSpawnRules
+        // Act - Simulate SpawnService.ExecuteSpawnRules
         gameWorld.ProceduralTracer.PushSituationContext(parentNode);
         SituationSpawnNode childNode = gameWorld.ProceduralTracer.RecordSituationSpawn(
             childSituation,

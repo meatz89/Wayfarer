@@ -1,7 +1,7 @@
 
 /// <summary>
 /// Public facade for all location-related operations.
-/// Coordinates between Venue managers and provides a clean API for GameFacade.
+/// Coordinates between Venue managers and provides a clean API for GameOrchestrator.
 /// </summary>
 public class LocationFacade
 {
@@ -24,9 +24,7 @@ public class LocationFacade
     private readonly NarrativeRenderer _narrativeRenderer;
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
-    private readonly SceneFacade _sceneFacade;
     private readonly SceneInstantiator _sceneInstantiator;
-    private readonly ContentGenerationFacade _contentGenerationFacade;
     private readonly PackageLoader _packageLoader;
 
     public LocationFacade(
@@ -46,9 +44,7 @@ public class LocationFacade
         NarrativeRenderer narrativeRenderer,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository,
-        SceneFacade sceneFacade,
         SceneInstantiator sceneInstantiator,
-        ContentGenerationFacade contentGenerationFacade,
         PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
@@ -67,9 +63,7 @@ public class LocationFacade
         _narrativeRenderer = narrativeRenderer;
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
-        _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
-        _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
@@ -150,7 +144,7 @@ public class LocationFacade
     /// <summary>
     /// Get the complete Venue screen view model with all Venue data.
     /// </summary>
-    /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
+    /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameOrchestrator from ConversationFacade</param>
     public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
     {
         Player player = _gameWorld.GetPlayer();
@@ -605,7 +599,7 @@ public class LocationFacade
         // ZERO NULL TOLERANCE: Fail-fast with clear diagnostic message
         if (spot == null)
         {
-            throw new InvalidOperationException("CRITICAL: GetCurrentLocation() returned null. This indicates hex grid initialization failure. Check GameFacade.StartGameAsync() validation.");
+            throw new InvalidOperationException("CRITICAL: GetCurrentLocation() returned null. This indicates hex grid initialization failure. Check GameOrchestrator.StartGameAsync() validation.");
         }
 
         Venue venue = spot.Venue;

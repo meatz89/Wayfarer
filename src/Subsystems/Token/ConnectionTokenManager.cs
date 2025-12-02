@@ -29,41 +29,24 @@ public class ConnectionTokenManager
     /// </summary>
     public List<TokenCount> GetTokensWithNPC(NPC npc)
     {
-        Player player = _gameWorld.GetPlayer();
-        List<NPCTokenEntry> npcTokens = player.NPCTokens;
-
-        // HIGHLANDER: Compare NPC objects directly
-        NPCTokenEntry entry = npcTokens.FirstOrDefault(x => x.Npc == npc);
-        if (entry != null)
-        {
-            return new List<TokenCount>
-            {
-                new TokenCount { Type = ConnectionType.Trust, Count = entry.Trust },
-                new TokenCount { Type = ConnectionType.Diplomacy, Count = entry.Diplomacy },
-                new TokenCount { Type = ConnectionType.Status, Count = entry.Status },
-                new TokenCount { Type = ConnectionType.Shadow, Count = entry.Shadow }
-            };
-        }
-
-        // Return list with zero counts if no tokens with this NPC
+        // HIGHLANDER: Tokens stored directly on NPC, not in Player collection
         return new List<TokenCount>
         {
-            new TokenCount { Type = ConnectionType.Trust, Count = 0 },
-            new TokenCount { Type = ConnectionType.Diplomacy, Count = 0 },
-            new TokenCount { Type = ConnectionType.Status, Count = 0 },
-            new TokenCount { Type = ConnectionType.Shadow, Count = 0 }
+            new TokenCount { Type = ConnectionType.Trust, Count = npc.Trust },
+            new TokenCount { Type = ConnectionType.Diplomacy, Count = npc.Diplomacy },
+            new TokenCount { Type = ConnectionType.Status, Count = npc.Status },
+            new TokenCount { Type = ConnectionType.Shadow, Count = npc.Shadow }
         };
     }
 
     /// <summary>
     /// Get specific token count with an NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
-    /// DOMAIN COLLECTION: Query List with LINQ
     /// </summary>
     public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        List<TokenCount> tokens = GetTokensWithNPC(npc);
-        return tokens.FirstOrDefault(t => t.Type == type)?.Count ?? 0;
+        // HIGHLANDER: Direct property access on NPC
+        return npc.GetTokenCount(type);
     }
 
     /// <summary>
@@ -109,12 +92,12 @@ public class ConnectionTokenManager
     /// </summary>
     public int GetTotalTokensOfType(ConnectionType type)
     {
-        Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
 
-        foreach (NPCTokenEntry entry in player.NPCTokens)
+        // HIGHLANDER: Iterate NPCs directly from GameWorld
+        foreach (NPC npc in _gameWorld.NPCs)
         {
-            int tokensWithNpc = entry.GetTokenCount(type);
+            int tokensWithNpc = npc.GetTokenCount(type);
             if (tokensWithNpc > 0)
             {
                 totalOfType += tokensWithNpc;
@@ -131,8 +114,6 @@ public class ConnectionTokenManager
     {
         if (amount <= 0) return true;
 
-        Player player = _gameWorld.GetPlayer();
-
         // Calculate total available across all NPCs
         int totalAvailable = GetTotalTokensOfType(type);
         if (totalAvailable < amount)
@@ -145,30 +126,27 @@ public class ConnectionTokenManager
         }
 
         // Deduct from NPCs proportionally (favor NPCs with more tokens)
-        List<NPCTokenEntry> npcTokens = player.NPCTokens;
         int remaining = amount;
 
         // Sort NPCs by token count (descending) to spend from those with most tokens first
-        List<NPCTokenEntry> npcsByTokenCount = npcTokens
-            .Where(entry => entry.GetTokenCount(type) > 0)
-            .OrderByDescending(entry => entry.GetTokenCount(type))
+        List<NPC> npcsByTokenCount = _gameWorld.NPCs
+            .Where(npc => npc.GetTokenCount(type) > 0)
+            .OrderByDescending(npc => npc.GetTokenCount(type))
             .ToList();
 
         // Spend tokens
-        foreach (NPCTokenEntry npcEntry in npcsByTokenCount)
+        foreach (NPC npc in npcsByTokenCount)
         {
             if (remaining <= 0) break;
 
-            int tokensWithNpc = npcEntry.GetTokenCount(type);
+            int tokensWithNpc = npc.GetTokenCount(type);
             int toSpend = Math.Min(tokensWithNpc, remaining);
 
-            npcEntry.SetTokenCount(type, tokensWithNpc - toSpend);
+            npc.SetTokenCount(type, tokensWithNpc - toSpend);
             remaining -= toSpend;
 
             // Add narrative feedback for each NPC
-            // HIGHLANDER: Use NPC object directly from entry
-            NPC npc = npcEntry.Npc;
-            if (npc != null && toSpend > 0)
+            if (toSpend > 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"Called in {toSpend} {type} favor{(toSpend > 1 ? "s" : "")} with {npc.Name}",
@@ -202,16 +180,15 @@ public class ConnectionTokenManager
     /// </summary>
     public List<NPC> GetNPCsWithTokens()
     {
-        Player player = _gameWorld.GetPlayer();
         List<NPC> npcsWithTokens = new List<NPC>();
 
-        foreach (NPCTokenEntry entry in player.NPCTokens)
+        // HIGHLANDER: Iterate NPCs directly from GameWorld
+        foreach (NPC npc in _gameWorld.NPCs)
         {
             // Check if NPC has any non-zero tokens
-            if (entry.Trust != 0 || entry.Diplomacy != 0 || entry.Status != 0 || entry.Shadow != 0)
+            if (npc.Trust != 0 || npc.Diplomacy != 0 || npc.Status != 0 || npc.Shadow != 0)
             {
-                // HIGHLANDER: Add NPC object directly
-                npcsWithTokens.Add(entry.Npc);
+                npcsWithTokens.Add(npc);
             }
         }
 

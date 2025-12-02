@@ -54,7 +54,6 @@ public class Location
 
     // NO DEFAULTS: All numeric properties must be explicitly set
     public int FlowModifier { get; set; }
-    public int Tier { get; set; }
 
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
@@ -63,9 +62,53 @@ public class Location
     public int VisitCount { get; set; }
     public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
 
-    public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
-    public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
-    public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
+    // EXPLICIT TIME-BLOCK PROPERTIES (not wrapper class patterns)
+    // Professions available at each time block
+    public List<Professions> MorningProfessions { get; set; } = new List<Professions>();
+    public List<Professions> MiddayProfessions { get; set; } = new List<Professions>();
+    public List<Professions> AfternoonProfessions { get; set; } = new List<Professions>();
+    public List<Professions> EveningProfessions { get; set; } = new List<Professions>();
+
+    // Actions available at each time block
+    public List<string> MorningActions { get; set; } = new List<string>();
+    public List<string> MiddayActions { get; set; } = new List<string>();
+    public List<string> AfternoonActions { get; set; } = new List<string>();
+    public List<string> EveningActions { get; set; } = new List<string>();
+
+    // Description for each time block
+    public string MorningDescription { get; set; }
+    public string MiddayDescription { get; set; }
+    public string AfternoonDescription { get; set; }
+    public string EveningDescription { get; set; }
+
+    // Helper methods for time-based access
+    public List<Professions> GetProfessionsForTimeBlock(TimeBlocks block) => block switch
+    {
+        TimeBlocks.Morning => MorningProfessions,
+        TimeBlocks.Midday => MiddayProfessions,
+        TimeBlocks.Afternoon => AfternoonProfessions,
+        TimeBlocks.Evening => EveningProfessions,
+        _ => new List<Professions>()
+    };
+
+    public List<string> GetActionsForTimeBlock(TimeBlocks block) => block switch
+    {
+        TimeBlocks.Morning => MorningActions,
+        TimeBlocks.Midday => MiddayActions,
+        TimeBlocks.Afternoon => AfternoonActions,
+        TimeBlocks.Evening => EveningActions,
+        _ => new List<string>()
+    };
+
+    public string GetDescriptionForTimeBlock(TimeBlocks block) => block switch
+    {
+        TimeBlocks.Morning => MorningDescription,
+        TimeBlocks.Midday => MiddayDescription,
+        TimeBlocks.Afternoon => AfternoonDescription,
+        TimeBlocks.Evening => EveningDescription,
+        _ => null
+    };
+
     public List<string> ConnectedVenueIds { get; internal set; }
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }

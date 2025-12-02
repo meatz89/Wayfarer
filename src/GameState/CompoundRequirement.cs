@@ -176,8 +176,7 @@ public class OrPath
         // Check relationship (uses object reference, not string ID)
         if (BondNpc != null && BondStrengthRequired.HasValue)
         {
-            NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == BondNpc);
-            int totalBond = entry != null ? entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow : 0;
+            int totalBond = BondNpc.GetTotalTokens();
             if (totalBond < BondStrengthRequired.Value) return false;
         }
 
@@ -370,8 +369,7 @@ public class OrPath
         // Project relationship requirements
         if (BondNpc != null && BondStrengthRequired.HasValue)
         {
-            NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == BondNpc);
-            int totalBond = entry != null ? entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow : 0;
+            int totalBond = BondNpc.GetTotalTokens();
             bool satisfied = totalBond >= BondStrengthRequired.Value;
             requirements.Add(new RequirementStatus
             {

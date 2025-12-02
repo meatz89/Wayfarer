@@ -53,7 +53,23 @@ public class Item
     public string Description { get; set; }
 
     // Token generation bonuses for equipment (flat integer additions, e.g., +1, +2)
-    public Dictionary<ConnectionType, int> TokenGenerationBonuses { get; set; } = new Dictionary<ConnectionType, int>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum values
+    public int TrustGenerationBonus { get; set; }
+    public int DiplomacyGenerationBonus { get; set; }
+    public int StatusGenerationBonus { get; set; }
+    public int ShadowGenerationBonus { get; set; }
+
+    // Helper for enum-based access when needed
+    public int GetTokenGenerationBonus(ConnectionType type) => type switch
+    {
+        ConnectionType.Trust => TrustGenerationBonus,
+        ConnectionType.Diplomacy => DiplomacyGenerationBonus,
+        ConnectionType.Status => StatusGenerationBonus,
+        ConnectionType.Shadow => ShadowGenerationBonus,
+        _ => 0
+    };
+
+    public bool HasTokenGenerationBonus(ConnectionType type) => GetTokenGenerationBonus(type) > 0;
 
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();

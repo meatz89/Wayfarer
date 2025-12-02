@@ -22,7 +22,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create hostile NPC (RelationshipFlow <= 9)
         NPC hostileNpc = new NPC { RelationshipFlow = 5 };
-        Location location = new Location { Tier = 2 };
+        Location location = new Location { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -37,7 +37,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create friendly NPC (RelationshipFlow >= 15)
         NPC friendlyNpc = new NPC { RelationshipFlow = 18 };
-        Location location = new Location { Tier = 2 };
+        Location location = new Location { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -52,7 +52,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create neutral NPC (RelationshipFlow 10-14)
         NPC neutralNpc = new NPC { RelationshipFlow = 12 };
-        Location location = new Location { Tier = 2 };
+        Location location = new Location { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -65,9 +65,9 @@ public class TwoPhaseScalingComplianceTests
     [Fact]
     public void CoinCostAdjustment_BasicLocation_SubtractsThree()
     {
-        // Arrange: Basic location (Tier 1)
+        // Arrange: Basic location (Difficulty 0 = Basic quality)
         NPC npc = new NPC { RelationshipFlow = 12 };
-        Location basicLocation = new Location { Tier = 1 };
+        Location basicLocation = new Location { Difficulty = 0 };
         Player player = new Player();
 
         // Act
@@ -80,9 +80,9 @@ public class TwoPhaseScalingComplianceTests
     [Fact]
     public void CoinCostAdjustment_LuxuryLocation_AddsTen()
     {
-        // Arrange: Luxury location (Tier >= 4)
+        // Arrange: Luxury location (Difficulty >= 3 = Luxury quality)
         NPC npc = new NPC { RelationshipFlow = 12 };
-        Location luxuryLocation = new Location { Tier = 4 };
+        Location luxuryLocation = new Location { Difficulty = 3 };
         Player player = new Player();
 
         // Act

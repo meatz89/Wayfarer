@@ -38,7 +38,7 @@ public class LocationDTO
     public string Role { get; set; }
     public bool IsStartingLocation { get; set; }
     public string ObligationProfile { get; set; }
-    public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
+    public List<ProfessionsByTimeEntry> AvailableProfessionsByTime { get; set; } = new List<ProfessionsByTimeEntry>();
     public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
 
     // Orthogonal Categorical Dimensions (Entity Resolution)

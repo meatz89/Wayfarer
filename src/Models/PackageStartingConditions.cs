@@ -39,9 +39,9 @@ public class PackageStartingConditions
 
     /// <summary>
     /// Initial token relationships with NPCs
-    /// Dictionary key is NPC ID, value is token counts
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, NPCTokenRelationship> StartingTokens { get; set; }
+    public List<NpcTokenStartEntry> StartingTokens { get; set; }
 }
 
 /// <summary>

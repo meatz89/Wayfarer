@@ -10,17 +10,17 @@
 /// - SituationFacade.ResolveInstantSituation() - for instant situations
 /// - SituationCompletionHandler.CompleteSituation() - after challenge completion
 ///
-/// NO EVENTS - Synchronous application orchestrated by GameFacade
+/// NO EVENTS - Synchronous application orchestrated by GameOrchestrator
 /// </summary>
 public class ConsequenceFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly TimeFacade _timeFacade;
+    private readonly TimeManager _timeManager;
 
-    public ConsequenceFacade(GameWorld gameWorld, TimeFacade timeFacade)
+    public ConsequenceFacade(GameWorld gameWorld, TimeManager timeManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     }
 
     /// <summary>
@@ -117,9 +117,9 @@ public class ConsequenceFacade
                     {
                         Type = application.StateType,
                         Category = category,
-                        AppliedDay = _timeFacade.GetCurrentDay(),
-                        AppliedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                        AppliedSegment = _timeFacade.GetCurrentSegment(),
+                        AppliedDay = _timeManager.CurrentDay,
+                        AppliedTimeBlock = _timeManager.CurrentTimeBlock,
+                        AppliedSegment = _timeManager.CurrentSegment,
                         DurationSegments = application.DurationSegments ?? 48
                     });
                 }

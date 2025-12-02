@@ -30,9 +30,6 @@ public class NPC
     // Level system (1-5) for difficulty/content progression and XP scaling
     public int Level { get; set; } = 1;
 
-    // Tier system (1-5) for difficulty/content progression
-    public int Tier { get; set; } = 1;
-
     // Conversation difficulty level (1-3) for XP multipliers
     public int ConversationDifficulty { get; set; } = 1;
 
@@ -103,6 +100,59 @@ public class NPC
 
     // Initial token values to be applied during game initialization
     public List<InitialTokenValue> InitialTokenValues { get; set; } = new List<InitialTokenValue>();
+
+    // Connection Tokens - relationship depth with player across four dimensions
+    // HIGHLANDER: Tokens stored directly on NPC (not in separate collection)
+    // Replaces NPCTokenEntry pattern - tokens are NPC state, not Player state
+    public int Trust { get; set; } = 0;
+    public int Diplomacy { get; set; } = 0;
+    public int Status { get; set; } = 0;
+    public int Shadow { get; set; } = 0;
+
+    /// <summary>
+    /// Get token count for specific connection type
+    /// </summary>
+    public int GetTokenCount(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => Trust,
+            ConnectionType.Diplomacy => Diplomacy,
+            ConnectionType.Status => Status,
+            ConnectionType.Shadow => Shadow,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// Set token count for specific connection type
+    /// </summary>
+    public void SetTokenCount(ConnectionType type, int value)
+    {
+        switch (type)
+        {
+            case ConnectionType.Trust:
+                Trust = value;
+                break;
+            case ConnectionType.Diplomacy:
+                Diplomacy = value;
+                break;
+            case ConnectionType.Status:
+                Status = value;
+                break;
+            case ConnectionType.Shadow:
+                Shadow = value;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Get total tokens across all connection types (bond strength)
+    /// </summary>
+    public int GetTotalTokens()
+    {
+        return Trust + Diplomacy + Status + Shadow;
+    }
 
     // Stranger-specific properties (for unnamed one-time NPCs)
     public bool IsStranger { get; set; } = false;

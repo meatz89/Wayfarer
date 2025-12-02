@@ -137,8 +137,9 @@ public class PackageContent
 
     /// <summary>
     /// Listen draw counts per connection state for conversation mechanics
+    /// DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> ListenDrawCounts { get; set; }
+    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; }
 
     /// <summary>
     /// Obligation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
@@ -210,9 +211,10 @@ public class PackageContent
     public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
 
     /// <summary>
-    /// Scene instances - runtime instances spawned from templates with concrete placements
-    /// Generated dynamically at spawn time, stored in dynamic packages
-    /// DISTINCTION: SceneTemplates = reusable blueprints, Scenes = specific playthrough instances
+    /// Scene instances - used for BOTH creation and runtime (arc42 §8.28)
+    /// Authored: JSON contains creation properties (context, template ref)
+    /// Procedural: Code creates DTO with same properties
+    /// Same DTO serves both purposes - parser has no knowledge of source
     /// </summary>
     public List<SceneDTO> Scenes { get; set; } = new List<SceneDTO>();
 }

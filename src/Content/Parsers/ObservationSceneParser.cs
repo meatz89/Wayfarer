@@ -14,7 +14,7 @@ public static class ObservationSceneParser
             throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a locationFilter");
 
         // EntityResolver.Find pattern - find-only at parse-time (Locations should already exist)
-        PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, $"ObservationScene:{dto.Name}");
+        PlacementFilter locationFilter = PlacementFilterParser.Parse(dto.LocationFilter, $"ObservationScene:{dto.Name}");
         Location location = entityResolver.FindLocation(locationFilter, null);
         if (location == null)
         {
@@ -35,20 +35,21 @@ public static class ObservationSceneParser
         };
 
         // Parse examination points (first pass - no cross-references yet)
-        Dictionary<string, ExaminationPoint> pointsById = new Dictionary<string, ExaminationPoint>();
+        // DOMAIN COLLECTION PRINCIPLE: Track (Id, Point) pairs in List, not Dictionary
+        List<ExaminationPointIdPair> pointPairs = new List<ExaminationPointIdPair>();
         foreach (ExaminationPointDTO pointDto in dto.ExaminationPoints)
         {
             ExaminationPoint point = ParseExaminationPoint(pointDto);
             scene.ExaminationPoints.Add(point);
 
-            // Track by DTO Id for second pass reference resolution
+            // Track Id+Point pair for second pass reference resolution
             if (!string.IsNullOrWhiteSpace(pointDto.Id))
             {
-                pointsById[pointDto.Id] = point;
+                pointPairs.Add(new ExaminationPointIdPair { Id = pointDto.Id, Point = point });
             }
         }
 
-        // Second pass - resolve RevealsExaminationPoint references
+        // Second pass - resolve RevealsExaminationPoint references via LINQ lookup
         for (int i = 0; i < dto.ExaminationPoints.Count; i++)
         {
             ExaminationPointDTO pointDto = dto.ExaminationPoints[i];
@@ -56,7 +57,9 @@ public static class ObservationSceneParser
 
             if (!string.IsNullOrWhiteSpace(pointDto.RevealsExaminationPointId))
             {
-                if (pointsById.TryGetValue(pointDto.RevealsExaminationPointId, out ExaminationPoint revealedPoint))
+                ExaminationPoint revealedPoint = pointPairs
+                    .FirstOrDefault(p => p.Id == pointDto.RevealsExaminationPointId)?.Point;
+                if (revealedPoint != null)
                 {
                     point.RevealsExaminationPoint = revealedPoint;
                 }
@@ -98,4 +101,14 @@ public static class ObservationSceneParser
 
         return point;
     }
+}
+
+/// <summary>
+/// Helper for ExaminationPoint cross-reference resolution during parsing.
+/// DOMAIN COLLECTION PRINCIPLE: Used in List instead of Dictionary for ID-based lookup.
+/// </summary>
+internal sealed class ExaminationPointIdPair
+{
+    public string Id { get; init; }
+    public ExaminationPoint Point { get; init; }
 }

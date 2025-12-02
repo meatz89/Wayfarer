@@ -1,6 +1,6 @@
 
 /// <summary>
-/// SPAWN FACADE - Executes cascading situation spawn rules (Sir Brante pattern)
+/// SPAWN SERVICE - Executes cascading situation spawn rules (Sir Brante pattern)
 ///
 /// RESPONSIBILITY:
 /// - Parent situation completion spawns child situations
@@ -13,17 +13,17 @@
 /// Scenes spawn via ScenesToSpawn rewards from choice execution, not condition-based triggers
 ///
 /// Called by:
-/// - SituationFacade.ResolveInstantSituation() - After instant situation resolution (cascading)
 /// - SituationCompletionHandler.CompleteSituation() - After challenge completion (cascading)
+/// - SituationCompletionHandler.FailSituation() - After failure (cascading)
 ///
-/// NO EVENTS - Synchronous execution orchestrated by GameFacade (facades never call each other)
+/// ARCHITECTURE: Domain service (no facade dependencies) - can be called by other services
 /// </summary>
-public class SpawnFacade
+public class SpawnService
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
 
-    public SpawnFacade(
+    public SpawnService(
         GameWorld gameWorld,
         TimeManager timeManager)
     {
@@ -59,7 +59,7 @@ public class SpawnFacade
             if (template == null)
             {
                 // Template not found - skip this spawn
-                Console.WriteLine($"[SpawnFacade] WARNING: Template '{rule.TemplateId}' not found - skipping spawn");
+                Console.WriteLine($"[SpawnService] WARNING: Template '{rule.TemplateId}' not found - skipping spawn");
                 continue;
             }
 
@@ -71,7 +71,7 @@ public class SpawnFacade
             {
                 spawnedSituation.ParentScene = parentSituation.ParentScene;
                 parentSituation.ParentScene.Situations.Add(spawnedSituation);
-                Console.WriteLine($"[SpawnFacade] Spawned situation '{spawnedSituation.Name}' added to scene");
+                Console.WriteLine($"[SpawnService] Spawned situation '{spawnedSituation.Name}' added to scene");
 
                 // PROCEDURAL CONTENT TRACING: Record cascading situation spawn
                 if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
@@ -105,7 +105,7 @@ public class SpawnFacade
             }
             else
             {
-                Console.WriteLine($"[SpawnFacade] WARNING: Parent situation '{parentSituation.Name}' has no ParentScene - spawned situation orphaned!");
+                Console.WriteLine($"[SpawnService] WARNING: Parent situation '{parentSituation.Name}' has no ParentScene - spawned situation orphaned!");
             }
 
             // ActiveSituationIds DELETED from NPC/Location - situations now tracked via Scene.Situations
@@ -177,7 +177,6 @@ public class SpawnFacade
             // PropertyReduction DELETED - old equipment system removed
             InteractionType = template.InteractionType,
             NavigationPayload = template.NavigationPayload,
-            Tier = template.Tier,
             Repeatable = template.Repeatable,
             GeneratedNarrative = null, // Don't copy cached narrative
             NarrativeHints = template.NarrativeHints,

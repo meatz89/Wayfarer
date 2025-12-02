@@ -25,7 +25,7 @@
         "id": "test_inn_venue",
         "name": "Test Inn",
         "description": "A simple test inn for lodging scene tests",
-        "districtId": "test_district",
+        "districtName": "test_district",
         "tier": 1
       }
     ],
@@ -56,10 +56,18 @@
         "personalityType": "MERCANTILE",
         "spawnLocation": {
           "placementType": "Location",
-          "privacyLevels": ["SemiPublic"],
-          "safetyLevels": ["Safe"],
-          "activityLevels": ["Moderate"],
-          "purposes": ["Dwelling"]
+          "privacyLevels": [
+            "SemiPublic"
+          ],
+          "safetyLevels": [
+            "Safe"
+          ],
+          "activityLevels": [
+            "Moderate"
+          ],
+          "purposes": [
+            "Dwelling"
+          ]
         },
         "bondStrength": 0,
         "Profession": "Innkeeper",

@@ -12,9 +12,6 @@
 /// </summary>
 public class GenerationContext
 {
-    // Tier (unchanged - universal difficulty scalar)
-    public int Tier { get; set; }
-
     // A-Story Sequence (for infinite main story progression)
     // null for non-A-story scenes, sequence number (11+) for A-story scenes
     // Used ONLY to calculate next A-scene ID for final situation spawn rewards
@@ -69,15 +66,14 @@ public class GenerationContext
     public RhythmPattern Rhythm { get; set; } = RhythmPattern.Mixed;
 
     /// <summary>
-    /// Create categorical context (tier-based only, no entity derivation).
+    /// Create categorical context (difficulty-based only, no entity derivation).
     /// Used for abstract archetype testing.
     /// HIGHLANDER: No entities assigned (null Location/Npc)
     /// </summary>
-    public static GenerationContext Categorical(int tier)
+    public static GenerationContext Categorical(int difficulty)
     {
         return new GenerationContext
         {
-            Tier = tier,
             Location = null,
             Npc = null,
             NpcPersonality = null,
@@ -85,7 +81,7 @@ public class GenerationContext
             PlayerCoins = 0,
             PlayerHealth = 100,
             PlayerStrength = 0,
-            LocationDifficulty = 0
+            LocationDifficulty = difficulty
         };
     }
 
@@ -111,7 +107,6 @@ public class GenerationContext
     /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
     public static GenerationContext FromEntities(
-        int tier,
         NPC npc,
         Location location,
         Player player,
@@ -120,7 +115,6 @@ public class GenerationContext
     {
         return new GenerationContext
         {
-            Tier = tier,
             AStorySequence = mainStorySequence,
 
             // HIGHLANDER: Entity objects (not IDs)
@@ -220,7 +214,7 @@ public class GenerationContext
     }
 
     /// <summary>
-    /// Derive power dynamic from NPC tier (authority concept removed from architecture).
+    /// Derive power dynamic from NPC level (authority concept).
     ///
     /// Scales: Confrontation difficulty, Negotiation leverage, Social_maneuvering thresholds
     /// </summary>
@@ -228,12 +222,12 @@ public class GenerationContext
     {
         if (npc == null) return PowerDynamic.Equal;
 
-        // Use NPC tier as power indicator (1=low, 5=high authority)
-        return npc.Tier switch
+        // Use NPC level as power indicator (1=low, 5=high authority)
+        return npc.Level switch
         {
-            >= 4 => PowerDynamic.Submissive,  // High tier NPC = player submissive
-            <= 2 => PowerDynamic.Dominant,    // Low tier NPC = player dominant
-            _ => PowerDynamic.Equal           // Mid tier = equal footing
+            >= 4 => PowerDynamic.Submissive,  // High level NPC = player submissive
+            <= 2 => PowerDynamic.Dominant,    // Low level NPC = player dominant
+            _ => PowerDynamic.Equal           // Mid level = equal footing
         };
     }
 
@@ -282,7 +276,7 @@ public class GenerationContext
     }
 
     /// <summary>
-    /// Derive quality tier from location tier.
+    /// Derive quality from location difficulty.
     ///
     /// Scales: Costs (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
     /// Applies to: Services, items, equipment across ALL domains
@@ -291,18 +285,18 @@ public class GenerationContext
     {
         if (location == null) return Quality.Standard;
 
-        return location.Tier switch
+        return location.Difficulty switch
         {
-            1 => Quality.Basic,
-            2 => Quality.Standard,
-            3 => Quality.Premium,
-            >= 4 => Quality.Luxury,
+            0 => Quality.Basic,
+            1 => Quality.Standard,
+            2 => Quality.Premium,
+            >= 3 => Quality.Luxury,
             _ => Quality.Standard
         };
     }
 
     /// <summary>
-    /// Derive environment quality from location properties.
+    /// Derive environment quality from location difficulty.
     ///
     /// Scales: Restoration multiplier (Basic 1x, Standard 2x, Premium 3x)
     /// Applies to: Rest, study, crafting, recovery across ALL domains
@@ -312,19 +306,19 @@ public class GenerationContext
         if (location == null)
             return EnvironmentQuality.Standard;
 
-        // Premium environment (high tier locations)
-        if (location.Tier >= 3)
+        // Premium environment (high difficulty locations)
+        if (location.Difficulty >= 2)
         {
             return EnvironmentQuality.Premium;
         }
 
-        // Standard environment (mid tier locations)
-        if (location.Tier == 2)
+        // Standard environment (mid difficulty locations)
+        if (location.Difficulty == 1)
         {
             return EnvironmentQuality.Standard;
         }
 
-        // Basic environment (low tier locations)
+        // Basic environment (low difficulty locations)
         return EnvironmentQuality.Basic;
     }
 

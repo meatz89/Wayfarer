@@ -8,24 +8,21 @@ public class EmergencyFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly ResourceFacade _resourceFacade;
-    private readonly TimeFacade _timeFacade;
-    private readonly TokenFacade _tokenFacade;
+    private readonly TimeManager _timeManager;
+    private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly RewardApplicationService _rewardApplicationService;
 
     public EmergencyFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        ResourceFacade resourceFacade,
-        TimeFacade timeFacade,
-        TokenFacade tokenFacade,
+        TimeManager timeManager,
+        ConnectionTokenManager connectionTokenManager,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-        _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _connectionTokenManager = connectionTokenManager ?? throw new ArgumentNullException(nameof(connectionTokenManager));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
@@ -53,7 +50,7 @@ public class EmergencyFacade
     public ActiveEmergencyState CheckForActiveEmergency()
     {
         int currentDay = _gameWorld.CurrentDay;
-        int currentSegment = _timeFacade.GetCurrentSegment();
+        int currentSegment = _timeManager.CurrentSegment;
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
 
@@ -149,7 +146,7 @@ public class EmergencyFacade
 
         EmergencySituation template = emergencyState.Template;
         Player player = _gameWorld.GetPlayer();
-        int currentSegment = _timeFacade.GetCurrentSegment();
+        int currentSegment = _timeManager.CurrentSegment;
         int triggeredAt = emergencyState.TriggeredAtSegment ?? currentSegment;
         int segmentsPassed = currentSegment - triggeredAt;
         int segmentsRemaining = template.ResponseWindowSegments - segmentsPassed;
@@ -170,7 +167,7 @@ public class EmergencyFacade
             ResponseDeadlineSegment = triggeredAt + template.ResponseWindowSegments,
             SegmentsRemaining = Math.Max(0, segmentsRemaining),
             LocationName = _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown",
-            TimeDisplay = _timeFacade.GetTimeString()
+            TimeDisplay = _timeManager.GetSegmentDisplay()
         };
     }
 
@@ -220,7 +217,7 @@ public class EmergencyFacade
 
         if (response.TimeCost > 0)
         {
-            _timeFacade.AdvanceSegments(response.TimeCost);
+            _timeManager.AdvanceSegments(response.TimeCost);
         }
 
         // Apply outcome
@@ -272,11 +269,11 @@ public class EmergencyFacade
             {
                 if (outcome.RelationshipDelta > 0)
                 {
-                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc);
                 }
                 else
                 {
-                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc);
+                    _connectionTokenManager.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc);
                 }
             }
 
@@ -289,19 +286,19 @@ public class EmergencyFacade
         }
 
         // Apply specific NPC relationship changes
-        // HIGHLANDER: NPCRelationshipDeltas is Dictionary<NPC, int> with object keys
-        foreach (KeyValuePair<NPC, int> kvp in outcome.NPCRelationshipDeltas)
+        // DOMAIN COLLECTION PRINCIPLE: List<NPCRelationshipDelta> with strongly-typed entries
+        foreach (NPCRelationshipDelta entry in outcome.NPCRelationshipDeltas)
         {
-            NPC npc = kvp.Key;
-            int delta = kvp.Value;
+            NPC npc = entry.Npc;
+            int delta = entry.Delta;
 
             if (delta > 0)
             {
-                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, delta, npc);
+                _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, delta, npc);
             }
             else if (delta < 0)
             {
-                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -delta, npc);
+                _connectionTokenManager.RemoveTokensFromNPC(ConnectionType.Trust, -delta, npc);
             }
 
             string deltaText = delta > 0 ? $"+{delta}" : delta.ToString();

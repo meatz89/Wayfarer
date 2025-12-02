@@ -56,13 +56,6 @@ public class SceneTemplateDTO
     public string IntroNarrativeTemplate { get; set; }
 
     /// <summary>
-    /// Complexity tier (0-4) - REQUIRED, no default (FAIL-FAST)
-    /// Tier 0: Safety net, Tier 1: Low, Tier 2: Standard, Tier 3: High, Tier 4: Climactic
-    /// Missing tier = parse-time exception (content authoring error)
-    /// </summary>
-    public int? Tier { get; set; }
-
-    /// <summary>
     /// Story category for narrative role classification
     /// Values: "MainStory", "SideStory", "Service"
     /// MainStory = A-story progression (sequential A1-A10, then procedural A11+)

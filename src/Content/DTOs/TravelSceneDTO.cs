@@ -19,7 +19,7 @@ public class SceneApproachDTO
     public int SuccessProbability { get; set; }
 
     public int StaminaRequired { get; set; }
-    public Dictionary<string, int> StatRequirements { get; set; }
+    public List<StatRequirementDTO> StatRequirements { get; set; } = new List<StatRequirementDTO>();
 
     public SceneOutcomeDTO SuccessOutcome { get; set; }
     public SceneOutcomeDTO FailureOutcome { get; set; }

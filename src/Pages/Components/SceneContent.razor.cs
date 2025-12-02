@@ -11,7 +11,7 @@ public class SceneContentBase : ComponentBase
     [Parameter] public EventCallback OnSceneEnd { get; set; }
     [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
-    [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
     [Inject] protected GameWorld GameWorld { get; set; }
     [Inject] protected SceneFacade SceneFacade { get; set; }
     [Inject] protected RewardApplicationService RewardApplicationService { get; set; }
@@ -66,7 +66,7 @@ public class SceneContentBase : ComponentBase
 
         Choices.Clear();
 
-        Player player = GameFacade.GetPlayer();
+        Player player = GameOrchestrator.GetPlayer();
 
         // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
         // Parse-time: Catalogue generated rhythm structure + tier-based values
@@ -330,10 +330,8 @@ public class SceneContentBase : ComponentBase
 
     private int GetTotalBond(Player player, NPC npc)
     {
-        // HIGHLANDER: Compare NPC objects directly, not string IDs
-        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == npc);
-        if (entry == null) return 0;
-        return entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;
+        // HIGHLANDER: Tokens stored directly on NPC
+        return npc.GetTotalTokens();
     }
 
     private int GetScaleValue(Player player, string scaleName)
@@ -429,7 +427,7 @@ public class SceneContentBase : ComponentBase
         if (choiceTemplate == null)
             return;
 
-        Player player = GameFacade.GetPlayer();
+        Player player = GameOrchestrator.GetPlayer();
 
         // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
         // MUST match LoadChoices() scaling - display = execution (arc42 §8.26)

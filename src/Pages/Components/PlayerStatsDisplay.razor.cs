@@ -20,7 +20,7 @@ namespace Wayfarer.Pages.Components
 
     public class PlayerStatsDisplayBase : ComponentBase
     {
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
 
         [Parameter] public bool ShowTotalProgress { get; set; } = true;
 
@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
 
         protected void RefreshStatData()
         {
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             StatDisplayInfos = new List<StatDisplayInfo>
             {

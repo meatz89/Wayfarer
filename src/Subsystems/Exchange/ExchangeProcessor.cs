@@ -19,7 +19,7 @@ public class ExchangeProcessor
     }
 
     /// <summary>
-    /// Prepare exchange operation data for GameFacade to execute
+    /// Prepare exchange operation data for GameOrchestrator to execute
     /// </summary>
     public ExchangeOperationData PrepareExchangeOperation(ExchangeCard exchange, NPC npc, PlayerResourceState playerResources)
     {

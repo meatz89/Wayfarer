@@ -118,12 +118,13 @@ public static class SocialCardParser
         int requiredStatements = 0;
 
         // Parse token requirements (for signature cards)
-        Dictionary<string, int> tokenRequirements = new Dictionary<string, int>();
+        // DOMAIN COLLECTION PRINCIPLE: List<TokenRequirementEntry> instead of Dictionary
+        List<TokenRequirementEntry> tokenRequirements = new List<TokenRequirementEntry>();
         if (dto.TokenRequirement != null)
         {
-            foreach (KeyValuePair<string, int> requirement in dto.TokenRequirement)
+            foreach (TokenEntryDTO entry in dto.TokenRequirement)
             {
-                tokenRequirements[requirement.Key] = requirement.Value;
+                tokenRequirements.Add(new TokenRequirementEntry { TokenType = entry.TokenType, RequiredAmount = entry.Amount });
             }
         }
 

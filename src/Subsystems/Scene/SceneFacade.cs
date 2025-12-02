@@ -8,7 +8,7 @@
 /// - Instantiate ChoiceTemplates into actions (LocationAction/NPCAction/PathCard)
 /// - Create provisional Scenes for actions with spawn rewards
 /// - Return display models to UI
-/// Does NOT execute actions (GameFacade handles execution)
+/// Does NOT execute actions (GameOrchestrator handles execution)
 /// </summary>
 public class SceneFacade
 {
@@ -244,7 +244,7 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>(),
+                    StatRequirements = new List<StatRequirementEntry>(),
 
                     // TWO-PHASE SCALING: Apply entity-derived adjustments for display
                     ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
@@ -316,7 +316,7 @@ public class SceneFacade
                     IsOneTime = false,
                     StaminaCost = 0,
                     TravelTimeSegments = 0,
-                    StatRequirements = new Dictionary<string, int>(),
+                    StatRequirements = new List<StatRequirementEntry>(),
 
                     // TWO-PHASE SCALING: Apply entity-derived adjustments for display
                     ScaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula),
@@ -431,7 +431,6 @@ public class SceneFacade
             {
                 SceneTemplateId = template.Id,
                 DisplayName = displayName,
-                Tier = template.Tier,
                 ResolvedPlacementId = null, // Cannot resolve at preview time (requires FindOrCreate)
                 PlacementType = primaryPlacementType,
                 SituationCount = template.SituationTemplates.Count,

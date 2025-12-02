@@ -39,5 +39,6 @@ public class StrangerRewardDTO
     public string Item { get; set; }
     public string Permit { get; set; }
     public string Observation { get; set; }
-    public Dictionary<string, int> Tokens { get; set; } = new();
+    // DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
+    public List<TokenEntryDTO> Tokens { get; set; } = new();
 }

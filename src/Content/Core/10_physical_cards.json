@@ -24,7 +24,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 1,
@@ -46,7 +46,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 2,
@@ -68,7 +68,7 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {}
+          "stats": []
         },
         "effects": {
           "progress": 2,
@@ -90,9 +90,12 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {
-            "Authority": 2
-          }
+          "stats": [
+            {
+              "stat": "Authority",
+              "threshold": 2
+            }
+          ]
         },
         "effects": {
           "progress": 3,
@@ -114,9 +117,12 @@
           "coins": 0
         },
         "requirements": {
-          "stats": {
-            "Diplomacy": 2
-          }
+          "stats": [
+            {
+              "stat": "Diplomacy",
+              "threshold": 2
+            }
+          ]
         },
         "effects": {
           "progress": 2,

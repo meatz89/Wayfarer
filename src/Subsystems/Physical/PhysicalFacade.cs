@@ -75,7 +75,7 @@ public class PhysicalFacade
             await EndSession();
         }
 
-        // ADR-007: PendingPhysicalContext already set upstream (GameFacade/SceneContent)
+        // ADR-007: PendingPhysicalContext already set upstream (GameOrchestrator/SceneContent)
         // No ID storage needed - context contains object references
 
         Player player = _gameWorld.GetPlayer();
@@ -382,8 +382,8 @@ public class PhysicalFacade
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
-        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
-        // PendingContext stays alive for GameFacade to process
+        // Rewards are strategic layer concern - GameOrchestrator applies them after receiving outcome
+        // PendingContext stays alive for GameOrchestrator to process
 
         // Clear obligation context
 

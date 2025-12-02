@@ -20,9 +20,6 @@ using System.Text.Json;
 /// </summary>
 public class SceneInstantiator
 {
-    private const int SEGMENTS_PER_DAY = 16;
-    private const int SEGMENTS_PER_TIME_BLOCK = 4;
-
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
@@ -382,7 +379,6 @@ public class SceneInstantiator
             PersonalityType = (filter.PersonalityType ?? PersonalityType.Neutral).ToString(),
             CurrentState = "Neutral",
             SpawnLocation = new PlacementFilterDTO { PlacementType = "Location" },
-            Tier = filter.MinTier ?? 1,
             Role = "Generated NPC",
             Description = "A person you've encountered"
         };
@@ -473,10 +469,6 @@ public class SceneInstantiator
             matchedProperties.Add("SocialStanding");
         if (filter.StoryRole.HasValue && npc.StoryRole == filter.StoryRole.Value)
             matchedProperties.Add("StoryRole");
-        if (filter.MinTier.HasValue && npc.Tier >= filter.MinTier.Value)
-            matchedProperties.Add("MinTier");
-        if (filter.MaxTier.HasValue && npc.Tier <= filter.MaxTier.Value)
-            matchedProperties.Add("MaxTier");
 
         return EntityResolutionMetadata.ForDiscovered(filterSnapshot, matchedProperties);
     }
@@ -515,12 +507,6 @@ public class SceneInstantiator
         else
             generated.Add("StoryRole");
 
-        // Tier (from MinTier)
-        if (filter.MinTier.HasValue)
-            filterProvided.Add("Tier");
-        else
-            generated.Add("Tier");
-
         return EntityResolutionMetadata.ForCreated(filterSnapshot, filterProvided, generated);
     }
 
@@ -535,8 +521,6 @@ public class SceneInstantiator
 
         if (filter.Terrain.HasValue)
             matchedProperties.Add("Terrain");
-        if (filter.RouteTier.HasValue && route.Tier == filter.RouteTier.Value)
-            matchedProperties.Add("Tier");
         if (filter.MinDifficulty.HasValue)
             matchedProperties.Add("MinDifficulty");
         if (filter.MaxDifficulty.HasValue)
@@ -766,251 +750,6 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    // ResolvePlacement method DELETED - entity resolution moved to ActivateScene() INTEGRATED process
-    // Deferred Scene (Parse): SceneParser stores PlacementFilters, entities NULL, Situations = EMPTY
-    // Active Scene (Activation): ActivateScene() creates Situations AND resolves entities (find-or-create)
-    // Query Time: Actions instantiated with resolved entities
-
-    /// <summary>
-    /// Instantiate Situation from SituationTemplate
-    /// Creates embedded Situation within Scene in DORMANT state
-    /// NO ACTIONS CREATED - actions instantiated at query time by SceneFacade
-    /// PLACEMENT INHERITANCE: Situation inherits placement from parent Scene
-    /// </summary>
-    private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, SceneSpawnContext context)
-    {
-        // Generate unique Situation ID (pure identifier, TemplateId property tracks source template)
-        string situationId = Guid.NewGuid().ToString();
-
-        // Create Situation from template
-        Situation situation = new Situation
-        {
-            Name = template.Name,  // Copy display name from template
-            TemplateId = template.Id,
-            Template = template,  // CRITICAL: Store template for lazy action instantiation
-            Type = template.Type,  // Copy semantic type (Normal vs Crisis) from template
-            Description = template.NarrativeTemplate,
-            NarrativeHints = template.NarrativeHints,
-            InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
-
-            // PARENT SCENE REFERENCE: Enables state machine navigation (Scene.AdvanceToNextSituation)
-            // ARCHITECTURAL CHANGE: Situation owns placement directly (not inherited from scene)
-            ParentScene = parentScene
-        };
-
-        // NO ACTION CREATION HERE - actions instantiated by SceneFacade when player enters context
-        // This is the CRITICAL timing change: Instantiation Time (Tier 2) → Query Time (Tier 3)
-
-        return situation;
-    }
-
-    /// <summary>
-    /// Evaluate PlacementFilter to find matching entity at runtime
-    /// Returns entity ID or null if no match found
-    /// Throws InvalidOperationException if no matching entity (fail fast)
-    /// </summary>
-    private string EvaluatePlacementFilter(PlacementFilter filter, SceneSpawnContext context)
-    {
-        Player player = context.Player;
-
-        switch (filter.PlacementType)
-        {
-            case PlacementType.NPC:
-                return FindMatchingNPC(filter, player);
-
-            case PlacementType.Location:
-                return FindMatchingLocation(filter, player);
-
-            case PlacementType.Route:
-                return FindMatchingRoute(filter, player);
-
-            default:
-                throw new InvalidOperationException($"Unknown PlacementType: {filter.PlacementType}");
-        }
-    }
-
-    /// <summary>
-    /// Find NPC matching PlacementFilter criteria
-    /// PHASE 3: Collects ALL matching NPCs, then applies SelectionStrategy to choose ONE
-    /// Returns selected NPC ID, or null if no matches
-    /// </summary>
-    private string FindMatchingNPC(PlacementFilter filter, Player player)
-    {
-        // Collect ALL matching NPCs
-        List<NPC> matchingNPCs = _gameWorld.NPCs.Where(npc =>
-        {
-            // Check personality type (if specified)
-            if (filter.PersonalityType.HasValue)
-            {
-                if (npc.PersonalityType != filter.PersonalityType.Value)
-                    return false;
-            }
-
-            // Check bond thresholds (BondStrength stored directly on NPC)
-            int currentBond = npc.BondStrength;
-            if (filter.MinBond.HasValue && currentBond < filter.MinBond.Value)
-                return false;
-            if (filter.MaxBond.HasValue && currentBond > filter.MaxBond.Value)
-                return false;
-
-            // Check player state filters (shared across all placement types)
-            if (!CheckPlayerStateFilters(filter, player))
-                return false;
-
-            return true;
-        }).ToList();
-
-        // No matches found
-        if (matchingNPCs.Count == 0)
-            return null;
-
-        // Apply selection strategy to choose ONE from multiple matches
-        NPC selectedNPC = ApplySelectionStrategyNPC(matchingNPCs, filter.SelectionStrategy, player);
-        return selectedNPC?.Name;
-    }
-
-    /// <summary>
-    /// Find Location matching PlacementFilter criteria
-    /// PHASE 5: Complete filtering including district, tags, and location properties
-    /// Returns selected Location ID, or null if no matches
-    /// </summary>
-    private string FindMatchingLocation(PlacementFilter filter, Player player)
-    {
-        // Collect ALL matching Locations
-        List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
-        {
-            // Check district (accessed via Location.Venue.District)
-            // HIGHLANDER: District is object reference, filter.DistrictId is string (DTO boundary)
-            if (!string.IsNullOrEmpty(filter.DistrictId))
-            {
-                if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictId)
-                    return false;
-            }
-
-            // Check player state filters (shared across all placement types)
-            if (!CheckPlayerStateFilters(filter, player))
-                return false;
-
-            return true;
-        }).ToList();
-
-        // No matches found
-        if (matchingLocations.Count == 0)
-            return null;
-
-        // Apply selection strategy to choose ONE from multiple matches
-        Location selectedLocation = ApplySelectionStrategyLocation(matchingLocations, filter.SelectionStrategy, player);
-        return selectedLocation?.Name;
-    }
-
-    /// <summary>
-    /// Find Route matching PlacementFilter criteria
-    /// Returns first Route ID matching ALL filter criteria, or null if no match
-    /// Filters by terrain type, tier, and danger rating
-    /// </summary>
-    private string FindMatchingRoute(PlacementFilter filter, Player player)
-    {
-        RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
-        {
-            // Check terrain type (dominant terrain from TerrainCategories)
-            if (filter.Terrain != null)
-            {
-                string dominantTerrain = route.GetDominantTerrainType();
-                if (dominantTerrain != filter.Terrain.ToString())
-                    return false;
-            }
-
-            // Check route tier (calculated from DangerRating)
-            if (filter.RouteTier.HasValue)
-            {
-                if (route.Tier != filter.RouteTier.Value)
-                    return false;
-            }
-
-            // Check difficulty rating range (0-100 scale)
-            if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
-                return false;
-            if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
-                return false;
-
-            // Check player state filters (shared across all placement types)
-            if (!CheckPlayerStateFilters(filter, player))
-                return false;
-
-            return true;
-        });
-
-        return matchingRoute?.Name;
-    }
-
-    /// <summary>
-    /// Validate player state filters (shared across all placement types)
-    /// Returns true if player meets all state requirements, false otherwise
-    /// </summary>
-    private bool CheckPlayerStateFilters(PlacementFilter filter, Player player)
-    {
-        // Check required states
-        if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
-        {
-            // Player must have ALL required states
-            if (!filter.RequiredStates.All(state => player.ActiveStates.Any(activeState => activeState.Type == state)))
-                return false;
-        }
-
-        // Check forbidden states
-        if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
-        {
-            // Player must have NONE of the forbidden states
-            if (filter.ForbiddenStates.Any(state => player.ActiveStates.Any(activeState => activeState.Type == state)))
-                return false;
-        }
-
-        // Check required achievements
-        if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
-        {
-            // Player must have ALL required achievements
-            // HIGHLANDER: Compare Achievement objects directly
-            if (!filter.RequiredAchievements.All(achievement =>
-                player.EarnedAchievements.Any(a => a.Achievement == achievement)))
-                return false;
-        }
-
-        // Check scale requirements
-        if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
-        {
-            foreach (ScaleRequirement scaleReq in filter.ScaleRequirements)
-            {
-                int scaleValue = GetScaleValue(player, scaleReq.ScaleType);
-
-                if (scaleReq.MinValue.HasValue && scaleValue < scaleReq.MinValue.Value)
-                    return false;
-
-                if (scaleReq.MaxValue.HasValue && scaleValue > scaleReq.MaxValue.Value)
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Get current scale value for player
-    /// REFERENCE: Copied from ConsequenceFacade.GetScaleValue() (lines 157-169)
-    /// </summary>
-    private int GetScaleValue(Player player, ScaleType scaleType)
-    {
-        return scaleType switch
-        {
-            ScaleType.Morality => player.Scales.Morality,
-            ScaleType.Lawfulness => player.Scales.Lawfulness,
-            ScaleType.Method => player.Scales.Method,
-            ScaleType.Caution => player.Scales.Caution,
-            ScaleType.Transparency => player.Scales.Transparency,
-            ScaleType.Fame => player.Scales.Fame,
-            _ => 0
-        };
-    }
-
     /// <summary>
     /// Format PlacementFilter criteria for diagnostic error messages
     /// Returns human-readable summary of all filter criteria
@@ -1036,16 +775,14 @@ public class SceneInstantiator
             criteria.Add($"Location Role: {filter.LocationRole}");
         if (filter.Purpose.HasValue)
             criteria.Add($"Purpose: {filter.Purpose}");
-        if (!string.IsNullOrEmpty(filter.DistrictId))
-            criteria.Add($"District: {filter.DistrictId}");
-        if (!string.IsNullOrEmpty(filter.RegionId))
-            criteria.Add($"Region: {filter.RegionId}");
+        if (!string.IsNullOrEmpty(filter.DistrictName))
+            criteria.Add($"District: {filter.DistrictName}");
+        if (!string.IsNullOrEmpty(filter.RegionName))
+            criteria.Add($"Region: {filter.RegionName}");
 
         // Route filters
         if (filter.Terrain != null)
             criteria.Add($"Terrain: {filter.Terrain}");
-        if (filter.RouteTier.HasValue)
-            criteria.Add($"Route Tier: {filter.RouteTier.Value}");
         if (filter.MinDifficulty.HasValue)
             criteria.Add($"Min Difficulty: {filter.MinDifficulty.Value}");
         if (filter.MaxDifficulty.HasValue)
@@ -1096,7 +833,7 @@ public class SceneInstantiator
                 int routeCount = _gameWorld.Routes.Count;
                 List<string> routeSummaries = _gameWorld.Routes
                     .Take(10)
-                    .Select(route => $"  - {route.Name}: Tier={route.Tier}, Danger={route.DangerRating}")
+                    .Select(route => $"  - {route.Name}: Danger={route.DangerRating}")
                     .ToList();
                 if (routeCount > 10)
                     routeSummaries.Add($"  ... and {routeCount - 10} more routes");
@@ -1138,222 +875,8 @@ public class SceneInstantiator
         return string.Join("\n", contextInfo);
     }
 
-    /// <summary>
-    /// Apply selection strategy to choose ONE NPC from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, Random)
-    /// </summary>
-    private NPC ApplySelectionStrategyNPC(List<NPC> candidates, PlacementSelectionStrategy strategy, Player player)
-    {
-        if (candidates == null || candidates.Count == 0)
-            return null;
-
-        if (candidates.Count == 1)
-            return candidates[0]; // Only one candidate, return it
-
-        return strategy switch
-        {
-            PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
-            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentNPC(candidates, player),
-            PlacementSelectionStrategy.Random => SelectRandomNPC(candidates),
-            _ => candidates[0] // Fallback to first match
-        };
-    }
-
-    /// <summary>
-    /// Apply selection strategy to choose ONE Location from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest works, others fall back to Random)
-    /// </summary>
-    private Location ApplySelectionStrategyLocation(List<Location> candidates, PlacementSelectionStrategy strategy, Player player)
-    {
-        if (candidates == null || candidates.Count == 0)
-            return null;
-
-        if (candidates.Count == 1)
-            return candidates[0]; // Only one candidate, return it
-
-        return strategy switch
-        {
-            PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectRandomLocation(candidates), // N/A for locations
-            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentLocation(candidates, player),
-            PlacementSelectionStrategy.Random => SelectRandomLocation(candidates),
-            _ => candidates[0] // Fallback to first match
-        };
-    }
-
-    /// <summary>
-    /// Select NPC closest to player's current position using hex grid distance
-    /// </summary>
-    private NPC SelectClosestNPC(List<NPC> candidates, Player player)
-    {
-        NPC closest = null;
-        int minDistance = int.MaxValue;
-
-        foreach (NPC npc in candidates)
-        {
-            if (npc.Location?.HexPosition == null)
-                continue; // NPC has no position, skip
-
-            int distance = player.CurrentPosition.DistanceTo(npc.Location.HexPosition.Value);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closest = npc;
-            }
-        }
-
-        return closest ?? candidates[0]; // Fallback to first if no positions
-    }
-
-    /// <summary>
-    /// Select Location closest to player's current position using hex grid distance
-    /// </summary>
-    private Location SelectClosestLocation(List<Location> candidates, Player player)
-    {
-        Location closest = null;
-        int minDistance = int.MaxValue;
-
-        foreach (Location location in candidates)
-        {
-            if (location.HexPosition == null)
-                continue; // Location has no position, skip
-
-            int distance = player.CurrentPosition.DistanceTo(location.HexPosition.Value);
-            if (distance < minDistance)
-            {
-                minDistance = distance;
-                closest = location;
-            }
-        }
-
-        return closest ?? candidates[0]; // Fallback to first if no positions
-    }
-
-    /// <summary>
-    /// Select NPC with highest bond strength
-    /// Good for "trusted ally" or "close friend" scenarios
-    /// </summary>
-    private NPC SelectHighestBondNPC(List<NPC> candidates)
-    {
-        return candidates.OrderByDescending(npc => npc.BondStrength).First();
-    }
-
-    /// <summary>
-    /// Select NPC least recently interacted with for content variety
-    /// Uses Player.NPCInteractions timestamp data to find oldest interaction
-    /// Falls back to Random if no interaction history exists
-    /// </summary>
-    private NPC SelectLeastRecentNPC(List<NPC> candidates, Player player)
-    {
-        // Create interaction lookup dictionary for fast access
-        // ONE record per NPC (update-in-place pattern) - no GroupBy needed
-        // HIGHLANDER: Use NPC object as key, not string ID
-        Dictionary<NPC, NPCInteractionRecord> interactionLookup = player.NPCInteractions
-            .ToDictionary(interaction => interaction.Npc);
-
-        // Find candidate with oldest interaction (or never interacted)
-        NPC leastRecentNPC = null;
-        long oldestTimestamp = long.MaxValue;
-
-        foreach (NPC candidate in candidates)
-        {
-            if (!interactionLookup.ContainsKey(candidate))
-            {
-                // Never interacted with this NPC - prioritize these
-                return candidate;
-            }
-
-            NPCInteractionRecord record = interactionLookup[candidate];
-            long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
-
-            if (timestamp < oldestTimestamp)
-            {
-                oldestTimestamp = timestamp;
-                leastRecentNPC = candidate;
-            }
-        }
-
-        // If all candidates have been interacted with, return least recent
-        // If somehow nothing found, fall back to random
-        return leastRecentNPC ?? SelectRandomNPC(candidates);
-    }
-
-    /// <summary>
-    /// Select random NPC from candidates using RNG for unpredictable variety (uniform distribution)
-    /// </summary>
-    private NPC SelectRandomNPC(List<NPC> candidates)
-    {
-        int index = Random.Shared.Next(candidates.Count);
-        return candidates[index];
-    }
-
-    /// <summary>
-    /// Select random Location from candidates using RNG for unpredictable variety (uniform distribution)
-    /// </summary>
-    private Location SelectRandomLocation(List<Location> candidates)
-    {
-        int index = Random.Shared.Next(candidates.Count);
-        return candidates[index];
-    }
-
-    /// <summary>
-    /// Select Location least recently visited for content variety
-    /// Uses Player.LocationVisits timestamp data to find oldest visit
-    /// Falls back to Random if no visit history exists
-    /// </summary>
-    private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
-    {
-        // Find candidate with oldest visit (or never visited)
-        // Use LINQ queries over List<T>, NOT Dictionary (DOMAIN COLLECTION PRINCIPLE)
-        Location leastRecentLocation = null;
-        long oldestTimestamp = long.MaxValue;
-
-        foreach (Location candidate in candidates)
-        {
-            // LINQ query: Find visit record for this location
-            LocationVisitRecord record = player.LocationVisits
-                .FirstOrDefault(visit => visit.Location == candidate);
-
-            if (record == null)
-            {
-                // Never visited this location - prioritize these
-                return candidate;
-            }
-
-            long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
-
-            if (timestamp < oldestTimestamp)
-            {
-                oldestTimestamp = timestamp;
-                leastRecentLocation = candidate;
-            }
-        }
-
-        // If all candidates have been visited, return least recent
-        // If somehow nothing found, fall back to random
-        return leastRecentLocation ?? SelectRandomLocation(candidates);
-    }
-
-    /// <summary>
-    /// Calculate timestamp from game time components for chronological comparison
-    /// Formula: (Day * 16) + (TimeBlockValue * 4) + Segment
-    /// Assumes 4 time blocks per day (Morning, Midday, Afternoon, Evening), 4 segments per block = 16 segments/day
-    /// </summary>
-    private long CalculateTimestamp(int day, TimeBlocks timeBlock, int segment)
-    {
-        int timeBlockValue = timeBlock switch
-        {
-            TimeBlocks.Morning => 0,
-            TimeBlocks.Midday => 1,
-            TimeBlocks.Afternoon => 2,
-            TimeBlocks.Evening => 3,
-            _ => 0
-        };
-
-        return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
-    }
-
+    // Selection strategy methods extracted to PlacementSelectionStrategies.cs
+    // Use PlacementSelectionStrategies.ApplyStrategyNPC() and ApplyStrategyLocation()
 
     /// <summary>
     /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization
@@ -1372,8 +895,6 @@ public class SceneInstantiator
             PersonalityType = filter.PersonalityType?.ToString(),
             Profession = filter.Profession?.ToString(),
             RequiredRelationship = filter.RequiredRelationship?.ToString(),
-            MinTier = filter.MinTier,
-            MaxTier = filter.MaxTier,
             MinBond = filter.MinBond,
             MaxBond = filter.MaxBond,
             NpcTags = filter.NpcTags,
@@ -1384,8 +905,8 @@ public class SceneInstantiator
             // Location filters
             Role = filter.LocationRole?.ToString(),
             IsPlayerAccessible = filter.IsPlayerAccessible,
-            DistrictId = filter.DistrictId,
-            RegionId = filter.RegionId,
+            DistrictName = filter.DistrictName,
+            RegionName = filter.RegionName,
             // Orthogonal Categorical Dimensions - Location
             Privacy = filter.Privacy?.ToString(),
             Safety = filter.Safety?.ToString(),
@@ -1393,7 +914,6 @@ public class SceneInstantiator
             Purpose = filter.Purpose?.ToString(),
             // Route filters
             Terrain = filter.Terrain?.ToString(),
-            RouteTier = filter.RouteTier,
             MinDifficulty = filter.MinDifficulty,
             MaxDifficulty = filter.MaxDifficulty,
             RouteTags = filter.RouteTags,

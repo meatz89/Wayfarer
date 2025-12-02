@@ -30,10 +30,10 @@ public class PlacementFilter
     // ==================== CATEGORICAL SEARCH ====================
 
     /// <summary>
-    /// Strategy for selecting ONE entity when multiple candidates match the filter
-    /// Defaults to Random (uniform distribution)
+    /// Strategy for selecting ONE entity when multiple candidates match the filter.
+    /// DDR-007: Defaults to First (deterministic Name-based selection).
     /// </summary>
-    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.Random;
+    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.First;
 
     // ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
@@ -57,20 +57,6 @@ public class PlacementFilter
     /// Example: NPCRelationship.Ally - NPC must have this relationship with player
     /// </summary>
     public NPCRelationship? RequiredRelationship { get; init; }
-
-    /// <summary>
-    /// Minimum NPC tier requirement
-    /// null = no minimum
-    /// Example: MinTier = 2 means "only select tier 2+ NPCs"
-    /// </summary>
-    public int? MinTier { get; init; }
-
-    /// <summary>
-    /// Maximum NPC tier requirement
-    /// null = no maximum
-    /// Example: MaxTier = 3 means "only select tier 1-3 NPCs"
-    /// </summary>
-    public int? MaxTier { get; init; }
 
     /// <summary>
     /// Minimum bond strength required with player
@@ -164,7 +150,7 @@ public class PlacementFilter
     /// Specified = location must be in this district
     /// NOTE: This is concrete ID, but districts are large categorical containers
     /// </summary>
-    public string DistrictId { get; init; }
+    public string DistrictName { get; init; }
 
     /// <summary>
     /// Region identifier filter
@@ -172,7 +158,7 @@ public class PlacementFilter
     /// Specified = location must be in this region
     /// NOTE: This is concrete ID, but regions are large categorical containers
     /// </summary>
-    public string RegionId { get; init; }
+    public string RegionName { get; init; }
 
     // ==================== ROUTE FILTERS (when PlacementType == Route) ====================
 
@@ -189,13 +175,6 @@ public class PlacementFilter
     /// Example: StructureType.Bridge - route must include this structure type
     /// </summary>
     public StructureType? Structure { get; init; }
-
-    /// <summary>
-    /// Route difficulty tier requirement
-    /// null = any difficulty
-    /// Specified = route must match this tier
-    /// </summary>
-    public int? RouteTier { get; init; }
 
     /// <summary>
     /// Minimum difficulty rating for route selection (uses DangerRating property)

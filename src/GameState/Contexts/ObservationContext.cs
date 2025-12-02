@@ -14,7 +14,22 @@ public class ObservationContext
     // Player state
     public int CurrentFocus { get; set; }
     public int MaxFocus { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (PlayerStatType)
+    public int InsightLevel { get; set; }
+    public int RapportLevel { get; set; }
+    public int AuthorityLevel { get; set; }
+    public int DiplomacyLevel { get; set; }
+    public int CunningLevel { get; set; }
+
+    public int GetStatLevel(PlayerStatType stat) => stat switch
+    {
+        PlayerStatType.Insight => InsightLevel,
+        PlayerStatType.Rapport => RapportLevel,
+        PlayerStatType.Authority => AuthorityLevel,
+        PlayerStatType.Diplomacy => DiplomacyLevel,
+        PlayerStatType.Cunning => CunningLevel,
+        _ => 0
+    };
     public List<string> PlayerKnowledge { get; set; }
 
     // Examination tracking (HIGHLANDER: Object collection, not string IDs)
@@ -27,7 +42,6 @@ public class ObservationContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
         PlayerKnowledge = new List<string>();
         ExaminedPoints = new List<ExaminationPoint>();
     }
@@ -87,10 +101,9 @@ public class ObservationContext
         if (!point.RequiredStat.HasValue) return true;
         if (!point.RequiredStatLevel.HasValue) return true;
 
-        if (!PlayerStats.ContainsKey(point.RequiredStat.Value))
-            return false;
-
-        return PlayerStats[point.RequiredStat.Value] >= point.RequiredStatLevel.Value;
+        // DOMAIN COLLECTION PRINCIPLE: Use explicit properties
+        int currentLevel = GetStatLevel(point.RequiredStat.Value);
+        return currentLevel >= point.RequiredStatLevel.Value;
     }
 
     private bool MeetsKnowledgeRequirements(ExaminationPoint point)

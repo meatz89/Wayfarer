@@ -142,24 +142,25 @@ public static class EmergencyParser
     }
 
     /// <summary>
-    /// Parse NPC relationship deltas from string dictionary to NPC object dictionary
+    /// Parse NPC relationship deltas from DTO list to domain list
+    /// DOMAIN COLLECTION PRINCIPLE: Returns List, not Dictionary
     /// </summary>
-    private static Dictionary<NPC, int> ParseNPCRelationshipDeltas(Dictionary<string, int> npcDeltas, GameWorld gameWorld)
+    private static List<NPCRelationshipDelta> ParseNPCRelationshipDeltas(List<NPCRelationshipDeltaEntry> npcDeltas, GameWorld gameWorld)
     {
         if (npcDeltas == null || !npcDeltas.Any())
-            return new Dictionary<NPC, int>();
+            return new List<NPCRelationshipDelta>();
 
-        Dictionary<NPC, int> result = new Dictionary<NPC, int>();
-        foreach (KeyValuePair<string, int> entry in npcDeltas)
+        List<NPCRelationshipDelta> result = new List<NPCRelationshipDelta>();
+        foreach (NPCRelationshipDeltaEntry entry in npcDeltas)
         {
-            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.Name == entry.Key);
+            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.Name == entry.NpcId);
             if (npc == null)
             {
-                Console.WriteLine($"[EmergencyParser.ParseNPCRelationshipDeltas] WARNING: NPC '{entry.Key}' not found");
-                continue; // Skip invalid NPC
+                Console.WriteLine($"[EmergencyParser.ParseNPCRelationshipDeltas] WARNING: NPC '{entry.NpcId}' not found");
+                continue;
             }
 
-            result[npc] = entry.Value; // Object reference key, not string
+            result.Add(new NPCRelationshipDelta { Npc = npc, Delta = entry.Delta });
         }
 
         return result;

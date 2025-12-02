@@ -8,21 +8,18 @@ public class ObservationFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly ResourceFacade _resourceFacade;
-    private readonly TimeFacade _timeFacade;
+    private readonly TimeManager _timeManager;
     private readonly RewardApplicationService _rewardApplicationService;
 
     public ObservationFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        ResourceFacade resourceFacade,
-        TimeFacade timeFacade,
+        TimeManager timeManager,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
@@ -101,10 +98,15 @@ public class ObservationFacade
             Location = location,
             CurrentFocus = player.Focus,
             MaxFocus = player.MaxFocus,
-            PlayerStats = BuildPlayerStats(player),
+            // DOMAIN COLLECTION PRINCIPLE: Explicit properties for player stats
+            InsightLevel = player.Insight,
+            RapportLevel = player.Rapport,
+            AuthorityLevel = player.Authority,
+            DiplomacyLevel = player.Diplomacy,
+            CunningLevel = player.Cunning,
             PlayerKnowledge = new List<string>(player.Knowledge),
             ExaminedPoints = new List<ExaminationPoint>(state.ExaminedPoints), // From state, not template
-            TimeDisplay = _timeFacade.GetTimeString()
+            TimeDisplay = _timeManager.GetSegmentDisplay()
         };
     }
 
@@ -194,7 +196,7 @@ public class ObservationFacade
         }
         if (point.TimeCost > 0)
         {
-            _timeFacade.AdvanceSegments(point.TimeCost);
+            _timeManager.AdvanceSegments(point.TimeCost);
         }
 
         // Mark as examined (add to state's object collection, not template)
@@ -267,19 +269,6 @@ public class ObservationFacade
         return result;
     }
 
-    private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
-    {
-        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>
-        {
-            { PlayerStatType.Insight, player.Insight },
-            { PlayerStatType.Rapport, player.Rapport },
-            { PlayerStatType.Authority, player.Authority },
-            { PlayerStatType.Diplomacy, player.Diplomacy },
-            { PlayerStatType.Cunning, player.Cunning }
-        };
-
-        return stats;
-    }
 
     /// <summary>
     /// Get all observation scenes available at a specific location

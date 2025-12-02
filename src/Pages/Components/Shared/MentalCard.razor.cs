@@ -15,9 +15,9 @@ namespace Wayfarer.Pages.Components.Shared
         [Parameter] public EventCallback OnCardClick { get; set; }
         [Parameter] public RenderFragment SystemSpecificBadges { get; set; }
 
-        // MENTAL SYSTEM ONLY: MentalSession, MentalEffectResolver, GameFacade
+        // MENTAL SYSTEM ONLY: MentalSession, MentalEffectResolver, GameOrchestrator
         [Inject] protected MentalEffectResolver EffectResolver { get; set; }
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Parameter] public MentalSession Session { get; set; }
 
         protected async Task HandleClick()
@@ -133,10 +133,10 @@ namespace Wayfarer.Pages.Components.Shared
                 throw new InvalidOperationException("MentalCardTemplate is required");
             if (Session == null)
                 throw new InvalidOperationException("Session is required for effect projection");
-            if (GameFacade == null)
-                throw new InvalidOperationException("GameFacade is required for effect projection");
+            if (GameOrchestrator == null)
+                throw new InvalidOperationException("GameOrchestrator is required for effect projection");
 
-            Player player = GameFacade.GetPlayer();
+            Player player = GameOrchestrator.GetPlayer();
 
             // PROJECTION PRINCIPLE: Get effect projection from resolver (Act as default)
             MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(Card, Session, player, MentalActionType.Act);

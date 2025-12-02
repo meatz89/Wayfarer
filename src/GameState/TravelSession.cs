@@ -23,7 +23,8 @@ public class TravelSession
     public TravelEventDTO CurrentEvent { get; set; }
 
     // Track which event was drawn for each segment (for deterministic behavior)
-    public Dictionary<string, string> SegmentEventDraws { get; set; } = new Dictionary<string, string>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<SegmentEventDrawEntry> SegmentEventDraws { get; set; } = new List<SegmentEventDrawEntry>();
 
     // Current event narrative text for UI display (from the selected event)
     public string CurrentEventNarrative { get; set; }

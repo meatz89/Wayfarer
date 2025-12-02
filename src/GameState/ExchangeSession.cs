@@ -60,8 +60,21 @@ public class ExchangeSession
     /// <summary>
     /// Token state at the start of the session.
     /// Used to track token changes during the session.
+    /// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum values.
     /// </summary>
-    public Dictionary<ConnectionType, int> InitialTokenState { get; set; } = new Dictionary<ConnectionType, int>();
+    public int InitialTrustTokens { get; set; }
+    public int InitialDiplomacyTokens { get; set; }
+    public int InitialStatusTokens { get; set; }
+    public int InitialShadowTokens { get; set; }
+
+    public int GetInitialTokens(ConnectionType type) => type switch
+    {
+        ConnectionType.Trust => InitialTrustTokens,
+        ConnectionType.Diplomacy => InitialDiplomacyTokens,
+        ConnectionType.Status => InitialStatusTokens,
+        ConnectionType.Shadow => InitialShadowTokens,
+        _ => 0
+    };
 
     /// <summary>
     /// Resource state at the start of the session.
@@ -190,7 +203,8 @@ public class SessionResourceSnapshot
     public int Health { get; set; }
     public int Stamina { get; set; }
     public int Attention { get; set; }
-    public Dictionary<string, int> Items { get; set; } = new Dictionary<string, int>();
+    // DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
+    public List<ItemCountEntry> Items { get; set; } = new List<ItemCountEntry>();
 
     /// <summary>
     /// Creates a snapshot from current player state.

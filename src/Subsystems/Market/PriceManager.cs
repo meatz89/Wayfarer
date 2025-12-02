@@ -242,8 +242,8 @@ public class PriceManager
                 adjustment = 1; // +1 coin
             }
         }
-        // High-tier locations - higher prices for trade goods
-        else if (location.Tier >= 3)
+        // High-difficulty locations - higher prices for trade goods
+        else if (location.Difficulty >= 2)
         {
             // Competitive prices for trade goods and valuables
             if (item.Categories.Contains(ItemCategory.Trade_Goods) ||

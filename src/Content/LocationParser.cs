@@ -69,8 +69,6 @@ public static class LocationParser
         // EXPLICIT INITIALIZATION: Flow modifier (0 = neutral, can be positive/negative)
         location.FlowModifier = 0;
 
-        location.Tier = 1;
-
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties - FAIL-FAST: all required, no silent failures
@@ -165,22 +163,37 @@ public static class LocationParser
         }
         location.Purpose = purpose;
 
-        // Parse available professions by time
+        // Parse available professions by time - EXPLICIT PROPERTIES, not wrapper classes
         if (dto.AvailableProfessionsByTime != null)
         {
-            foreach (KeyValuePair<string, List<string>> kvp in dto.AvailableProfessionsByTime)
+            foreach (ProfessionsByTimeEntry entry in dto.AvailableProfessionsByTime)
             {
-                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                if (EnumParser.TryParse<TimeBlocks>(entry.TimeBlock, out TimeBlocks timeBlock))
                 {
                     List<Professions> professions = new List<Professions>();
-                    foreach (string professionStr in kvp.Value)
+                    foreach (string professionStr in entry.Professions)
                     {
                         if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
                         {
                             professions.Add(profession);
                         }
                     }
-                    location.AvailableProfessionsByTime[timeBlock] = professions;
+                    // Set explicit property based on time block
+                    switch (timeBlock)
+                    {
+                        case TimeBlocks.Morning:
+                            location.MorningProfessions = professions;
+                            break;
+                        case TimeBlocks.Midday:
+                            location.MiddayProfessions = professions;
+                            break;
+                        case TimeBlocks.Afternoon:
+                            location.AfternoonProfessions = professions;
+                            break;
+                        case TimeBlocks.Evening:
+                            location.EveningProfessions = professions;
+                            break;
+                    }
                 }
             }
         }

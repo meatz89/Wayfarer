@@ -102,9 +102,8 @@ public class EmergencyOutcomeDTO
 
     /// <summary>
     /// Specific relationship changes with individual NPCs
-    /// Dictionary of NPC ID → relationship delta
     /// </summary>
-    public Dictionary<string, int> NPCRelationshipDeltas { get; set; } = new Dictionary<string, int>();
+    public List<NPCRelationshipDeltaEntry> NPCRelationshipDeltas { get; set; } = new List<NPCRelationshipDeltaEntry>();
 
     /// <summary>
     /// Knowledge tokens granted by this outcome

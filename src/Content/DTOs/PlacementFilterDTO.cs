@@ -43,18 +43,6 @@ public class PlacementFilterDTO
     public string RequiredRelationship { get; set; }
 
     /// <summary>
-    /// Minimum NPC tier requirement
-    /// null = no minimum
-    /// </summary>
-    public int? MinTier { get; set; }
-
-    /// <summary>
-    /// Maximum NPC tier requirement
-    /// null = no maximum
-    /// </summary>
-    public int? MaxTier { get; set; }
-
-    /// <summary>
     /// Minimum bond strength required
     /// null = no minimum
     /// </summary>
@@ -150,13 +138,13 @@ public class PlacementFilterDTO
     /// District ID filter (large categorical container)
     /// null = any district
     /// </summary>
-    public string DistrictId { get; set; }
+    public string DistrictName { get; set; }
 
     /// <summary>
     /// Region ID filter (large categorical container)
     /// null = any region
     /// </summary>
-    public string RegionId { get; set; }
+    public string RegionName { get; set; }
 
     // ====================
     // ROUTE FILTERS
@@ -177,12 +165,6 @@ public class PlacementFilterDTO
     /// null = don't filter by structure
     /// </summary>
     public string Structure { get; set; }
-
-    /// <summary>
-    /// Route difficulty tier filter
-    /// null = any tier
-    /// </summary>
-    public int? RouteTier { get; set; }
 
     /// <summary>
     /// Minimum difficulty rating (0-100 scale)

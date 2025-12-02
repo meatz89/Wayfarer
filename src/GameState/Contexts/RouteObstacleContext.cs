@@ -17,7 +17,22 @@ public class RouteObstacleContext
     public int MaxStamina { get; set; }
     public int CurrentHealth { get; set; }
     public int MaxHealth { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (PlayerStatType)
+    public int InsightLevel { get; set; }
+    public int RapportLevel { get; set; }
+    public int AuthorityLevel { get; set; }
+    public int DiplomacyLevel { get; set; }
+    public int CunningLevel { get; set; }
+
+    public int GetStatLevel(PlayerStatType stat) => stat switch
+    {
+        PlayerStatType.Insight => InsightLevel,
+        PlayerStatType.Rapport => RapportLevel,
+        PlayerStatType.Authority => AuthorityLevel,
+        PlayerStatType.Diplomacy => DiplomacyLevel,
+        PlayerStatType.Cunning => CunningLevel,
+        _ => 0
+    };
 
     // Display info
     public string TimeDisplay { get; set; }
@@ -26,6 +41,5 @@ public class RouteObstacleContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
     }
 }

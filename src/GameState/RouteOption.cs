@@ -68,8 +68,22 @@ public class RouteOption
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }
 
-    // Route condition variations
-    public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
+    // Route condition variations - DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum
+    public RouteModification ClearWeatherModification { get; set; }
+    public RouteModification RainWeatherModification { get; set; }
+    public RouteModification SnowWeatherModification { get; set; }
+    public RouteModification FogWeatherModification { get; set; }
+    public RouteModification StormWeatherModification { get; set; }
+
+    public RouteModification GetWeatherModification(WeatherCondition weather) => weather switch
+    {
+        WeatherCondition.Clear => ClearWeatherModification,
+        WeatherCondition.Rain => RainWeatherModification,
+        WeatherCondition.Snow => SnowWeatherModification,
+        WeatherCondition.Fog => FogWeatherModification,
+        WeatherCondition.Storm => StormWeatherModification,
+        _ => null
+    };
 
     public RouteType RouteType { get; set; }
 
@@ -91,6 +105,9 @@ public class RouteOption
     // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
     public int ExplorationCubes { get; set; } = 0;
 
+    // Route familiarity - tracks player's knowledge of this specific route (0-5 scale)
+    public int Familiarity { get; set; } = 0;
+
     // HEX-BASED TRAVEL SYSTEM - Procedural route generation from spatial scaffolding
     /// <summary>
     /// Underlying hex path connecting origin to destination
@@ -107,27 +124,6 @@ public class RouteOption
     /// 0 for legacy manually-authored routes
     /// </summary>
     public int DangerRating { get; set; } = 0;
-
-    /// <summary>
-    /// Route difficulty tier calculated from DangerRating
-    /// Tier 1 (Safe): 0-20 danger
-    /// Tier 2 (Moderate): 21-40 danger
-    /// Tier 3 (Dangerous): 41-60 danger
-    /// Tier 4 (Perilous): 61-80 danger
-    /// Tier 5 (Deadly): 81-100 danger
-    /// Used for Scene template filtering
-    /// </summary>
-    public int Tier
-    {
-        get
-        {
-            if (DangerRating <= 20) return 1;
-            if (DangerRating <= 40) return 2;
-            if (DangerRating <= 60) return 3;
-            if (DangerRating <= 80) return 4;
-            return 5;
-        }
-    }
 
     /// <summary>
     /// Get dominant terrain type from HexPath for Scene template filtering
@@ -298,10 +294,11 @@ public class RouteOption
         int itemCount = player.Inventory.GetAllItems().Count(i => i != null);
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
-        // Apply weather modifications
-        if (WeatherModifications.TryGetValue(weather, out RouteModification modification))
+        // Apply weather modifications - DOMAIN COLLECTION PRINCIPLE: Use explicit properties
+        RouteModification weatherMod = GetWeatherModification(weather);
+        if (weatherMod != null)
         {
-            baseCost += modification.StaminaCostModifier;
+            baseCost += weatherMod.StaminaCostModifier;
         }
 
         return Math.Max(1, baseCost);

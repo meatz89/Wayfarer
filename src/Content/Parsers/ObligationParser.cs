@@ -186,23 +186,23 @@ public class ObligationParser
         };
     }
 
-    private List<StatXPReward> ParseXPRewards(Dictionary<string, int> xpRewardsDto)
+    private List<StatXPReward> ParseXPRewards(List<StatXPEntry> xpRewardsDto)
     {
         // DTO has inline init - trust it, but might be empty
-        if (xpRewardsDto.Count == 0)
+        if (xpRewardsDto == null || xpRewardsDto.Count == 0)
             return new List<StatXPReward>();
 
         List<StatXPReward> rewards = new List<StatXPReward>();
 
-        foreach (KeyValuePair<string, int> entry in xpRewardsDto)
+        foreach (StatXPEntry entry in xpRewardsDto)
         {
-            PlayerStatType statType = ParsePlayerStatType(entry.Key);
-            if (statType != PlayerStatType.None && entry.Value > 0)
+            PlayerStatType statType = ParsePlayerStatType(entry.StatType);
+            if (statType != PlayerStatType.None && entry.XPAmount > 0)
             {
                 rewards.Add(new StatXPReward
                 {
                     Stat = statType,
-                    XPAmount = entry.Value
+                    XPAmount = entry.XPAmount
                 });
             }
         }

@@ -22,7 +22,7 @@ public static class ExchangeParser
             throw new InvalidOperationException($"Exchange '{dto.Name}' missing required 'providerFilter' field");
 
         // EntityResolver.Find pattern - find-only at parse-time (NPCs should already exist)
-        PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Name}");
+        PlacementFilter providerFilter = PlacementFilterParser.Parse(dto.ProviderFilter, $"Exchange:{dto.Name}");
         NPC npc = entityResolver.FindNPC(providerFilter, null);
         if (npc == null)
         {
@@ -62,7 +62,7 @@ public static class ExchangeParser
                     Amount = dto.GiveAmount
                 }
             } : new List<ResourceAmount>(),
-                TokenRequirements = dto.TokenGate?.Count > 0 ? new List<TokenCount>() : new List<TokenCount>(),
+                TokenRequirements = ParseTokenRequirements(dto.TokenGate),
                 ConsumedItems = new List<Item>() // HIGHLANDER: Item objects resolved from names if needed
             },
 
@@ -138,6 +138,31 @@ public static class ExchangeParser
         }
 
         return resolvedItems;
+    }
+
+    /// <summary>
+    /// Parse token gate requirements from DTO entries
+    /// </summary>
+    private static List<TokenCount> ParseTokenRequirements(List<TokenEntryDTO> tokenGate)
+    {
+        List<TokenCount> requirements = new List<TokenCount>();
+
+        if (tokenGate == null || tokenGate.Count == 0)
+            return requirements;
+
+        foreach (TokenEntryDTO entry in tokenGate)
+        {
+            if (Enum.TryParse<ConnectionType>(entry.TokenType, true, out ConnectionType tokenType))
+            {
+                requirements.Add(new TokenCount
+                {
+                    Type = tokenType,
+                    Count = entry.Amount
+                });
+            }
+        }
+
+        return requirements;
     }
 
     /// <summary>

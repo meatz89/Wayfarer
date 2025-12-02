@@ -1,11 +1,11 @@
 using System.Text;
 
 /// <summary>
-/// GameFacade - Pure orchestrator for UI-Backend communication.
-/// Delegates ALL business logic to specialized facades.
-/// Coordinates cross-facade operations and handles UI-specific orchestration.
+/// GameOrchestrator - THE single entry point for UI-Backend communication.
+/// FACADE ISOLATION: Only this class can coordinate between facades.
+/// Facades may NEVER reference other facades directly - orchestration happens here.
 /// </summary>
-public class GameFacade
+public class GameOrchestrator
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
@@ -38,7 +38,6 @@ public class GameFacade
     private readonly SituationChoiceExecutor _situationChoiceExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly RewardApplicationService _rewardApplicationService;
-    private readonly SpawnFacade _spawnFacade;
     private readonly SceneFacade _sceneFacade;
     private readonly SituationCompletionHandler _situationCompletionHandler;
     private readonly SceneInstantiator _sceneInstantiator;
@@ -46,7 +45,11 @@ public class GameFacade
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
 
-    public GameFacade(
+    // Composed services (extracted via COMPOSITION OVER INHERITANCE)
+    // Only DebugCommandHandler remains - it's compliant (uses RewardApplicationService, not facades)
+    private readonly DebugCommandHandler _debugCommandHandler;
+
+    public GameOrchestrator(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         SocialFacade conversationFacade,
@@ -71,13 +74,13 @@ public class GameFacade
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
-        SpawnFacade spawnFacade,
         SceneFacade sceneFacade,
         SituationCompletionHandler situationCompletionHandler,
         SceneInstantiator sceneInstantiator,
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
-        ContentGenerationFacade contentGenerationFacade)
+        ContentGenerationFacade contentGenerationFacade,
+        DebugCommandHandler debugCommandHandler)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -102,13 +105,13 @@ public class GameFacade
         _situationChoiceExecutor = situationChoiceExecutor ?? throw new ArgumentNullException(nameof(situationChoiceExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
-        _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _debugCommandHandler = debugCommandHandler ?? throw new ArgumentNullException(nameof(debugCommandHandler));
     }
 
     // ========== CORE GAME STATE ==========
@@ -412,7 +415,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Play a conversation card - proper architectural flow through GameFacade
+    /// Play a conversation card - proper architectural flow through GameOrchestrator
     /// </summary>
     public async Task<SocialTurnResult> PlayConversationCard(CardInstance card)
     {
@@ -426,7 +429,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Execute listen action in current conversation - proper architectural flow through GameFacade
+    /// Execute listen action in current conversation - proper architectural flow through GameOrchestrator
     /// </summary>
     public async Task<SocialTurnResult> ExecuteListen()
     {
@@ -862,7 +865,7 @@ public class GameFacade
 
         // Execute with data from entity
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
+        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameOrchestrator controls time progression
         _resourceFacade.ExecuteWait(); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
@@ -927,7 +930,7 @@ public class GameFacade
 
         // Execute with data from entity - HIGHLANDER: Consequence is unified
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameFacade controls time progression
+        _timeFacade.AdvanceSegments(1); // ORCHESTRATION: GameOrchestrator controls time progression
         await _resourceFacade.ExecuteRest(action.Consequence); // Resource effects only, no time progression
         TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
@@ -1160,12 +1163,12 @@ public class GameFacade
         // EMERGENCY CHECKING: Check for active emergencies at sync points
         // Emergencies interrupt normal gameplay and demand immediate response
         // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
-        ActiveEmergencyState activeEmergency = CheckForActiveEmergency();
+        ActiveEmergencyState activeEmergency = _emergencyFacade.CheckForActiveEmergency(_gameWorld.GetPlayer());
         if (activeEmergency != null)
         {
             _gameWorld.ActiveEmergency = activeEmergency;
             _messageSystem.AddSystemMessage(
-                $"⚠️ EMERGENCY: {activeEmergency.Template.Name}",
+                $"EMERGENCY: {activeEmergency.Template.Name}",
                 SystemMessageTypes.Warning);
         }
 
@@ -1189,9 +1192,6 @@ public class GameFacade
                 {
                     _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
                 }
-
-                // Optional: System message for player feedback (uncomment if desired)
-                // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
             }
         }
     }
@@ -1223,200 +1223,27 @@ public class GameFacade
         return _gameWorld.Venues;
     }
 
-
     // ============================================
-    // DEBUG COMMANDS
+    // DEBUG COMMANDS (delegated to DebugCommandHandler)
     // ============================================
 
-    /// <summary>
-    /// Debug: Set player stat to specific level
-    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
-    /// </summary>
     public async Task<bool> DebugSetStatLevel(PlayerStatType statType, int level)
-    {
-        if (level < 0 || level > 10)
-        {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
-            return false;
-        }
+        => await _debugCommandHandler.SetStatLevel(statType, level);
 
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Calculate delta and apply via Consequence
-        int delta = 0;
-        switch (statType)
-        {
-            case PlayerStatType.Insight:
-                delta = level - player.Insight;
-                break;
-            case PlayerStatType.Rapport:
-                delta = level - player.Rapport;
-                break;
-            case PlayerStatType.Authority:
-                delta = level - player.Authority;
-                break;
-            case PlayerStatType.Diplomacy:
-                delta = level - player.Diplomacy;
-                break;
-            case PlayerStatType.Cunning:
-                delta = level - player.Cunning;
-                break;
-        }
-
-        Consequence statChange = statType switch
-        {
-            PlayerStatType.Insight => new Consequence { Insight = delta },
-            PlayerStatType.Rapport => new Consequence { Rapport = delta },
-            PlayerStatType.Authority => new Consequence { Authority = delta },
-            PlayerStatType.Diplomacy => new Consequence { Diplomacy = delta },
-            PlayerStatType.Cunning => new Consequence { Cunning = delta },
-            _ => new Consequence()
-        };
-        await _rewardApplicationService.ApplyConsequence(statChange, null);
-
-        _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success);
-        return true;
-    }
-
-    /// <summary>
-    /// Debug: Add points to a specific stat
-    /// TWO PILLARS: Uses Consequence + ApplyConsequence for stat changes
-    /// </summary>
     public async Task<bool> DebugAddStatXP(PlayerStatType statType, int points)
-    {
-        if (points <= 0)
-        {
-            _messageSystem.AddSystemMessage($"Invalid points amount {points}. Must be positive.", SystemMessageTypes.Danger);
-            return false;
-        }
+        => await _debugCommandHandler.AddStatXP(statType, points);
 
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Apply stat change via Consequence
-        Consequence statChange = statType switch
-        {
-            PlayerStatType.Insight => new Consequence { Insight = points },
-            PlayerStatType.Rapport => new Consequence { Rapport = points },
-            PlayerStatType.Authority => new Consequence { Authority = points },
-            PlayerStatType.Diplomacy => new Consequence { Diplomacy = points },
-            PlayerStatType.Cunning => new Consequence { Cunning = points },
-            _ => new Consequence()
-        };
-        await _rewardApplicationService.ApplyConsequence(statChange, null);
-
-        int newValue = statType switch
-        {
-            PlayerStatType.Insight => player.Insight,
-            PlayerStatType.Rapport => player.Rapport,
-            PlayerStatType.Authority => player.Authority,
-            PlayerStatType.Diplomacy => player.Diplomacy,
-            PlayerStatType.Cunning => player.Cunning,
-            _ => 0
-        };
-        _messageSystem.AddSystemMessage($"Added {points} to {statType}. Now {newValue}", SystemMessageTypes.Success);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Debug: Set all stats to a specific level
-    /// TWO PILLARS: Uses async DebugSetStatLevel
-    /// </summary>
     public async Task DebugSetAllStats(int level)
-    {
-        if (level < 0 || level > 10)
-        {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
-            return;
-        }
+        => await _debugCommandHandler.SetAllStats(level);
 
-        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
-        {
-            await DebugSetStatLevel(statType, level);
-        }
-
-        _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success);
-    }
-
-    /// <summary>
-    /// Debug: Display current stat values
-    /// </summary>
     public string DebugGetStatInfo()
-    {
-        Player player = _gameWorld.GetPlayer();
-        StringBuilder statInfo = new StringBuilder();
+        => _debugCommandHandler.GetStatInfo();
 
-        statInfo.AppendLine("=== Player Stats ===");
-        statInfo.AppendLine($"Insight: {player.Insight}");
-        statInfo.AppendLine($"Rapport: {player.Rapport}");
-        statInfo.AppendLine($"Authority: {player.Authority}");
-        statInfo.AppendLine($"Diplomacy: {player.Diplomacy}");
-        statInfo.AppendLine($"Cunning: {player.Cunning}");
-
-        return statInfo.ToString();
-    }
-
-    /// <summary>
-    /// Debug: Grant resources (coins, health, etc.)
-    /// TWO PILLARS: Delegates mutations to RewardApplicationService
-    /// </summary>
     public async Task DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // TWO PILLARS: Build Consequence for all resource changes
-        Consequence debugConsequence = new Consequence
-        {
-            Coins = coins,
-            Health = health,
-            Hunger = hunger
-        };
-        await _rewardApplicationService.ApplyConsequence(debugConsequence, null);
-
-        if (coins != 0)
-        {
-            _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success);
-        }
-
-        if (health != 0)
-        {
-            _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
-        }
-
-        if (hunger != 0)
-        {
-            _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
-        }
-    }
+        => await _debugCommandHandler.GiveResources(coins, health, hunger);
 
     public void DebugTeleportToLocation(string venueName, string locationName)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationName);
-
-        if (location == null)
-        {
-            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning);
-            return;
-        }
-
-        if (!location.HexPosition.HasValue)
-        {
-            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
-            return;
-        }
-
-        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Name == venueName);
-        if (venue == null)
-        {
-            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning);
-            return;
-        }
-
-        player.CurrentPosition = location.HexPosition.Value;
-
-        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
-    }
+        => _debugCommandHandler.TeleportToLocation(venueName, locationName);
 
     // ========== OBLIGATION SYSTEM ==========
 
@@ -1617,7 +1444,7 @@ public class GameFacade
 
     /// <summary>
     /// HIGHLANDER ORCHESTRATOR: Spawn scene with dynamic content generation
-    /// GameFacade is SOLE orchestrator for multi-facade operations
+    /// GameOrchestrator is SOLE orchestrator for multi-facade operations
     /// LET IT CRASH: Pipeline succeeds completely or throws exception with stack trace
     /// </summary>
     public async Task<Scene> SpawnSceneWithDynamicContent(
@@ -1630,7 +1457,7 @@ public class GameFacade
 
         if (string.IsNullOrEmpty(packageJson))
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions");
+            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed spawn conditions");
             return null;
         }
 
@@ -1640,7 +1467,7 @@ public class GameFacade
 
         if (scene == null)
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed to load via PackageLoader");
+            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed to load via PackageLoader");
             return null;
         }
 
@@ -1728,11 +1555,11 @@ public class GameFacade
 
             if (scene == null)
             {
-                Console.WriteLine($"[GameFacade] Initial scene '{template.Id}' failed to spawn - skipping");
+                Console.WriteLine($"[GameOrchestrator] Initial scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
 
-            Console.WriteLine($"[GameFacade] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
+            Console.WriteLine($"[GameOrchestrator] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 
@@ -2043,7 +1870,8 @@ public class GameFacade
                 await _rewardApplicationService.ApplyConsequence(pathCardEffects, situation);
 
                 // Token gains (future implementation)
-                foreach (KeyValuePair<string, int> tokenGain in card.TokenGains)
+                // DOMAIN COLLECTION PRINCIPLE: List<TokenGainEntry> with strongly-typed entries
+                foreach (TokenGainEntry tokenGain in card.TokenGains)
                 {
                     // Token system integration (future implementation)
                 }
@@ -2087,6 +1915,11 @@ public class GameFacade
 
     // ========== HELPER METHODS ==========
 
+    // ============================================
+    // INTERACTION HISTORY
+    // Records player interactions using update-in-place pattern (ONE record per entity)
+    // ============================================
+
     /// <summary>
     /// Record location visit in player interaction history
     /// Update-in-place pattern: Find existing record or create new
@@ -2096,20 +1929,17 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record - HIGHLANDER: object equality
         LocationVisitRecord existingRecord = player.LocationVisits
             .FirstOrDefault(record => record.Location == location);
 
         if (existingRecord != null)
         {
-            // Update existing record with current timestamp
             existingRecord.LastVisitDay = _timeFacade.GetCurrentDay();
             existingRecord.LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock();
             existingRecord.LastVisitSegment = _timeFacade.GetCurrentSegment();
         }
         else
         {
-            // Create new record
             player.LocationVisits.Add(new LocationVisitRecord
             {
                 Location = location,
@@ -2130,20 +1960,17 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record using object equality
         NPCInteractionRecord existingRecord = player.NPCInteractions
             .FirstOrDefault(record => record.Npc == npc);
 
         if (existingRecord != null)
         {
-            // Update existing record with current timestamp
             existingRecord.LastInteractionDay = _timeFacade.GetCurrentDay();
             existingRecord.LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock();
             existingRecord.LastInteractionSegment = _timeFacade.GetCurrentSegment();
         }
         else
         {
-            // Create new record
             player.NPCInteractions.Add(new NPCInteractionRecord
             {
                 Npc = npc,
@@ -2163,20 +1990,17 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record - HIGHLANDER: object equality
         RouteTraversalRecord existingRecord = player.RouteTraversals
             .FirstOrDefault(record => record.Route == route);
 
         if (existingRecord != null)
         {
-            // Update existing record with current timestamp
             existingRecord.LastTraversalDay = _timeFacade.GetCurrentDay();
             existingRecord.LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock();
             existingRecord.LastTraversalSegment = _timeFacade.GetCurrentSegment();
         }
         else
         {
-            // Create new record
             player.RouteTraversals.Add(new RouteTraversalRecord
             {
                 Route = route,
@@ -2227,7 +2051,7 @@ public class GameFacade
 
     /// <summary>
     /// Process social challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessSocialChallengeOutcome()
     {
@@ -2270,7 +2094,7 @@ public class GameFacade
 
     /// <summary>
     /// Process mental challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessMentalChallengeOutcome()
     {
@@ -2313,7 +2137,7 @@ public class GameFacade
 
     /// <summary>
     /// Process physical challenge outcome - apply CompletionReward if successful, FailureReward if failed
-    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// STRATEGIC LAYER: GameOrchestrator applies rewards after receiving tactical outcome
     /// </summary>
     public async Task ProcessPhysicalChallengeOutcome()
     {

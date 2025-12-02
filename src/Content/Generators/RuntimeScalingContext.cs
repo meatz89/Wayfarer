@@ -124,13 +124,13 @@ public class RuntimeScalingContext
     {
         if (location == null) return 0;
 
-        // Derive quality from location tier
-        Quality quality = location.Tier switch
+        // Derive quality from location difficulty (hex distance / 5)
+        Quality quality = location.Difficulty switch
         {
-            1 => Quality.Basic,
-            2 => Quality.Standard,
-            3 => Quality.Premium,
-            >= 4 => Quality.Luxury,
+            0 => Quality.Basic,
+            1 => Quality.Standard,
+            2 => Quality.Premium,
+            >= 3 => Quality.Luxury,
             _ => Quality.Standard
         };
 
@@ -152,12 +152,12 @@ public class RuntimeScalingContext
     {
         if (npc == null) return 0;
 
-        // Derive power dynamic from NPC tier
-        PowerDynamic power = npc.Tier switch
+        // Derive power dynamic from NPC level
+        PowerDynamic power = npc.Level switch
         {
-            >= 4 => PowerDynamic.Submissive,  // High tier NPC = player submissive
-            <= 2 => PowerDynamic.Dominant,    // Low tier NPC = player dominant
-            _ => PowerDynamic.Equal           // Mid tier = equal footing
+            >= 4 => PowerDynamic.Submissive,  // High level NPC = player submissive
+            <= 2 => PowerDynamic.Dominant,    // Low level NPC = player dominant
+            _ => PowerDynamic.Equal           // Mid level = equal footing
         };
 
         return power switch

@@ -8,8 +8,8 @@ namespace Wayfarer.Pages.Components
     ///
     /// ARCHITECTURAL PRINCIPLES:
     /// - Follows the authoritative parent pattern - receives GameScreen via CascadingParameter
-    /// - ObservationContext passed as Parameter from parent (created by GameFacade)
-    /// - All game state mutations go through GameFacade
+    /// - ObservationContext passed as Parameter from parent (created by GameOrchestrator)
+    /// - All game state mutations go through GameOrchestrator
     /// - Strategic resource management with progressive revelation mechanics
     /// </summary>
     public class ObservationContentBase : ComponentBase
@@ -18,30 +18,30 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnObservationEnd { get; set; }
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
 
         protected async Task HandleExaminePoint(ExaminationPoint point)
         {
             if (Context == null || !Context.IsValid) return;
 
-            ObservationResult result = await GameFacade.ExaminePoint(Context.Scene, point);
+            ObservationResult result = await GameOrchestrator.ExaminePoint(Context.Scene, point);
 
             if (!result.Success)
             {
-                // Show error message through GameFacade message system
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                // Show error message through GameOrchestrator message system
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to examine point",
                     SystemMessageTypes.Danger);
                 return;
             }
 
             // Refresh context to reflect changes
-            Context = GameFacade.CreateObservationContext(Context.Scene);
+            Context = GameOrchestrator.CreateObservationContext(Context.Scene);
 
             // Show results through message system (knowledge gained, items found, etc. are already shown by facade)
             if (result.SceneCompleted)
             {
-                GameFacade.GetMessageSystem().AddSystemMessage(
+                GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     "Scene investigation complete!",
                     SystemMessageTypes.Success);
             }

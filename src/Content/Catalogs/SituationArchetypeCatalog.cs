@@ -891,8 +891,8 @@ public static class SituationArchetypeCatalog
             scaledStatThreshold = scaledStatThreshold - 2;
         }
 
-        // TIER SCALING: Higher tiers have harder requirements
-        int tierAdjustment = context.Tier switch
+        // DIFFICULTY SCALING: Further locations have harder requirements
+        int difficultyAdjustment = context.LocationDifficulty switch
         {
             0 => 0,
             1 => 1,
@@ -900,10 +900,10 @@ public static class SituationArchetypeCatalog
             >= 3 => 3,
             _ => 0
         };
-        scaledStatThreshold = scaledStatThreshold + tierAdjustment;
+        scaledStatThreshold = scaledStatThreshold + difficultyAdjustment;
 
-        // Also scale coin costs by tier (higher tiers = more expensive economy)
-        scaledCoinCost = scaledCoinCost + (context.Tier * 2);
+        // Also scale coin costs by difficulty (further locations = more expensive economy)
+        scaledCoinCost = scaledCoinCost + (context.LocationDifficulty * 2);
 
         // Ensure minimum threshold of 1 (never negative)
         scaledStatThreshold = Math.Max(1, scaledStatThreshold);

@@ -63,11 +63,26 @@ public record PlayerStateConditions
 {
     /// <summary>
     /// Minimum stat requirements (scale thresholds)
-    /// Key = ScaleType, Value = minimum threshold
-    /// Example: {Morality: 5} = spawn only if player Morality >= 5
-    /// Empty dictionary = no stat requirements
+    /// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (ScaleType)
+    /// Example: MinMorality = 5 means spawn only if player Morality >= 5
     /// </summary>
-    public Dictionary<ScaleType, int> MinStats { get; init; } = new Dictionary<ScaleType, int>();
+    public int? MinMorality { get; init; }
+    public int? MinLawfulness { get; init; }
+    public int? MinMethod { get; init; }
+    public int? MinCaution { get; init; }
+    public int? MinTransparency { get; init; }
+    public int? MinFame { get; init; }
+
+    public int? GetMinScale(ScaleType scale) => scale switch
+    {
+        ScaleType.Morality => MinMorality,
+        ScaleType.Lawfulness => MinLawfulness,
+        ScaleType.Method => MinMethod,
+        ScaleType.Caution => MinCaution,
+        ScaleType.Transparency => MinTransparency,
+        ScaleType.Fame => MinFame,
+        _ => null
+    };
 
     /// <summary>
     /// Required inventory items
@@ -79,11 +94,10 @@ public record PlayerStateConditions
 
     /// <summary>
     /// Location visit count requirements
-    /// Key = LocationId, Value = minimum visit count
-    /// Example: {"tavern": 3} = spawn only if player visited tavern 3+ times
-    /// Empty dictionary = no visit requirements
+    /// Example: LocationId "tavern" with VisitCount 3 = spawn only if player visited tavern 3+ times
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> LocationVisits { get; init; } = new Dictionary<string, int>();
+    public List<LocationVisitEntry> LocationVisits { get; init; } = new List<LocationVisitEntry>();
 }
 
 /// <summary>
@@ -141,27 +155,24 @@ public record EntityStateConditions
 {
     /// <summary>
     /// NPC bond requirements
-    /// Key = NpcId, Value = minimum bond strength
-    /// Example: {"elena": 10} = spawn only if Elena bond >= 10
-    /// Empty dictionary = no bond requirements
+    /// Example: NpcId "elena" with BondStrength 10 = spawn only if Elena bond >= 10
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> NPCBond { get; init; } = new Dictionary<string, int>();
+    public List<NPCBondEntry> NPCBond { get; init; } = new List<NPCBondEntry>();
 
     /// <summary>
     /// Location reputation requirements
-    /// Key = LocationId, Value = minimum reputation score
-    /// Example: {"market_square": 5} = spawn only if market reputation >= 5
-    /// Empty dictionary = no reputation requirements
+    /// Example: LocationId "market_square" with ReputationScore 5 = spawn only if market reputation >= 5
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> LocationReputation { get; init; } = new Dictionary<string, int>();
+    public List<LocationReputationEntry> LocationReputation { get; init; } = new List<LocationReputationEntry>();
 
     /// <summary>
     /// Route travel count requirements
-    /// Key = RouteId, Value = minimum travel count
-    /// Example: {"mountain_pass": 2} = spawn only if traveled mountain pass 2+ times
-    /// Empty dictionary = no route travel requirements
+    /// Example: RouteId "mountain_pass" with TravelCount 2 = spawn only if traveled mountain pass 2+ times
+    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
     /// </summary>
-    public Dictionary<string, int> RouteTravelCount { get; init; } = new Dictionary<string, int>();
+    public List<RouteTravelCountEntry> RouteTravelCount { get; init; } = new List<RouteTravelCountEntry>();
 
     /// <summary>
     /// Required entity properties

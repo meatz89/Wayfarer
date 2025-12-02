@@ -187,12 +187,6 @@ public class SituationDTO
     public List<SpawnRuleDTO> FailureSpawns { get; set; } = new List<SpawnRuleDTO>();
 
     /// <summary>
-    /// Situation complexity tier (0-4)
-    /// Tier 0: Safety net, Tier 1: Low, Tier 2: Standard, Tier 3: High, Tier 4: Climactic
-    /// </summary>
-    public int Tier { get; set; } = 1;
-
-    /// <summary>
     /// Whether this situation can be repeated after completion
     /// </summary>
     public bool Repeatable { get; set; } = false;

@@ -838,7 +838,18 @@ At runtime, AI generates scene structures procedurally for current context. Situ
 
 ### Rhythm as Contextual Property
 
-RhythmPattern flows through GenerationContext at runtime. AI determines appropriate rhythm based on story state, player resources, and dramatic pacing.
+RhythmPattern flows through GenerationContext. Like other Context Injection properties (§8.28), rhythm has two sources:
+
+| Source | How Rhythm Is Set | Use Case |
+|--------|-------------------|----------|
+| **Authored** | Explicit RhythmPattern in SceneTemplateDTO | Tutorial sequences, hand-crafted narrative beats |
+| **Procedural** | Computed from intensity history | Infinite A-story continuation |
+
+**Procedural Rhythm Computation (from intensity history):**
+- Heavy demanding history → Building rhythm (recovery needed)
+- Long since last recovery → Building rhythm (accumulation opportunity)
+- Balanced history → Mixed rhythm (standard trade-offs)
+- Full accumulation cycle complete → Crisis rhythm (test investments)
 
 | Rhythm | Choice Generation | Player Experience |
 |--------|-------------------|-------------------|
@@ -867,7 +878,7 @@ Two independent systems describe procedural content: RhythmPattern (choice struc
 
 **Challenge and Consequence Philosophy:**
 
-Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from story structure (archetype rotation cycle), not from player state filtering.
+Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from **RhythmPattern-driven generation** (computed from intensity history), not from player state filtering.
 
 Intensity propagates at parse-time: Archetype → SituationTemplate → Situation (copied at spawn). Runtime uses intensity only for descriptive purposes, never for filtering visibility.
 
@@ -1019,63 +1030,149 @@ Generates PERSISTENT names stored on entity properties. Names display consistent
 
 ---
 
-## 8.28 Context Injection Pattern (HIGHLANDER-Compliant Scene Generation)
+## 8.28 Context Injection (HIGHLANDER Scene Generation)
 
-**Problem:** Scene generation that discovers context from GameWorld creates two incompatible code paths:
-- Procedural scenes: Read current GameWorld state, select category based on live context
-- Authored scenes: Need to specify exact outcome, but context at generation time is unpredictable
+**"RhythmPattern drives selection. Location difficulty drives scaling. Never mixed."**
 
-This violates HIGHLANDER — authored content would require special cases bypassing the procedural algorithm.
+### Two Distinct Systems
 
-**Solution:** Context is always INJECTED into generation, never discovered at generation time.
+| System | Input | When Applied | Controls |
+|--------|-------|--------------|----------|
+| **Scene Selection** | RhythmPattern + anti-repetition | Scene spawn trigger hit | Which archetype category |
+| **Choice Scaling** | Location difficulty (hex distance) | Situation created | Requirement/reward values |
 
-| Component | Responsibility |
-|-----------|----------------|
-| **Caller** (authored or procedural) | Constructs context and passes to generation |
-| **Generator** | Uses injected context to produce deterministic output |
-| **Same code path** | Both authored and procedural use identical generation logic |
+These systems are ORTHOGONAL. Selection doesn't know about scaling. Scaling doesn't influence selection.
 
-**Two Context Sources, One Generation Path:**
+### Scene Selection: RhythmPattern Only
 
-| Source | How Context is Populated | Example |
-|--------|--------------------------|---------|
-| **Procedural** | Read current GameWorld state (player intensity, location, anti-repetition) | After A3 completes, read Player.SceneIntensityHistory and current location |
-| **Authored** | Specify exact context in content definition | A1 defines "next spawn uses Investigation category, Safe location, Building rhythm" |
+Scene archetype selection uses ONLY:
 
-**Consequences:**
-- Generation algorithm remains pure function: same context → same output
-- Authored content achieves deterministic sequencing without special cases
-- Procedural content achieves dynamic adaptation without separate code paths
-- Testing simplified: inject test context, verify output
+| Input | Source | Purpose |
+|-------|--------|---------|
+| **RhythmPattern** | Computed from intensity history | Building → building archetypes; Crisis → crisis archetypes |
+| **Anti-Repetition** | Recent categories/archetypes | Avoid immediate repetition |
 
-**Implementation Pattern:**
+**No other inputs influence selection.** Location context, player stats, tier—all REMOVED from selection.
 
-The spawn request (DTO or parameter object) carries all context needed for generation:
-- Target archetype category (or factors that determine it)
-- Intensity history snapshot (or pre-computed intensity balance)
-- Location context (Safety, Purpose) or explicit category override
-- Rhythm phase indicators
-- Anti-repetition exclusions
+### Choice Scaling: Location Difficulty
 
-Generator NEVER calls GameWorld directly. All state arrives via injected context.
+When a situation is instantiated from template, choices receive scaling from location:
 
-**Forbidden:**
-- Generation logic reading GameWorld.GetPlayer() or similar
-- Conditional paths based on "is this authored vs procedural"
-- Context discovery inside generation methods
-- Different generation code for tutorial vs infinite progression
+| Input | Source | Effect |
+|-------|--------|--------|
+| **Location Difficulty** | Hex distance from world center / 5 | Modifies stat requirements and reward magnitudes |
+| **Net Challenge** | Location difficulty - player strength | Applied via ApplyStatAdjustment() |
 
-**Correct Pattern:**
-- Caller (RewardApplicationService for procedural, authored content for explicit) builds context
-- Context passed as parameter to GenerateNextATemplate or equivalent
-- Generation uses ONLY the provided context
-- Output is deterministic function of input context
+Scaling happens at instantiation—AFTER selection is complete.
+
+### Context Flow
+
+```
+SceneSpawnReward → RhythmPattern → SelectArchetypeCategory → SceneTemplate
+                                                                    ↓
+                         Location.Difficulty → Choice Instantiation
+```
+
+SceneSpawnReward is THE source of RhythmPattern context. Choice scaling reads from current Location.
+
+### HIGHLANDER Compliance
+
+| Principle | How It's Upheld |
+|-----------|-----------------|
+| **Same selection logic** | RhythmPattern processed identically for authored/procedural |
+| **Same scaling logic** | Location difficulty applied identically to all choices |
+| **No source detection** | Selection doesn't know if context was authored |
+
+### Forbidden Patterns
+
+| Pattern | Why It's Wrong |
+|---------|----------------|
+| LocationSafety/Purpose in selection | Legacy properties—DELETED |
+| Tier in selection | Legacy property—DELETED |
+| Player stats influencing selection | Game doesn't cushion poor play |
+| Merging authored with game state | Context is all-or-nothing |
+| Context derivation at parse time | Context set by SceneSpawnReward only |
+| `HasAuthoredContext` checks | Removed—all scenes have RhythmPattern |
 
 **Cross-References:**
 - §8.1 HIGHLANDER: One code path for all scene generation
-- §8.2 Catalogue Pattern: Context properties translate at parse-time
-- §8.23 Archetype Reusability: No tutorial hardcoding in archetypes
-- §8.26 Sir Brante Rhythm: RhythmPattern as contextual property
+- §8.26 Sir Brante Rhythm: RhythmPattern computation from intensity history
+- §8.30 Net Challenge: Location difficulty scaling system
+
+---
+
+## 8.29 Domain Collection Principle (No Key-Value Patterns)
+
+**"Explicit properties, not generic key-value pairs."**
+
+Dictionary and KeyValuePair patterns are forbidden at ALL layers - JSON content, DTOs, parsers, and domain entities. Use `List<T>` with strongly-typed entry classes throughout.
+
+### Why Key-Value Patterns Are Forbidden
+
+| Problem | Impact |
+|---------|--------|
+| **Hidden semantics** | `kvp.Key` and `kvp.Value` reveal nothing about domain meaning |
+| **Parser complexity** | Dictionary-to-List conversion adds unnecessary translation layer |
+| **Inconsistent patterns** | JSON uses objects, DTOs use Dictionary, entities use List - confusion |
+| **LINQ impedance** | Dictionary iteration differs from List iteration |
+
+### The Principle: Arrays of Objects Everywhere
+
+| Layer | Pattern |
+|-------|---------|
+| **JSON** | Arrays of objects with explicit properties |
+| **DTO** | `List<EntryDTO>` with explicit properties |
+| **Parser** | Direct mapping (no conversion needed) |
+| **Entity** | `List<Entry>` with explicit properties |
+
+### Transformation Example
+
+**Before (Forbidden):**
+
+JSON: `{ "statRequirements": { "Insight": 5, "Rapport": 3 } }`
+
+DTO: `public Dictionary<string, int> StatRequirements { get; set; }`
+
+Parser: `foreach (KeyValuePair<string, int> kvp in dto.StatRequirements)`
+
+**After (Required):**
+
+JSON: `{ "statRequirements": [ { "stat": "Insight", "value": 5 }, { "stat": "Rapport", "value": 3 } ] }`
+
+DTO: `public List<StatRequirementDTO> StatRequirements { get; set; }`
+
+Parser: `dto.StatRequirements.Select(r => new StatRequirementEntry { ... })`
+
+### Benefits
+
+| Benefit | How Achieved |
+|---------|--------------|
+| **Semantic clarity** | Property names describe meaning (`entry.Stat` not `kvp.Key`) |
+| **No conversion** | Same structure flows JSON → DTO → Entity |
+| **Uniform LINQ** | All layers use identical `.Where()`, `.Select()`, `.FirstOrDefault()` |
+| **IDE support** | Autocomplete on all property names |
+| **Validation** | Parse-time type checking on entry class properties |
+
+### Acceptable Exception
+
+Dictionary acceptable ONLY for:
+- Blazor framework parameters (framework requirement)
+- External API response caching (ephemeral, not domain state)
+
+**Never acceptable for:** Game content, DTOs, domain entities, or any persistent state.
+
+### Enforcement
+
+| Mechanism | What It Catches |
+|-----------|-----------------|
+| **Pre-commit hook** | `Dictionary<` pattern in domain code |
+| **CI tests** | Architecture tests verify no Dictionary in GameState/ |
+| **Code review** | CLAUDE.md guidance on JSON structure |
+
+**Cross-References:**
+- CLAUDE.md: DOMAIN COLLECTION PRINCIPLE (user-facing rule)
+- §8.3: Entity Identity Model (no instance IDs - related principle)
+- §8.19: Explicit Property Principle (strongly-typed over generic)
 
 ---
 

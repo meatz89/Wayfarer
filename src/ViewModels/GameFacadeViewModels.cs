@@ -313,7 +313,6 @@ public class DiscoveredInfoViewModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
-    public int Tier { get; set; }
     public bool IsAccessUnlocked { get; set; }
     public int DayDiscovered { get; set; }
 

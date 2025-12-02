@@ -15,8 +15,14 @@
         "Description": "Sturdy rope for climbing and securing",
         "BuyPrice": 10,
         "SellPrice": 5,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Climbing", "Height", "Securing"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Climbing",
+          "Height",
+          "Securing"
+        ],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
       },
@@ -26,8 +32,13 @@
         "Description": "Waterproof boots for crossing water",
         "BuyPrice": 12,
         "SellPrice": 6,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Water", "Cold"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Water",
+          "Cold"
+        ],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
       },
@@ -37,8 +48,13 @@
         "Description": "Oil lantern providing light in dark places - oil runs out with use",
         "BuyPrice": 15,
         "SellPrice": 7,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Darkness", "Search"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Darkness",
+          "Search"
+        ],
         "IntensityReduction": 1,
         "UsageType": "Exhaustible",
         "Durability": "Fragile"
@@ -49,8 +65,13 @@
         "Description": "Set of precision tools for mechanical work - wear out with use",
         "BuyPrice": 20,
         "SellPrice": 10,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Mechanical", "Precision"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Mechanical",
+          "Precision"
+        ],
         "IntensityReduction": 1,
         "UsageType": "Exhaustible",
         "Durability": "Sturdy"
@@ -61,8 +82,14 @@
         "Description": "Fine clothing for social situations",
         "BuyPrice": 25,
         "SellPrice": 12,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Authority", "Persuasion", "Negotiation"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Authority",
+          "Persuasion",
+          "Negotiation"
+        ],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
       },
@@ -72,7 +99,9 @@
         "Description": "Emergency food that can resolve unexpected situations",
         "BuyPrice": 5,
         "SellPrice": 2,
-        "Categories": ["Equipment"],
+        "Categories": [
+          "Equipment"
+        ],
         "ApplicableContexts": [],
         "IntensityReduction": 0,
         "UsageType": "Consumable"
@@ -83,8 +112,13 @@
         "Description": "Professional climbing equipment - durable but requires maintenance",
         "BuyPrice": 30,
         "SellPrice": 15,
-        "Categories": ["Equipment"],
-        "ApplicableContexts": ["Climbing", "Height"],
+        "Categories": [
+          "Equipment"
+        ],
+        "ApplicableContexts": [
+          "Climbing",
+          "Height"
+        ],
         "IntensityReduction": 2,
         "UsageType": "Exhaustible",
         "Durability": "Durable"
@@ -95,7 +129,9 @@
         "Description": "Key to a rented room at the inn",
         "BuyPrice": 0,
         "SellPrice": 0,
-        "Categories": ["Quest Item"],
+        "Categories": [
+          "Quest Item"
+        ],
         "ApplicableContexts": [],
         "IntensityReduction": 0,
         "UsageType": "Temporary"

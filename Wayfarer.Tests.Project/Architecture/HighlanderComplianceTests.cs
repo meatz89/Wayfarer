@@ -196,64 +196,71 @@ public class HighlanderComplianceTests
         // Filter known exceptions (documented stateless patterns)
         violations = violations
             .Where(v => !v.Contains("TimeManager")) // TimeManager is special - it IS state
-            .Where(v => !v.Contains("GameFacade"))  // GameFacade is coordinator, not service
+            .Where(v => !v.Contains("GameOrchestrator"))  // GameOrchestrator is coordinator, not service
             .ToList();
 
         Assert.Empty(violations);
     }
 
     /// <summary>
-    /// Verify NPC token entries use object references.
+    /// Verify NPC stores tokens directly (not in separate collection).
+    /// Tokens are NPC state, not Player state.
     /// </summary>
     [Fact]
-    public void NPCTokenEntry_Uses_ObjectReference()
+    public void NPC_StoresTokensDirectly()
     {
-        Type entryType = typeof(NPCTokenEntry);
+        Type npcType = typeof(NPC);
 
-        // Should have NPC object reference
-        PropertyInfo npcProp = entryType.GetProperty("Npc");
-        Assert.NotNull(npcProp);
-        Assert.Equal(typeof(NPC), npcProp.PropertyType);
+        // NPC should have token properties
+        PropertyInfo trustProp = npcType.GetProperty("Trust");
+        Assert.NotNull(trustProp);
+        Assert.Equal(typeof(int), trustProp.PropertyType);
 
-        // Should NOT have NpcId
-        PropertyInfo npcIdProp = entryType.GetProperty("NpcId");
-        Assert.Null(npcIdProp);
+        PropertyInfo diplomacyProp = npcType.GetProperty("Diplomacy");
+        Assert.NotNull(diplomacyProp);
+        Assert.Equal(typeof(int), diplomacyProp.PropertyType);
+
+        PropertyInfo statusProp = npcType.GetProperty("Status");
+        Assert.NotNull(statusProp);
+        Assert.Equal(typeof(int), statusProp.PropertyType);
+
+        PropertyInfo shadowProp = npcType.GetProperty("Shadow");
+        Assert.NotNull(shadowProp);
+        Assert.Equal(typeof(int), shadowProp.PropertyType);
+
+        // NPC should have helper methods
+        System.Reflection.MethodInfo getTokenCountMethod = npcType.GetMethod("GetTokenCount");
+        Assert.NotNull(getTokenCountMethod);
+
+        System.Reflection.MethodInfo setTokenCountMethod = npcType.GetMethod("SetTokenCount");
+        Assert.NotNull(setTokenCountMethod);
+
+        System.Reflection.MethodInfo getTotalTokensMethod = npcType.GetMethod("GetTotalTokens");
+        Assert.NotNull(getTotalTokensMethod);
     }
 
     /// <summary>
-    /// Verify RouteFamiliarityEntry uses object reference.
+    /// Verify Player does NOT store NPCTokens collection.
+    /// Tokens are NPC state, not Player state.
     /// </summary>
     [Fact]
-    public void RouteFamiliarityEntry_Uses_ObjectReference()
+    public void Player_DoesNot_StoreNPCTokens()
     {
-        Type entryType = typeof(RouteFamiliarityEntry);
+        Type playerType = typeof(Player);
 
-        // Should have RouteOption object reference
-        PropertyInfo routeProp = entryType.GetProperty("Route");
-        Assert.NotNull(routeProp);
-        Assert.Equal(typeof(RouteOption), routeProp.PropertyType);
+        // Player should NOT have NPCTokens property
+        PropertyInfo npcTokensProp = playerType.GetProperty("NPCTokens");
+        Assert.Null(npcTokensProp);
 
-        // Should NOT have RouteId
-        PropertyInfo routeIdProp = entryType.GetProperty("RouteId");
-        Assert.Null(routeIdProp);
-    }
+        // Player should NOT have token helper methods (tokens managed on NPC)
+        System.Reflection.MethodInfo getNPCTokenCountMethod = playerType.GetMethod("GetNPCTokenCount");
+        Assert.Null(getNPCTokenCountMethod);
 
-    /// <summary>
-    /// Verify LocationFamiliarityEntry uses object reference.
-    /// </summary>
-    [Fact]
-    public void LocationFamiliarityEntry_Uses_ObjectReference()
-    {
-        Type entryType = typeof(LocationFamiliarityEntry);
+        System.Reflection.MethodInfo setNPCTokenCountMethod = playerType.GetMethod("SetNPCTokenCount");
+        Assert.Null(setNPCTokenCountMethod);
 
-        // Should have Location object reference
-        PropertyInfo locationProp = entryType.GetProperty("Location");
-        Assert.NotNull(locationProp);
-        Assert.Equal(typeof(Location), locationProp.PropertyType);
-
-        // Should NOT have LocationId
-        PropertyInfo locationIdProp = entryType.GetProperty("LocationId");
-        Assert.Null(locationIdProp);
+        System.Reflection.MethodInfo getNPCTokenEntryMethod = playerType.GetMethod("GetNPCTokenEntry");
+        Assert.Null(getNPCTokenEntryMethod);
     }
 
     // ========== HELPER METHODS ==========

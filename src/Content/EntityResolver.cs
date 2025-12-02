@@ -205,11 +205,6 @@ public class EntityResolver
         if (filter.KnowledgeLevel.HasValue && npc.KnowledgeLevel != filter.KnowledgeLevel.Value)
             return false;
 
-        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
-            return false;
-        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
-            return false;
-
         return true;
     }
 
@@ -282,20 +277,23 @@ public class EntityResolver
         if (locations.Count == 1)
             return locations[0];
 
+        // DDR-007: All selection is deterministic from categorical properties
         switch (strategy)
         {
             case PlacementSelectionStrategy.LeastRecent:
-                return locations.OrderBy(loc => loc.VisitCount).First();
-
-            case PlacementSelectionStrategy.Random:
-                return locations[Random.Shared.Next(locations.Count)];
+                return locations.OrderBy(loc => loc.VisitCount).ThenBy(loc => loc.Name).First();
 
             case PlacementSelectionStrategy.First:
             default:
-                return locations.First();
+                // Sort by Name for deterministic selection from categorical properties
+                return locations.OrderBy(loc => loc.Name).First();
         }
     }
 
+    /// <summary>
+    /// DDR-007: All selection is deterministic from categorical properties.
+    /// No Random - selection based on entity state (RelationshipFlow, StoryCubes, Name).
+    /// </summary>
     private NPC ApplyNPCSelectionStrategy(List<NPC> npcs, PlacementSelectionStrategy strategy)
     {
         if (npcs.Count == 0)
@@ -306,20 +304,24 @@ public class EntityResolver
         switch (strategy)
         {
             case PlacementSelectionStrategy.HighestBond:
-                return npcs.OrderByDescending(npc => npc.RelationshipFlow).First();
+                // Primary: highest bond, Secondary: Name for determinism
+                return npcs.OrderByDescending(npc => npc.RelationshipFlow).ThenBy(npc => npc.Name).First();
 
             case PlacementSelectionStrategy.LeastRecent:
-                return npcs.OrderBy(npc => npc.StoryCubes).First();
-
-            case PlacementSelectionStrategy.Random:
-                return npcs[Random.Shared.Next(npcs.Count)];
+                // Primary: least interaction, Secondary: Name for determinism
+                return npcs.OrderBy(npc => npc.StoryCubes).ThenBy(npc => npc.Name).First();
 
             case PlacementSelectionStrategy.First:
             default:
-                return npcs.First();
+                // Sort by Name for deterministic selection
+                return npcs.OrderBy(npc => npc.Name).First();
         }
     }
 
+    /// <summary>
+    /// DDR-007: All selection is deterministic from categorical properties.
+    /// No Random - selection based on route properties (Name).
+    /// </summary>
     private RouteOption ApplyRouteSelectionStrategy(List<RouteOption> routes, PlacementSelectionStrategy strategy)
     {
         if (routes.Count == 0)
@@ -327,14 +329,8 @@ public class EntityResolver
         if (routes.Count == 1)
             return routes[0];
 
-        switch (strategy)
-        {
-            case PlacementSelectionStrategy.Random:
-                return routes[Random.Shared.Next(routes.Count)];
-
-            case PlacementSelectionStrategy.First:
-            default:
-                return routes.First();
-        }
+        // DDR-007: All strategies use deterministic Name-based selection
+        // Route has no interaction history, so all strategies fall back to Name ordering
+        return routes.OrderBy(r => r.Name).First();
     }
 }

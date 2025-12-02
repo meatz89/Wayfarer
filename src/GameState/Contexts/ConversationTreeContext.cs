@@ -16,7 +16,22 @@ public class ConversationTreeContext
     public int CurrentFocus { get; set; }
     public int MaxFocus { get; set; }
     public int CurrentRelationship { get; set; }
-    public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (PlayerStatType)
+    public int InsightLevel { get; set; }
+    public int RapportLevel { get; set; }
+    public int AuthorityLevel { get; set; }
+    public int DiplomacyLevel { get; set; }
+    public int CunningLevel { get; set; }
+
+    public int GetStatLevel(PlayerStatType stat) => stat switch
+    {
+        PlayerStatType.Insight => InsightLevel,
+        PlayerStatType.Rapport => RapportLevel,
+        PlayerStatType.Authority => AuthorityLevel,
+        PlayerStatType.Diplomacy => DiplomacyLevel,
+        PlayerStatType.Cunning => CunningLevel,
+        _ => 0
+    };
     public List<string> PlayerKnowledge { get; set; }
 
     // Display info
@@ -27,7 +42,6 @@ public class ConversationTreeContext
     {
         IsValid = true;
         ErrorMessage = string.Empty;
-        PlayerStats = new Dictionary<PlayerStatType, int>();
         PlayerKnowledge = new List<string>();
     }
 
@@ -60,10 +74,9 @@ public class ConversationTreeContext
         if (!response.RequiredStat.HasValue) return true;
         if (!response.RequiredStatLevel.HasValue) return true;
 
-        if (!PlayerStats.ContainsKey(response.RequiredStat.Value))
-            return false;
-
-        return PlayerStats[response.RequiredStat.Value] >= response.RequiredStatLevel.Value;
+        // DOMAIN COLLECTION PRINCIPLE: Use explicit properties
+        int currentLevel = GetStatLevel(response.RequiredStat.Value);
+        return currentLevel >= response.RequiredStatLevel.Value;
     }
 
     public string GetBlockReason(DialogueResponse response)

@@ -187,7 +187,7 @@ public class PackageLoader
 
         // PURE PROCEDURAL VALIDATION: Spatial venue assignment verification
         // Validates that PlaceLocation() assigned venues correctly (hex within venue territory)
-        ValidateVenueAssignmentsSpatially();
+        PackageLoaderValidation.ValidateVenueAssignmentsSpatially(_gameWorld);
 
         // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
         // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
@@ -211,8 +211,8 @@ public class PackageLoader
         // CRITICAL: Reachability validation requires routes to exist
         ValidateAllLocations();
 
-        // Final validation and initialization
-        ValidateCrossroadsConfiguration();
+        // Final validation and initialization (extracted to PackageLoaderValidation)
+        PackageLoaderValidation.ValidateCrossroadsConfiguration(_gameWorld);
         InitializeTravelDiscoverySystem();
         InitializeObligationJournal();
     }
@@ -410,7 +410,7 @@ public class PackageLoader
         PlaceLocations(result.LocationsAdded);
 
         // PURE PROCEDURAL VALIDATION: Verify spatial venue assignments
-        ValidateVenueAssignmentsSpatially();
+        PackageLoaderValidation.ValidateVenueAssignmentsSpatially(_gameWorld);
 
         // HEX SYNC: Sync newly placed locations to hex grid
         SyncLocationHexPositions();
@@ -449,7 +449,7 @@ public class PackageLoader
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
         // HIGHLANDER: Store starting location object reference in GameWorld
-        // GameFacade.StartGameAsync uses this to initialize Player.CurrentPosition
+        // GameOrchestrator.StartGameAsync uses this to initialize Player.CurrentPosition
         _gameWorld.StartingLocation = startingLocation;
 
         // Apply starting obligations
@@ -464,19 +464,20 @@ public class PackageLoader
         }
 
         // Apply starting token relationships
+        // DOMAIN COLLECTION PRINCIPLE: List<NpcTokenStartEntry> instead of Dictionary
         if (conditions.StartingTokens != null)
         {
-            foreach (KeyValuePair<string, NPCTokenRelationship> kvp in conditions.StartingTokens)
+            foreach (NpcTokenStartEntry entry in conditions.StartingTokens)
             {
                 // HIGHLANDER: Resolve NPC name to NPC object
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == kvp.Key);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == entry.NpcId);
                 if (npc != null)
                 {
-                    NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(npc);
-                    tokenEntry.Trust = kvp.Value.Trust;
-                    tokenEntry.Diplomacy = kvp.Value.Diplomacy;
-                    tokenEntry.Status = kvp.Value.Status;
-                    tokenEntry.Shadow = kvp.Value.Shadow;
+                    // HIGHLANDER: Set tokens directly on NPC
+                    npc.Trust = entry.Tokens.Trust;
+                    npc.Diplomacy = entry.Tokens.Diplomacy;
+                    npc.Status = entry.Tokens.Status;
+                    npc.Shadow = entry.Tokens.Shadow;
                 }
             }
         }
@@ -600,27 +601,28 @@ public class PackageLoader
         _gameWorld.StatProgression = parseResult.Progression;
     }
 
-    private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
+    private void LoadListenDrawCounts(List<ListenDrawCountEntry> listenDrawCounts)
     {
         if (listenDrawCounts == null) return;
 
-        // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
+        // DOMAIN COLLECTION PRINCIPLE: List<ListenDrawCountEntry> instead of Dictionary
+        // Parse string ConnectionState to enum and create domain entries
         List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
 
-        foreach (KeyValuePair<string, int> kvp in listenDrawCounts)
+        foreach (ListenDrawCountEntry entry in listenDrawCounts)
         {
-            // Parse connection state from string key
-            if (Enum.TryParse<ConnectionState>(kvp.Key.ToUpper(), out ConnectionState state))
+            // Parse connection state from string
+            if (Enum.TryParse<ConnectionState>(entry.ConnectionState.ToUpper(), out ConnectionState state))
             {
                 drawCountEntries.Add(new ListenDrawCountEntry
                 {
                     State = state,
-                    DrawCount = kvp.Value
+                    DrawCount = entry.DrawCount
                 });
             }
             else
             {
-                throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{kvp.Key}'");
+                throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{entry.ConnectionState}'");
             }
         }
 
@@ -762,7 +764,6 @@ public class PackageLoader
                 Name = dto.Name,
                 Description = dto.Description,
                 // Districts added later when LoadDistricts processes district → region links
-                Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
                 Population = dto.Population,
@@ -785,9 +786,9 @@ public class PackageLoader
         {
             // Resolve Region reference immediately using lookup
             Region? region = null;
-            if (!string.IsNullOrEmpty(dto.RegionId))
+            if (!string.IsNullOrEmpty(dto.RegionName))
             {
-                region = regionLookup.GetValueOrDefault(dto.RegionId);
+                region = regionLookup.GetValueOrDefault(dto.RegionName);
             }
 
             District district = new District
@@ -988,9 +989,9 @@ public class PackageLoader
         {
             // Resolve District reference immediately using lookup
             District? district = null;
-            if (!string.IsNullOrEmpty(dto.DistrictId))
+            if (!string.IsNullOrEmpty(dto.DistrictName))
             {
-                district = districtLookup.GetValueOrDefault(dto.DistrictId);
+                district = districtLookup.GetValueOrDefault(dto.DistrictName);
             }
 
             // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)
@@ -1003,7 +1004,6 @@ public class PackageLoader
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
                 existing.District = district;  // Object reference resolved immediately
-                existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
                 VenueType venueType = VenueType.Wilderness;
@@ -1142,7 +1142,6 @@ public class PackageLoader
                 existing.Description = parsed.Description;
                 existing.Role = parsed.Role;
                 existing.Profession = parsed.Profession;
-                existing.Tier = parsed.Tier;
                 existing.Level = parsed.Level;
                 existing.ConversationDifficulty = parsed.ConversationDifficulty;
                 existing.PersonalityDescription = parsed.PersonalityDescription;
@@ -1251,15 +1250,15 @@ public class PackageLoader
         // Routes can opt-out via CreateBidirectional=false for internal venue navigation.
         foreach (RouteDTO dto in routeDtos)
         {
-            // Create the forward route from JSON
-            RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
+            // Create the forward route from JSON (HIGHLANDER: Single parser for all routes)
+            RouteOption forwardRoute = RouteParser.ConvertRouteDTOToModel(dto, _gameWorld);
             _gameWorld.Routes.Add(forwardRoute);
             result.RoutesAdded.Add(forwardRoute);
 
             // Automatically generate the reverse route if CreateBidirectional is true
             if (dto.CreateBidirectional)
             {
-                RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
+                RouteOption reverseRoute = RouteParser.GenerateReverseRoute(forwardRoute, _gameWorld);
                 _gameWorld.Routes.Add(reverseRoute);
                 result.RoutesAdded.Add(reverseRoute);
             }
@@ -1379,29 +1378,25 @@ public class PackageLoader
         {
             List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
 
-            // Check deck compositions for this NPC's exchange deck
-            NPCDeckDefinitionDTO deckDef = null;
-            if (deckCompositions != null)
+            // DOMAIN COLLECTION PRINCIPLE: NpcDecks is List<NpcDeckEntry>, find by NpcId
+            NpcDeckEntry deckEntry = null;
+            if (deckCompositions?.NpcDecks != null)
             {
-                // Check for NPC-specific deck first (use Name as key since NPC.ID deleted)
-                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.Name))
-                {
-                    deckDef = deckCompositions.NpcDecks[npc.Name];
-                }
-                // No default deck anymore - NPCs only have specific decks
+                deckEntry = deckCompositions.NpcDecks.FirstOrDefault(d => d.NpcId == npc.Name);
             }
 
             // Build exchange deck from composition
-            if (deckDef != null && deckDef.ExchangeDeck != null)
+            // DOMAIN COLLECTION PRINCIPLE: ExchangeDeck is List<CardCountEntry>
+            if (deckEntry?.ExchangeDeck != null)
             {
-                foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
+                foreach (CardCountEntry cardCount in deckEntry.ExchangeDeck)
                 {
-                    string cardId = kvp.Key;
-                    int count = kvp.Value;
+                    string cardId = cardCount.CardId;
+                    int count = cardCount.Count;
 
                     // Find the exchange card from the parsed exchange cards
                     // HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
-                    ExchangeCard? exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
+                    ExchangeCard exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
                     if (exchangeCard != null)
                     {
                         // Add the specified number of copies to the deck
@@ -1448,116 +1443,9 @@ public class PackageLoader
     }
 
     // NOTE: LoadLocationActions and LoadPlayerActions methods REMOVED
+    // Route parsing moved to RouteParser.cs (HIGHLANDER: Single parser for all routes)
     // Actions are NO LONGER loaded from JSON - they are GENERATED from catalogues at parse time
-    // See GeneratePlayerActionsFromCatalogue() and GenerateLocationActionsFromCatalogue() above
     // CATALOGUE PATTERN: Actions generated from categorical properties (LocationCapability flags), never from JSON
-
-    // Conversion methods that don't have dedicated parsers yet
-
-    private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
-    {
-        if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException("Route missing required field 'Name'");
-        if (string.IsNullOrEmpty(dto.OriginSpotId))
-            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'OriginSpotId'");
-        if (string.IsNullOrEmpty(dto.DestinationSpotId))
-            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'DestinationSpotId'");
-        if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'Description'");
-
-        // HIGHLANDER: LINQ queries on already-parsed locations (originSpot and destSpot already resolved above)
-        RouteOption route = new RouteOption
-        {
-            // RouteOption uses Name as natural key (no Id property)
-            Name = dto.Name,
-            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.OriginSpotId),
-            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationSpotId),
-            Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
-            BaseCoinCost = dto.BaseCoinCost,
-            BaseStaminaCost = dto.BaseStaminaCost,
-            TravelTimeSegments = dto.TravelTimeSegments,
-            Description = dto.Description,
-            MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
-        };
-
-        // Parse terrain categories
-        if (dto.TerrainCategories != null)
-        {
-            foreach (string category in dto.TerrainCategories)
-            {
-                if (Enum.TryParse<TerrainCategory>(category, out TerrainCategory terrain))
-                {
-                    route.TerrainCategories.Add(terrain);
-                }
-            }
-        }
-
-        // Parse travel path cards system properties
-        route.StartingStamina = dto.StartingStamina;
-
-        // Parse route segments
-        if (dto.Segments != null)
-        {
-            foreach (RouteSegmentDTO segmentDto in dto.Segments)
-            {
-                // Parse segment type
-                SegmentType segmentType = SegmentType.FixedPath; // Default
-                if (!string.IsNullOrEmpty(segmentDto.Type))
-                {
-                    Enum.TryParse<SegmentType>(segmentDto.Type, out segmentType);
-                }
-
-                RouteSegment segment = new RouteSegment
-                {
-                    SegmentNumber = segmentDto.SegmentNumber,
-                    Type = segmentType,
-                    NarrativeDescription = segmentDto.NarrativeDescription
-                };
-
-                // HIGHLANDER: Resolve IDs to object references at parse-time
-                // NO string IDs stored in domain entities - only object references
-                if (segmentType == SegmentType.FixedPath)
-                {
-                    // Resolve PathCollectionId → PathCardCollectionDTO object
-                    if (!string.IsNullOrEmpty(segmentDto.PathCollectionId))
-                    {
-                        segment.PathCollection = _gameWorld.GetPathCollection(segmentDto.PathCollectionId);
-                    }
-                }
-                else if (segmentType == SegmentType.Event)
-                {
-                    // Resolve EventCollectionId → PathCardCollectionDTO object
-                    if (!string.IsNullOrEmpty(segmentDto.EventCollectionId))
-                    {
-                        segment.EventCollection = _gameWorld.GetPathCollection(segmentDto.EventCollectionId);
-                    }
-                }
-                else if (segmentType == SegmentType.Encounter)
-                {
-                    // Resolve MandatorySceneId → SceneTemplate object
-                    if (!string.IsNullOrEmpty(segmentDto.MandatorySceneId))
-                    {
-                        segment.MandatorySceneTemplate = _gameWorld.SceneTemplates
-                            .FirstOrDefault(t => t.Id == segmentDto.MandatorySceneId);
-                    }
-                }
-
-                route.Segments.Add(segment);
-            }
-        }
-
-        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
-        // If encounter decks needed, store deck objects or query from templates
-
-        // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
-        // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
-        // Routes will receive Scene references through the spawning system, not direct parsing
-
-        return route;
-    }
-
-    // ObservationCard system eliminated - ConvertObservationDTOToCard removed
-    // LocationAction/PlayerAction conversion - replaced by dedicated parsers (LocationActionParser, PlayerActionParser)
 
     private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons)
     {
@@ -1639,178 +1527,8 @@ public class PackageLoader
         }
     }
 
-    /// <summary>
-    /// Validates that crossroads configuration is correct:
-    /// 1. Each Venue has exactly one location with Crossroads property
-    /// 2. All route origin and destination Locations have Crossroads property
-    /// </summary>
-    /// <summary>
-    /// BIDIRECTIONAL ROUTE GENERATION: Automatically creates the reverse route from a forward route.
-    /// This ensures travel is always bidirectional and segments are properly reversed.
-    /// For example, a route A->B->C with segments [1,2,3] becomes C->B->A with segments [3,2,1].
-    /// </summary>
-    private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
-    {
-        // HIGHLANDER FIX: Use location.Name directly instead of location.Venue.Name
-        // Venues aren't assigned yet (happens in PlaceLocations which runs AFTER LoadRoutes)
-        // Use location names for route naming (clearer anyway - "Return to Town Square" not "Return to venue_123")
-        string originLocationName = forwardRoute.OriginLocation.Name;
-        string destLocationName = forwardRoute.DestinationLocation.Name;
-
-        RouteOption reverseRoute = new RouteOption
-        {
-            Name = $"Return to {originLocationName}",
-            // Swap origin and destination locations
-            OriginLocation = forwardRoute.DestinationLocation,
-            DestinationLocation = forwardRoute.OriginLocation,
-
-            // Keep the same properties for both directions
-            Method = forwardRoute.Method,
-            BaseCoinCost = forwardRoute.BaseCoinCost,
-            BaseStaminaCost = forwardRoute.BaseStaminaCost,
-            TravelTimeSegments = forwardRoute.TravelTimeSegments,
-            DepartureTime = forwardRoute.DepartureTime,
-            MaxItemCapacity = forwardRoute.MaxItemCapacity,
-            Description = $"Return journey from {destLocationName} to {originLocationName}",
-            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
-            RouteType = forwardRoute.RouteType,
-            HasPermitUnlock = forwardRoute.HasPermitUnlock,
-            StartingStamina = forwardRoute.StartingStamina
-        };
-
-        // Copy terrain categories
-        reverseRoute.TerrainCategories.AddRange(forwardRoute.TerrainCategories);
-
-        // Copy weather modifications
-        foreach (KeyValuePair<WeatherCondition, RouteModification> kvp in forwardRoute.WeatherModifications)
-        {
-            reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
-        }
-
-        // CRITICAL: Reverse the segments order for the return journey
-        // This ensures the path is traversed in reverse (C->B->A instead of A->B->C)
-        List<RouteSegment> reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();
-        int segmentNumber = 1;
-        foreach (RouteSegment? originalSegment in reversedSegments)
-        {
-            RouteSegment reverseSegment = new RouteSegment
-            {
-                SegmentNumber = segmentNumber++,
-                Type = originalSegment.Type,
-                // Keep the same collections - they represent the same physical locations
-                PathCollection = originalSegment.PathCollection,
-                EventCollection = originalSegment.EventCollection,
-                MandatorySceneTemplate = originalSegment.MandatorySceneTemplate
-            };
-            reverseRoute.Segments.Add(reverseSegment);
-        }
-
-        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
-
-        // If the forward route has a route-level event pool, copy it to the reverse route
-        // HIGHLANDER: Use RouteOption.Name (natural key) instead of deleted Id property
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Name);
-        if (forwardEntry != null)
-        {
-            PathCollectionEntry reverseEntry = new PathCollectionEntry
-            {
-                Collection = forwardEntry.Collection
-            };
-            _gameWorld.AllEventCollections.Add(reverseEntry);
-        }
-
-        return reverseRoute;
-    }
-
-    private class VenueLocationGrouping
-    {
-        public string VenueId { get; set; }
-        public List<Location> Locations { get; set; } = new List<Location>();
-    }
-
-    private void ValidateCrossroadsConfiguration()
-    {
-        // Group Locations by Venue
-        List<VenueLocationGrouping> spotsByLocation = new List<VenueLocationGrouping>();
-        foreach (Location location in _gameWorld.Locations)
-        {
-            // ADR-007: Use Venue.Name instead of deleted VenueId
-            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.Venue.Name);
-            if (groupIndex == -1)
-            {
-                VenueLocationGrouping group = new VenueLocationGrouping();
-                group.VenueId = location.Venue.Name;
-                group.Locations.Add(location);
-                spotsByLocation.Add(group);
-            }
-            else
-            {
-                spotsByLocation[groupIndex].Locations.Add(location);
-            }
-        }
-
-        // Validate each venue has exactly one travel hub location (Connective or Hub role)
-        foreach (Venue venue in _gameWorld.Venues)
-        {
-            VenueLocationGrouping locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Name);
-            if (locationGroup == null || locationGroup.VenueId == null)
-            {
-                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations defined");
-            }
-
-            List<Location> locations = locationGroup.Locations;
-            List<Location> travelHubSpots = locations
-                .Where(s => s.Role == LocationRole.Connective || s.Role == LocationRole.Hub)
-                .ToList();
-
-            if (travelHubSpots.Count == 0)
-            {
-                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Connective or Hub role. Every Venue must have exactly one travel hub location for travel.");
-            }
-            else if (travelHubSpots.Count > 1)
-            {
-                string spotsInfo = string.Join(", ", travelHubSpots.Select(s => $"'{s.Name}'"));
-                throw new InvalidOperationException($"Venue '{venue.Name}' has {travelHubSpots.Count} Locations with Connective/Hub role: {spotsInfo}. Only one travel hub location is allowed per venue.");
-            }
-        }
-
-        // Validate all route Locations have travel hub role
-        List<string> routeSpotIds = new List<string>();
-        foreach (RouteOption route in _gameWorld.Routes)
-        {
-            if (!routeSpotIds.Contains(route.OriginLocation.Name))
-                routeSpotIds.Add(route.OriginLocation.Name);
-            if (!routeSpotIds.Contains(route.DestinationLocation.Name))
-                routeSpotIds.Add(route.DestinationLocation.Name);
-        }
-
-        foreach (string LocationId in routeSpotIds)
-        {
-            // HIGHLANDER: LINQ query on already-parsed locations
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == LocationId);
-            if (location == null)
-            {
-                // Create skeleton location with Connective role (required for routes)
-                location = SkeletonGenerator.GenerateSkeletonSpot(
-                    LocationId,
-                    "unknown_location",
-                    $"travel_hub_validation_{LocationId}"
-                );
-
-                // Ensure skeleton has Connective role for route connectivity
-                location.Role = LocationRole.Connective;
-
-                _gameWorld.AddOrUpdateLocation(LocationId, location);
-                _gameWorld.AddSkeleton(LocationId, "Location");
-            }
-
-            // Ensure route endpoints have travel hub role (Connective or Hub)
-            if (location.Role != LocationRole.Connective && location.Role != LocationRole.Hub)
-            {
-                location.Role = LocationRole.Connective;
-            }
-        }
-    }
+    // Route generation moved to RouteParser.cs (GenerateReverseRoute)
+    // Crossroads validation moved to PackageLoaderValidation.cs
 
     private void LoadConversationTrees(List<ConversationTreeDTO> conversationTrees, bool allowSkeletons)
     {
@@ -2009,51 +1727,5 @@ public class PackageLoader
         Console.WriteLine("[LocationPlacement] Cleared temporary placement metadata (distance hints + proximity constraints) from all locations");
     }
 
-    /// <summary>
-    /// PURE PROCEDURAL VALIDATION: Validates spatial venue assignments are correct.
-    /// PlaceLocation() assigns venue atomically with hex position (PRIMARY assignment).
-    /// This method VALIDATES that assignment (VERIFICATION only, not assignment).
-    /// Called AFTER PlaceLocations (locations have HexPosition + Venue), BEFORE hex sync.
-    /// Fail-fast: Throws exception if any location violates spatial constraints.
-    /// </summary>
-    private void ValidateVenueAssignmentsSpatially()
-    {
-        Console.WriteLine("[SpatialValidation] Starting spatial venue assignment validation");
-
-        int validated = 0;
-
-        foreach (Location location in _gameWorld.Locations)
-        {
-            // Validation 1: Location must have HexPosition after placement
-            if (!location.HexPosition.HasValue)
-            {
-                throw new InvalidOperationException(
-                    $"Location '{location.Name}' has no HexPosition after PlaceLocations(). " +
-                    $"All locations must have hex positions assigned by placement algorithm.");
-            }
-
-            // Validation 2: Location must have Venue after placement
-            if (location.Venue == null)
-            {
-                throw new InvalidOperationException(
-                    $"Location '{location.Name}' has no Venue after PlaceLocations(). " +
-                    $"PlaceLocation() should have assigned venue atomically with hex position.");
-            }
-
-            // Validation 3: Location's hex must be within assigned venue's territory
-            if (!location.Venue.ContainsHex(location.HexPosition.Value))
-            {
-                throw new InvalidOperationException(
-                    $"SPATIAL CONSTRAINT VIOLATION: Location '{location.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) " +
-                    $"is assigned to venue '{location.Venue.Name}' but hex is OUTSIDE venue's allocated territory. " +
-                    $"Placement algorithm violated spatial constraints - venue.ContainsHex() returned false.");
-            }
-
-            Console.WriteLine($"[SpatialValidation] ✅ Location '{location.Name}' correctly assigned to venue '{location.Venue.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R})");
-            validated++;
-        }
-
-        Console.WriteLine($"[SpatialValidation] Spatial validation complete: {validated} locations verified");
-    }
-
+    // Spatial validation moved to PackageLoaderValidation.cs
 }

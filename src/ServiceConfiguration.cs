@@ -61,7 +61,6 @@ public static class ServiceConfiguration
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
         services.AddSingleton<SceneFacade>();
-        services.AddSingleton<SpawnFacade>();
         services.AddSingleton<RewardApplicationService>();
 
         // Unified Action Architecture - Executors (FALLBACK SCENE ARCHITECTURE)
@@ -89,6 +88,7 @@ public static class ServiceConfiguration
 
         // Scene and Situation Services - Situation visibility filtering with property + access requirements
         services.AddSingleton<SituationCompletionHandler>();
+        services.AddSingleton<SpawnService>();
         services.AddSingleton<DifficultyCalculationService>();
         // SceneFacade removed - old architecture deleted
 
@@ -238,8 +238,15 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationFacade>();
         services.AddSingleton<EmergencyFacade>();
 
-        // Game Facade - THE single entry point for all UI-Backend communication
-        services.AddSingleton<GameFacade>();
+        // Composed Services (FACADE ISOLATION compliant - only uses services, not facades)
+        // DebugCommandHandler is compliant: uses RewardApplicationService (a service), not facades
+        // InteractionHistoryRecorder and TimeAdvancementOrchestrator were rolled back into
+        // GameOrchestrator because they required facade access (violates "Service → never facades")
+        services.AddSingleton<DebugCommandHandler>();
+
+        // Game Orchestrator - THE single entry point for all UI-Backend communication
+        // FACADE ISOLATION: Only GameOrchestrator can coordinate between facades
+        services.AddSingleton<GameOrchestrator>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 

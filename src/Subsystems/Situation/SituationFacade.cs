@@ -25,30 +25,18 @@ public class SituationFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly TimeFacade _timeFacade;
-    private readonly MentalFacade _mentalFacade;
-    private readonly PhysicalFacade _physicalFacade;
-    private readonly SocialFacade _socialFacade;
-    private readonly ConsequenceFacade _consequenceFacade;
+    private readonly TimeManager _timeManager;
     private readonly RewardApplicationService _rewardApplicationService;
 
     public SituationFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        TimeFacade timeFacade,
-        MentalFacade mentalFacade,
-        PhysicalFacade physicalFacade,
-        SocialFacade socialFacade,
-        ConsequenceFacade consequenceFacade,
+        TimeManager timeManager,
         RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-        _mentalFacade = mentalFacade ?? throw new ArgumentNullException(nameof(mentalFacade));
-        _physicalFacade = physicalFacade ?? throw new ArgumentNullException(nameof(physicalFacade));
-        _socialFacade = socialFacade ?? throw new ArgumentNullException(nameof(socialFacade));
-        _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
     }
 
@@ -115,7 +103,7 @@ public class SituationFacade
 
         if (timeCost > 0)
         {
-            _timeFacade.AdvanceSegments(timeCost);
+            _timeManager.AdvanceSegments(timeCost);
             _messageSystem.AddSystemMessage($"Time passed: {timeCost} segments", SystemMessageTypes.Info);
         }
 
@@ -146,23 +134,22 @@ public class SituationFacade
         // Mark situation as completed
         situation.Complete();
 
-        situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
-        situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
+        situation.Lifecycle.CompletedDay = _timeManager.CurrentDay;
+        situation.Lifecycle.CompletedTimeBlock = _timeManager.CurrentTimeBlock;
+        situation.Lifecycle.CompletedSegment = _timeManager.CurrentSegment;
 
         return SituationSelectionResult.InstantResolution(situation);
     }
 
     /// <summary>
-    /// Initiate Mental challenge - route to MentalFacade with challenge payload
-    /// MentalFacade consumes tactical costs (Focus) during challenge execution
-    /// PHASE 4: Pass object references instead of IDs
+    /// Initiate Mental challenge - returns result for GameOrchestrator to route
+    /// Mental subsystem consumes tactical costs (Focus) during challenge execution
     /// </summary>
     private SituationSelectionResult InitiateMentalChallenge(Situation situation)
     {
         // Tactical layer receives payload only (deck, target, goal cards)
-        // MentalFacade will consume Focus (tactical cost) during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
+        // Mental subsystem will consume Focus (tactical cost) during challenge
+        // Strategic cost (Resolve) already consumed above
 
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Mental,
@@ -174,15 +161,14 @@ public class SituationFacade
     }
 
     /// <summary>
-    /// Initiate Physical challenge - route to PhysicalFacade with challenge payload
-    /// PhysicalFacade consumes tactical costs (Stamina) during challenge execution
-    /// PHASE 4: Pass object references instead of IDs
+    /// Initiate Physical challenge - returns result for GameOrchestrator to route
+    /// Physical subsystem consumes tactical costs (Stamina) during challenge execution
     /// </summary>
     private SituationSelectionResult InitiatePhysicalChallenge(Situation situation)
     {
         // Tactical layer receives payload only
-        // PhysicalFacade will consume Stamina (tactical cost) during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
+        // Physical subsystem will consume Stamina (tactical cost) during challenge
+        // Strategic cost (Resolve) already consumed above
 
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Physical,
@@ -194,15 +180,14 @@ public class SituationFacade
     }
 
     /// <summary>
-    /// Initiate Social challenge - route to SocialFacade with challenge payload
-    /// SocialFacade consumes tactical costs during challenge execution
-    /// PHASE 4: Pass object references instead of IDs
+    /// Initiate Social challenge - returns result for GameOrchestrator to route
+    /// Social subsystem consumes tactical costs during challenge execution
     /// </summary>
     private SituationSelectionResult InitiateSocialChallenge(Situation situation)
     {
         // Tactical layer receives payload only
-        // SocialFacade will consume tactical costs during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
+        // Social subsystem will consume tactical costs during challenge
+        // Strategic cost (Resolve) already consumed above
 
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Social,
@@ -228,9 +213,9 @@ public class SituationFacade
         // Mark situation as completed
         situation.Complete();
 
-        situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
-        situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
+        situation.Lifecycle.CompletedDay = _timeManager.CurrentDay;
+        situation.Lifecycle.CompletedTimeBlock = _timeManager.CurrentTimeBlock;
+        situation.Lifecycle.CompletedSegment = _timeManager.CurrentSegment;
 
         // HIGHLANDER: NavigationPayload.Destination is object reference (no ID lookup needed)
         return SituationSelectionResult.Navigation(

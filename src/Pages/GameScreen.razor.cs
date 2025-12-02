@@ -16,13 +16,13 @@ using Microsoft.AspNetCore.Components;
 /// - User actions (button clicks, navigation) only occur after interactive phase
 /// 
 /// IMPLEMENTATION REQUIREMENTS:
-/// - Navigation state managed through GameFacade (singleton, persists across renders)
+/// - Navigation state managed through GameOrchestrator (singleton, persists across renders)
 /// - ConversationContext created atomically before navigation (after interactive)
-/// - All state mutations go through GameFacade which has idempotence protection
+/// - All state mutations go through GameOrchestrator which has idempotence protection
 /// </summary>
 public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
-    [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
     [Inject] protected GameWorld GameWorld { get; set; }
     [Inject] protected SceneFacade SceneFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
@@ -96,7 +96,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         // Check for active emergency - interrupts normal gameplay
         // HIGHLANDER: ActiveEmergencyState separates mutable state from immutable template
-        ActiveEmergencyState activeEmergency = GameFacade.GetActiveEmergency();
+        ActiveEmergencyState activeEmergency = GameOrchestrator.GetActiveEmergency();
         if (activeEmergency != null)
         {
             await StartEmergency(activeEmergency);
@@ -106,7 +106,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // Check for resumable modal scenes at current context (multi-situation scene resumption)
         // Uses GetResumableScenesAtContext which checks CurrentSituation.RequiredLocationId
         // This enables scenes to span multiple locations as situations progress
-        Location currentLocation = GameFacade.GetCurrentLocation();
+        Location currentLocation = GameOrchestrator.GetCurrentLocation();
         if (currentLocation != null)
         {
             List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation, null);
@@ -123,12 +123,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task RefreshResourceDisplay()
     {
-        if (GameFacade == null)
+        if (GameOrchestrator == null)
         {
-            throw new InvalidOperationException("GameFacade is required");
+            throw new InvalidOperationException("GameOrchestrator is required");
         }
 
-        Player player = GameFacade.GetPlayer();
+        Player player = GameOrchestrator.GetPlayer();
         if (player == null)
         {
             throw new InvalidOperationException("Player not found");
@@ -150,7 +150,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task RefreshTimeDisplay()
     {
         // Get segment display from time facade
-        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        TimeInfo timeInfo = GameOrchestrator.GetTimeInfo();
 
         // Use segment display format: "AFTERNOON ●●○○ [2/4]"
         CurrentTime = timeInfo.SegmentDisplay;
@@ -159,8 +159,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task RefreshLocationDisplay()
     {
-        Venue venue = GameFacade.GetCurrentLocation().Venue;
-        Location location = GameFacade.GetCurrentLocation();
+        Venue venue = GameOrchestrator.GetCurrentLocation().Venue;
+        Location location = GameOrchestrator.GetCurrentLocation();
 
         if (venue != null)
         {
@@ -185,17 +185,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private string BuildLocationPath(string locationName)
     {
-        // Get the current venue directly from GameFacade
-        Venue venue = GameFacade.GetCurrentLocation().Venue;
+        // Get the current venue directly from GameOrchestrator
+        Venue venue = GameOrchestrator.GetCurrentLocation().Venue;
         if (venue == null) return locationName;
 
         // Get the district for the venue (object reference, NO ID lookup)
-        District district = GameFacade.GetDistrictForLocation(venue);
+        District district = GameOrchestrator.GetDistrictForLocation(venue);
         if (district == null)
             return venue.Name;
 
         // Get the region from the district (object reference, NO ID extraction)
-        Region region = GameFacade.GetRegionForDistrict(district);
+        Region region = GameOrchestrator.GetRegionForDistrict(district);
 
         // Build the breadcrumb path
         List<string> path = new List<string>();
@@ -319,9 +319,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartExchange(NPC npc)
     {
-        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npc);
+        CurrentExchangeContext = await GameOrchestrator.CreateExchangeContext(npc);
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -353,9 +353,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartConversationSession(NPC npc, Situation situation)
     {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npc, situation);
+        CurrentSocialContext = await GameOrchestrator.CreateConversationContext(npc, situation);
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -374,7 +374,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task HandleConversationEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        await GameFacade.ProcessSocialChallengeOutcome();
+        await GameOrchestrator.ProcessSocialChallengeOutcome();
 
         CurrentSocialContext = null;
 
@@ -394,7 +394,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartMentalSession(MentalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        MentalSession session = await GameFacade.StartMentalSession(deck, location, situation, obligation);
+        MentalSession session = await GameOrchestrator.StartMentalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -407,7 +407,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             LocationName = location?.Name ?? "Unknown"
         };
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -424,7 +424,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task HandleMentalEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        await GameFacade.ProcessMentalChallengeOutcome();
+        await GameOrchestrator.ProcessMentalChallengeOutcome();
 
         CurrentMentalContext = null;
 
@@ -443,7 +443,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartPhysicalSession(PhysicalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        PhysicalSession session = await GameFacade.StartPhysicalSession(deck, location, situation, obligation);
+        PhysicalSession session = await GameOrchestrator.StartPhysicalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
@@ -456,7 +456,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             LocationName = location?.Name ?? "Unknown"
         };
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -472,9 +472,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartConversationTree(ConversationTree tree)
     {
-        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(tree);
+        CurrentConversationTreeContext = GameOrchestrator.CreateConversationTreeContext(tree);
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -488,9 +488,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartObservationScene(ObservationScene scene)
     {
-        CurrentObservationContext = GameFacade.CreateObservationContext(scene);
+        CurrentObservationContext = GameOrchestrator.CreateObservationContext(scene);
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -504,9 +504,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartEmergency(ActiveEmergencyState emergencyState)
     {
-        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyState);
+        CurrentEmergencyContext = GameOrchestrator.CreateEmergencyContext(emergencyState);
 
-        // Always refresh UI after GameFacade action
+        // Always refresh UI after GameOrchestrator action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
@@ -521,7 +521,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task HandlePhysicalEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        await GameFacade.ProcessPhysicalChallengeOutcome();
+        await GameOrchestrator.ProcessPhysicalChallengeOutcome();
 
         CurrentPhysicalContext = null;
 
@@ -571,7 +571,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         CurrentEmergencyContext = null;
 
         // Clear the active emergency in GameWorld
-        GameFacade.ClearActiveEmergency();
+        GameOrchestrator.ClearActiveEmergency();
 
         // Always refresh UI after emergency ends
         await RefreshResourceDisplay();
@@ -595,7 +595,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return;
 
         // Create modal scene context
-        Location currentLocation = GameFacade.GetCurrentLocation();
+        Location currentLocation = GameOrchestrator.GetCurrentLocation();
         CurrentSceneContext = new SceneContext
         {
             IsValid = true,
@@ -643,7 +643,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         // Create modal scene context
-        Location currentLocation = GameFacade.GetCurrentLocation();
+        Location currentLocation = GameOrchestrator.GetCurrentLocation();
         CurrentSceneContext = new SceneContext
         {
             IsValid = true,
@@ -692,7 +692,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected string GetCurrentLocation()
     {
-        Venue venue = GameFacade.GetCurrentLocation().Venue;
+        Venue venue = GameOrchestrator.GetCurrentLocation().Venue;
         return venue?.Name ?? "Unknown";
     }
 
@@ -718,7 +718,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     // Time/Date Display Helper Methods
     protected string GetDayDisplay()
     {
-        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        TimeInfo timeInfo = GameOrchestrator.GetTimeInfo();
         int journeyDay = timeInfo.CurrentDay;
 
         string[] dayNames = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
@@ -729,7 +729,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected string GetTimePeriodName()
     {
-        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        TimeInfo timeInfo = GameOrchestrator.GetTimeInfo();
         return timeInfo.CurrentTimeBlock.ToString().ToUpper();
     }
 
@@ -757,7 +757,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // Get the actual segment display from TimeInfo
         // The SegmentDisplay is formatted like "MORNING ●●○○ [2/4]"
         // We need to extract the current segment number
-        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        TimeInfo timeInfo = GameOrchestrator.GetTimeInfo();
         string segmentDisplay = timeInfo.SegmentDisplay;
 
         // Extract the current segment from the display format "[current/total]"
@@ -776,19 +776,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected int GetTotalSegmentsInPeriod()
     {
-        if (GameFacade == null)
+        if (GameOrchestrator == null)
         {
-            throw new InvalidOperationException("GameFacade is required");
+            throw new InvalidOperationException("GameOrchestrator is required");
         }
 
-        return GameFacade.GetSegmentsInCurrentPeriod();
+        return GameOrchestrator.GetSegmentsInCurrentPeriod();
     }
 
     protected string GetStaminaDisplay()
     {
         // For travel, get from the TravelManager if there's an active session
         // Otherwise show player's base stamina
-        Player player = GameFacade.GetPlayer();
+        Player player = GameOrchestrator.GetPlayer();
         if (player != null)
         {
             // Default stamina when not traveling
@@ -801,7 +801,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected DeliveryJob GetActiveDeliveryJob()
     {
-        return GameFacade.GetActiveDeliveryJob();
+        return GameOrchestrator.GetActiveDeliveryJob();
     }
 
     // Discovery Journal
@@ -968,7 +968,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         _obligationIntroResult = null;
 
         // Activate obligation and spawn Phase 1 scene
-        await GameFacade.CompleteObligationIntro(obligation);
+        await GameOrchestrator.CompleteObligationIntro(obligation);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();

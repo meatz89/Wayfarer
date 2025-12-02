@@ -1,7 +1,7 @@
 
 /// <summary>
 /// HIGHLANDER: Centralized service for applying Consequence (the ONLY class for resource outcomes)
-/// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
+/// Used by GameOrchestrator (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
 /// On-demand template generation: Procedural A-story templates generated when spawning if don't exist yet
@@ -207,16 +207,17 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in consequence.ScenesToSpawn)
         {
+            // CONTEXT INJECTION (arc42 §8.28): Ensure RhythmPattern is SET on spawn reward
+            // This is the CREATION point - compute and set if not already authored
+            EnsureRhythmPatternSet(sceneSpawn);
+
             SceneTemplate template;
 
             if (sceneSpawn.SpawnNextMainStoryScene)
             {
                 // MAINSTORY SEQUENCING - NO ID STRINGS
-                // Use the CURRENT SCENE's sequence (the one being completed), not player's tracked progress
-                // Player.CurrentMainStorySequence is updated AFTER scene completion by SituationCompletionHandler
-                // If we use player's sequence here, we'd spawn the same scene again
                 int currentSequence = currentSituation?.ParentScene?.MainStorySequence ?? player.CurrentMainStorySequence;
-                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence} (from Scene={currentSituation?.ParentScene?.MainStorySequence}, Player={player.CurrentMainStorySequence})");
+                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence}");
 
                 // Try to find authored template for next sequence
                 template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
@@ -224,10 +225,17 @@ public class RewardApplicationService
                 if (template == null)
                 {
                     // No authored template exists - generate procedurally
-                    // Context-aware selection uses player intensity history and location context
+                    // CONTEXT INJECTION: spawn reward now has RhythmPattern SET (not derived)
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
                     AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
-                    await _proceduralAStoryService.GenerateNextATemplate(currentSequence + 1, aStoryContext, player);
+
+                    // Build selection inputs from spawn reward - RhythmPattern is GUARANTEED set
+                    List<string> recentCategories = GetRecentCategories();
+                    List<string> recentArchetypes = GetRecentArchetypes();
+                    SceneSelectionInputs selectionInputs = sceneSpawn.BuildSelectionInputs(recentCategories, recentArchetypes);
+
+                    await _proceduralAStoryService.GenerateNextATemplate(
+                        currentSequence + 1, aStoryContext, selectionInputs);
 
                     // ZERO NULL TOLERANCE: Template must exist after generation
                     template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
@@ -242,17 +250,14 @@ public class RewardApplicationService
             }
             else if (sceneSpawn.Template != null)
             {
-                // NON-MAINSTORY: Direct template reference (resolved at parse time)
-                // NO ID STRINGS - object reference only
+                // NON-MAINSTORY: Direct template reference
                 template = sceneSpawn.Template;
                 Console.WriteLine($"[FinalizeSceneSpawns] Using direct template reference: '{template.Id}'");
             }
             else
             {
-                // Invalid spawn configuration
                 throw new InvalidOperationException(
-                    "SceneSpawnReward must have either SpawnNextMainStoryScene=true OR Template set. " +
-                    "NO ID STRINGS - use boolean flags and object references only.");
+                    "SceneSpawnReward must have either SpawnNextMainStoryScene=true OR Template set.");
             }
 
             // Resolve placement context
@@ -270,7 +275,7 @@ public class RewardApplicationService
                 CurrentRoute = currentRoute
             };
 
-            // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
+            // HIGHLANDER FLOW: Spawn scene directly
             string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
             if (!string.IsNullOrEmpty(packageJson))
             {
@@ -280,4 +285,128 @@ public class RewardApplicationService
             }
         }
     }
+
+    /// <summary>
+    /// Ensure RhythmPattern is SET on spawn reward.
+    /// CONTEXT INJECTION (arc42 §8.28): This is the CREATION point for context.
+    /// If authored, already set. If not, compute from history and SET it.
+    /// After this call, RhythmPatternContext is GUARANTEED to be set.
+    /// </summary>
+    private void EnsureRhythmPatternSet(SceneSpawnReward sceneSpawn)
+    {
+        if (sceneSpawn.RhythmPatternContext.HasValue)
+        {
+            return; // Already set (authored)
+        }
+
+        // Compute RhythmPattern from intensity history and SET it
+        sceneSpawn.RhythmPatternContext = ComputeRhythmPatternFromHistory();
+        Console.WriteLine($"[EnsureRhythmPatternSet] Computed and SET RhythmPattern={sceneSpawn.RhythmPatternContext}");
+    }
+
+    /// <summary>
+    /// Get recent categories for anti-repetition.
+    /// </summary>
+    private List<string> GetRecentCategories()
+    {
+        return _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.State == SceneState.Completed &&
+                        s.Template != null)
+            .OrderByDescending(s => s.MainStorySequence)
+            .Take(2)
+            .Select(s => ArchetypeCategorySelector.MapArchetypeToCategory(s.Template.SceneArchetype))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get recent archetypes for anti-repetition.
+    /// </summary>
+    private List<string> GetRecentArchetypes()
+    {
+        return _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.State == SceneState.Completed &&
+                        s.Template != null)
+            .OrderByDescending(s => s.MainStorySequence)
+            .Take(3)
+            .Select(s => s.Template.SceneArchetype.ToString())
+            .ToList();
+    }
+
+    /// <summary>
+    /// Compute RhythmPattern from completed scene intensity history.
+    /// Called at CREATION time to SET on spawn reward.
+    /// </summary>
+    private RhythmPattern ComputeRhythmPatternFromHistory()
+    {
+        List<Scene> completedScenes = _gameWorld.Scenes
+            .Where(s => s.Category == StoryCategory.MainStory &&
+                        s.MainStorySequence.HasValue &&
+                        s.State == SceneState.Completed)
+            .OrderBy(s => s.MainStorySequence)
+            .ToList();
+
+        if (!completedScenes.Any())
+        {
+            return RhythmPattern.Building; // Default for game start
+        }
+
+        // Extract intensity and rhythm history
+        List<ArchetypeIntensity> intensityHistory = new List<ArchetypeIntensity>();
+        List<RhythmPattern> rhythmHistory = new List<RhythmPattern>();
+
+        foreach (Scene scene in completedScenes)
+        {
+            ArchetypeIntensity sceneIntensity = ArchetypeIntensity.Standard;
+            if (scene.Situations.Any())
+            {
+                sceneIntensity = scene.Situations.Max(s => s.Intensity);
+            }
+            intensityHistory.Add(sceneIntensity);
+
+            if (scene.Template != null)
+            {
+                rhythmHistory.Add(scene.Template.RhythmPattern);
+            }
+        }
+
+        // Just after Crisis rhythm → Mixed (recovery phase)
+        if (rhythmHistory.Any() && rhythmHistory.Last() == RhythmPattern.Crisis)
+        {
+            return RhythmPattern.Mixed;
+        }
+
+        // Recent window for intensity counts
+        List<ArchetypeIntensity> recent = intensityHistory.TakeLast(5).ToList();
+        int demandingCount = recent.Count(i => i == ArchetypeIntensity.Demanding);
+        int recoveryCount = recent.Count(i => i == ArchetypeIntensity.Recovery);
+
+        // Intensity heavy (more Demanding than Recovery) → needs Mixed
+        if (demandingCount > recoveryCount)
+        {
+            return RhythmPattern.Mixed;
+        }
+
+        // Calculate scenes since last Demanding
+        int scenesSinceDemanding = 0;
+        for (int i = intensityHistory.Count - 1; i >= 0; i--)
+        {
+            if (intensityHistory[i] == ArchetypeIntensity.Demanding)
+            {
+                break;
+            }
+            scenesSinceDemanding++;
+        }
+
+        // Long time since Demanding → time for Crisis
+        if (scenesSinceDemanding >= 4)
+        {
+            return RhythmPattern.Crisis;
+        }
+
+        // Default: Building
+        return RhythmPattern.Building;
+    }
+
 }

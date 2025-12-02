@@ -25,7 +25,10 @@
       "satchelCapacity": 10,
       "satchelWeight": 0,
       "initialItems": [
-        { "resourceType": "Rations", "amount": 3 }
+        {
+          "resourceType": "Rations",
+          "amount": 3
+        }
       ]
     },
     "startingSpotId": "Common Room",
@@ -76,15 +79,35 @@
         "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"
       }
     ],
-	"listenDrawCounts": {
-	  "Disconnected": 3,
-	  "Guarded": 4,
-	  "Neutral": 4,
-	  "Receptive": 5,
-	  "Trusting": 5
-	},
+    "listenDrawCounts": [
+      {
+        "connectionState": "Disconnected",
+        "drawCount": 3
+      },
+      {
+        "connectionState": "Guarded",
+        "drawCount": 4
+      },
+      {
+        "connectionState": "Neutral",
+        "drawCount": 4
+      },
+      {
+        "connectionState": "Receptive",
+        "drawCount": 5
+      },
+      {
+        "connectionState": "Trusting",
+        "drawCount": 5
+      }
+    ],
     "progression": {
-      "xpThresholds": [5, 10, 15, 20],
+      "xpThresholds": [
+        5,
+        10,
+        15,
+        20
+      ],
       "levelBonuses": [
         {
           "level": 2,
@@ -109,23 +132,38 @@
     "dialogueTemplates": {
       "connectionStateDialogue": {
         "DISCONNECTED": {
-          "baseTemplates": ["emotional:cold query:formal", "emotional:distant query:surface"],
+          "baseTemplates": [
+            "emotional:cold query:formal",
+            "emotional:distant query:surface"
+          ],
           "personalityModifiers": {}
         },
         "GUARDED": {
-          "baseTemplates": ["emotional:cautious query:testing", "emotional:suspicious query:probing"],
+          "baseTemplates": [
+            "emotional:cautious query:testing",
+            "emotional:suspicious query:probing"
+          ],
           "personalityModifiers": {}
         },
         "NEUTRAL": {
-          "baseTemplates": ["emotional:neutral query:general", "emotional:calm query:standard"],
+          "baseTemplates": [
+            "emotional:neutral query:general",
+            "emotional:calm query:standard"
+          ],
           "personalityModifiers": {}
         },
         "RECEPTIVE": {
-          "baseTemplates": ["emotional:warm query:personal", "emotional:interested query:deeper"],
+          "baseTemplates": [
+            "emotional:warm query:personal",
+            "emotional:interested query:deeper"
+          ],
           "personalityModifiers": {}
         },
         "TRUSTING": {
-          "baseTemplates": ["emotional:open query:intimate", "emotional:vulnerable query:secrets"],
+          "baseTemplates": [
+            "emotional:open query:intimate",
+            "emotional:vulnerable query:secrets"
+          ],
           "personalityModifiers": {}
         }
       }

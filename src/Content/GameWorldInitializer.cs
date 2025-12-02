@@ -46,7 +46,7 @@ public static class GameWorldInitializer
 
     /// <summary>
     /// Log all SceneTemplates marked as starter content for verification
-    /// Actual spawning happens in GameFacade.StartGameAsync() after initialization completes
+    /// Actual spawning happens in GameOrchestrator.StartGameAsync() after initialization completes
     /// Called during game initialization after content loading
     /// </summary>
     private static void SpawnInitialScenes(GameWorld gameWorld)

@@ -12,7 +12,22 @@ public class SceneApproach
 
     // Requirements
     public int StaminaRequired { get; set; }
-    public Dictionary<PlayerStatType, int> StatRequirements { get; set; } = new Dictionary<PlayerStatType, int>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (PlayerStatType)
+    public int InsightRequired { get; set; }
+    public int RapportRequired { get; set; }
+    public int AuthorityRequired { get; set; }
+    public int DiplomacyRequired { get; set; }
+    public int CunningRequired { get; set; }
+
+    public int GetStatRequired(PlayerStatType stat) => stat switch
+    {
+        PlayerStatType.Insight => InsightRequired,
+        PlayerStatType.Rapport => RapportRequired,
+        PlayerStatType.Authority => AuthorityRequired,
+        PlayerStatType.Diplomacy => DiplomacyRequired,
+        PlayerStatType.Cunning => CunningRequired,
+        _ => 0
+    };
 
     // Outcomes
     public SceneOutcome SuccessOutcome { get; set; }
@@ -26,20 +41,12 @@ public class SceneApproach
         if (player.Stamina < StaminaRequired)
             return false;
 
-        foreach (KeyValuePair<PlayerStatType, int> statReq in StatRequirements)
-        {
-            int currentLevel = statReq.Key switch
-            {
-                PlayerStatType.Insight => player.Insight,
-                PlayerStatType.Rapport => player.Rapport,
-                PlayerStatType.Authority => player.Authority,
-                PlayerStatType.Diplomacy => player.Diplomacy,
-                PlayerStatType.Cunning => player.Cunning,
-                _ => 0
-            };
-            if (currentLevel < statReq.Value)
-                return false;
-        }
+        // Check explicit stat requirements
+        if (player.Insight < InsightRequired) return false;
+        if (player.Rapport < RapportRequired) return false;
+        if (player.Authority < AuthorityRequired) return false;
+        if (player.Diplomacy < DiplomacyRequired) return false;
+        if (player.Cunning < CunningRequired) return false;
 
         return true;
     }

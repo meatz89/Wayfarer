@@ -236,71 +236,35 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Filter templates by tier matching danger rating
-    /// Maps danger to tier and allows templates within 1 tier of target
+    /// Filter templates by danger rating category.
+    /// Templates are already filtered by Category=Service.
+    /// Returns all eligible templates - danger-based selection uses weighted randomization.
     /// </summary>
     private List<SceneTemplate> FilterTemplatesByDanger(List<SceneTemplate> templates, int dangerRating)
     {
-        // Map danger rating to tier (0-20: Tier 0, 21-40: Tier 1, 41-60: Tier 2, 61+: Tier 3)
-        int targetTier = dangerRating switch
-        {
-            < 20 => 0,
-            < 40 => 1,
-            < 60 => 2,
-            _ => 3
-        };
-
-        // Filter by tier within 1 level of target
-        return templates
-            .Where(t => Math.Abs(t.Tier - targetTier) <= 1)
-            .ToList();
+        // All templates in pool are already filtered by Category=Service
+        // Scene difficulty now scales via Location.Difficulty at choice generation time (arc42 §8.28)
+        // Return all eligible templates - deterministic selection handles distribution
+        return templates;
     }
 
     /// <summary>
-    /// Select template deterministically based on route and segment properties
-    /// DDR-007: Deterministic selection ensures same route/segment always gets same template
-    /// Prefers lower-tier templates (safer encounters) via weighted selection
+    /// Select template based on segment number.
+    /// arc42 §8.3: No hashing - use simple index arithmetic with Template.Id ordering.
+    /// Templates have IDs (immutable archetypes allowed per §8.3).
     /// </summary>
     private SceneTemplate SelectDeterministicTemplate(List<SceneTemplate> templates, string routeName, int segmentNumber)
     {
         if (templates.Count == 1)
             return templates[0];
 
-        // Sort templates by tier (lower tiers first for consistent ordering)
-        List<SceneTemplate> sortedTemplates = templates.OrderBy(t => t.Tier).ThenBy(t => t.Id).ToList();
+        // Sort templates by Id for consistent ordering (Template IDs allowed per arc42 §8.3)
+        List<SceneTemplate> sortedTemplates = templates.OrderBy(t => t.Id).ToList();
 
-        // Weight calculation: Tier 0 = 8x, Tier 1 = 4x, Tier 2 = 2x, Tier 3+ = 1x
-        int totalWeight = 0;
-        List<int> weights = new List<int>();
+        // Simple index selection: segment number determines which template
+        int templateIndex = (segmentNumber - 1) % sortedTemplates.Count;
 
-        foreach (SceneTemplate template in sortedTemplates)
-        {
-            int weight = template.Tier switch
-            {
-                0 => 8, // Safety net scenes very common
-                1 => 4, // Low complexity common
-                2 => 2, // Standard complexity moderate
-                _ => 1  // High complexity rare
-            };
-            weights.Add(weight);
-            totalWeight += weight;
-        }
-
-        // DDR-007: Deterministic selection based on route name and segment number
-        // Hash combines route and segment to ensure consistent results
-        int seed = (routeName.GetHashCode() ^ segmentNumber.GetHashCode()) & 0x7FFFFFFF;
-        int deterministicValue = seed % totalWeight;
-        int cumulative = 0;
-
-        for (int i = 0; i < sortedTemplates.Count; i++)
-        {
-            cumulative += weights[i];
-            if (deterministicValue < cumulative)
-                return sortedTemplates[i];
-        }
-
-        // Fallback (shouldn't reach here)
-        return sortedTemplates[0];
+        return sortedTemplates[templateIndex];
     }
 
     // NOTE: SpawnActiveSceneForRoute() and InstantiateSituation() DELETED
@@ -428,48 +392,38 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Analyze hex range to determine dominant terrain and average danger
+    /// Analyze hex range to determine dominant terrain and average danger.
+    /// DDR-007: Uses List<T> with LINQ GroupBy instead of Dictionary.
     /// </summary>
     private SegmentAnalysisResult AnalyzeSegmentHexes(List<AxialCoordinates> segmentHexes)
     {
         if (segmentHexes == null || segmentHexes.Count == 0)
             return new SegmentAnalysisResult(TerrainType.Plains, 0);
 
-        // Count terrain types
-        Dictionary<TerrainType, int> terrainCounts = new Dictionary<TerrainType, int>();
-        int totalDanger = 0;
-        int validHexCount = 0;
-
+        // Collect hex data into list
+        List<Hex> validHexes = new List<Hex>();
         foreach (AxialCoordinates coords in segmentHexes)
         {
             Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
             if (hex != null)
             {
-                // Count terrain
-                if (!terrainCounts.ContainsKey(hex.Terrain))
-                    terrainCounts[hex.Terrain] = 0;
-                terrainCounts[hex.Terrain]++;
-
-                // Sum danger
-                totalDanger += hex.DangerLevel;
-                validHexCount++;
+                validHexes.Add(hex);
             }
         }
 
-        // Find dominant terrain (most common)
-        TerrainType dominantTerrain = TerrainType.Plains;
-        int maxCount = 0;
-        foreach (KeyValuePair<TerrainType, int> kvp in terrainCounts)
-        {
-            if (kvp.Value > maxCount)
-            {
-                maxCount = kvp.Value;
-                dominantTerrain = kvp.Key;
-            }
-        }
+        if (validHexes.Count == 0)
+            return new SegmentAnalysisResult(TerrainType.Plains, 0);
+
+        // Find dominant terrain using LINQ GroupBy (DDR-007: no Dictionary)
+        TerrainType dominantTerrain = validHexes
+            .GroupBy(h => h.Terrain)
+            .OrderByDescending(g => g.Count())
+            .First()
+            .Key;
 
         // Calculate average danger
-        int averageDanger = validHexCount > 0 ? totalDanger / validHexCount : 0;
+        int totalDanger = validHexes.Sum(h => h.DangerLevel);
+        int averageDanger = totalDanger / validHexes.Count;
 
         return new SegmentAnalysisResult(dominantTerrain, averageDanger);
     }

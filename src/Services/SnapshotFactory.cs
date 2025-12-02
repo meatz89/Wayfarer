@@ -81,8 +81,7 @@ public static class SnapshotFactory
             Activity = filter.Activity,
             Purpose = filter.Purpose,
             Terrain = filter.Terrain,
-            Structure = filter.Structure,
-            RouteTier = filter.RouteTier
+            Structure = filter.Structure
         };
     }
 

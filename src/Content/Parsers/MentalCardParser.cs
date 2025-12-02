@@ -26,15 +26,22 @@ public class MentalCardParser
         MentalBaseEffects baseEffects = MentalCardEffectCatalog.GetBaseEffectsFromProperties(
             discipline, category, method, boundStat, dto.Depth);
 
-        // Parse stat requirements
-        Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
+        // Parse stat requirements - DOMAIN COLLECTION PRINCIPLE: Explicit properties via switch
+        int insightThreshold = 0, rapportThreshold = 0, authorityThreshold = 0, diplomacyThreshold = 0, cunningThreshold = 0;
         if (dto.Requirements?.Stats != null)
         {
-            foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
+            foreach (StatThresholdDTO statDto in dto.Requirements.Stats)
             {
-                if (!Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
-                    throw new InvalidOperationException($"MentalCard '{dto.Id}' has invalid stat requirement '{kvp.Key}'");
-                statThresholds[statType] = kvp.Value;
+                if (!Enum.TryParse<PlayerStatType>(statDto.Stat, out PlayerStatType statType))
+                    throw new InvalidOperationException($"MentalCard '{dto.Id}' has invalid stat requirement '{statDto.Stat}'");
+                switch (statType)
+                {
+                    case PlayerStatType.Insight: insightThreshold = statDto.Threshold; break;
+                    case PlayerStatType.Rapport: rapportThreshold = statDto.Threshold; break;
+                    case PlayerStatType.Authority: authorityThreshold = statDto.Threshold; break;
+                    case PlayerStatType.Diplomacy: diplomacyThreshold = statDto.Threshold; break;
+                    case PlayerStatType.Cunning: cunningThreshold = statDto.Threshold; break;
+                }
             }
         }
 
@@ -62,9 +69,13 @@ public class MentalCardParser
             BaseProgress = baseEffects.BaseProgress,
             BaseExposure = baseEffects.BaseExposure,
 
-            // Requirements
+            // Requirements - DOMAIN COLLECTION PRINCIPLE: Explicit properties
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation
-            StatThresholds = statThresholds,
+            InsightThreshold = insightThreshold,
+            RapportThreshold = rapportThreshold,
+            AuthorityThreshold = authorityThreshold,
+            DiplomacyThreshold = diplomacyThreshold,
+            CunningThreshold = cunningThreshold,
             MinimumHealth = 0,  // Mental cards never require minimum health (see entity comment line 32)
             MinimumStamina = 0  // Mental cards never require minimum stamina (see entity comment line 32)
         };

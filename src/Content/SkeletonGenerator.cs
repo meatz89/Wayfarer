@@ -44,7 +44,6 @@ public static class SkeletonGenerator
             // Simple defaults (no hash-based selection)
             PersonalityType = PersonalityType.Neutral,  // Default personality
             Profession = Professions.Commoner,  // Default profession
-            Tier = 1,  // Default tier
 
             // Default relationship flow (NEUTRAL state at neutral position)
             RelationshipFlow = 12
@@ -69,7 +68,6 @@ public static class SkeletonGenerator
             Description = "This place remains to be discovered.",
             IsSkeleton = true,
             SkeletonSource = source,
-            Tier = 1,  // Default tier
             Type = VenueType.Wilderness // Default for skeleton venues
         };
 
@@ -92,7 +90,6 @@ public static class SkeletonGenerator
             SkeletonSource = source,
 
             // Simple defaults (no hash-based selection)
-            Tier = 1,  // Default tier
             FlowModifier = 0,  // Neutral modifier
             // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 

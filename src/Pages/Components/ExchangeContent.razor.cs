@@ -8,7 +8,7 @@ namespace Wayfarer.Pages.Components
     /// 
     /// ARCHITECTURAL PRINCIPLES:
     /// - Follows the authoritative parent pattern - receives GameScreen via CascadingParameter
-    /// - ExchangeContext passed as Parameter from parent (created by GameFacade)
+    /// - ExchangeContext passed as Parameter from parent (created by GameOrchestrator)
     /// - All game state mutations go through ExchangeFacade
     /// - No conversation mechanics (no flow, no rapport, no patience)
     /// - Simple card selection with TRADE/LEAVE actions
@@ -20,7 +20,7 @@ namespace Wayfarer.Pages.Components
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
         [Inject] protected ExchangeFacade ExchangeFacade { get; set; }
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
 
         // Component state
         // HIGHLANDER: Store ExchangeCard object, not ID string
@@ -312,7 +312,7 @@ namespace Wayfarer.Pages.Components
 
                     // Update context with new state
                     // ADR-007: Pass Npc object (not NpcInfo.NpcId)
-                    Context = await GameFacade.CreateExchangeContext(Context.Npc);
+                    Context = await GameOrchestrator.CreateExchangeContext(Context.Npc);
                 }
                 else
                 {

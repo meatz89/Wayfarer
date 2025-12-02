@@ -69,6 +69,47 @@ Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementa
 
 ---
 
+# ABSOLUTE ENFORCEMENT: NO BYPASSING
+
+**THE RULE:** You may NEVER decide on your own to ignore test failures or pre-commit hook violations. All failures must be resolved before committing.
+
+**Non-Negotiable Requirements:**
+- Every test must pass before commit
+- Every pre-commit hook check must pass before commit
+- "Pre-existing" violations are NOT an excuse - fix them holistically
+- `--no-verify` is FORBIDDEN unless explicitly approved by the user for a specific case
+
+**Why Pre-Existing Problems Are Your Problem:**
+- If you touch a file with violations, YOU own fixing those violations
+- "It was already broken" is not acceptable - you make it right
+- Holistic fixing prevents violation debt from accumulating
+- The codebase improves with every commit, never degrades
+
+**What To Do When Blocked:**
+
+| Blocker | Required Action |
+|---------|-----------------|
+| Test failure | Fix the test OR fix the code causing failure |
+| Pre-commit hook violation | Fix ALL violations in touched files |
+| False positive in hook | Ask user for explicit approval to bypass |
+| Systemic violation | Fix holistically (all instances across codebase) |
+
+**FORBIDDEN:**
+- Deciding on your own that a failure is "acceptable"
+- Using `--no-verify` without explicit user approval
+- Claiming "it was already broken" as justification
+- Partial fixes that leave some violations behind
+- Moving forward with failing tests
+
+**Correct Pattern:**
+1. Run tests and hooks BEFORE declaring work complete
+2. If blocked, investigate and fix the root cause
+3. If false positive, explain to user and request explicit bypass approval
+4. If systemic issue, fix ALL instances (use agents for thorough search)
+5. Only commit when ALL checks pass
+
+---
+
 # DOCUMENTATION AND BOUNDARIES FIRST
 
 **THE RULE:** Before implementing ANY feature or refactoring, update documentation and define boundaries FIRST.
@@ -318,14 +359,171 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 
 # DOMAIN COLLECTION PRINCIPLE
 
-**Rule:** Use `List<T>` for all domain entity collections. Never Dictionary or HashSet.
+**Rule:** Dictionary, KeyValuePair, and wrapper classes are FORBIDDEN. Use explicit properties on entities.
 
-**Why:** Game has ~20 NPCs, ~30 Locations. Dictionary O(1) vs List O(n) saves 0.0009ms. Browser render takes 16ms. Human reaction takes 200ms. **Performance optimization is unmeasurable and premature.**
+**Why:**
+- Dictionary patterns hide semantic meaning (what IS the key? what IS the value?)
+- KeyValuePair iteration obscures domain concepts behind generic `.Key`/`.Value` accessors
+- Wrapper classes (Entry classes on entities) are Dictionary patterns in disguise - they still require iteration/filtering to access values
 
-**Correct:** `List<NPC>`, `List<Location>` with LINQ queries.
-**Forbidden:** `Dictionary<string, NPC>`, `HashSet<Location>`.
+**CRITICAL: Wrapper Classes Are The Same Antipattern**
 
-**Exception:** Dictionary acceptable only for framework requirements (Blazor parameters) or external API caching.
+A `List<TimeBlockEntry>` that you search with `.FirstOrDefault(e => e.TimeBlock == TimeBlocks.Morning)` is functionally identical to `Dictionary<TimeBlocks, List<Actions>>`. BOTH require iteration to find values. BOTH hide semantic meaning.
+
+| Pattern | Problem | Solution |
+|---------|---------|----------|
+| `List<ConnectionTypeTokenEntry>` | Must iterate to find Trust | Explicit `TrustTokens`, `DiplomacyTokens`, etc. |
+| `List<TimeBlockProfessionsEntry>` | Must iterate to find Morning | Explicit `MorningProfessions`, `MiddayProfessions`, etc. |
+| `List<StatThresholdEntry>` | Must iterate to find Insight | Explicit `InsightThreshold`, `RapportThreshold`, etc. |
+
+**Correct Pattern for Fixed Enums:**
+When the "key" is a FIXED ENUM (TimeBlocks, ConnectionType, PlayerStatType), use EXPLICIT PROPERTIES on the entity. Access by property name, not by iteration.
+
+**Correct Pattern for Variable Collections:**
+When the collection contains truly VARIABLE items (NPCs, Locations, Items), use `List<T>` with object references and LINQ queries. The key difference: variable collections don't have predetermined keys.
+
+**The Principle at Each Layer:**
+
+| Layer | Forbidden | Required |
+|-------|-----------|----------|
+| **JSON** | `{ "Insight": 5, "Rapport": 3 }` | `[ { "stat": "Insight", "value": 5 }, ... ]` |
+| **DTO** | `Dictionary<string, int>` | `List<StatRequirementDTO>` |
+| **Parser** | `foreach (KeyValuePair kvp ...)` | Direct mapping via switch on enum |
+| **Entity** | `List<WrapperEntry>` for fixed enums | Explicit properties per enum value |
+
+**FORBIDDEN:**
+- Dictionary, HashSet at any layer
+- KeyValuePair iteration
+- Wrapper/Entry classes for fixed enums on entities
+- Files like CollectionEntries.cs containing wrapper class definitions
+
+**Exception:** Dictionary acceptable ONLY for:
+- Blazor framework parameters (required by framework)
+- External API caching (ephemeral, not domain state)
+- Never for game state or content
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.29
+
+---
+
+# HOLISTIC DATA LAYER CHANGES
+
+**THE RULE:** When modifying JSON, DTO, or Parser - you MUST modify ALL THREE together. They are a single conceptual unit.
+
+**The Data Flow Contract:**
+```
+JSON → DTO → Parser → Entity
+```
+
+These layers MUST match. Changing one without the others creates:
+- Parse-time crashes (JSON structure doesn't match DTO)
+- Type mismatches (DTO property type doesn't match parser expectation)
+- Silent data loss (parser ignores unrecognized JSON fields)
+
+**MANDATORY Checklist for Any Data Change:**
+
+| Step | Action | Verify |
+|------|--------|--------|
+| 1 | Change JSON structure | Valid JSON, correct property names |
+| 2 | Change DTO to match | Same property names and types as JSON |
+| 3 | Change Parser to match | Reads DTO correctly, produces correct entity |
+| 4 | Run parser tests | All data flows through without errors |
+
+**FORBIDDEN:**
+- Changing JSON without updating DTO
+- Changing DTO without updating JSON AND parser
+- Changing parser without verifying JSON and DTO match
+- "I'll fix the other layers later" - NO, fix NOW
+
+**This is a Vertical Slice:** JSON + DTO + Parser = ONE unit of change. Never commit partial changes.
+
+---
+
+# NO PARTIAL CLASSES
+
+**THE RULE:** The `partial class` keyword is FORBIDDEN. No exceptions except Blazor.
+
+**Why:**
+- Partial classes split files, not responsibilities
+- They hide complexity instead of reducing it
+- No clear boundaries between concerns
+- Testing remains difficult (one giant class)
+
+**FORBIDDEN:**
+- `partial class` keyword in domain/service files
+- Splitting one class across multiple files
+- "Organizing" large files into partials
+
+**Exception:** Blazor code-behind files (`.razor.cs`) require `partial class` because the `.razor` file generates the other partial. This is a framework requirement, not a design choice.
+
+**Enforcement:** Pre-commit hook blocks `partial class` patterns (except `.razor.cs` files).
+
+---
+
+# COMPOSITION OVER INHERITANCE
+
+**THE RULE:** Prefer has-a relationships (composition) over is-a relationships (inheritance).
+
+**Why:**
+- Inheritance creates tight coupling between base and derived
+- Composition allows runtime flexibility (swap implementations)
+- Smaller, focused classes are easier to test
+- Avoids fragile base class problem
+
+**Correct Pattern:**
+
+| Problem | Wrong (Inheritance) | Right (Composition) |
+|---------|---------------------|---------------------|
+| File too large | Split into partial files | Extract to composed services |
+| Shared behavior | Base class with virtual methods | Inject shared service |
+| Multiple responsibilities | Deep inheritance hierarchy | Multiple injected services |
+| Debug methods bloating class | Inherit from DebugBase | Inject DebugService |
+
+**When file exceeds 1000 lines:**
+1. Identify cohesive method groups (seams)
+2. Create new service class for each seam
+3. Inject new service via constructor
+4. Delegate to composed service
+5. Original class becomes thin orchestrator
+
+**FORBIDDEN:**
+- Deep inheritance hierarchies (prefer flat + composition)
+- Base classes just to share code (use composition)
+- `protected` methods for subclass access (inject dependency instead)
+
+---
+
+# FACADE ISOLATION (NO LATERAL DEPENDENCIES)
+
+**THE RULE:** Facade/subsystem classes may NEVER reference or call other facades/subsystems directly. Only GameOrchestrator can orchestrate between facades.
+
+**Architecture:**
+
+| Class Type | Can Call |
+|------------|----------|
+| GameOrchestrator | Any facade, any service |
+| Facade (e.g., TravelFacade, SocialFacade) | Own domain services, GameWorld, never other facades |
+| Service | Domain entities, never facades |
+| UI Component | GameOrchestrator only |
+
+**Why:**
+- Prevents circular dependencies between subsystems
+- Single point of coordination (GameOrchestrator)
+- Clear responsibility boundaries per facade
+- Testable isolation (mock GameOrchestrator, test facade in isolation)
+
+**FORBIDDEN:**
+- `TravelFacade` calling `ResourceFacade` directly
+- `SocialFacade` injecting `LocationFacade`
+- Any `*Facade` depending on another `*Facade`
+
+**Correct Pattern:** When facade A needs facade B's functionality:
+1. GameOrchestrator coordinates the call
+2. GameOrchestrator calls A, gets result
+3. GameOrchestrator calls B with result
+4. GameOrchestrator returns combined result to UI
+
+**Enforcement:** Pre-commit hook blocks facade classes that reference other facades.
 
 ---
 
@@ -452,6 +650,8 @@ Use explicit strongly-typed properties for state modifications. Never route chan
 5. Verify no regressions after each slice
 
 **Enforcement:** Pre-commit hook blocks commits with files exceeding 1000 lines.
+
+**Exception:** `GameOrchestrator.cs` is exempt from the 1000-line limit. Its role is to coordinate ALL facades per FACADE ISOLATION principle - this inherently requires more code. Extracting orchestration logic would either duplicate responsibility (executors already exist) or violate FACADE ISOLATION (new classes calling facades directly).
 
 ---
 

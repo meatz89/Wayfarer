@@ -12,9 +12,8 @@
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    // Tier system (1-5) for difficulty/content progression
-    public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
-    public int Tier { get; set; } = 1;
+    // Venue type for categorical classification
+    public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category
 
     // SPATIAL HEX CLUSTER: Venue defines hex territory BEFORE locations placed
     // CenterHex + HexAllocation strategy defines the venue's spatial boundaries

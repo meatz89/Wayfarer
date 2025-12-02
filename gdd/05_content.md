@@ -13,19 +13,26 @@ This document explains HOW content is organized and WHY the archetype-based syst
 The primary narrative spine that never ends:
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
-- Uses the SAME reusable archetypes as procedural content
-- Tutorial experience emerges from categorical context (Tier 0, Friendly NPC, Basic quality)
-- Fixed sequence establishing gameplay patterns
+- Uses the SAME selection logic as procedural content
+- Tutorial scenes emerge from authored RhythmPattern (not overrides)
+- SceneSpawnReward specifies: RhythmPattern only
+- Selection logic processes this identically to procedural
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Uses the SAME reusable archetypes as tutorial
-- Higher tiers, varied NPC demeanors, varied quality levels
-- AI narrative generation connecting to player history
-- Escalating scope over time (local → regional → continental)
+- Uses the SAME selection logic as tutorial
+- RhythmPattern computed from intensity history
+- Anti-repetition filters recent categories/archetypes
 - Never resolves, always deepens
 
-**Critical Principle:** Tutorial and procedural content use IDENTICAL archetype templates. The difference is categorical context, not different code paths. An InnLodging scene in tutorial (Tier 0, Friendly, Basic) uses the same archetype as InnLodging in late-game (Tier 3, Hostile, Premium). Categorical properties scale the experience.
+**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is RhythmPattern source:
+
+| Content | RhythmPattern Source | Selection Logic |
+|---------|---------------------|-----------------|
+| Tutorial | Authored in SceneSpawnReward | Same |
+| Procedural | Computed from intensity history | Same |
+
+Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored RhythmPattern (Building) naturally flows through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes RhythmPattern.
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
@@ -188,26 +195,27 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
 
-### Authored Scene Sequencing (Context Injection)
+### Scene Instance Creation (Context Injection)
 
-When authored content spawns the next A-story scene, it specifies **generation context** to control the outcome:
+**Two concepts:**
 
-| Context Property | What It Controls |
-|------------------|------------------|
-| **TargetCategory** | Archetype category (Investigation, Social, Confrontation, Crisis, Peaceful) |
-| **LocationContext** | Safety/Purpose values that influence category selection |
-| **IntensityHint** | Override intensity balance scoring |
-| **RhythmPhase** | Building, Crisis, or Mixed rhythm for choice structure |
-| **Exclusions** | Archetypes to avoid (anti-repetition) |
+| Concept | What It Is | Example |
+|---------|------------|---------|
+| **SceneTemplate** | Pure archetype from catalog | InnLodging, SeekAudience, DeliveryContract |
+| **Scene** | Runtime instance (Situations from SituationTemplates) | Playable game state |
 
-**Authored vs Procedural Context:**
+**SceneDTO** serves both creation and runtime. Both authored and procedural content use the same DTO:
+- `sceneArchetype`: Reference to SceneTemplate (InnLodging, etc.)
+- `tier`, `rhythmPattern`, `locationSafety`, `locationPurpose`: Complete non-nullable context
+- `mainStorySequence`, `isStarter`: A-story progression
+- `state`, `currentSituationId`: Runtime state (populated during play)
 
-| Flow | Context Source |
-|------|----------------|
-| **Tutorial (A1-A10)** | Author specifies exact context in spawn reward: "next scene is Investigation at Safe location with Building rhythm" |
-| **Infinite (A11+)** | System reads current GameWorld state and passes as context |
+| Path | DTO Source | Context Source |
+|------|------------|----------------|
+| **Authored (A1-A10)** | JSON → SceneDTO | Pre-defined in JSON |
+| **Procedural (A11+)** | Code → SceneDTO | Derived from GameWorld |
 
-Same generation code handles both flows—no special tutorial code paths. Author control is achieved through context specification, not conditional logic.
+Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
 

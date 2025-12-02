@@ -36,7 +36,6 @@ public static class StrangerParser
             AvailableTimeBlock = timeBlock,
             Level = dto.Level,
             HasBeenEncountered = false,
-            Tier = dto.Level, // Use level as tier for difficulty
             Description = $"Level {dto.Level} stranger"
         };
 

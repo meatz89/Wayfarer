@@ -1,10 +1,10 @@
 /// <summary>
-/// Helper classes to replace Dictionary and HashSet with List-based implementations
-/// following deterministic principles and avoiding non-deterministic data structures
+/// Strongly-typed entry classes for List-based collections.
+/// DOMAIN COLLECTION PRINCIPLE: Use List with explicit entry types, never key-value patterns.
 /// </summary>
 
 /// <summary>
-/// Helper class for resource entries (replaces Dictionary<string, int>)
+/// Entry for resource tracking with explicit type and amount.
 /// </summary>
 public class ResourceEntry
 {
@@ -13,86 +13,8 @@ public class ResourceEntry
 }
 
 /// <summary>
-/// Helper class for NPC token entries (replaces nested Dictionary)
-/// HIGHLANDER: Object reference only, no string ID
-/// </summary>
-public class NPCTokenEntry
-{
-    /// <summary>
-    /// NPC entity this token entry tracks
-    /// HIGHLANDER: Object reference only, no string ID
-    /// </summary>
-    public NPC Npc { get; set; }
-    public int Trust { get; set; }
-    public int Diplomacy { get; set; }
-    public int Status { get; set; }
-    public int Shadow { get; set; }
-
-    public int GetTokenCount(ConnectionType type)
-    {
-        return type switch
-        {
-            ConnectionType.Trust => Trust,
-            ConnectionType.Diplomacy => Diplomacy,
-            ConnectionType.Status => Status,
-            ConnectionType.Shadow => Shadow,
-            _ => 0
-        };
-    }
-
-    public void SetTokenCount(ConnectionType type, int value)
-    {
-        switch (type)
-        {
-            case ConnectionType.Trust:
-                Trust = value;
-                break;
-            case ConnectionType.Diplomacy:
-                Diplomacy = value;
-                break;
-            case ConnectionType.Status:
-                Status = value;
-                break;
-            case ConnectionType.Shadow:
-                Shadow = value;
-                break;
-        }
-    }
-}
-
-/// <summary>
-/// Helper class for route entries (replaces Dictionary<string, List<RouteOption>>)
-/// HIGHLANDER: Object reference, no string ID
-/// </summary>
-public class KnownRouteEntry
-{
-    public Location OriginLocation { get; set; }
-    public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
-}
-
-/// <summary>
-/// Helper class for route familiarity entries (replaces Dictionary<string, int>)
-/// HIGHLANDER: Object reference, not string ID
-/// </summary>
-public class RouteFamiliarityEntry
-{
-    public RouteOption Route { get; set; }
-    public int Level { get; set; }
-}
-
-/// <summary>
-/// Helper class for location familiarity entries (replaces Dictionary<string, int>)
-/// HIGHLANDER: Object reference, not string ID
-/// </summary>
-public class LocationFamiliarityEntry
-{
-    public Location Location { get; set; }
-    public int Level { get; set; }
-}
-
-/// <summary>
-/// Helper class for NPC exchange card entries (replaces Dictionary<string, List<ExchangeCard>>)
-/// HIGHLANDER: Object reference only, no string ID
+/// Entry for NPC exchange card mapping.
+/// HIGHLANDER: Object reference only, no string ID.
 /// </summary>
 public class NPCExchangeCardEntry
 {
@@ -101,7 +23,7 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for skeleton registry entries (replaces Dictionary<string, string>)
+/// Entry for skeleton registry mapping.
 /// </summary>
 public class SkeletonRegistryEntry
 {
@@ -110,7 +32,7 @@ public class SkeletonRegistryEntry
 }
 
 /// <summary>
-/// Helper class for path card discovery entries (replaces Dictionary<string, bool>)
+/// Entry for path card discovery state.
 /// </summary>
 public class PathCardDiscoveryEntry
 {
@@ -119,7 +41,7 @@ public class PathCardDiscoveryEntry
 }
 
 /// <summary>
-/// Helper class for event deck position entries (replaces Dictionary<string, int>)
+/// Entry for event deck position tracking.
 /// </summary>
 public class EventDeckPositionEntry
 {
@@ -128,28 +50,25 @@ public class EventDeckPositionEntry
 }
 
 /// <summary>
-/// Helper class for path collection entries (replaces Dictionary<string, PathCardCollectionDTO>)
-/// HIGHLANDER: Collection object contains Id - no need to store separately
+/// Entry for path collection reference.
+/// HIGHLANDER: Collection object contains Id - no need to store separately.
 /// </summary>
 public class PathCollectionEntry
 {
-    // ADR-007: CollectionId DELETED - use Collection.Id instead (object has Id property)
     public PathCardCollectionDTO Collection { get; set; }
 }
 
 /// <summary>
-/// Helper class for travel event entries (replaces Dictionary<string, TravelEventDTO>)
-/// HIGHLANDER: TravelEvent object contains Id - no need to store separately
+/// Entry for travel event reference.
+/// HIGHLANDER: TravelEvent object contains Id - no need to store separately.
 /// </summary>
 public class TravelEventEntry
 {
-    // ADR-007: EventId DELETED - use TravelEvent.Id instead (object has Id property)
     public TravelEventDTO TravelEvent { get; set; }
 }
 
 /// <summary>
-/// Helper class for stepped threshold entries (replaces Dictionary<int, float>)
-/// Stores threshold levels with flat integer values
+/// Entry for stepped threshold levels with flat integer values.
 /// </summary>
 public class SteppedThreshold
 {
@@ -157,6 +76,129 @@ public class SteppedThreshold
     public int Value { get; set; }
 }
 
+// StatThresholdEntry DELETED - use explicit properties (InsightThreshold, RapportThreshold, etc.)
+
+/// <summary>
+/// Entry for string-based stat requirements.
+/// Used in PathCard, SceneApproach for stat requirements.
+/// </summary>
+public class StatRequirementEntry
+{
+    public string StatName { get; set; }
+    public int RequiredValue { get; set; }
+}
+
+/// <summary>
+/// Entry for token requirements.
+/// Used in SocialCard for token requirements.
+/// </summary>
+public class TokenRequirementEntry
+{
+    public string TokenType { get; set; }
+    public int RequiredAmount { get; set; }
+}
+
+/// <summary>
+/// Entry for token gains.
+/// Used in PathCard for token gains.
+/// </summary>
+public class TokenGainEntry
+{
+    public string TokenType { get; set; }
+    public int Amount { get; set; }
+}
+
+// WeatherModificationEntry DELETED - use explicit properties (ClearWeatherModification, RainWeatherModification, etc.)
+
+// ConnectionTypeTokenEntry DELETED - use explicit properties (TrustTokens, DiplomacyTokens, etc.)
+
+/// <summary>
+/// Entry for item count tracking.
+/// Used in SessionResourceSnapshot for tracking items by name.
+/// </summary>
+public class ItemCountEntry
+{
+    public string ItemName { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>
+/// Entry for string-based token tracking.
+/// Used in SituationReward for token rewards.
+/// </summary>
+public class StringTokenEntry
+{
+    public string TokenType { get; set; }
+    public int Amount { get; set; }
+}
+
+/// <summary>
+/// Entry for location visit count tracking.
+/// Used in SpawnConditions for visit count requirements.
+/// </summary>
+public class LocationVisitEntry
+{
+    public string LocationId { get; set; }
+    public int VisitCount { get; set; }
+}
+
+/// <summary>
+/// Entry for NPC bond strength tracking.
+/// Used in SpawnConditions for bond requirements.
+/// </summary>
+public class NPCBondEntry
+{
+    public string NpcId { get; set; }
+    public int BondStrength { get; set; }
+}
+
+/// <summary>
+/// Entry for location reputation tracking.
+/// Used in SpawnConditions for reputation requirements.
+/// </summary>
+public class LocationReputationEntry
+{
+    public string LocationId { get; set; }
+    public int ReputationScore { get; set; }
+}
+
+/// <summary>
+/// Entry for route travel count tracking.
+/// Used in SpawnConditions for travel count requirements.
+/// </summary>
+public class RouteTravelCountEntry
+{
+    public string RouteId { get; set; }
+    public int TravelCount { get; set; }
+}
+
+// PlayerStatEntry DELETED - use explicit properties (InsightLevel, RapportLevel, etc.)
+
+// ScaleTypeEntry DELETED - use explicit properties (MinMorality, MinLawfulness, etc.)
+
+// ConnectionStateModifierEntry DELETED - use explicit properties (DisconnectedModifier, GuardedModifier, etc.)
+
+/// <summary>
+/// Entry for modifier parameter values.
+/// Used in PersonalityModifier for personality-specific parameters.
+/// </summary>
+public class ModifierParameterEntry
+{
+    public string ParameterName { get; set; }
+    public int Value { get; set; }
+}
+
+/// <summary>
+/// Entry for segment event draw tracking.
+/// Used in TravelSession for tracking which event was drawn for each segment.
+/// </summary>
+public class SegmentEventDrawEntry
+{
+    public string SegmentId { get; set; }
+    public string EventId { get; set; }
+}
+
+// TimeBlockProfessionsEntry, TimeBlockActionsEntry, TimeBlockDescriptionEntry DELETED
+// Use explicit properties on Location instead: MorningProfessions, MiddayProfessions, etc.
+
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs
-// Extension methods hide domain logic and violate architecture principles
-// Use Player instance methods and GameWorld instance methods instead

@@ -1,42 +1,26 @@
+[assembly: InternalsVisibleTo("Wayfarer.Tests")]
+
 /// <summary>
 /// Service for generating procedural A-story scene templates.
 /// Creates infinite main story progression after authored tutorial completes.
 /// Works from ANY sequence - if tutorial is A1-A3, generates A4+.
 ///
-/// ========================================================================
-/// CONTEXT-AWARE SCENE SELECTION (IMPLEMENTED)
-/// ========================================================================
-/// Uses weighted scoring across multiple factors for archetype category selection.
-/// Deterministic: same inputs always produce same output.
-///
-/// SELECTION FACTORS (via ArchetypeCategorySelector):
-/// - Base rotation score (maintains some sequence-based predictability)
-/// - Location context (STRONG influence - Safety and Purpose drive category)
-/// - Intensity balance (balances Recovery/Standard/Demanding in recent history)
-/// - Rhythm phase (accumulation → test → recovery narrative flow)
-/// - Anti-repetition (penalizes recently used categories)
-///
-/// CHALLENGE PHILOSOPHY: Player resources (Health, Stamina, Resolve) are NOT considered.
-/// Fair rhythm emerges from story structure and location context, not player state filtering.
-/// Peaceful is earned through intensity history, not granted when player struggles.
-///
-/// CHOICE VALUE SCALING (via RuntimeScalingContext):
-/// - Player strength (TotalStatStrength) vs Location difficulty (hex distance)
-/// - NPC demeanor (Friendly/Neutral/Hostile) scales stat requirements
-/// - Environment quality scales resource costs
-/// - Net Challenge = LocationDifficulty - (PlayerStrength / 5), clamped [-3, +3]
-/// ========================================================================
-///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
-/// 1. Select archetype via ArchetypeCategorySelector (weighted scoring)
+/// 1. Select archetype based on rhythm phase + location context + history
 /// 2. Generate SceneTemplateDTO with categorical properties
 /// 3. Serialize to JSON package
 /// 4. Load via PackageLoaderFacade (JSON → PackageLoader → Parser → Entity)
 /// 5. Template added to GameWorld.SceneTemplates, available for spawning
 ///
-/// INTEGRATION POINT: Called from SpawnFacade when A-story scene completes.
+/// INTEGRATION POINT: Called from SpawnService when A-story scene completes.
 /// Detection: scene.Category == MainStory && scene.MainStorySequence.HasValue
-/// Trigger: Generate MainStorySequence + 1 template if not already exists.
+/// Trigger: Generate MainStorySequence + 1 template if not already exists
+///
+/// ARCHETYPE SELECTION STRATEGY (HISTORY-DRIVEN, gdd/01 §1.8):
+/// - Selection based on intensity history, rhythm phase, location context
+/// - Avoid recent archetypes (anti-repetition window)
+/// - Match tier escalation (personal → local → regional, grounded character-driven)
+/// - Current player state (Resolve, stats) NEVER influences selection
 ///
 /// GUARANTEED PROGRESSION:
 /// - All generated templates follow 4-choice pattern (stat/money/challenge/fallback)
@@ -64,9 +48,11 @@ public class ProceduralAStoryService
     /// Called when previous A-scene completes.
     /// Returns generated template ID (for tracking).
     ///
-    /// CONTEXT-AWARE SELECTION: Uses ArchetypeCategorySelector with weighted scoring.
-    /// Factors: location context (STRONG), intensity balance, rhythm phase, anti-repetition.
-    /// Deterministic: same inputs always produce same output.
+    /// CONTEXT INJECTION (HIGHLANDER, arc42 §8.28):
+    /// - Receives SceneSelectionInputs (complete categorical inputs)
+    /// - SAME selection logic for authored and procedural
+    /// - Selection based on rhythm phase + location context + history
+    /// - Current player state NEVER influences selection
     ///
     /// CATALOGUE PATTERN: Uses categorical properties (ArchetypeCategory, ExcludedArchetypes).
     /// Parser resolves to specific archetype via Catalogue at PARSE TIME.
@@ -77,34 +63,21 @@ public class ProceduralAStoryService
     /// Peaceful is earned through intensity history, not granted when player struggles.
     /// See gdd/06_balance.md §6.8 for Challenge and Consequence Philosophy.
     /// </summary>
-    public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context, Player player)
+    public async Task<string> GenerateNextATemplate(
+        int sequence,
+        AStoryContext context,
+        SceneSelectionInputs selectionInputs)
     {
-        // Calculate tier from sequence
-        int tier = CalculateTier(sequence);
-
-        // Find target location for context (will be used for placement filter too)
-        Location targetLocation = FindTargetLocation(tier, context, player);
-
-        // Select archetype CATEGORY using context-aware weighted scoring
-        // Location context is STRONG influence, player resources are NOT considered
-        string archetypeCategory = ArchetypeCategorySelector.SelectCategory(
-            sequence,
-            player,
-            targetLocation,
-            context);
+        // Get archetype CATEGORY from selection inputs
+        // HIGHLANDER: Same selection logic for authored and procedural
+        // Selection based on rhythm phase + location context
+        string archetypeCategory = SelectArchetypeCategory(selectionInputs);
 
         // Get excluded archetypes for anti-repetition (categorical property)
         List<string> excludedArchetypes = GetExcludedArchetypes(context);
 
         // Build SceneTemplateDTO with categorical properties
-        SceneTemplateDTO dto = BuildSceneTemplateDTO(
-            sequence,
-            archetypeCategory,
-            excludedArchetypes,
-            tier,
-            context,
-            player,
-            targetLocation);
+        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeCategory, excludedArchetypes, context, selectionInputs);
 
         // Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
@@ -121,44 +94,57 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Find target location for context-aware generation.
-    /// Uses tier and anti-repetition to select a location for placement.
-    /// Returns null if no suitable location found (fallback to categorical filter).
+    /// Select archetype category from SceneSelectionInputs.
+    /// HIGHLANDER: Same logic for authored and procedural content.
+    /// The only difference is WHERE inputs come from, not HOW they're processed.
+    ///
+    /// SIMPLIFIED (arc42 §8.28):
+    /// - RhythmPattern is THE ONLY driver for category selection
+    /// - Anti-repetition prevents same category twice
+    /// - LocationSafety/Purpose/Tier REMOVED (legacy)
+    /// - Current player state NEVER influences selection
     /// </summary>
-    private Location FindTargetLocation(int tier, AStoryContext context, Player player)
+    internal string SelectArchetypeCategory(SceneSelectionInputs inputs)
     {
-        // Get player's current location as starting point
-        Location playerLocation = _gameWorld.Locations
-            .FirstOrDefault(l => l.HexPosition.HasValue &&
-                                 l.HexPosition.Value.Equals(player.CurrentPosition));
+        // Determine appropriate categories based on rhythm pattern ONLY
+        List<string> appropriateCategories = GetCategoriesForRhythmPattern(inputs.RhythmPattern);
 
-        if (playerLocation != null)
-        {
-            return playerLocation;
-        }
-
-        // Fallback: find any tier-appropriate location
-        List<Location> tierAppropriateLocations = _gameWorld.Locations
-            .Where(l => l.Tier <= tier + 1)
+        // Apply anti-repetition (avoid recent categories)
+        List<string> availableCategories = appropriateCategories
+            .Where(c => !inputs.RecentCategories.Contains(c))
             .ToList();
 
-        if (tierAppropriateLocations.Any())
+        // If all filtered out, use appropriate categories without anti-repetition
+        if (!availableCategories.Any())
         {
-            // Use sequence for deterministic selection
-            int index = context.CurrentSequence % tierAppropriateLocations.Count;
-            return tierAppropriateLocations[index];
+            availableCategories = appropriateCategories;
         }
 
-        return null;
+        // Deterministic selection using RhythmPattern as categorical property
+        // Pattern ordinal selects different indices: Building(0), Crisis(1), Mixed(2)
+        int selectionIndex = ((int)inputs.RhythmPattern) % availableCategories.Count;
+        return availableCategories[selectionIndex];
     }
 
-    // NOTE: GetArchetypeCategory replaced by ArchetypeCategorySelector.SelectCategory()
-    // Context-aware selection uses weighted scoring across multiple factors:
-    // - Location context (STRONG influence)
-    // - Intensity balance (recent Recovery/Standard/Demanding history)
-    // - Rhythm phase (accumulation → test → recovery)
-    // - Anti-repetition (penalizes recently used categories)
-    // See ArchetypeCategorySelector.cs for implementation.
+    /// <summary>
+    /// Get categories appropriate for the current rhythm pattern.
+    /// </summary>
+    private List<string> GetCategoriesForRhythmPattern(RhythmPattern pattern)
+    {
+        return pattern switch
+        {
+            // Building: favor building opportunities (accumulation phase)
+            RhythmPattern.Building => new List<string> { "Investigation", "Social", "Confrontation" },
+
+            // Crisis: time for crisis/challenge (test phase)
+            RhythmPattern.Crisis => new List<string> { "Crisis", "Confrontation" },
+
+            // Mixed: gentle scenes after crisis (recovery phase)
+            RhythmPattern.Mixed => new List<string> { "Social", "Investigation" },
+
+            _ => new List<string> { "Investigation", "Social", "Confrontation", "Crisis" }
+        };
+    }
 
     /// <summary>
     /// Get excluded archetypes for anti-repetition (categorical properties).
@@ -171,19 +157,6 @@ public class ProceduralAStoryService
             .ToList();
     }
 
-    /// <summary>
-    /// Calculate tier from sequence number (grounded character-driven escalation)
-    /// Works from ANY sequence - tier thresholds are absolute
-    /// Tier 1: Sequence 1-30 (personal stakes - relationships, internal conflict)
-    /// Tier 2: Sequence 31-50 (local stakes - community, village/town)
-    /// Tier 3: Sequence 51+ (regional stakes - district/province, maximum scope)
-    /// </summary>
-    private int CalculateTier(int sequence)
-    {
-        if (sequence <= 30) return 1; // Personal
-        if (sequence <= 50) return 2; // Local
-        return 3; // Regional (infinite at maximum grounding)
-    }
 
     /// <summary>
     /// Build SceneTemplateDTO for procedural A-story scene.
@@ -193,29 +166,28 @@ public class ProceduralAStoryService
     /// CATALOGUE PATTERN: Uses ArchetypeCategory + ExcludedArchetypes (categorical).
     /// Parser will resolve to specific SceneArchetypeType via Catalogue at parse-time.
     ///
-    /// CONTEXT-AWARE: Uses player intensity history for rhythm pattern selection.
-    /// Location context influences placement filter.
+    /// CONTEXT INJECTION (HIGHLANDER): Uses SceneSelectionInputs for rhythm determination.
+    /// arc42 §8.28: Tier REMOVED - difficulty scaling via Location.Difficulty at choice generation.
     /// </summary>
     private SceneTemplateDTO BuildSceneTemplateDTO(
         int sequence,
         string archetypeCategory,
         List<string> excludedArchetypes,
-        int tier,
         AStoryContext context,
-        Player player,
-        Location targetLocation)
+        SceneSelectionInputs selectionInputs)
     {
         string sceneId = $"a_story_{sequence}";
 
         // Build categorical placement filter (may use target location context)
-        PlacementFilterDTO placementFilter = BuildPlacementFilter(sequence, tier, context);
+        PlacementFilterDTO placementFilter = BuildPlacementFilter(sequence, context);
 
         // Build spawn conditions (A-scenes spawn automatically via completion trigger)
         SpawnConditionsDTO spawnConditions = BuildSpawnConditions(sequence, context);
 
-        // Determine rhythm pattern based on archetype category and player intensity history
+        // Determine rhythm pattern based on archetype category and input rhythm
         // Sir Brante Pattern: Building accumulates capability, Crisis tests it
-        string rhythmPattern = DetermineRhythmPattern(archetypeCategory, player);
+        // HIGHLANDER: Uses RhythmPattern from inputs, not player state
+        string rhythmPattern = DetermineRhythmPatternForScene(archetypeCategory, selectionInputs.RhythmPattern);
 
         SceneTemplateDTO dto = new SceneTemplateDTO
         {
@@ -228,7 +200,6 @@ public class ProceduralAStoryService
             ExcludedArchetypes = excludedArchetypes,
             LocationActivationFilter = placementFilter, // A-story activates when player enters matching location
             SpawnConditions = spawnConditions,
-            Tier = tier,
             Category = "MainStory",
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
@@ -243,19 +214,18 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Determine rhythm pattern based on archetype category and player intensity history.
+    /// Determine final rhythm pattern for scene based on archetype category and input rhythm.
     /// Sir Brante Pattern (arc42 §8.26): Building accumulates capability, Crisis tests it.
     ///
-    /// CONTEXT-AWARE RHYTHM SELECTION:
+    /// CONTEXT INJECTION (HIGHLANDER):
     /// - Peaceful category → Building rhythm (all positive, earned structural respite)
     /// - Crisis category → Crisis rhythm (test player investments, penalty on fallback)
-    /// - After Crisis/Peaceful → Building rhythm (recovery, stat grants)
-    /// - Other categories → Mixed rhythm (standard trade-offs)
+    /// - Mixed input → Building rhythm for recovery
+    /// - Other combinations → Mixed rhythm (standard trade-offs)
     ///
-    /// Uses Player.SceneIntensityHistory to determine if we're in recovery phase.
-    /// This replaces the fixed cycle position check with actual intensity tracking.
+    /// Uses RhythmPattern from inputs (computed from intensity history by caller).
     /// </summary>
-    private string DetermineRhythmPattern(string archetypeCategory, Player player)
+    private string DetermineRhythmPatternForScene(string archetypeCategory, RhythmPattern inputRhythm)
     {
         // Peaceful category always uses Building rhythm (earned respite, all positive)
         if (archetypeCategory == "Peaceful")
@@ -269,9 +239,9 @@ public class ProceduralAStoryService
             return "Crisis";
         }
 
-        // After Crisis or Peaceful, use Building rhythm (recovery)
-        // Uses player intensity history instead of fixed cycle position
-        if (player.IsInRecoveryPhase())
+        // Mixed input rhythm uses Building for recovery
+        // HIGHLANDER: Uses RhythmPattern from inputs, not player state
+        if (inputRhythm == RhythmPattern.Mixed)
         {
             return "Building";
         }
@@ -281,29 +251,26 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Build categorical placement filter for A-story scene
-    /// Uses Generic relation for runtime resolution via GameWorld queries
-    /// No concrete entity IDs - all categorical properties
+    /// Build categorical placement filter for A-story scene.
+    /// arc42 §8.28: Uses CATEGORICAL properties only - no specific entity selection.
+    /// arc42 §8.3: No entity IDs, no sequence-based selection - EntityResolver resolves at runtime.
+    /// Procedural A-story spawns via SceneSpawnReward, not location entry.
     /// </summary>
-    private PlacementFilterDTO BuildPlacementFilter(int sequence, int tier, AStoryContext context)
+    private PlacementFilterDTO BuildPlacementFilter(int sequence, AStoryContext context)
     {
-        // Select region based on tier and anti-repetition
-        Region selectedRegion = SelectRegion(tier, context);
-
-        // Select NPC personality type for social archetypes
-        string personalityType = SelectPersonalityType(tier, context);
-
+        // arc42 §8.28: Procedural A-story uses minimal categorical constraints
+        // EntityResolver finds matching locations/NPCs at spawn time
+        // NO specific region or personality selection - that violates categorical principle
         PlacementFilterDTO filter = new PlacementFilterDTO
         {
             PlacementType = "Location", // A-story happens at locations
 
-            // Location filters (categorical)
-            // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
-            RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
-            // Capabilities removed - use orthogonal properties Purpose/Role/etc instead
+            // Location filters: CATEGORICAL only (no specific region)
+            // RegionName = null means any region is acceptable
+            // EntityResolver finds matching location at spawn time
 
-            // NPC filters (categorical)
-            PersonalityType = personalityType,
+            // NPC filters: CATEGORICAL properties
+            // NpcTags provides categorical constraint for NPC selection
             MinBond = null, // A-story accessible regardless of relationships
             MaxBond = null,
             NpcTags = new List<string> { "order_connected" }
@@ -312,112 +279,11 @@ public class ProceduralAStoryService
         return filter;
     }
 
-    /// <summary>
-    /// Select region for A-story scene based on tier and anti-repetition
-    /// Systematically rotates through available regions
-    /// Returns Region object (HIGHLANDER: object references, not IDs)
-    /// </summary>
-    private Region SelectRegion(int tier, AStoryContext context)
-    {
-        // Get all regions in GameWorld
-        List<Region> allRegions = _gameWorld.Regions;
-
-        if (!allRegions.Any())
-        {
-            throw new InvalidOperationException(
-                "Cannot select region: No regions defined in GameWorld. " +
-                "Procedural A-story generation requires at least one region. " +
-                "Check Content/Core/01_foundation.json for region definitions.");
-        }
-
-        // Filter by tier-appropriate regions
-        List<Region> tierAppropriateRegions = allRegions
-            .Where(r => r.Tier <= tier) // Only regions at or below current tier
-            .ToList();
-
-        if (!tierAppropriateRegions.Any())
-        {
-            tierAppropriateRegions = allRegions; // Fallback to any region
-        }
-
-        // Filter out recently used regions (anti-repetition)
-        // HIGHLANDER: Pass Region object to IsRegionRecent, not ID
-        List<Region> availableRegions = tierAppropriateRegions
-            .Where(r => !context.IsRegionRecent(r))
-            .ToList();
-
-        if (!availableRegions.Any())
-        {
-            availableRegions = tierAppropriateRegions; // All recent, use any
-        }
-
-        // Select region using sequence-based rotation (deterministic but varied)
-        // Modulo ensures we cycle through available regions: A4→region0, A5→region1, A6→region2, A7→region0...
-        int selectionIndex = context.CurrentSequence % availableRegions.Count;
-        Region selectedRegion = availableRegions[selectionIndex];
-
-        // Return Region object (HIGHLANDER: object references, not string IDs)
-        return selectedRegion;
-    }
-
-    /// <summary>
-    /// Select personality type for NPC categorical filtering
-    /// Varies based on tier and anti-repetition
-    /// </summary>
-    private string SelectPersonalityType(int tier, AStoryContext context)
-    {
-        List<PersonalityType> allTypes = new List<PersonalityType>
-    {
-        PersonalityType.DEVOTED,
-        PersonalityType.MERCANTILE,
-        PersonalityType.PROUD,
-        PersonalityType.CUNNING,
-        PersonalityType.STEADFAST
-    };
-
-        // Filter out recent personality types (anti-repetition)
-        List<PersonalityType> availableTypes = allTypes
-            .Where(p => !context.IsPersonalityTypeRecent(p))
-            .ToList();
-
-        if (!availableTypes.Any())
-        {
-            availableTypes = allTypes; // All recent, use any
-        }
-
-        // Select one personality type
-        PersonalityType selectedType = availableTypes[Random.Shared.Next(availableTypes.Count)];
-
-        return selectedType.ToString();
-    }
-
-    /// <summary>
-    /// Select location capabilities for categorical filtering
-    /// Tier-appropriate capabilities (higher tier = more complex locations)
-    /// Returns string list for PlacementFilterDTO (parser will convert to enum)
-    /// </summary>
-    private List<string> SelectLocationCapabilities(int tier)
-    {
-        List<string> capabilities = new List<string> { "Indoor", "Urban" };
-
-        // Add tier-appropriate capabilities
-        if (tier >= 2)
-        {
-            capabilities.Add("Commercial");
-        }
-
-        if (tier >= 3)
-        {
-            capabilities.Add("Official");
-        }
-
-        if (tier >= 4)
-        {
-            capabilities.Add("Temple"); // Mysterious equivalent
-        }
-
-        return capabilities;
-    }
+    // DELETED: SelectRegion, SelectPersonalityType, SelectLocationCapabilities
+    // arc42 §8.3: No sequence-based entity selection
+    // arc42 §8.28: Selection uses categorical properties only
+    // DDR-007: No Random in strategic layer
+    // EntityResolver handles runtime resolution from categorical PlacementFilter
 
     /// <summary>
     /// Build spawn conditions for A-story scene
@@ -506,7 +372,7 @@ public class ProceduralAStoryService
             RecentArchetypes = new List<SceneArchetypeType>(),
             RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
-            UnlockedRegionIds = new List<string>(),
+            UnlockedRegionNames = new List<string>(),
             EncounteredOrderMemberIds = new List<string>(),
             CollectedArtifactIds = new List<string>(),
             UncoveredRevelationIds = new List<string>(),

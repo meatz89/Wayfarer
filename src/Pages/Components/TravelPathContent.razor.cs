@@ -10,7 +10,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public TravelContext TravelContext { get; set; }
         [Parameter] public EventCallback<string> OnNavigate { get; set; }
 
-        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
         [Inject] protected TravelManager TravelManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
@@ -406,7 +406,7 @@ namespace Wayfarer.Pages.Components
             // Add stat requirements with level display
             if (card.StatRequirements != null && card.StatRequirements.Count > 0)
             {
-                Player player = GameFacade.GetPlayer();
+                Player player = GameOrchestrator.GetPlayer();
                 foreach (KeyValuePair<string, int> statReq in card.StatRequirements)
                 {
                     if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))

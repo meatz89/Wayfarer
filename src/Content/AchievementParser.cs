@@ -36,19 +36,19 @@ public static class AchievementParser
     }
 
     /// <summary>
-    /// Parse grant conditions from DTO Dictionary to strongly-typed AchievementGrantConditions
+    /// Parse grant conditions from DTO List to strongly-typed AchievementGrantConditions
     /// Replaces generic Dictionary pattern with concrete properties
     /// </summary>
-    private static AchievementGrantConditions ParseGrantConditions(Dictionary<string, int> conditions)
+    private static AchievementGrantConditions ParseGrantConditions(List<AchievementConditionEntry> conditions)
     {
         if (conditions == null || !conditions.Any())
             return new AchievementGrantConditions();
 
         AchievementGrantConditions grantConditions = new AchievementGrantConditions();
 
-        foreach (KeyValuePair<string, int> condition in conditions)
+        foreach (AchievementConditionEntry condition in conditions)
         {
-            switch (condition.Key.ToLowerInvariant())
+            switch (condition.ConditionType.ToLowerInvariant())
             {
                 case "bondstrengthwithanynpc":
                     grantConditions.BondStrengthWithAnyNpc = condition.Value;
@@ -87,7 +87,7 @@ public static class AchievementParser
                     grantConditions.FameScale = condition.Value;
                     break;
                 default:
-                    throw new InvalidOperationException($"Unknown grant condition key: '{condition.Key}'");
+                    throw new InvalidOperationException($"Unknown grant condition type: '{condition.ConditionType}'");
             }
         }
 

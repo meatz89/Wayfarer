@@ -17,8 +17,9 @@ public class ItemDTO
     public string Description { get; set; }
     public int? StaminaBonus { get; set; }
 
-    // Token generation bonuses (flat integer additions, e.g., {"Trust": 1} for +1 Trust token)
-    public Dictionary<string, int> TokenGenerationBonuses { get; set; } = new Dictionary<string, int>();
+    // Token generation bonuses (flat integer additions, e.g., [{"TokenType": "Trust", "Amount": 1}] for +1 Trust token)
+    // DOMAIN COLLECTION PRINCIPLE: List of objects instead of Dictionary
+    public List<TokenEntryDTO> TokenGenerationBonuses { get; set; } = new List<TokenEntryDTO>();
 
     // Token types this equipment enables (e.g., ["Noble"] for Fine Clothes)
     public List<string> EnablesTokenGeneration { get; set; } = new List<string>();
