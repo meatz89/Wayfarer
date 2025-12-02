@@ -47,6 +47,7 @@ public static class ServiceConfiguration
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<SocialEffectResolver>();
         services.AddSingleton<SocialChallengeDeckBuilder>();
+        services.AddSingleton<SocialResourceCalculator>();
         services.AddSingleton<SocialFacade>();
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
@@ -181,6 +182,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCLocationTracker>();
         services.AddSingleton<LocationActionManager>();
         services.AddSingleton<LocationNarrativeGenerator>();
+        services.AddSingleton<LocationChallengeBuilder>();
         services.AddSingleton<LocationFacade>();
 
         // Obligation Subsystem

@@ -36,60 +36,97 @@ public enum LocationTag
 }
 
 /// <summary>
-/// Defines what observations are enabled by each tag
+/// Defines what observations are enabled by each tag.
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties per LocationTag enum value.
 /// </summary>
 public static class LocationTagObservations
 {
-    private static readonly Dictionary<LocationTag, List<ObservationAction>> TagActions = new()
-    {
-        // ADR-007: No Id parameter - Description is natural key
-        [LocationTag.Crowded] = new()
+    // Explicit properties per LocationTag enum value
+    // ADR-007: No Id parameter - Description is natural key
+    public static List<ObservationAction> CrowdedActions { get; } = new()
     {
         new ObservationAction("Listen to nearby conversations", 1),
         new ObservationAction("Look for specific individuals", 1),
         new ObservationAction("Watch for thieves", 1)
-    },
-        [LocationTag.Quiet] = new()
+    };
+
+    public static List<ObservationAction> QuietActions { get; } = new()
     {
         new ObservationAction("Hear distant sounds", 1),
         new ObservationAction("Detect hidden focus", 1)
-    },
-        [LocationTag.Public] = new()
+    };
+
+    public static List<ObservationAction> PublicActions { get; } = new()
     {
         new ObservationAction("Note who talks to whom", 1),
         new ObservationAction("Identify important figures", 1)
-    },
-        [LocationTag.Private] = new()
+    };
+
+    public static List<ObservationAction> PrivateActions { get; } = new()
     {
         new ObservationAction("Look for concealed items", 1),
         new ObservationAction("Note escape routes", 1)
-    },
-        [LocationTag.HearthWarmed] = new()
+    };
+
+    public static List<ObservationAction> HearthWarmedActions { get; } = new()
     {
         new ObservationAction("See who's relaxed or guarded", 1),
         new ObservationAction("Identify frequent visitors", 1)
-    },
-        [LocationTag.AleScented] = new()
+    };
+
+    public static List<ObservationAction> AleScentedActions { get; } = new()
     {
         new ObservationAction("Identify intoxicated individuals", 1),
         new ObservationAction("Listen to loose tongues", 1)
-    },
-        [LocationTag.MusicDrifting] = new()
+    };
+
+    public static List<ObservationAction> MusicDriftingActions { get; } = new()
     {
         new ObservationAction("See emotional responses", 1),
         new ObservationAction("Notice who's not listening", 1)
-    },
-        [LocationTag.MarketDay] = new()
+    };
+
+    public static List<ObservationAction> MarketDayActions { get; } = new()
     {
         new ObservationAction("Observe diplomacy patterns", 1),
         new ObservationAction("Notice special transactions", 1)
-    },
-        [LocationTag.GuardPatrol] = new()
+    };
+
+    public static List<ObservationAction> GuardPatrolActions { get; } = new()
     {
         new ObservationAction("Note guard movements", 1),
         new ObservationAction("See who avoids guards", 1)
-    }
     };
+
+    // Empty lists for tags without defined actions
+    public static List<ObservationAction> SunnyActions { get; } = new();
+    public static List<ObservationAction> ShadowedActions { get; } = new();
+    public static List<ObservationAction> ReligiousActions { get; } = new();
+    public static List<ObservationAction> IndustrialActions { get; } = new();
+
+    /// <summary>
+    /// Get observation actions for a single tag using switch expression
+    /// </summary>
+    public static List<ObservationAction> GetActionsForTag(LocationTag tag)
+    {
+        return tag switch
+        {
+            LocationTag.Crowded => CrowdedActions,
+            LocationTag.Quiet => QuietActions,
+            LocationTag.Public => PublicActions,
+            LocationTag.Private => PrivateActions,
+            LocationTag.HearthWarmed => HearthWarmedActions,
+            LocationTag.AleScented => AleScentedActions,
+            LocationTag.MusicDrifting => MusicDriftingActions,
+            LocationTag.MarketDay => MarketDayActions,
+            LocationTag.GuardPatrol => GuardPatrolActions,
+            LocationTag.Sunny => SunnyActions,
+            LocationTag.Shadowed => ShadowedActions,
+            LocationTag.Religious => ReligiousActions,
+            LocationTag.Industrial => IndustrialActions,
+            _ => new List<ObservationAction>()
+        };
+    }
 
     /// <summary>
     /// Get available observation actions for a set of Venue tags
@@ -101,16 +138,13 @@ public static class LocationTagObservations
 
         foreach (LocationTag tag in tags)
         {
-            if (TagActions.ContainsKey(tag))
+            foreach (ObservationAction action in GetActionsForTag(tag))
             {
-                foreach (ObservationAction action in TagActions[tag])
+                // Binary availability: action is either in the list or not
+                // HIGHLANDER: Deduplicate by object reference equality
+                if (!actions.Contains(action))
                 {
-                    // Binary availability: action is either in the list or not
-                    // HIGHLANDER: Deduplicate by object reference equality
-                    if (!actions.Contains(action))
-                    {
-                        actions.Add(action);
-                    }
+                    actions.Add(action);
                 }
             }
         }
@@ -171,31 +205,3 @@ public class TierRequirement
     }
 }
 
-/// <summary>
-/// Extension to add Venue tags to locations
-/// </summary>
-public static class LocationTagExtensions
-{
-    // Hardcoded for now, should come from JSON later
-    private static readonly Dictionary<string, List<LocationTag>> LocationTagMap = new()
-    {
-        ["market_square"] = new() { LocationTag.Crowded, LocationTag.Public, LocationTag.MarketDay },
-        ["copper_kettle"] = new() { LocationTag.HearthWarmed, LocationTag.AleScented, LocationTag.MusicDrifting },
-        ["noble_district"] = new() { LocationTag.Quiet, LocationTag.Private, LocationTag.GuardPatrol },
-        ["merchant_row"] = new() { LocationTag.Crowded, LocationTag.MarketDay, LocationTag.Industrial },
-        ["riverside"] = new() { LocationTag.Public, LocationTag.Industrial, LocationTag.Shadowed },
-        ["city_gates"] = new() { LocationTag.Public, LocationTag.GuardPatrol, LocationTag.Crowded }
-    };
-
-    public static List<LocationTag> GetLocationTags(string venueId)
-    {
-        if (string.IsNullOrEmpty(venueId))
-            return new List<LocationTag>();
-
-        string lowerVenueId = venueId.ToLower();
-        if (!LocationTagMap.ContainsKey(lowerVenueId))
-            return new List<LocationTag>();
-
-        return LocationTagMap[lowerVenueId];
-    }
-}

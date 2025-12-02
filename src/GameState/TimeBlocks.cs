@@ -21,20 +21,29 @@ public enum DayAdvancement
     NextDay      // Advance to next day
 }
 
+/// <summary>
+/// Segment counts per time block.
+/// DOMAIN COLLECTION PRINCIPLE: Explicit properties for fixed enum (TimeBlocks).
+/// All blocks have 4 segments in current design.
+/// </summary>
 public static class TimeBlockSegments
 {
-    public static readonly Dictionary<TimeBlocks, int> SegmentsPerBlock = new()
-{
-    { TimeBlocks.Morning, 4 },
-    { TimeBlocks.Midday, 4 },
-    { TimeBlocks.Afternoon, 4 },
-    { TimeBlocks.Evening, 4 }
-};
+    public static int MorningSegments => 4;
+    public static int MiddaySegments => 4;
+    public static int AfternoonSegments => 4;
+    public static int EveningSegments => 4;
 
     public const int TOTAL_SEGMENTS_PER_DAY = 16; // Morning(4) + Midday(4) + Afternoon(4) + Evening(4)
 
     public static int GetSegmentsForBlock(TimeBlocks block)
     {
-        return SegmentsPerBlock.TryGetValue(block, out int segments) ? segments : 0;
+        return block switch
+        {
+            TimeBlocks.Morning => MorningSegments,
+            TimeBlocks.Midday => MiddaySegments,
+            TimeBlocks.Afternoon => AfternoonSegments,
+            TimeBlocks.Evening => EveningSegments,
+            _ => throw new ArgumentOutOfRangeException(nameof(block), $"Unknown time block: {block}")
+        };
     }
 }

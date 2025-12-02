@@ -17,6 +17,7 @@ public class SocialFacade
     private readonly MessageSystem _messageSystem;
     private readonly ObligationActivity _obligationActivity;
     private readonly SituationCompletionHandler _situationCompletionHandler;
+    private readonly SocialResourceCalculator _resourceCalculator;
 
     private PersonalityRuleEnforcer _personalityEnforcer;
 
@@ -30,7 +31,8 @@ public class SocialFacade
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
         ObligationActivity obligationActivity,
-        SituationCompletionHandler situationCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler,
+        SocialResourceCalculator resourceCalculator)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
@@ -43,6 +45,7 @@ public class SocialFacade
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
+        _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
     }
 
     /// <summary>
@@ -210,11 +213,11 @@ public class SocialFacade
         // ========== 4-RESOURCE SYSTEM LISTEN SEQUENCE ==========
 
         // 1. Apply Cadence Effects
-        ProcessCadenceEffectsOnListen(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.ProcessCadenceEffectsOnListen(_gameWorld.CurrentSocialSession);
 
 
         // 3. Handle Card Persistence
-        ProcessCardPersistence(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.ProcessCardPersistence(_gameWorld.CurrentSocialSession);
 
         // 4. Calculate Fixed Card Draw (4 + Cadence bonus)
         int cardsToDraw = _gameWorld.CurrentSocialSession.GetDrawCount();
@@ -223,23 +226,23 @@ public class SocialFacade
         // Initiative stays at current value - only Foundation cards can build it
 
         // 6. Check Situation Card Activation
-        CheckSituationCardActivation(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.CheckSituationCardActivation(_gameWorld.CurrentSocialSession);
 
         // 7. Reset Turn-Based Effects
         // TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
         _personalityEnforcer.OnListen(); // Resets Proud personality turn state
 
         // Draw cards from deck
-        List<CardInstance> drawnCards = ExecuteNewListenCardDraw(_gameWorld.CurrentSocialSession, cardsToDraw);
+        List<CardInstance> drawnCards = _resourceCalculator.ExecuteNewListenCardDraw(_gameWorld.CurrentSocialSession, cardsToDraw);
 
         // CRITICAL: Reduce cadence AFTER draw calculation (spec line 894)
-        ReduceCadenceAfterDraw(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.ReduceCadenceAfterDraw(_gameWorld.CurrentSocialSession);
 
         // Force discard down to 7-card hand limit if necessary
         _gameWorld.CurrentSocialSession.Deck.DiscardDown(7);
 
         // Update card playability based on Initiative system
-        UpdateCardPlayabilityForInitiative(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.UpdateCardPlayabilityForInitiative(_gameWorld.CurrentSocialSession);
 
         // Generate narrative using the narrative service
         NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
@@ -313,7 +316,7 @@ public class SocialFacade
         // ========== 4-RESOURCE SYSTEM SPEAK SEQUENCE ==========
 
         // 1. Check Initiative Available
-        int initiativeCost = GetCardInitiativeCost(selectedCard);
+        int initiativeCost = _resourceCalculator.GetCardInitiativeCost(selectedCard);
         if (!_gameWorld.CurrentSocialSession.CanAffordCardInitiative(initiativeCost))
         {
             // Not enough Initiative - cannot play card
@@ -330,7 +333,7 @@ public class SocialFacade
         // 2. Check Personality Restrictions (updated for Initiative system)
         // TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
         string violationMessage;
-        if (!ValidateInitiativePersonalityRules(selectedCard, out violationMessage))
+        if (!_resourceCalculator.ValidateInitiativePersonalityRules(_personalityEnforcer, selectedCard, out violationMessage))
         {
             return new SocialTurnResult
             {
@@ -356,13 +359,13 @@ public class SocialFacade
         }
 
         // 4. Apply Cadence Change based on Delivery property (replaces old +1 flat system)
-        ApplyCadenceFromDelivery(selectedCard, _gameWorld.CurrentSocialSession);
+        _resourceCalculator.ApplyCadenceFromDelivery(selectedCard, _gameWorld.CurrentSocialSession);
 
         // 5. Calculate Success
-        bool success = CalculateInitiativeCardSuccess(selectedCard, _gameWorld.CurrentSocialSession);
+        bool success = _resourceCalculator.CalculateInitiativeCardSuccess(selectedCard, _gameWorld.CurrentSocialSession);
 
         // 6. Process Card Results
-        CardPlayResult playResult = ProcessInitiativeCardPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
+        CardPlayResult playResult = _resourceCalculator.ProcessInitiativeCardPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
 
         // Stats are now simple integers - no XP system
         // XP granting deleted as part of XP system removal
@@ -375,7 +378,7 @@ public class SocialFacade
         _personalityEnforcer.OnCardPlayed(selectedCard);
 
         // 9. Handle Card Persistence (Standard/Echo/Persistent/Banish)
-        ProcessCardAfterPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
+        _resourceCalculator.ProcessCardAfterPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
 
         // 9b. Increment Statement counter if this is a Statement card
         if (selectedCard.SocialCardTemplate.Persistence == PersistenceType.Statement
@@ -385,7 +388,7 @@ public class SocialFacade
         }
 
         // 10. Update card playability based on new Initiative level
-        UpdateCardPlayabilityForInitiative(_gameWorld.CurrentSocialSession);
+        _resourceCalculator.UpdateCardPlayabilityForInitiative(_gameWorld.CurrentSocialSession);
 
         // Generate NPC response through narrative service
         List<CardInstance> activeCards = _gameWorld.CurrentSocialSession.Deck.HandCards.ToList();
@@ -487,7 +490,7 @@ public class SocialFacade
             return false;
 
         // Check Initiative availability - THIS IS CRITICAL FOR ALL CARDS
-        int cardInitiative = GetCardInitiativeCost(card);
+        int cardInitiative = _resourceCalculator.GetCardInitiativeCost(card);
         int availableInitiative = session.GetCurrentInitiative();
         bool canAfford = session.CanAffordCard(cardInitiative);
 
@@ -529,325 +532,13 @@ public class SocialFacade
             return true; // Can deselect
 
         // Check initiative cost against available initiative
-        int currentInitiativeCost = currentSelection.Sum(c => GetCardInitiativeCost(c));
-        int totalInitiativeCost = currentInitiativeCost + GetCardInitiativeCost(card);
+        int currentInitiativeCost = currentSelection.Sum(c => _resourceCalculator.GetCardInitiativeCost(c));
+        int totalInitiativeCost = currentInitiativeCost + _resourceCalculator.GetCardInitiativeCost(card);
 
         return totalInitiativeCost <= _gameWorld.CurrentSocialSession.GetCurrentInitiative();
     }
 
     // AtmosphereManager has been deleted - atmosphere is simplified to always Neutral
-
-    #region 5-Resource System Helper Methods (Understanding + Delivery)
-
-    /// <summary>
-    /// Apply cadence change using DUAL BALANCE SYSTEM
-    /// DUAL BALANCE: Action type (SPEAK = +1) + Card Delivery property
-    /// Standard: +1, Commanding: +2, Measured: +0, Yielding: -1
-    /// Total: SPEAK (+1) + Delivery = combined Cadence change
-    /// </summary>
-    private void ApplyCadenceFromDelivery(CardInstance card, SocialSession session)
-    {
-        // DUAL BALANCE SYSTEM:
-        // 1. Action-based balance (SPEAK action)
-        int actionBalance = +1; // SPEAK action always +1
-
-        // 2. Delivery-based balance (card property)
-        int deliveryBalance = card.SocialCardTemplate.Delivery switch
-        {
-            DeliveryType.Yielding => -1,
-            DeliveryType.Measured => 0,
-            DeliveryType.Standard => +1,
-            DeliveryType.Commanding => +2,
-            _ => +1 // Default to Standard
-        };
-
-        // Combine both balance effects
-        int totalCadenceChange = actionBalance + deliveryBalance;
-
-        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);
-    }
-
-    /// <summary>
-    /// Process Cadence effects on LISTEN action - NEW REFACTORED SYSTEM
-    /// 1. Calculate doubt to clear
-    /// 2. Reset doubt to 0
-    /// 3. Reduce momentum by doubt cleared
-    /// 4. Check and unlock tiers (momentum may have changed)
-    /// 5. Convert positive cadence to doubt
-    /// BEFORE card draw calculation (cadence reduction happens AFTER draw)
-    /// </summary>
-    private void ProcessCadenceEffectsOnListen(SocialSession session)
-    {
-        // NEW REFACTORED LISTEN MECHANICS (Per Spec lines 862-896):
-        // 1. Calculate doubt that will be cleared
-        int doubtCleared = session.CurrentDoubt;
-
-        // 2. Reset doubt to 0 (complete relief)
-        session.CurrentDoubt = 0;
-
-        // 3. Reduce MOMENTUM by amount of doubt cleared (minimum 0)
-        // CRITICAL: Understanding is NOT reduced - it persists through LISTEN
-        session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);// 4. Check tier unlocks (uses Understanding, NOT Momentum)
-                                                                                      // Tiers are based on Understanding thresholds (6/12/18), not Momentum
-                                                                                      // Understanding is NOT reduced during LISTEN, so tiers stay unlocked
-        session.CheckAndUnlockTiers();
-
-        // 5. Convert positive cadence to doubt (CRITICAL: Check for conversation death)
-        if (session.Cadence > 0)
-        {
-            int cadenceToDoubt = session.Cadence;
-            session.CurrentDoubt = Math.Min(session.MaxDoubt, session.CurrentDoubt + cadenceToDoubt);// CRITICAL: If doubt reaches max (10), conversation ends immediately
-                                                                                                     // This is the "cadence trap" - listening while dominating can end the conversation
-            if (session.CurrentDoubt >= session.MaxDoubt)
-            {// Conversation will end - ExecuteListen will detect this in ShouldEnd() check
-            }
-        }
-
-        // 6. Cadence reduction by -1 happens AFTER draw calculation (NOT here)
-        // This is handled in ReduceCadenceAfterDraw() method called after ExecuteNewListenCardDraw
-    }
-
-    /// <summary>
-    /// Apply LISTEN action-type balance AFTER card draw (step 7 of LISTEN sequence)
-    /// DUAL BALANCE: LISTEN action = -2 cadence (action-type balance, no card played so no Delivery)
-    /// </summary>
-    private void ReduceCadenceAfterDraw(SocialSession session)
-    {
-        // DUAL BALANCE SYSTEM: LISTEN action contributes -2 to Cadence
-        session.Cadence = Math.Max(-10, session.Cadence - 2);
-    }
-
-    /// <summary>
-    /// Handle card persistence after playing
-    /// Standard: Goes to Spoken pile
-    /// Echo: Returns to hand if conditions met
-    /// Persistent: Stays in hand
-    /// Banish: Removed entirely
-    /// </summary>
-    private void ProcessCardPersistence(SocialSession session)
-    {
-        // Handle cards that need persistence processing
-        // This is handled by the deck system based on card persistence types
-        session.Deck.ProcessCardPersistence();
-    }
-
-    /// <summary>
-    /// Check if situation cards should become active based on momentum thresholds
-    /// Basic: 8, Enhanced: 12, Premium: 16
-    /// </summary>
-    private void CheckSituationCardActivation(SocialSession session)
-    {
-        int currentMomentum = session.CurrentMomentum;
-
-        // Move request cards that meet momentum threshold from request pile to hand
-        List<CardInstance> activatedCards = session.Deck.CheckRequestThresholds(currentMomentum);
-
-        foreach (CardInstance card in activatedCards)
-        {
-            _messageSystem.AddSystemMessage(
-                $"{card.SocialCardTemplate.Title} is now available (Momentum threshold met)",
-                SystemMessageTypes.Success);
-        }
-    }
-
-    /// <summary>
-    /// Execute card draw with tier-based filtering
-    /// </summary>
-    private List<CardInstance> ExecuteNewListenCardDraw(SocialSession session, int cardsToDraw)
-    {
-        // Draw with tier and stat filtering
-        Player player = _gameWorld.GetPlayer();
-        session.Deck.DrawToHand(cardsToDraw, session, player);
-
-        // Return the newly drawn cards (last N cards in hand)
-        return session.Deck.HandCards.TakeLast(cardsToDraw).ToList();
-    }
-
-    /// <summary>
-    /// Update card playability based on Initiative system and Statement requirements
-    /// </summary>
-    private void UpdateCardPlayabilityForInitiative(SocialSession session)
-    {
-        int currentInitiative = session.CurrentInitiative;
-
-        foreach (CardInstance card in session.Deck.HandCards)
-        {
-            // Skip request cards - their playability is based on momentum thresholds
-            if (card.CardType == CardTypes.Situation)
-            {
-                continue;
-            }
-
-            // Check if player can afford this card's Initiative cost
-            int initiativeCost = GetCardInitiativeCost(card);
-            bool canAffordInitiative = currentInitiative >= initiativeCost;
-
-            // Check if Statement requirements are met
-            bool meetsStatementRequirements = card.SocialCardTemplate.MeetsStatementRequirements(session);
-
-            // Card is playable if BOTH conditions are met
-            card.IsPlayable = canAffordInitiative && meetsStatementRequirements;
-        }
-    }
-
-    /// <summary>
-    /// Get Initiative cost for a card (replaces Focus cost)
-    /// FAIL FAST: Situation cards have no SocialCardTemplate (cost is 0), regular cards MUST have template
-    /// </summary>
-    private int GetCardInitiativeCost(CardInstance card)
-    {
-        // Situation cards have no SocialCardTemplate - their cost is always 0
-        if (card.CardType == CardTypes.Situation)
-            return 0;
-
-        // All non-Situation cards MUST have SocialCardTemplate
-        if (card.SocialCardTemplate == null)
-            throw new InvalidOperationException($"Card {card.InstanceId} is missing required SocialCardTemplate");
-
-        return card.SocialCardTemplate.InitiativeCost;
-    }
-
-    /// <summary>
-    /// Validate personality rules for Initiative system
-    /// Proud: Ascending Initiative order (not Focus)
-    /// Mercantile: Highest Initiative card gets +30% success
-    /// TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
-    /// </summary>
-    private bool ValidateInitiativePersonalityRules(CardInstance selectedCard, out string violationMessage)
-    {
-        violationMessage = string.Empty;
-
-        // Use existing personality enforcer but it will need updating for Initiative
-        return _personalityEnforcer.ValidatePlay(selectedCard, out violationMessage);
-    }
-
-    /// <summary>
-    /// Calculate card success with Initiative system
-    /// Base% + (2% × Current Momentum) + (10% × Bound Stat Level)
-    /// </summary>
-    private bool CalculateInitiativeCardSuccess(CardInstance selectedCard, SocialSession session)
-    {
-        // Use existing deterministic success calculation for now
-        // This handles momentum and stat bonuses correctly
-        return _effectResolver.CheckCardSuccess(selectedCard, session);
-    }
-
-    /// <summary>
-    /// Process card play results with Initiative system
-    /// PROJECTION PRINCIPLE: Get projection from resolver, then apply to session
-    /// </summary>
-    private CardPlayResult ProcessInitiativeCardPlay(CardInstance selectedCard, bool success, SocialSession session)
-    {
-        if (success)
-        {
-            // Get projection from resolver (single source of truth)
-            CardEffectResult projection = _effectResolver.ProcessSuccessEffect(selectedCard, session);
-
-            // Apply projection to session state
-            ApplyProjectionToSession(projection, session);
-        }
-
-        // Check if card ends conversation (Request, Promise, Burden cards)
-        bool endsConversation = selectedCard.CardType == CardTypes.Situation;
-
-        // Create play result
-        return new CardPlayResult
-        {
-            Results = new List<SingleCardResult>
-        {
-            new SingleCardResult
-            {
-                Card = selectedCard,
-                Success = success,
-                Flow = 0, // No flow
-                Roll = 0, // Deterministic system
-                SuccessChance = success ? 100 : 0
-            }
-        },
-            MomentumGenerated = 0, // No flow
-            EndsConversation = endsConversation // Request cards end conversation
-        };
-    }
-
-    /// <summary>
-    /// Apply a projection result to actual session state
-    /// PROJECTION PRINCIPLE: This is the ONLY place where projections become reality
-    /// </summary>
-    private void ApplyProjectionToSession(CardEffectResult projection, SocialSession session)
-    {
-        // Apply Initiative changes
-        if (projection.InitiativeChange != 0)
-        {
-            session.AddInitiative(projection.InitiativeChange);
-        }
-
-        // Apply Momentum changes (NO TIER UNLOCKS - that's Understanding's job)
-        if (projection.MomentumChange != 0)
-        {
-            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);
-        }
-
-        // Apply Understanding changes (TRIGGERS TIER UNLOCKS)
-        if (projection.UnderstandingChange != 0)
-        {
-            session.AddUnderstanding(projection.UnderstandingChange);// Tier unlocks happen inside AddUnderstanding via CheckAndUnlockTiers()
-        }
-
-        // Apply Doubt changes
-        if (projection.DoubtChange > 0)
-        {
-            session.AddDoubt(projection.DoubtChange);
-        }
-        else if (projection.DoubtChange < 0)
-        {
-            session.ReduceDoubt(-projection.DoubtChange);
-        }
-
-        // Apply Cadence changes
-        if (projection.CadenceChange != 0)
-        {
-            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);
-        }
-
-        // Apply card draw
-        if (projection.CardsToDraw > 0)
-        {
-            Player player = _gameWorld.GetPlayer();
-            session.Deck.DrawToHand(projection.CardsToDraw, session, player);
-        }
-
-        // Add any specific card instances (legacy support)
-        if (projection.CardsToAdd != null && projection.CardsToAdd.Any())
-        {
-            session.Deck.AddCardsToMind(projection.CardsToAdd);
-        }
-    }
-
-    /// <summary>
-    /// Process card after playing based on persistence type
-    /// </summary>
-    private void ProcessCardAfterPlay(CardInstance selectedCard, bool success, SocialSession session)
-    {
-        // Handle card based on its persistence type
-        session.Deck.PlayCard(selectedCard);
-    }
-
-    /// <summary>
-    /// Calculate XP amount based on conversation difficulty
-    /// </summary>
-    private int CalculateXPAmount(SocialSession session)
-    {
-        if (session.IsStrangerConversation && session.StrangerLevel.HasValue)
-        {
-            return session.StrangerLevel.Value; // 1-3x XP
-        }
-        else if (session.NPC != null)
-        {
-            return session.NPC.ConversationDifficulty; // 1-3x XP
-        }
-
-        return 1; // Base XP
-    }
 
     /// <summary>
     /// Add turn to conversation history
@@ -865,8 +556,6 @@ public class SocialFacade
         };
         _gameWorld.CurrentSocialSession.TurnHistory.Add(turn);
     }
-
-    #endregion
 
     #region Private Methods - Absorbed from ConversationOrchestrator
 
@@ -1093,7 +782,7 @@ public class SocialFacade
             }
 
             // Calculate effective Initiative cost for this card
-            int effectiveInitiativeCost = GetCardInitiativeCost(card);
+            int effectiveInitiativeCost = _resourceCalculator.GetCardInitiativeCost(card);
 
             // Check if we can afford this card
             bool canAfford = session.CanAffordCard(effectiveInitiativeCost);
