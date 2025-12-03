@@ -155,45 +155,41 @@ public class PriceManager
     /// <summary>
     /// Calculate supply-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
+    /// DDR-007: Tier-based lookup replaces percentage calculations
     /// </summary>
     private int CalculateSupplyAdjustment(Item item, Location location)
     {
         int supplyPercent = _marketStateTracker.GetSupplyLevel(item, location);
 
         // Low supply = higher prices, high supply = lower prices
-        // Supply 0% = +12 coins, Supply 50% = +6 coins, Supply 100% = 0 coins, Supply 200% = -6 coins
-        if (supplyPercent < 100)
-        {
-            // Linear interpolation: 0% = +12, 100% = 0
-            return (100 - supplyPercent) * 12 / 100;
-        }
-        else
-        {
-            // Linear interpolation: 100% = 0, 200% = -6
-            return Math.Max(-6, -(supplyPercent - 100) * 6 / 100);
-        }
+        // DDR-007: Tier-based lookup (no percentage math)
+        if (supplyPercent < 10) return 12;       // Severe shortage: +12 coins
+        else if (supplyPercent < 30) return 9;   // Low supply: +9 coins
+        else if (supplyPercent < 60) return 6;   // Below normal: +6 coins
+        else if (supplyPercent < 90) return 3;   // Slightly low: +3 coins
+        else if (supplyPercent <= 110) return 0; // Normal: no adjustment
+        else if (supplyPercent < 150) return -3; // Slight surplus: -3 coins
+        else return -6;                          // Major surplus: -6 coins
     }
 
     /// <summary>
     /// Calculate demand-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
+    /// DDR-007: Tier-based lookup replaces percentage calculations
     /// </summary>
     private int CalculateDemandAdjustment(Item item, Location location)
     {
         int demandPercent = _marketStateTracker.GetDemandLevel(item, location);
 
         // High demand = higher prices, low demand = lower prices
-        // Demand 0% = -6 coins, Demand 50% = -3 coins, Demand 100% = 0 coins, Demand 200% = +4 coins
-        if (demandPercent < 100)
-        {
-            // Linear interpolation: 0% = -6, 100% = 0
-            return -(100 - demandPercent) * 6 / 100;
-        }
-        else
-        {
-            // Linear interpolation: 100% = 0, 200% = +4
-            return Math.Min(4, (demandPercent - 100) * 4 / 100);
-        }
+        // DDR-007: Tier-based lookup (no percentage math)
+        if (demandPercent < 10) return -6;       // No demand: -6 coins
+        else if (demandPercent < 30) return -4;  // Very low demand: -4 coins
+        else if (demandPercent < 60) return -3;  // Low demand: -3 coins
+        else if (demandPercent < 90) return -1;  // Below normal: -1 coin
+        else if (demandPercent <= 110) return 0; // Normal: no adjustment
+        else if (demandPercent < 150) return 2;  // High demand: +2 coins
+        else return 4;                           // Very high demand: +4 coins
     }
 
     /// <summary>
