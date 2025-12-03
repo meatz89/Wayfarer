@@ -370,9 +370,23 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Load a dynamic package from JSON string (e.g., scene-generated content)
-    /// Returns PackageLoadResult with direct object references to all created entities
-    /// HIGHLANDER: Callers use object references directly, not string-based lookups
+    /// Load a dynamic package from JSON string for TEMPLATE loading only.
+    ///
+    /// IMPORTANT DISTINCTION (HIGHLANDER):
+    /// - This method loads TEMPLATES (SceneTemplate, SituationTemplate) from procedurally-generated JSON
+    /// - For SCENE INSTANCES, use CreateSingleScene(SceneDTO) instead
+    ///
+    /// Used by:
+    /// - ProceduralAStoryService.GenerateNextATemplate() - generates SceneTemplateDTO, loads as template
+    /// - ContentGenerationFacade - procedural content template loading
+    ///
+    /// NOT used for:
+    /// - Scene instance creation (use CreateSingleScene)
+    /// - NPC/Location instance creation (use CreateSingleNpc/CreateSingleLocation)
+    ///
+    /// This method exists because procedural templates require the full Parser pipeline
+    /// (JSON → DTO → Parser → Entity) to resolve categorical properties via Catalogues.
+    /// Templates are immutable archetypes, not game state.
     /// </summary>
     public async Task<PackageLoadResult> LoadDynamicPackageFromJson(string json, string packageId)
     {
