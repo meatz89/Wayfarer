@@ -199,21 +199,45 @@ public class MarketFacade
     // ========== MARKET STATE TRACKING ==========
 
     /// <summary>
-    /// Get supply level for an item at a location
+    /// Get supply tier for an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
+    /// DDR-007: Returns tier enum, not percentage
     /// </summary>
-    public int GetSupplyLevel(Item item, Location location)
+    public MarketStateTracker.SupplyTier GetSupplyTier(Item item, Location location)
     {
-        return _marketStateTracker.GetSupplyLevel(item, location);
+        return _marketStateTracker.GetSupplyTier(item, location);
     }
 
     /// <summary>
-    /// Get demand level for an item at a location
+    /// Get supply adjustment (flat coins) for an item at a location
     /// HIGHLANDER: Accept typed Item and Location objects
+    /// DDR-007: Returns flat coin adjustment from tier
     /// </summary>
-    public int GetDemandLevel(Item item, Location location)
+    public int GetSupplyAdjustment(Item item, Location location)
     {
-        return _marketStateTracker.GetDemandLevel(item, location);
+        MarketStateTracker.SupplyTier tier = _marketStateTracker.GetSupplyTier(item, location);
+        return MarketStateTracker.GetSupplyAdjustment(tier);
+    }
+
+    /// <summary>
+    /// Get demand tier for an item at a location
+    /// HIGHLANDER: Accept typed Item and Location objects
+    /// DDR-007: Returns tier enum, not percentage
+    /// </summary>
+    public MarketStateTracker.DemandTier GetDemandTier(Item item, Location location)
+    {
+        return _marketStateTracker.GetDemandTier(item, location);
+    }
+
+    /// <summary>
+    /// Get demand adjustment (flat coins) for an item at a location
+    /// HIGHLANDER: Accept typed Item and Location objects
+    /// DDR-007: Returns flat coin adjustment from tier
+    /// </summary>
+    public int GetDemandAdjustment(Item item, Location location)
+    {
+        MarketStateTracker.DemandTier tier = _marketStateTracker.GetDemandTier(item, location);
+        return MarketStateTracker.GetDemandAdjustment(tier);
     }
 
     /// <summary>

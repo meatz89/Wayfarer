@@ -155,41 +155,23 @@ public class PriceManager
     /// <summary>
     /// Calculate supply-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
-    /// DDR-007: Tier-based lookup replaces percentage calculations
+    /// DDR-007: Delegates to MarketStateTracker tier-based system
     /// </summary>
     private int CalculateSupplyAdjustment(Item item, Location location)
     {
-        int supplyPercent = _marketStateTracker.GetSupplyLevel(item, location);
-
-        // Low supply = higher prices, high supply = lower prices
-        // DDR-007: Tier-based lookup (no percentage math)
-        if (supplyPercent < 10) return 12;       // Severe shortage: +12 coins
-        else if (supplyPercent < 30) return 9;   // Low supply: +9 coins
-        else if (supplyPercent < 60) return 6;   // Below normal: +6 coins
-        else if (supplyPercent < 90) return 3;   // Slightly low: +3 coins
-        else if (supplyPercent <= 110) return 0; // Normal: no adjustment
-        else if (supplyPercent < 150) return -3; // Slight surplus: -3 coins
-        else return -6;                          // Major surplus: -6 coins
+        MarketStateTracker.SupplyTier tier = _marketStateTracker.GetSupplyTier(item, location);
+        return MarketStateTracker.GetSupplyAdjustment(tier);
     }
 
     /// <summary>
     /// Calculate demand-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
-    /// DDR-007: Tier-based lookup replaces percentage calculations
+    /// DDR-007: Delegates to MarketStateTracker tier-based system
     /// </summary>
     private int CalculateDemandAdjustment(Item item, Location location)
     {
-        int demandPercent = _marketStateTracker.GetDemandLevel(item, location);
-
-        // High demand = higher prices, low demand = lower prices
-        // DDR-007: Tier-based lookup (no percentage math)
-        if (demandPercent < 10) return -6;       // No demand: -6 coins
-        else if (demandPercent < 30) return -4;  // Very low demand: -4 coins
-        else if (demandPercent < 60) return -3;  // Low demand: -3 coins
-        else if (demandPercent < 90) return -1;  // Below normal: -1 coin
-        else if (demandPercent <= 110) return 0; // Normal: no adjustment
-        else if (demandPercent < 150) return 2;  // High demand: +2 coins
-        else return 4;                           // Very high demand: +4 coins
+        MarketStateTracker.DemandTier tier = _marketStateTracker.GetDemandTier(item, location);
+        return MarketStateTracker.GetDemandAdjustment(tier);
     }
 
     /// <summary>
@@ -414,16 +396,9 @@ public class PriceManager
         {
             case "festival":
                 // Hunger and luxury items more expensive during festivals
-                // This would update the market state tracker's demand levels
-                List<Item> items = _itemRepository.GetAllItems();
-                foreach (Item item in items.Where(i =>
-                    i.Categories.Contains(ItemCategory.Hunger) ||
-                    i.Categories.Contains(ItemCategory.Luxury_Items)))
-                {
-                    // Increase demand during festival
-                    int currentDemand = _marketStateTracker.GetDemandLevel(item, location);
-                    // Note: Would need to add SetDemandLevel method to MarketStateTracker
-                }
+                // DDR-007: Event pricing would need SetDemandTier method on MarketStateTracker
+                // Note: This is placeholder logic - actual implementation would shift demand tiers
+                // for food and luxury items toward VeryHighPlus4
                 break;
 
             case "shortage":

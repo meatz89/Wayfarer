@@ -1,6 +1,7 @@
 /// <summary>
 /// Tracks market conditions, inventory levels, and trade history
 /// to provide insights into supply, demand, and market dynamics.
+/// DDR-007: Uses tier-based enums instead of percentages
 /// </summary>
 public class MarketStateTracker
 {
@@ -16,6 +17,36 @@ public class MarketStateTracker
     // Maximum trade history to keep
     private const int MAX_TRADE_HISTORY = 100;
 
+    /// <summary>
+    /// DDR-007: Discrete supply tiers with explicit price adjustments
+    /// Replaces percentage-based supply levels
+    /// </summary>
+    public enum SupplyTier
+    {
+        SevereShortagePlus12 = 0,  // +12 coins - critical shortage
+        LowSupplyPlus9 = 1,        // +9 coins - supply issues
+        BelowNormalPlus6 = 2,      // +6 coins - below normal
+        SlightlyLowPlus3 = 3,      // +3 coins - slightly constrained
+        Normal = 4,                 // 0 coins - baseline
+        SlightSurplusMinus3 = 5,   // -3 coins - minor oversupply
+        MajorSurplusMinus6 = 6     // -6 coins - significant oversupply
+    }
+
+    /// <summary>
+    /// DDR-007: Discrete demand tiers with explicit price adjustments
+    /// Replaces percentage-based demand levels
+    /// </summary>
+    public enum DemandTier
+    {
+        NoDemandMinus6 = 0,        // -6 coins - nobody wants this
+        VeryLowMinus4 = 1,         // -4 coins - very few buyers
+        LowDemandMinus3 = 2,       // -3 coins - below average interest
+        BelowNormalMinus1 = 3,     // -1 coin - slightly slow
+        Normal = 4,                 // 0 coins - baseline
+        HighDemandPlus2 = 5,       // +2 coins - strong interest
+        VeryHighPlus4 = 6          // +4 coins - everyone wants this
+    }
+
     public MarketStateTracker(GameWorld gameWorld, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
@@ -27,13 +58,14 @@ public class MarketStateTracker
     /// <summary>
     /// Represents supply and demand metrics for an item at a location
     /// HIGHLANDER: Object references, no string IDs
+    /// DDR-007: Tier-based enums instead of percentage integers
     /// </summary>
     public class MarketMetrics
     {
         public Venue Venue { get; set; }
         public Item Item { get; set; }
-        public int SupplyLevel { get; set; } = 100; // 50 = scarce, 100 = normal, 200 = abundant (percentage)
-        public int DemandLevel { get; set; } = 100; // 50 = low demand, 100 = normal, 200 = high demand (percentage)
+        public SupplyTier Supply { get; set; } = SupplyTier.Normal;
+        public DemandTier Demand { get; set; } = DemandTier.Normal;
         public int RecentPurchases { get; set; }
         public int RecentSales { get; set; }
         public DateTime LastTradeTime { get; set; }
@@ -64,80 +96,193 @@ public class MarketStateTracker
     /// <summary>
     /// Market conditions summary for a location
     /// HIGHLANDER: Object references, no string IDs
+    /// DDR-007: Tier counts instead of percentage indices
     /// </summary>
     public class MarketConditions
     {
         public Venue Venue { get; set; }
         public int TotalItems { get; set; }
-        public int ScarcityItems { get; set; } // Items with low supply
-        public int AbundantItems { get; set; } // Items with high supply
-        public int HighDemandItems { get; set; }
-        public int LowDemandItems { get; set; }
+        public int ScarcityItems { get; set; } // Items with supply tier below Normal
+        public int AbundantItems { get; set; } // Items with supply tier above Normal
+        public int HighDemandItems { get; set; } // Items with demand tier above Normal
+        public int LowDemandItems { get; set; } // Items with demand tier below Normal
         public List<Item> TrendingItems { get; set; } = new List<Item>(); // Recently traded items
-        public int OverallSupplyIndex { get; set; } // Average supply level (percentage)
-        public int OverallDemandIndex { get; set; } // Average demand level (percentage)
+        public SupplyTier OverallSupply { get; set; } = SupplyTier.Normal; // DDR-007: Tier-based
+        public DemandTier OverallDemand { get; set; } = DemandTier.Normal; // DDR-007: Tier-based
     }
 
     // ========== SUPPLY & DEMAND TRACKING ==========
 
     /// <summary>
-    /// Get supply level for an item at a venue (returns percentage: 100 = normal)
+    /// Get supply tier for an item at a venue
     /// HIGHLANDER: Accept typed objects, use object references
+    /// DDR-007: Returns tier enum, not percentage
     /// </summary>
-    public int GetSupplyLevel(Item item, Location location)
+    public SupplyTier GetSupplyTier(Item item, Location location)
     {
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
-        return metrics.SupplyLevel;
+        return metrics.Supply;
     }
 
     /// <summary>
-    /// Get demand level for an item at a venue (returns percentage: 100 = normal)
+    /// Get demand tier for an item at a venue
     /// HIGHLANDER: Accept typed objects, use object references
+    /// DDR-007: Returns tier enum, not percentage
     /// </summary>
-    public int GetDemandLevel(Item item, Location location)
+    public DemandTier GetDemandTier(Item item, Location location)
     {
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
-        return metrics.DemandLevel;
+        return metrics.Demand;
     }
 
     /// <summary>
-    /// Update supply level based on market activity
+    /// DDR-007: Convert supply tier to flat coin adjustment
+    /// </summary>
+    public static int GetSupplyAdjustment(SupplyTier tier)
+    {
+        return tier switch
+        {
+            SupplyTier.SevereShortagePlus12 => 12,
+            SupplyTier.LowSupplyPlus9 => 9,
+            SupplyTier.BelowNormalPlus6 => 6,
+            SupplyTier.SlightlyLowPlus3 => 3,
+            SupplyTier.Normal => 0,
+            SupplyTier.SlightSurplusMinus3 => -3,
+            SupplyTier.MajorSurplusMinus6 => -6,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// DDR-007: Convert demand tier to flat coin adjustment
+    /// </summary>
+    public static int GetDemandAdjustment(DemandTier tier)
+    {
+        return tier switch
+        {
+            DemandTier.NoDemandMinus6 => -6,
+            DemandTier.VeryLowMinus4 => -4,
+            DemandTier.LowDemandMinus3 => -3,
+            DemandTier.BelowNormalMinus1 => -1,
+            DemandTier.Normal => 0,
+            DemandTier.HighDemandPlus2 => 2,
+            DemandTier.VeryHighPlus4 => 4,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// Update supply tier based on market activity
     /// HIGHLANDER: Accept object references, no string parameters
+    /// DDR-007: Tier transitions, not percentage math
     /// </summary>
-    private void UpdateSupplyLevel(Venue venue, Item item, TradeType tradeType)
+    private void UpdateSupplyTier(Venue venue, Item item, TradeType tradeType)
     {
         MarketMetrics metrics = GetOrCreateMetrics(venue, item);
 
         if (tradeType == TradeType.Purchase)
         {
-            // Player bought item - supply decreases slightly (by 10 percentage points)
-            metrics.SupplyLevel = Math.Max(30, metrics.SupplyLevel - 10);
+            // Player bought item - supply decreases (shift tier toward shortage)
+            metrics.Supply = ShiftSupplyTierDown(metrics.Supply);
         }
         else if (tradeType == TradeType.Sale)
         {
-            // Player sold item - supply increases slightly (by 10 percentage points)
-            metrics.SupplyLevel = Math.Min(300, metrics.SupplyLevel + 10);
+            // Player sold item - supply increases (shift tier toward surplus)
+            metrics.Supply = ShiftSupplyTierUp(metrics.Supply);
         }
     }
 
     /// <summary>
-    /// Update demand level based on market activity
+    /// Update demand tier based on market activity
     /// HIGHLANDER: Accept object references, no string parameters
+    /// DDR-007: Tier transitions, not percentage math
     /// </summary>
-    private void UpdateDemandLevel(Venue venue, Item item, TradeType tradeType)
+    private void UpdateDemandTier(Venue venue, Item item, TradeType tradeType)
     {
         MarketMetrics metrics = GetOrCreateMetrics(venue, item);
 
         if (tradeType == TradeType.Purchase)
         {
-            // Player bought item - demand increases (others might want it too) (by 5 percentage points)
-            metrics.DemandLevel = Math.Min(300, metrics.DemandLevel + 5);
+            // Player bought item - demand increases (shift tier toward high demand)
+            metrics.Demand = ShiftDemandTierUp(metrics.Demand);
         }
         else if (tradeType == TradeType.Sale)
         {
-            // Player sold item - demand might decrease slightly (by 2 percentage points)
-            metrics.DemandLevel = Math.Max(30, metrics.DemandLevel - 2);
+            // Player sold item - demand might decrease slightly
+            // Only shift down every 2nd sale (slower effect)
+            if (metrics.RecentSales > 0 && metrics.RecentSales % 2 == 0)
+            {
+                metrics.Demand = ShiftDemandTierDown(metrics.Demand);
+            }
         }
+    }
+
+    /// <summary>
+    /// DDR-007: Shift supply tier toward shortage (one step)
+    /// </summary>
+    private static SupplyTier ShiftSupplyTierDown(SupplyTier current)
+    {
+        return current switch
+        {
+            SupplyTier.MajorSurplusMinus6 => SupplyTier.SlightSurplusMinus3,
+            SupplyTier.SlightSurplusMinus3 => SupplyTier.Normal,
+            SupplyTier.Normal => SupplyTier.SlightlyLowPlus3,
+            SupplyTier.SlightlyLowPlus3 => SupplyTier.BelowNormalPlus6,
+            SupplyTier.BelowNormalPlus6 => SupplyTier.LowSupplyPlus9,
+            SupplyTier.LowSupplyPlus9 => SupplyTier.SevereShortagePlus12,
+            _ => current // Already at minimum
+        };
+    }
+
+    /// <summary>
+    /// DDR-007: Shift supply tier toward surplus (one step)
+    /// </summary>
+    private static SupplyTier ShiftSupplyTierUp(SupplyTier current)
+    {
+        return current switch
+        {
+            SupplyTier.SevereShortagePlus12 => SupplyTier.LowSupplyPlus9,
+            SupplyTier.LowSupplyPlus9 => SupplyTier.BelowNormalPlus6,
+            SupplyTier.BelowNormalPlus6 => SupplyTier.SlightlyLowPlus3,
+            SupplyTier.SlightlyLowPlus3 => SupplyTier.Normal,
+            SupplyTier.Normal => SupplyTier.SlightSurplusMinus3,
+            SupplyTier.SlightSurplusMinus3 => SupplyTier.MajorSurplusMinus6,
+            _ => current // Already at maximum
+        };
+    }
+
+    /// <summary>
+    /// DDR-007: Shift demand tier toward high demand (one step)
+    /// </summary>
+    private static DemandTier ShiftDemandTierUp(DemandTier current)
+    {
+        return current switch
+        {
+            DemandTier.NoDemandMinus6 => DemandTier.VeryLowMinus4,
+            DemandTier.VeryLowMinus4 => DemandTier.LowDemandMinus3,
+            DemandTier.LowDemandMinus3 => DemandTier.BelowNormalMinus1,
+            DemandTier.BelowNormalMinus1 => DemandTier.Normal,
+            DemandTier.Normal => DemandTier.HighDemandPlus2,
+            DemandTier.HighDemandPlus2 => DemandTier.VeryHighPlus4,
+            _ => current // Already at maximum
+        };
+    }
+
+    /// <summary>
+    /// DDR-007: Shift demand tier toward low demand (one step)
+    /// </summary>
+    private static DemandTier ShiftDemandTierDown(DemandTier current)
+    {
+        return current switch
+        {
+            DemandTier.VeryHighPlus4 => DemandTier.HighDemandPlus2,
+            DemandTier.HighDemandPlus2 => DemandTier.Normal,
+            DemandTier.Normal => DemandTier.BelowNormalMinus1,
+            DemandTier.BelowNormalMinus1 => DemandTier.LowDemandMinus3,
+            DemandTier.LowDemandMinus3 => DemandTier.VeryLowMinus4,
+            DemandTier.VeryLowMinus4 => DemandTier.NoDemandMinus6,
+            _ => current // Already at minimum
+        };
     }
 
     // ========== TRADE RECORDING ==========
@@ -145,6 +290,7 @@ public class MarketStateTracker
     /// <summary>
     /// Record a purchase transaction
     /// HIGHLANDER: Accept typed objects, pass objects throughout
+    /// DDR-007: Updates tier-based supply/demand
     /// </summary>
     public void RecordPurchase(Item item, Location location, int price)
     {
@@ -159,8 +305,8 @@ public class MarketStateTracker
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(location.Venue, item, TradeType.Purchase);
-        UpdateDemandLevel(location.Venue, item, TradeType.Purchase);
+        UpdateSupplyTier(location.Venue, item, TradeType.Purchase);
+        UpdateDemandTier(location.Venue, item, TradeType.Purchase);
 
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         metrics.RecentPurchases++;
@@ -171,6 +317,7 @@ public class MarketStateTracker
     /// <summary>
     /// Record a sale transaction
     /// HIGHLANDER: Accept typed objects, pass objects throughout
+    /// DDR-007: Updates tier-based supply/demand
     /// </summary>
     public void RecordSale(Item item, Location location, int price)
     {
@@ -185,8 +332,8 @@ public class MarketStateTracker
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(location.Venue, item, TradeType.Sale);
-        UpdateDemandLevel(location.Venue, item, TradeType.Sale);
+        UpdateSupplyTier(location.Venue, item, TradeType.Sale);
+        UpdateDemandTier(location.Venue, item, TradeType.Sale);
 
         MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         metrics.RecentSales++;
@@ -229,6 +376,7 @@ public class MarketStateTracker
     /// <summary>
     /// Get complete market conditions for a venue
     /// HIGHLANDER: Accept typed objects, use object equality
+    /// DDR-007: Tier-based aggregation, no percentages
     /// </summary>
     public MarketConditions GetMarketConditions(Location location)
     {
@@ -246,25 +394,26 @@ public class MarketStateTracker
 
         if (venueMetrics.Count == 0)
         {
-            // Return default conditions if no data
-            conditions.OverallSupplyIndex = 100; // 100%
-            conditions.OverallDemandIndex = 100; // 100%
+            // Return default conditions if no data (Normal tiers by default)
             return conditions;
         }
 
-        int totalSupply = 0;
-        int totalDemand = 0;
+        int supplyScore = 0;
+        int demandScore = 0;
 
         foreach (MarketMetrics metrics in venueMetrics)
         {
             conditions.TotalItems++;
-            totalSupply += metrics.SupplyLevel;
-            totalDemand += metrics.DemandLevel;
 
-            if (metrics.SupplyLevel < 70) conditions.ScarcityItems++;
-            if (metrics.SupplyLevel > 150) conditions.AbundantItems++;
-            if (metrics.DemandLevel > 130) conditions.HighDemandItems++;
-            if (metrics.DemandLevel < 70) conditions.LowDemandItems++;
+            // DDR-007: Use tier comparisons, not numeric thresholds
+            if (metrics.Supply < SupplyTier.Normal) conditions.ScarcityItems++;
+            if (metrics.Supply > SupplyTier.Normal) conditions.AbundantItems++;
+            if (metrics.Demand > DemandTier.Normal) conditions.HighDemandItems++;
+            if (metrics.Demand < DemandTier.Normal) conditions.LowDemandItems++;
+
+            // Accumulate tier ordinals for average calculation
+            supplyScore += (int)metrics.Supply;
+            demandScore += (int)metrics.Demand;
 
             // Items traded in last hour are trending
             if (metrics.LastTradeTime > DateTime.Now.AddHours(-1))
@@ -275,13 +424,16 @@ public class MarketStateTracker
 
         if (conditions.TotalItems > 0)
         {
-            conditions.OverallSupplyIndex = totalSupply / conditions.TotalItems;
-            conditions.OverallDemandIndex = totalDemand / conditions.TotalItems;
-        }
-        else
-        {
-            conditions.OverallSupplyIndex = 100; // 100%
-            conditions.OverallDemandIndex = 100; // 100%
+            // DDR-007: Integer division to get average tier ordinal
+            int avgSupplyOrdinal = supplyScore / conditions.TotalItems;
+            int avgDemandOrdinal = demandScore / conditions.TotalItems;
+
+            // Clamp to valid enum ranges
+            avgSupplyOrdinal = Math.Max(0, Math.Min(6, avgSupplyOrdinal));
+            avgDemandOrdinal = Math.Max(0, Math.Min(6, avgDemandOrdinal));
+
+            conditions.OverallSupply = (SupplyTier)avgSupplyOrdinal;
+            conditions.OverallDemand = (DemandTier)avgDemandOrdinal;
         }
 
         return conditions;
@@ -291,14 +443,18 @@ public class MarketStateTracker
     /// Get items with best profit margins at a venue
     /// HIGHLANDER: Accept typed objects, return objects
     /// HIGHLANDER: topN REQUIRED - caller specifies how many items to return
+    /// DDR-007: Tier-based filtering
     /// </summary>
     public List<Item> GetHighMarginItems(Location location, int topN)
     {
         Venue venue = location.Venue;
 
+        // DDR-007: High margin = high demand tier + low supply tier
         return _marketMetrics
-            .Where(m => m.Venue == venue && m.DemandLevel > 120 && m.SupplyLevel < 80)
-            .OrderByDescending(m => m.DemandLevel / m.SupplyLevel)
+            .Where(m => m.Venue == venue &&
+                        m.Demand >= DemandTier.HighDemandPlus2 &&
+                        m.Supply <= SupplyTier.SlightlyLowPlus3)
+            .OrderByDescending(m => (int)m.Demand - (int)m.Supply)
             .Take(topN)
             .Select(m => m.Item)
             .ToList();
@@ -307,13 +463,17 @@ public class MarketStateTracker
     /// <summary>
     /// Get items that are oversupplied at a venue
     /// HIGHLANDER: Accept typed objects, return objects
+    /// DDR-007: Tier-based filtering
     /// </summary>
     public List<Item> GetOversuppliedItems(Location location)
     {
         Venue venue = location.Venue;
 
+        // DDR-007: Oversupplied = supply surplus tier + normal or below demand
         return _marketMetrics
-            .Where(m => m.Venue == venue && m.SupplyLevel > 150 && m.DemandLevel < 100)
+            .Where(m => m.Venue == venue &&
+                        m.Supply >= SupplyTier.SlightSurplusMinus3 &&
+                        m.Demand <= DemandTier.Normal)
             .Select(m => m.Item)
             .ToList();
     }
@@ -421,23 +581,24 @@ public class MarketStateTracker
 
     /// <summary>
     /// Simulate market evolution over time (called periodically)
+    /// DDR-007: Tier-based normalization toward Normal
     /// </summary>
     public void SimulateMarketEvolution()
     {
-        // Gradually normalize supply and demand levels toward 100%
+        // Gradually normalize supply and demand tiers toward Normal
         foreach (MarketMetrics metrics in _marketMetrics)
         {
-            // Supply trends toward normal (100%)
-            if (metrics.SupplyLevel > 100)
-                metrics.SupplyLevel = Math.Max(100, metrics.SupplyLevel - 2); // Decrease by 2 percentage points
-            else if (metrics.SupplyLevel < 100)
-                metrics.SupplyLevel = Math.Min(100, metrics.SupplyLevel + 2); // Increase by 2 percentage points
+            // Supply trends toward Normal (one step)
+            if (metrics.Supply > SupplyTier.Normal)
+                metrics.Supply = ShiftSupplyTierDown(metrics.Supply);
+            else if (metrics.Supply < SupplyTier.Normal)
+                metrics.Supply = ShiftSupplyTierUp(metrics.Supply);
 
-            // Demand trends toward normal (100%)
-            if (metrics.DemandLevel > 100)
-                metrics.DemandLevel = Math.Max(100, metrics.DemandLevel - 1); // Decrease by 1 percentage point
-            else if (metrics.DemandLevel < 100)
-                metrics.DemandLevel = Math.Min(100, metrics.DemandLevel + 1); // Increase by 1 percentage point
+            // Demand trends toward Normal (one step)
+            if (metrics.Demand > DemandTier.Normal)
+                metrics.Demand = ShiftDemandTierDown(metrics.Demand);
+            else if (metrics.Demand < DemandTier.Normal)
+                metrics.Demand = ShiftDemandTierUp(metrics.Demand);
         }
     }
 }
