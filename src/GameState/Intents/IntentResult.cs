@@ -30,9 +30,10 @@ public class IntentResult
     public bool RequiresLocationRefresh { get; set; }
 
     /// <summary>
-    /// Create result for successful execution with optional refresh
+    /// Create result for successful execution
+    /// HIGHLANDER: requiresRefresh required - caller specifies refresh behavior
     /// </summary>
-    public static IntentResult Executed(bool requiresRefresh = true)
+    public static IntentResult Executed(bool requiresRefresh)
     {
         return new IntentResult
         {

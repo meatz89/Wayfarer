@@ -27,9 +27,11 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 // Register IConfiguration for dependency injection
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
-// Initialize GameWorld via static factory - no DI dependencies
-GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-builder.Services.AddSingleton(gameWorld);
+// Initialize GameWorld and TimeManager via static factory - no DI dependencies
+// These objects have state and primitive constructor parameters, so they cannot be DI-resolved
+GameInitializationResult initResult = GameWorldInitializer.CreateInitializationResult();
+builder.Services.AddSingleton(initResult.GameWorld);
+builder.Services.AddSingleton(initResult.TimeManager);
 
 builder.Services.ConfigureServices();
 
@@ -46,10 +48,6 @@ builder.Host.UseSerilog();
 
 WebApplication app = builder.Build();
 
-// Inject ProceduralContentTracer into GameWorld after services are built
-ProceduralContentTracer tracer = app.Services.GetRequiredService<ProceduralContentTracer>();
-gameWorld.ProceduralTracer = tracer;
-
 // Test Ollama connection on startup
 try
 {
@@ -59,7 +57,7 @@ try
         OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
         if (ollamaClient != null)
         {
-            bool isAvailable = await ollamaClient.CheckHealthAsync();
+            bool isAvailable = await ollamaClient.CheckHealthAsync(CancellationToken.None);
         }
     }
 }

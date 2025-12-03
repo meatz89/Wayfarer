@@ -120,8 +120,7 @@ public class ConnectionTokenManager
         {
             _messageSystem.AddSystemMessage(
                 $"Not enough {type} tokens. Need {amount}, have {totalAvailable}.",
-                SystemMessageTypes.Warning
-            );
+                SystemMessageTypes.Warning, null);
             return false;
         }
 
@@ -150,8 +149,7 @@ public class ConnectionTokenManager
             {
                 _messageSystem.AddSystemMessage(
                     $"Called in {toSpend} {type} favor{(toSpend > 1 ? "s" : "")} with {npc.Name}",
-                    SystemMessageTypes.Info
-                );
+                    SystemMessageTypes.Info, null);
             }
         }
 

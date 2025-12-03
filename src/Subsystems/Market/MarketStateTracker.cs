@@ -290,8 +290,9 @@ public class MarketStateTracker
     /// <summary>
     /// Get items with best profit margins at a venue
     /// HIGHLANDER: Accept typed objects, return objects
+    /// HIGHLANDER: topN REQUIRED - caller specifies how many items to return
     /// </summary>
-    public List<Item> GetHighMarginItems(Location location, int topN = 5)
+    public List<Item> GetHighMarginItems(Location location, int topN)
     {
         Venue venue = location.Venue;
 
@@ -348,8 +349,9 @@ public class MarketStateTracker
 
     /// <summary>
     /// Get recent trades (last N trades)
+    /// HIGHLANDER: count REQUIRED - caller specifies how many trades to return
     /// </summary>
-    public List<TradeRecord> GetRecentTrades(int count = 10)
+    public List<TradeRecord> GetRecentTrades(int count)
     {
         return _tradeHistory
             .OrderByDescending(t => t.Timestamp)

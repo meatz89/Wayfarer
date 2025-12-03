@@ -56,7 +56,7 @@ public class TimeProgressionManager
         {
             // Get narrative description
             string narrative = calculator.GetWaitingNarrative(targetTime);
-            _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info, null);
 
             // Advance time
             AdvanceSegments(segmentsToWait);

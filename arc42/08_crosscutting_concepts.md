@@ -71,15 +71,99 @@ Domain entities have no instance IDs. Relationships use direct object references
 
 ## 8.4 Three-Tier Timing Model
 
-Content instantiates lazily across three timing tiers to minimize memory usage.
+Content instantiates lazily across three timing tiers. Scene and Situation creation follows a UNIFIED path for both authored and procedural content.
 
-| Tier | When | Content Type | Mutability |
-|------|------|--------------|------------|
-| **Templates** | Parse-time | Archetypes and patterns | Immutable |
-| **Instances** | Spawn-time | Active game entities | Mutable |
-| **Actions** | Query-time | Player options | Ephemeral |
+### Overview
 
-**Consequence:** Memory contains only currently accessible content. Actions materialize when needed and disappear after execution.
+| Tier | When | What Exists | What Does NOT Exist |
+|------|------|-------------|---------------------|
+| **Parse-time** | Game initialization | SceneTemplates, SituationTemplates | Scene instances, Situation instances |
+| **Spawn-time** | Game start or choice reward | Scene instance (Deferred state) | Situation instances |
+| **Activation-time** | Player enters location | Situation instances, resolved entities | N/A - fully materialized |
+| **Query-time** | UI requests options | Ephemeral actions | N/A - regenerated each query |
+
+### Scene Instantiation Pipeline (UNIFIED PATH)
+
+**Critical principle:** There is NO difference between authored and procedural scene creation. Both use the same mechanism: SceneTemplate + Context → Scene Instance.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           PARSE-TIME (GameWorldInitializer)                      │
+│                                                                                  │
+│   JSON files ──► PackageLoader ──► SceneTemplates (with SituationTemplates)     │
+│                                                                                  │
+│   • SceneTemplates stored in GameWorld.SceneTemplates                           │
+│   • Each template has: Id, SituationTemplates[], IsStarter, MainStorySequence   │
+│   • NO Scene instances created                                                   │
+│   • NO Situation instances created                                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                    ┌───────────────────┴───────────────────┐
+                    ▼                                       ▼
+┌───────────────────────────────────┐   ┌───────────────────────────────────────────┐
+│     STARTER SCENE (Game Start)    │   │     CHAIN SCENES (Choice Rewards)         │
+│                                   │   │                                           │
+│  SpawnStarterScenes()             │   │  SceneSpawnReward on final choices        │
+│  • Finds IsStarter=true templates │   │  • SpawnNextMainStoryScene=true           │
+│  • ONE scene only (A1)            │   │  • Sequence lookup: GetNextMainStoryTemplate()
+│                                   │   │  • Authored (1-10) or Procedural (11+)    │
+└───────────────────────────────────┘   └───────────────────────────────────────────┘
+                    │                                       │
+                    └───────────────────┬───────────────────┘
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           SPAWN-TIME (After DI Available)                        │
+│                                                                                  │
+│   SceneInstantiator.CreateDeferredScene(template, context)                      │
+│                                                                                  │
+│   • Scene instance created with State = Deferred                                │
+│   • Situations list = EMPTY (no instances yet)                                  │
+│   • LocationActivationFilter stored (trigger condition)                         │
+│   • Template reference stored (for later SituationTemplate access)              │
+│   • Scene added to GameWorld.Scenes                                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      ACTIVATION-TIME (Player Enters Location)                    │
+│                                                                                  │
+│   SceneInstantiator.ActivateScene(scene, context)                               │
+│                                                                                  │
+│   For each SituationTemplate in scene.Template.SituationTemplates:              │
+│     1. Create Situation instance                                                │
+│     2. Resolve Location (find-or-create from PlacementFilter)                   │
+│     3. Resolve NPC (find-or-create from PlacementFilter)                        │
+│     4. Resolve Route (find-only, fail-fast if not found)                        │
+│     5. Add Situation to scene.Situations                                        │
+│                                                                                  │
+│   Scene.State transitions: Deferred → Active                                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### A-Story Chain Mechanism
+
+Main story scenes chain via SceneSpawnReward on the final situation's choices:
+
+| Scene | Trigger | Next Scene Lookup |
+|-------|---------|-------------------|
+| **A1** (InnLodging) | SpawnStarterScenes (IsStarter=true) | N/A - first scene |
+| **A2-A10** (Authored) | SceneSpawnReward on A(n-1) final choice | GetNextMainStoryTemplate(n) |
+| **A11+** (Procedural) | SceneSpawnReward on A(n-1) final choice | Procedural generation fallback |
+
+**Enrichment:** `SceneTemplateParser.EnrichMainStoryFinalChoices()` adds `SceneSpawnReward { SpawnNextMainStoryScene = true }` to every choice in the final situation of MainStory scenes at parse-time.
+
+**Sequence lookup:** `GetNextMainStoryTemplate(currentSequence)` returns the template where `MainStorySequence == currentSequence + 1`. If none found, procedural generation creates the next template.
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| Scene instances in JSON | Bypasses spawn-time, creates parse-time instances |
+| Situation instances at parse-time | Entities cannot be resolved before DI available |
+| Multiple paths for scene creation | Violates HIGHLANDER - one mechanism for all scenes |
+| Direct SceneParser calls for authored content | Must go through spawn-time pipeline |
+
+**Consequence:** Memory contains only currently accessible content. All scenes follow the same Template → Deferred → Active lifecycle regardless of source.
 
 ---
 
@@ -263,50 +347,91 @@ Filters specify WHERE entities should be found or created, using proximity and i
 
 ## 8.13 Template vs Instance Lifecycle
 
-Content instantiates lazily across phases to separate immutable patterns from mutable state.
+Templates are immutable archetypes. Instances are mutable game state. They exist at different times and serve different purposes.
 
-```mermaid
-stateDiagram-v2
-    [*] --> ParseTime: JSON Loaded
-    ParseTime --> Deferred: Spawn Triggered
-    Deferred --> Active: Context Ready
-    Active --> QueryTime: Player Action
+### Template Characteristics
 
-    state ParseTime {
-        Templates
-    }
+| Entity Type | Template | Instance |
+|-------------|----------|----------|
+| **Scene** | SceneTemplate | Scene |
+| **Situation** | SituationTemplate | Situation |
+| **Choice** | ChoiceTemplate | N/A (templates used directly) |
 
-    state Deferred {
-        SceneInstance: Scene (empty)
-    }
+| Aspect | Template | Instance |
+|--------|----------|----------|
+| **Created** | Parse-time | Spawn-time (Scene) / Activation-time (Situation) |
+| **Mutability** | Immutable | Mutable |
+| **Lifecycle** | Entire game | Created, used, potentially completed/expired |
+| **Entity References** | PlacementFilters (categorical) | Direct object references (resolved) |
+| **Storage** | GameWorld.SceneTemplates | GameWorld.Scenes |
 
-    state Active {
-        Situations: Situation Instances
-    }
+### Critical Rules
 
-    state QueryTime {
-        Actions: Ephemeral Actions
-    }
+| Rule | Consequence |
+|------|-------------|
+| **NO Scene instances at parse-time** | JSON must contain `sceneTemplates`, never `scenes` |
+| **NO Situation instances until activation** | Deferred scenes have `Situations = []` (empty) |
+| **Templates own SituationTemplates** | SceneTemplate.SituationTemplates[] contains all situation blueprints |
+| **Instances reference Templates** | Scene.Template links back to source SceneTemplate |
+
+### State Transitions
+
+```
+SceneTemplate (immutable, parse-time)
+       │
+       ▼  SpawnStarterScenes() or SceneSpawnReward
+Scene (Deferred) ────────────────────────────────────►  Scene (Active)
+  • State = Deferred                                      • State = Active
+  • Situations = [] (EMPTY)                               • Situations = [resolved instances]
+  • Template = reference                                  • All entities resolved
+       │                                                       │
+       │                                                       ▼
+       │                                               Situation (instance)
+       │                                                 • Location = resolved object
+       │                                                 • NPC = resolved object
+       │                                                 • Route = resolved object
+       ▼
+  Activation trigger:
+  Player enters location matching LocationActivationFilter
 ```
 
-**Key Insight:** Deferred scenes have NO situation instances. Situations are only created at activation when entity references can be resolved. This prevents orphaned situations and simplifies memory management.
+**Key Insight:** Deferred scenes have NO situation instances. Situations are only created at activation when entity references can be resolved. This prevents orphaned situations and ensures all entities exist when needed.
 
 ---
 
 ## 8.14 Entity Resolution (Find-Or-Create)
 
-Entities are resolved at scene ACTIVATION, not parse-time or instantiation.
+Entities are resolved at scene ACTIVATION, not parse-time. This is when categorical PlacementFilters become concrete object references.
 
-### Resolution Strategy
+### Resolution Timing
 
-| Context | If Entity Not Found |
-|---------|---------------------|
-| **Parse-time** | Fail fast (content error) |
-| **Activation** | Create dynamically |
+| Tier | Entity Resolution | Why |
+|------|-------------------|-----|
+| **Parse-time** | NEVER | DI not available, entities may not exist |
+| **Spawn-time** | NEVER | Scene is Deferred, not yet needed |
+| **Activation-time** | YES | Player is at location, entities needed NOW |
 
-**Parse-time principle:** Referenced entities must already exist. Missing entity = malformed content.
+### Resolution Process (SceneInstantiator.ActivateScene)
 
-**Activation principle:** Scene may require entities that don't exist yet. Missing entity = create via procedural generation.
+For each SituationTemplate in scene.Template.SituationTemplates:
+
+| Step | Entity | Strategy | If Not Found |
+|------|--------|----------|--------------|
+| 1 | Location | EntityResolver.FindLocation() | PackageLoader.CreateSingleLocation() |
+| 2 | NPC | EntityResolver.FindNPC() | PackageLoader.CreateSingleNpc() |
+| 3 | Route | EntityResolver.FindRoute() | FAIL FAST (routes must exist) |
+
+**Find-or-Create principle:** Location and NPC can be created dynamically via procedural generation. Routes must be pre-existing (navigation graph integrity).
+
+### PlacementFilter → Object Reference
+
+| Before Activation | After Activation |
+|-------------------|------------------|
+| `situation.LocationFilter = { Purpose: Commerce }` | `situation.Location = <actual Location object>` |
+| `situation.NpcFilter = { Profession: Innkeeper }` | `situation.Npc = <actual NPC object>` |
+| `situation.RouteFilter = { Segment: 0 }` | `situation.Route = <actual RouteOption object>` |
+
+**HIGHLANDER:** Each entity resolved ONCE at activation. No re-resolution, no caching, no duplicate lookups.
 
 ---
 
@@ -1173,6 +1298,55 @@ Dictionary acceptable ONLY for:
 - CLAUDE.md: DOMAIN COLLECTION PRINCIPLE (user-facing rule)
 - §8.3: Entity Identity Model (no instance IDs - related principle)
 - §8.19: Explicit Property Principle (strongly-typed over generic)
+
+---
+
+## 8.30 Entity Reference vs Categorical Description
+
+**"Conditions reference existing; Templates describe creation."**
+
+Two distinct patterns for entity relationships based on timing:
+
+| Context | Entity State | Pattern | Example |
+|---------|--------------|---------|---------|
+| **SpawnConditions** | Must exist | Object reference | `Location Location` |
+| **SituationTemplate** | May not exist | Categorical filter | `LocationPurpose.Commerce` |
+
+### SpawnConditions: Object References Only
+
+SpawnConditions gate WHEN content spawns based on game state. They reference EXISTING entities:
+
+| Property | Type | NOT |
+|----------|------|-----|
+| Location visits | `Location Location` | `string LocationId` |
+| NPC relationships | `NPC Npc` | `string NpcId` |
+| Route familiarity | `RouteOption Route` | `string RouteId` |
+
+**Rationale:** At spawn-condition evaluation time, referenced entities MUST exist. Missing entity = malformed content (fail-fast at parse-time).
+
+### SituationTemplates: Categorical Descriptions
+
+SituationTemplates within scenes may describe entities to be CREATED or RESOLVED:
+
+| Pattern | Usage |
+|---------|-------|
+| Categorical filter | `LocationPurpose.Commerce, Proximity.SameVenue` |
+| Deferred resolution | Entity resolved at scene activation via EntityResolver |
+
+**Rationale:** Templates define WHAT to create. Categorical properties enable procedural generation without hardcoded references.
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| String IDs in SpawnConditions | Violates §8.3 Entity Identity Model |
+| Object refs in creation templates | Entity may not exist yet |
+| Mixing both in same structure | Unclear timing semantics |
+
+**Cross-References:**
+- §8.3 Entity Identity Model (no instance IDs)
+- §8.14 Entity Resolution (find-or-create at activation)
+- §8.12 PlacementFilter Architecture (categorical entity resolution)
 
 ---
 

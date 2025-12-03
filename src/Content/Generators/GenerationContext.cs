@@ -86,32 +86,43 @@ public class GenerationContext
     }
 
     /// <summary>
-    /// Create generation context from entities with automatic categorical property derivation.
-    ///
-    /// Supports two scenarios:
-    /// 1. NPC-placed scenes: npc != null, location = NPC's location
-    ///    - Location = NPC's location object
-    ///    - Npc = NPC object
-    ///    - Full categorical properties (including NPC-derived)
-    ///
-    /// 2. Location-placed scenes: npc == null, location = placement location
-    ///    - Location = placement location object
-    ///    - Npc = null
-    ///    - Limited categorical properties (no NPC-derived properties)
-    ///
-    /// ALL universal properties are derived from entity state.
-    /// NO manual property setting required.
-    /// HIGHLANDER: Store entity objects, not string IDs
-    ///
-    /// RhythmPattern is AUTHORED (not derived) - comes from SceneTemplate.
-    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
+    /// Create generation context for A-Story (main narrative) scenes.
+    /// A-Story scenes have a sequence number (1-99) for progression tracking.
+    /// HIGHLANDER: Distinct factory for main story vs side content.
     /// </summary>
-    public static GenerationContext FromEntities(
+    public static GenerationContext ForMainStory(
         NPC npc,
         Location location,
         Player player,
-        int? mainStorySequence = null,
-        RhythmPattern rhythm = RhythmPattern.Mixed)
+        int mainStorySequence,
+        RhythmPattern rhythm)
+    {
+        return CreateContext(npc, location, player, mainStorySequence, rhythm);
+    }
+
+    /// <summary>
+    /// Create generation context for Side Content (optional, procedural) scenes.
+    /// Side content has no sequence number - it's not part of the main narrative arc.
+    /// HIGHLANDER: Distinct factory for main story vs side content.
+    /// </summary>
+    public static GenerationContext ForSideContent(
+        NPC npc,
+        Location location,
+        Player player,
+        RhythmPattern rhythm)
+    {
+        return CreateContext(npc, location, player, null, rhythm);
+    }
+
+    /// <summary>
+    /// Internal factory method with shared implementation.
+    /// </summary>
+    private static GenerationContext CreateContext(
+        NPC npc,
+        Location location,
+        Player player,
+        int? mainStorySequence,
+        RhythmPattern rhythm)
     {
         return new GenerationContext
         {

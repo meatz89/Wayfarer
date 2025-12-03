@@ -278,7 +278,7 @@ public class TokenUnlockManager
 
         if (!string.IsNullOrEmpty(unlock.Guidance))
         {
-            _messageSystem.AddSystemMessage(unlock.Guidance, SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage(unlock.Guidance, SystemMessageTypes.Info, null);
         }
     }
 

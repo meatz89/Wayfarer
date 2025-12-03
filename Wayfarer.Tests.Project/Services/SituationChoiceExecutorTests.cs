@@ -35,7 +35,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -59,7 +59,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(requirement: requirement);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.False(plan.IsValid);
@@ -78,7 +78,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(resolveCost: 5);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should be VALID - Resolve is not checked for affordability
         Assert.True(plan.IsValid);
@@ -91,7 +91,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, coins: 5);
         ChoiceTemplate template = CreateChoiceTemplate(coinCost: 10);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -103,7 +103,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, health: 2);
         ChoiceTemplate template = CreateChoiceTemplate(healthCost: 4);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -115,7 +115,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, stamina: 1);
         ChoiceTemplate template = CreateChoiceTemplate(staminaCost: 3);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -127,7 +127,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, focus: 0);
         ChoiceTemplate template = CreateChoiceTemplate(focusCost: 2);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -139,7 +139,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, hunger: 95, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 10);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -151,7 +151,7 @@ public class SituationChoiceExecutorTests
         SetupPlayer(resolve: 10, hunger: 100, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 1);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -164,7 +164,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(requirement: null);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should pass validation (no requirements to check)
         Assert.True(plan.IsValid);
@@ -182,7 +182,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(requirement: emptyRequirement);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should pass validation (empty OrPaths = no requirements)
         Assert.True(plan.IsValid);
@@ -202,7 +202,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -219,7 +219,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -236,7 +236,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Investigate Scene");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Investigate Scene", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -251,7 +251,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -266,7 +266,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(actionType: ChoiceActionType.StartChallenge);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -284,7 +284,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -302,7 +302,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -326,7 +326,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -343,7 +343,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(timeSegments: 3);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -374,7 +374,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: All costs validated, plan is valid
         Assert.True(plan.IsValid);
@@ -402,7 +402,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action");
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);

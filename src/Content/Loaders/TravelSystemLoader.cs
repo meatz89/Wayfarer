@@ -57,11 +57,10 @@ public class TravelSystemLoader
         }
 
         // Initialize EventDeckPositions for routes with event pools
+        // HIGHLANDER: Pass collection object reference, not string ID
         foreach (PathCollectionEntry entry in _gameWorld.AllEventCollections)
         {
-            string routeId = entry.Collection.Id;
-            string deckKey = $"route_{routeId}_events";
-            _gameWorld.SetEventDeckPosition(deckKey, 0);
+            _gameWorld.SetEventDeckPosition(entry.Collection, 0);
         }
     }
 

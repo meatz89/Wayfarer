@@ -66,16 +66,14 @@ public class RelationshipTracker
         {
             _messageSystem.AddSystemMessage(
                 $"{npc.Name} {milestone.Message}.",
-                SystemMessageTypes.Success
-            );
+                SystemMessageTypes.Success, null);
 
             // Special announcements for major milestones
             if (milestone.TokenThreshold >= 10)
             {
                 _messageSystem.AddSystemMessage(
                     $"Your relationship with {npc.Name} has reached a rare level of trust.",
-                    SystemMessageTypes.Success
-                );
+                    SystemMessageTypes.Success, null);
             }
         }
     }
@@ -91,8 +89,7 @@ public class RelationshipTracker
         // Debts are tracked as negative tokens - no separate storage needed
         _messageSystem.AddSystemMessage(
             $"You now owe {npc.Name} {amount} {type} favor{(amount > 1 ? "s" : "")}.",
-            SystemMessageTypes.Warning
-        );
+            SystemMessageTypes.Warning, null);
     }
 
     /// <summary>
@@ -244,8 +241,7 @@ public class RelationshipTracker
             {
                 _messageSystem.AddSystemMessage(
                     $"Your relationship with {npc.Name} has weakened due to lack of contact.",
-                    SystemMessageTypes.Warning
-                );
+                    SystemMessageTypes.Warning, null);
             }
         }
     }

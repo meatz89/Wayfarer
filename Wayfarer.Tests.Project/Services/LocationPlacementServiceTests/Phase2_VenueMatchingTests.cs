@@ -115,18 +115,14 @@ public class Phase2_VenueMatchingTests
         GameWorld world = new GameWorldBuilder()
             .WithVenue(VenueBuilder.Market())
             .WithVenue(VenueBuilder.Tavern())
-            .Build();
-
-        (GameWorld _, Player player) = new GameWorldBuilder()
-            .WithVenues(world.Venues.ToList())
             .WithPlayerAt(0, 0)
-            .BuildWithPlayer();
+            .Build();
 
         LocationPlacementService service = new LocationPlacementService(world);
         Location worshipLocation = LocationBuilder.Worship();
 
         // ACT: Place worship location (should succeed - any venue can host any purpose)
-        service.PlaceLocation(worshipLocation, "medium", player);
+        service.PlaceLocation(worshipLocation, "medium");
 
         // ASSERT: Location placed successfully in available venue
         Assert.NotNull(worshipLocation.Venue);

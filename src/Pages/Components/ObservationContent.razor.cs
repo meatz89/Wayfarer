@@ -31,7 +31,7 @@ namespace Wayfarer.Pages.Components
                 // Show error message through GameOrchestrator message system
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to examine point",
-                    SystemMessageTypes.Danger);
+                    SystemMessageTypes.Danger, null);
                 return;
             }
 
@@ -43,7 +43,7 @@ namespace Wayfarer.Pages.Components
             {
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     "Scene investigation complete!",
-                    SystemMessageTypes.Success);
+                    SystemMessageTypes.Success, null);
             }
 
             StateHasChanged();

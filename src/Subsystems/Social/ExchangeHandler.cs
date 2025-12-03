@@ -39,7 +39,7 @@ public class ExchangeHandler
         // Validate player can afford
         if (!CanAffordExchange(exchange, playerResources))
         {
-            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning, null);
             return false;
         }
 
@@ -54,13 +54,13 @@ public class ExchangeHandler
 
         // Generate success message
         string exchangeName = GetExchangeName(exchange);
-        _messageSystem.AddSystemMessage($"You {exchangeName} with {npc.Name}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"You {exchangeName} with {npc.Name}", SystemMessageTypes.Success, null);
 
         // Handle time advancement for work exchanges
         if (ShouldAdvanceTime(exchange))
         {
             _timeManager.AdvanceSegments(1);
-            _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info, null);
         }
         exchange.RecordUse();
         return true;
@@ -172,7 +172,7 @@ public class ExchangeHandler
         {
             if (!player.Inventory.Contains(item))
             {
-                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger, null);
                 return false;
             }
         }

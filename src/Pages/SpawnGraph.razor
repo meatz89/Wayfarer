@@ -8,6 +8,7 @@
 @implements IDisposable
 
 @inject GameWorld GameWorld
+@inject ProceduralContentTracer ProceduralTracer
 @inject NavigationManager NavigationManager
 @inject SpawnGraphBuilder GraphBuilder
 @inject IJSRuntime JSRuntime
@@ -164,9 +165,9 @@
     private int MatchCount { get; set; }
     private bool ShowLegend { get; set; } = false;
 
-    private int SceneCount => GameWorld?.ProceduralTracer?.AllSceneNodes?.Count ?? 0;
-    private int SituationCount => GameWorld?.ProceduralTracer?.AllSituationNodes?.Count ?? 0;
-    private int ChoiceCount => GameWorld?.ProceduralTracer?.AllChoiceNodes?.Count ?? 0;
+    private int SceneCount => ProceduralTracer?.AllSceneNodes?.Count ?? 0;
+    private int SituationCount => ProceduralTracer?.AllSituationNodes?.Count ?? 0;
+    private int ChoiceCount => ProceduralTracer?.AllChoiceNodes?.Count ?? 0;
 
     private bool ScriptLoaded { get; set; }
 
@@ -240,12 +241,12 @@
 
     private async Task BuildGraphAsync()
     {
-        if (GameWorld?.ProceduralTracer == null) return;
+        if (ProceduralTracer == null) return;
 
         IsLoading = true;
         StateHasChanged();
 
-        SpawnGraphBuildResult result = await GraphBuilder.BuildGraphAsync(GameWorld.ProceduralTracer, Diagram);
+        SpawnGraphBuildResult result = await GraphBuilder.BuildGraphAsync(ProceduralTracer, Diagram);
 
         if (result.Success)
         {

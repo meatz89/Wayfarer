@@ -21,7 +21,7 @@ public class SpawnConditionsEvaluator
     /// Other SpawnConditions = evaluate three dimensions and combine via CombinationLogic
     /// DDD pattern: Explicit sentinel value check, not implicit null check
     /// </summary>
-    public bool EvaluateAll(SpawnConditions conditions, Player player, string placementId = null)
+    public bool EvaluateAll(SpawnConditions conditions)
     {
         if (conditions == null)
             throw new ArgumentNullException(nameof(conditions), "SpawnConditions cannot be null. Use SpawnConditions.AlwaysEligible for unconditional spawning.");
@@ -29,10 +29,12 @@ public class SpawnConditionsEvaluator
         if (conditions.IsAlwaysEligible)
             return true; // AlwaysEligible sentinel = unconditional spawn
 
+        Player player = _gameWorld.GetPlayer();
+
         // Evaluate each dimension
         bool playerStatePass = EvaluatePlayerStateConditions(conditions.PlayerState, player);
-        bool worldStatePass = EvaluateWorldStateConditions(conditions.WorldState, placementId);
-        bool entityStatePass = EvaluateEntityStateConditions(conditions.EntityState, player, placementId);
+        bool worldStatePass = EvaluateWorldStateConditions(conditions.WorldState);
+        bool entityStatePass = EvaluateEntityStateConditions(conditions.EntityState);
 
         // Combine results via CombinationLogic
         return conditions.CombinationLogic switch
@@ -79,24 +81,7 @@ public class SpawnConditionsEvaluator
             }
         }
 
-        // DOMAIN COLLECTION PRINCIPLE: Iterate List<LocationVisitEntry>, not Dictionary
-        if (conditions.LocationVisits != null && conditions.LocationVisits.Count > 0)
-        {
-            foreach (LocationVisitEntry entry in conditions.LocationVisits)
-            {
-                // Resolve location name to Location object
-                Location location = _gameWorld.Locations.FirstOrDefault(loc => loc.Name == entry.LocationId);
-                if (location == null) continue; // Skip if location not found
-
-                // For now, use LocationFamiliarity as proxy (familiarity increases with visits)
-                int familiarityLevel = player.GetLocationFamiliarity(location);
-                // Rough mapping: 0 visits = 0 familiarity, 3+ visits = 3 familiarity
-                if (familiarityLevel < Math.Min(entry.VisitCount, 3))
-                {
-                    return false; // Location visit count/familiarity below threshold
-                }
-            }
-        }
+        // LocationVisits DELETED - §8.30: SpawnConditions must reference existing entities via object refs
 
         return true; // All player state conditions met
     }
@@ -122,7 +107,7 @@ public class SpawnConditionsEvaluator
     /// Evaluate WorldStateConditions - temporal and environmental requirements
     /// null properties = no restrictions in that category
     /// </summary>
-    private bool EvaluateWorldStateConditions(WorldStateConditions conditions, string placementId)
+    private bool EvaluateWorldStateConditions(WorldStateConditions conditions)
     {
         if (conditions == null)
             return true; // No world state conditions = pass
@@ -162,87 +147,17 @@ public class SpawnConditionsEvaluator
             }
         }
 
-        // Check LocationStates (if placement is a Location)
-        if (conditions.LocationStates != null && conditions.LocationStates.Count > 0 && !string.IsNullOrEmpty(placementId))
-        {
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == placementId);
-            if (location != null)
-            {
-                foreach (StateType requiredState in conditions.LocationStates)
-                {
-                    // StateType validation removed - time-specific properties eliminated
-                    // Location capabilities are now static flags, not temporal states
-                }
-            }
-        }
-
         return true; // All world state conditions met
     }
 
     /// <summary>
-    /// Evaluate EntityStateConditions - relationship and reputation requirements
-    /// Empty dictionaries/lists = no restrictions in that category
+    /// Evaluate EntityStateConditions - entity property requirements
+    /// §8.30: NPCBond, LocationReputation, RouteTravelCount DELETED - must use object refs not string IDs
     /// </summary>
-    private bool EvaluateEntityStateConditions(EntityStateConditions conditions, Player player, string placementId)
+    private bool EvaluateEntityStateConditions(EntityStateConditions conditions)
     {
         if (conditions == null)
             return true; // No entity state conditions = pass
-
-        // Check NPCBond requirements
-        // DOMAIN COLLECTION PRINCIPLE: Iterate List<NPCBondEntry>, not Dictionary
-        if (conditions.NPCBond != null && conditions.NPCBond.Count > 0)
-        {
-            foreach (NPCBondEntry entry in conditions.NPCBond)
-            {
-                int currentBond = player.Relationships.GetLevel(entry.NpcId);
-                if (currentBond < entry.BondStrength)
-                {
-                    return false; // NPC bond below threshold
-                }
-            }
-        }
-
-        // Check LocationReputation requirements
-        // DOMAIN COLLECTION PRINCIPLE: Iterate List<LocationReputationEntry>, not Dictionary
-        if (conditions.LocationReputation != null && conditions.LocationReputation.Count > 0)
-        {
-            foreach (LocationReputationEntry entry in conditions.LocationReputation)
-            {
-                // NOTE: Location reputation system not yet implemented in Player
-            }
-        }
-
-        // Check RouteTravelCount requirements
-        // DOMAIN COLLECTION PRINCIPLE: Iterate List<RouteTravelCountEntry>, not Dictionary
-        if (conditions.RouteTravelCount != null && conditions.RouteTravelCount.Count > 0)
-        {
-            foreach (RouteTravelCountEntry entry in conditions.RouteTravelCount)
-            {
-                // HIGHLANDER: Resolve route name to RouteOption object
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Name == entry.RouteId);
-                if (route == null)
-                {
-                    return false; // Route not found
-                }
-
-                // NOTE: Player has RouteFamiliarity but not RouteTravelCount
-                // Use familiarity as proxy for travel count (familiarity correlates with travel frequency)
-                // HIGHLANDER: Pass RouteOption object to Player API
-                int routeFamiliarity = player.GetRouteFamiliarity(route);
-                // Rough mapping: 0 travels = 0 familiarity, 5+ travels = 5 familiarity
-                if (routeFamiliarity < Math.Min(entry.TravelCount, 5))
-                {
-                    return false; // Route travel count/familiarity below threshold
-                }
-            }
-        }
-
-        // Check Properties requirements (entity-specific properties)
-        if (conditions.Properties != null && conditions.Properties.Count > 0 && !string.IsNullOrEmpty(placementId))
-        {
-            // Properties vary by entity type - determine type from placement
-            // NOTE: This is a simplified check. Full implementation would need to determine entity type
-        }
 
         return true; // All entity state conditions met
     }

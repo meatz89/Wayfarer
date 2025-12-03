@@ -151,7 +151,7 @@ public class AINarrativeProvider : INarrativeProvider
     public async Task<bool> IsAvailableAsync()
     {
         // Properly await the async operation instead of blocking
-        bool isAvailable = await ollamaClient.CheckHealthAsync();
+        bool isAvailable = await ollamaClient.CheckHealthAsync(CancellationToken.None);
         if (!isAvailable)
         { }
         return isAvailable;
@@ -170,7 +170,7 @@ public class AINarrativeProvider : INarrativeProvider
     {
         StringBuilder responseBuilder = new StringBuilder();
 
-        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
+        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt, cancellationToken))
         {
             responseBuilder.Append(token);
         }

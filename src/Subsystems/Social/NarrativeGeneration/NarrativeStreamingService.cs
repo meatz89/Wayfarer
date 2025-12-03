@@ -7,19 +7,19 @@ using System.Text;
 /// </summary>
 public class NarrativeStreamingService
 {
+    // Typewriter display constants - fixed speed for consistent UX
+    private const int ChunkSize = 3;    // Words per chunk
+    private const int DelayMs = 50;     // Delay between chunks in milliseconds
+
     /// <summary>
     /// Streams text content in chunks for typewriter-style display.
     /// </summary>
     /// <param name="fullText">The complete text to stream</param>
-    /// <param name="chunkSize">Number of words per chunk</param>
-    /// <param name="delayMs">Delay between chunks in milliseconds</param>
     /// <param name="cancellationToken">Cancellation token for stopping stream</param>
     /// <returns>Stream of narrative chunks</returns>
     public async IAsyncEnumerable<NarrativeChunk> StreamNarrativeAsync(
         string fullText,
-        int chunkSize = 3,
-        int delayMs = 50,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(fullText))
         {
@@ -50,7 +50,7 @@ public class NarrativeStreamingService
             totalWordsProcessed++;
 
             bool isLastWord = (i == words.Length - 1);
-            bool chunkIsFull = (wordsInCurrentChunk >= chunkSize);
+            bool chunkIsFull = (wordsInCurrentChunk >= ChunkSize);
 
             if (chunkIsFull || isLastWord)
             {
@@ -63,7 +63,7 @@ public class NarrativeStreamingService
 
                 if (!isLastWord)
                 {
-                    await Task.Delay(delayMs, cancellationToken);
+                    await Task.Delay(DelayMs, cancellationToken);
                 }
 
                 currentChunk.Clear();
@@ -80,8 +80,6 @@ public class NarrativeStreamingService
     /// <param name="state">Current conversation state</param>
     /// <param name="npcData">NPC data for generation</param>
     /// <param name="cards">Available cards for the player</param>
-    /// <param name="chunkSize">Words per chunk for streaming</param>
-    /// <param name="delayMs">Delay between chunks</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Stream of narrative chunks</returns>
     public async IAsyncEnumerable<NarrativeChunk> StreamFromProviderAsync(
@@ -89,9 +87,7 @@ public class NarrativeStreamingService
         SocialChallengeState state,
         NPCData npcData,
         CardCollection cards,
-        int chunkSize = 3,
-        int delayMs = 50,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         // Check provider availability using async method
         bool isAvailable = await provider.IsAvailableAsync();
@@ -112,7 +108,7 @@ public class NarrativeStreamingService
         // Stream NPC dialogue first if available
         if (!string.IsNullOrWhiteSpace(output.NPCDialogue))
         {
-            await foreach (NarrativeChunk chunk in StreamNarrativeAsync(output.NPCDialogue, chunkSize, delayMs, cancellationToken))
+            await foreach (NarrativeChunk chunk in StreamNarrativeAsync(output.NPCDialogue, cancellationToken))
             {
                 chunk.IsDialogue = true;
                 yield return chunk;
@@ -121,14 +117,14 @@ public class NarrativeStreamingService
             // Add a pause between dialogue and narrative text
             if (!string.IsNullOrWhiteSpace(output.NarrativeText))
             {
-                await Task.Delay(delayMs * 2, cancellationToken);
+                await Task.Delay(DelayMs * 2, cancellationToken);
             }
         }
 
         // Stream narrative text if available
         if (!string.IsNullOrWhiteSpace(output.NarrativeText))
         {
-            await foreach (NarrativeChunk chunk in StreamNarrativeAsync(output.NarrativeText, chunkSize, delayMs, cancellationToken))
+            await foreach (NarrativeChunk chunk in StreamNarrativeAsync(output.NarrativeText, cancellationToken))
             {
                 chunk.IsDialogue = false;
                 yield return chunk;
@@ -138,9 +134,9 @@ public class NarrativeStreamingService
         // Stream progression hint if available
         if (!string.IsNullOrWhiteSpace(output.ProgressionHint))
         {
-            await Task.Delay(delayMs * 2, cancellationToken);
+            await Task.Delay(DelayMs * 2, cancellationToken);
 
-            await foreach (NarrativeChunk chunk in StreamNarrativeAsync($"[{output.ProgressionHint}]", chunkSize, delayMs, cancellationToken))
+            await foreach (NarrativeChunk chunk in StreamNarrativeAsync($"[{output.ProgressionHint}]", cancellationToken))
             {
                 chunk.IsDialogue = false;
                 yield return chunk;
@@ -160,7 +156,7 @@ public class NarrativeStreamingService
     /// <returns>Stream of complete narrative chunks</returns>
     public async IAsyncEnumerable<NarrativeChunk> StreamOutputImmediateAsync(
         NarrativeOutput output,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

@@ -74,8 +74,9 @@ public sealed class TimeState
 
     /// <summary>
     /// Creates a new TimeState starting at the beginning of a day.
+    /// HIGHLANDER: day required - caller specifies which day to start
     /// </summary>
-    public TimeState(int day = 1) : this(day, TimeBlocks.Morning, 1, CalculateTotalSegments(day, TimeBlocks.Morning, 1))
+    public TimeState(int day) : this(day, TimeBlocks.Morning, 1, CalculateTotalSegments(day, TimeBlocks.Morning, 1))
     {
     }
 

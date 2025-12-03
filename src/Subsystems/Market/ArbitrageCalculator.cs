@@ -291,8 +291,9 @@ public class ArbitrageCalculator
     /// <summary>
     /// Plan an optimal trade route visiting multiple locations
     /// HIGHLANDER: Track Location objects throughout route planning, not strings
+    /// HIGHLANDER: maxStops REQUIRED - caller specifies desired route length
     /// </summary>
-    public TradeRoute PlanOptimalRoute(int maxStops = 3)
+    public TradeRoute PlanOptimalRoute(int maxStops)
     {
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();

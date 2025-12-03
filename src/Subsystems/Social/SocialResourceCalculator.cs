@@ -130,7 +130,7 @@ public class SocialResourceCalculator
         {
             _messageSystem.AddSystemMessage(
                 $"{card.SocialCardTemplate.Title} is now available (Momentum threshold met)",
-                SystemMessageTypes.Success);
+                SystemMessageTypes.Success, null);
         }
     }
 

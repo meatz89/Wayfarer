@@ -91,7 +91,7 @@ public class LocationFacade
         // Validation
         if (targetLocation == null)
         {
-            _messageSystem.AddSystemMessage("Invalid location", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Invalid location", SystemMessageTypes.Warning, null);
             return false;
         }
 
@@ -107,9 +107,9 @@ public class LocationFacade
             // REGULAR MOVEMENT: Validate current state and movement
             Venue currentVenue = currentLocation.Venue;
 
-            if (!_movementValidator.ValidateCurrentState(player, currentVenue, currentLocation))
+            if (!_movementValidator.ValidateCurrentState(currentVenue, currentLocation))
             {
-                _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger, null);
                 return false;
             }
 
@@ -123,7 +123,7 @@ public class LocationFacade
             MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetLocation);
             if (!validationResult.IsValid)
             {
-                _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
+                _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning, null);
                 return false;
             }
         }
@@ -134,7 +134,7 @@ public class LocationFacade
 
         if (!isInitialPlacement)
         {
-            _messageSystem.AddSystemMessage($"Moved to {targetLocation.Name}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Moved to {targetLocation.Name}", SystemMessageTypes.Info, null);
         }
 
         // TWO-PHASE SPAWNING - PHASE 2: Activate deferred scenes when player enters location
@@ -204,7 +204,7 @@ public class LocationFacade
         Player player = _gameWorld.GetPlayer();
         if (_gameWorld.GetPlayerCurrentLocation() != null)
         {
-            _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info, null);
         }
     }
 
@@ -586,7 +586,7 @@ public class LocationFacade
     public bool InvestigateLocation(Location location, ObligationApproach approach)
     {
         // V2 Obligation system removed - replaced by V3 card-based obligation
-        _messageSystem.AddSystemMessage("Obligation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);
+        _messageSystem.AddSystemMessage("Obligation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning, null);
         return false;
     }
 

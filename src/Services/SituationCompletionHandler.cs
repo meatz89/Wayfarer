@@ -10,19 +10,22 @@ public class SituationCompletionHandler
     private readonly TimeManager _timeManager;
     private readonly SpawnService _spawnService;
     private readonly RewardApplicationService _rewardApplicationService;
+    private readonly ProceduralContentTracer _proceduralTracer;
 
     public SituationCompletionHandler(
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
         SpawnService spawnService,
-        RewardApplicationService rewardApplicationService)
+        RewardApplicationService rewardApplicationService,
+        ProceduralContentTracer proceduralTracer)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _spawnService = spawnService ?? throw new ArgumentNullException(nameof(spawnService));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
+        _proceduralTracer = proceduralTracer ?? throw new ArgumentNullException(nameof(proceduralTracer));
     }
 
     /// <summary>
@@ -53,9 +56,9 @@ public class SituationCompletionHandler
         }
 
         // PROCEDURAL CONTENT TRACING: Mark situation completed in trace
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        if (_proceduralTracer.IsEnabled)
         {
-            _gameWorld.ProceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
+            _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
         }
 
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
@@ -136,9 +139,9 @@ public class SituationCompletionHandler
             }
 
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            if (_proceduralTracer.IsEnabled)
             {
-                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+                _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
             }
         }
     }
@@ -200,9 +203,9 @@ public class SituationCompletionHandler
         }
 
         // PROCEDURAL CONTENT TRACING: Mark situation as failed in trace
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        if (_proceduralTracer.IsEnabled)
         {
-            _gameWorld.ProceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
+            _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
         }
 
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
@@ -222,9 +225,9 @@ public class SituationCompletionHandler
             situation.RoutingDecision = routingDecision;
 
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            if (_proceduralTracer.IsEnabled)
             {
-                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+                _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
             }
         }
 

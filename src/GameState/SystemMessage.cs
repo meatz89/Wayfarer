@@ -8,7 +8,10 @@
     public DateTime ExpiresAt { get; }
     public int DurationMilliseconds { get; }
 
-    public SystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null, int durationMs = 5000)
+    /// <summary>
+    /// HIGHLANDER: All parameters required - caller must specify type, category, and duration
+    /// </summary>
+    public SystemMessage(string message, SystemMessageTypes type, MessageCategory? category, int durationMs)
     {
         Message = message;
         Type = type;

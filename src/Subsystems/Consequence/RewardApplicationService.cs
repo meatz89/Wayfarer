@@ -227,7 +227,7 @@ public class RewardApplicationService
                     // No authored template exists - generate procedurally
                     // CONTEXT INJECTION: spawn reward now has RhythmPattern SET (not derived)
                     Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
-                    AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
+                    AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext();
 
                     // Build selection inputs from spawn reward - RhythmPattern is GUARANTEED set
                     List<string> recentCategories = GetRecentCategories();
@@ -275,13 +275,11 @@ public class RewardApplicationService
                 CurrentRoute = currentRoute
             };
 
-            // HIGHLANDER FLOW: Spawn scene directly
-            string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
-            if (!string.IsNullOrEmpty(packageJson))
+            // HIGHLANDER FLOW: Create Scene via SceneInstantiator → PackageLoader.CreateSingleScene(dto)
+            Scene scene = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
+            if (scene != null)
             {
-                string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
-                await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
-                Console.WriteLine($"[FinalizeSceneSpawns] Created deferred scene package: {packageId}");
+                Console.WriteLine($"[FinalizeSceneSpawns] Created deferred scene: {scene.DisplayName}");
             }
         }
     }

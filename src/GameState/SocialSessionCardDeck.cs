@@ -386,10 +386,11 @@ public class SocialSessionCardDeck
     }
 
     /// <summary>
-    /// Force discard down to maximum hand size (7 cards)
+    /// Force discard down to specified hand size
     /// Removes excess cards from mind back to deck pile
+    /// HIGHLANDER: maxSize REQUIRED - hand limit is a game design constant (pass explicitly)
     /// </summary>
-    public void DiscardDown(int maxSize = 7)
+    public void DiscardDown(int maxSize)
     {
         if (mindPile.Count <= maxSize) return;
 

@@ -136,6 +136,30 @@ public class PackageLoader
     }
 
     /// <summary>
+    /// HIGHLANDER: THE ONLY method for Scene creation.
+    /// Used by:
+    /// 1. Static JSON parsing (foreach scene in package.scenes → CreateSingleScene) - currently disabled
+    /// 2. Runtime creation via SceneInstantiator.CreateDeferredScene()
+    ///
+    /// Single path ensures consistent template resolution and GameWorld registration.
+    /// </summary>
+    public Scene CreateSingleScene(SceneDTO dto)
+    {
+        if (dto == null)
+            throw new ArgumentNullException(nameof(dto), "SceneDTO cannot be null");
+
+        // Parse DTO to Scene domain entity
+        Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld);
+
+        // Register in GameWorld
+        _gameWorld.Scenes.Add(scene);
+
+        Console.WriteLine($"[PackageLoader] CreateSingleScene: Created '{scene.DisplayName}' (State={scene.State})");
+
+        return scene;
+    }
+
+    /// <summary>
     /// Load static packages in alphabetical/numerical order
     /// Used at game startup for deterministic content loading
     /// PACKAGE-ROUND TRACKING: Accumulates results from all packages, initializes spatial systems ONCE
@@ -264,12 +288,11 @@ public class PackageLoader
             result,
             allowSkeletons);
 
-        // 4. Scene-Situation architecture
+        // 4. Scene-Situation architecture (UNIFIED PATH: SceneTemplates only, no Scene instances)
         _sceneSituationLoader.LoadSceneSituationContent(
             package.Content.States,
             package.Content.Achievements,
             package.Content.SceneTemplates,
-            package.Content.Scenes,
             package.Content.ConversationTrees,
             package.Content.ObservationScenes,
             package.Content.EmergencySituations,
@@ -383,7 +406,7 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content, get result
         PackageLoadResult result = LoadPackageContent(package, allowSkeletons: true);
 
-        Console.WriteLine($"[PackageLoader] Dynamic package loaded: {result.VenuesAdded.Count} venues, {result.LocationsAdded.Count} locations, {result.ScenesAdded.Count} scenes");
+        Console.WriteLine($"[PackageLoader] Dynamic package loaded: {result.VenuesAdded.Count} venues, {result.LocationsAdded.Count} locations, {result.SceneTemplatesAdded.Count} scene templates");
 
         // COMPOSITION OVER INHERITANCE: Delegate spatial placement to specialized loader
         _spatialPlacementLoader.PlaceAndValidateSpatialEntities(result.VenuesAdded, result.LocationsAdded);

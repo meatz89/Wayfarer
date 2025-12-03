@@ -132,7 +132,7 @@ public static class SceneParser
         {
             string locationActivationContext = $"Scene:{dto.DisplayName}/LocationActivation";
             locationActivationFilter = PlacementFilterParser.Parse(
-                dto.LocationActivationFilter, locationActivationContext);
+                dto.LocationActivationFilter, locationActivationContext, gameWorld);
         }
 
         // Store activation filter on Scene (not resolved, just stored for activation check)
@@ -157,21 +157,21 @@ public static class SceneParser
             if (situationDto.LocationFilter != null)
             {
                 string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
-                locationFilter = PlacementFilterParser.Parse(situationDto.LocationFilter, locationContext);
+                locationFilter = PlacementFilterParser.Parse(situationDto.LocationFilter, locationContext, gameWorld);
             }
 
             // Parse NPC filter (MUST be explicit on situation)
             if (situationDto.NpcFilter != null)
             {
                 string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
-                npcFilter = PlacementFilterParser.Parse(situationDto.NpcFilter, npcContext);
+                npcFilter = PlacementFilterParser.Parse(situationDto.NpcFilter, npcContext, gameWorld);
             }
 
             // Parse route filter (MUST be explicit on situation)
             if (situationDto.RouteFilter != null)
             {
                 string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
-                routeFilter = PlacementFilterParser.Parse(situationDto.RouteFilter, routeContext);
+                routeFilter = PlacementFilterParser.Parse(situationDto.RouteFilter, routeContext, gameWorld);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 
@@ -245,30 +245,10 @@ public static class SceneParser
         // SituationCount is computed from collection
         scene.SituationCount = scene.Situations.Count;
 
-        // =====================================================
-        // PROCEDURAL CONTENT TRACING: Record authored scene spawn
-        // =====================================================
-        if (gameWorld.ProceduralTracer != null && gameWorld.ProceduralTracer.IsEnabled)
-        {
-            SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.RecordSceneSpawn(
-                scene,
-                scene.TemplateId,
-                false, // isProcedurallyGenerated = false (authored content from JSON)
-                SpawnTriggerType.Initial,
-                gameWorld.CurrentDay,
-                gameWorld.CurrentTimeBlock
-            );
-
-            // Record all embedded situations as children of this scene
-            foreach (Situation situation in scene.Situations)
-            {
-                gameWorld.ProceduralTracer.RecordSituationSpawn(
-                    situation,
-                    sceneNode,
-                    SituationSpawnTriggerType.InitialScene
-                );
-            }
-        }
+        // NOTE: Procedural content tracing REMOVED from parse-time
+        // Parse-time happens during GameWorldInitializer BEFORE DI is available
+        // Tracing of authored content (static JSON) belongs in activation/runtime, not parse-time
+        // See: ARCH SMELL in todo list - SceneParser tracing architecture
 
         return scene;
     }

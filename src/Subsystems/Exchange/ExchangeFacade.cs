@@ -221,7 +221,7 @@ public class ExchangeFacade
         // Note: SingleUse exchanges become unavailable via IsExhausted() check, no need to remove from list
 
         // Generate success message
-        _messageSystem.AddSystemMessage($"Exchange with {npc.Name} completed successfully", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Exchange with {npc.Name} completed successfully", SystemMessageTypes.Success, null);
 
         return new ExchangeResult
         {
@@ -403,7 +403,7 @@ public class ExchangeFacade
         {
             if (!player.Inventory.Contains(item))
             {
-                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger, null);
                 return false;
             }
         }

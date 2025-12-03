@@ -195,29 +195,37 @@ See [arc42/08_crosscutting_concepts.md §8.18](../arc42/08_crosscutting_concepts
 
 **Why A-Story is special:** The Frieren principle—infinite, never-ending. Primary purpose is world expansion, creating new places to explore, new people to meet. Player must ALWAYS be able to progress.
 
-### Scene Instance Creation (Context Injection)
+### Scene Lifecycle (UNIFIED PATH)
 
 **Two concepts:**
 
-| Concept | What It Is | Example |
-|---------|------------|---------|
-| **SceneTemplate** | Pure archetype from catalog | InnLodging, SeekAudience, DeliveryContract |
-| **Scene** | Runtime instance (Situations from SituationTemplates) | Playable game state |
+| Concept | What It Is | Created When |
+|---------|------------|--------------|
+| **SceneTemplate** | Immutable archetype with SituationTemplates | Parse-time (from JSON) |
+| **Scene** | Mutable instance (Situations created at activation) | Spawn-time (after DI available) |
 
-**SceneDTO** serves both creation and runtime. Both authored and procedural content use the same DTO:
-- `sceneArchetype`: Reference to SceneTemplate (InnLodging, etc.)
-- `tier`, `rhythmPattern`, `locationSafety`, `locationPurpose`: Complete non-nullable context
-- `mainStorySequence`, `isStarter`: A-story progression
-- `state`, `currentSituationId`: Runtime state (populated during play)
+**Critical principle:** There is NO difference between authored and procedural scene creation. Both follow the same mechanism:
 
-| Path | DTO Source | Context Source |
-|------|------------|----------------|
-| **Authored (A1-A10)** | JSON → SceneDTO | Pre-defined in JSON |
-| **Procedural (A11+)** | Code → SceneDTO | Derived from GameWorld |
+```
+SceneTemplate + Context → SceneInstantiator.CreateDeferredScene() → Scene (Deferred)
+```
 
-Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
+| Content | SceneTemplate Source | Context Source | Scene Creation |
+|---------|---------------------|----------------|----------------|
+| **Authored (A1-A10)** | JSON (sceneTemplates) | Authored in template | Spawn-time |
+| **Procedural (A11+)** | Generated + registered | Derived from GameWorld | Spawn-time |
 
-See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md) for implementation pattern.
+**How scenes spawn:**
+
+| Scene | Trigger | Implementation |
+|-------|---------|----------------|
+| **A1 (Starter)** | Game start | `SpawnStarterScenes()` finds template with `IsStarter=true` |
+| **A2-A10 (Authored)** | Final choice reward | `SceneSpawnReward { SpawnNextMainStoryScene = true }` |
+| **A11+ (Procedural)** | Final choice reward | Same mechanism, procedural template generation fallback |
+
+**HIGHLANDER:** ONE path for all scenes. JSON contains SceneTemplates only, never Scene instances.
+
+See [arc42/08_crosscutting_concepts.md §8.4](../arc42/08_crosscutting_concepts.md) for the complete pipeline.
 
 ### B/C Story Flexibility
 

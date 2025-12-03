@@ -23,8 +23,10 @@ Domain and technical terms used throughout this documentation.
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
 | **RhythmPattern** | Choice generation pattern determining HOW choices are structured: Building (stat grants, no requirements), Crisis (penalty avoidance), Mixed (standard trade-offs). Determines choice STRUCTURE, not archetype selection. Orthogonal to ArchetypeIntensity. |
-| **Scene** | Persistent narrative container holding embedded Situations; spawns from template |
-| **Situation** | Single decision point within a Scene; presents Choices to player |
+| **Scene** | Mutable instance created from SceneTemplate at spawn-time; contains Situation instances (created at activation-time); lifecycle: Deferred → Active → Completed |
+| **SceneTemplate** | Immutable archetype containing SituationTemplates; created at parse-time; JSON uses `sceneTemplates` key, NEVER `scenes` |
+| **Situation** | Mutable instance created from SituationTemplate at activation-time; contains resolved entity references (Location, NPC, Route) |
+| **SituationTemplate** | Immutable archetype embedded in SceneTemplate; contains PlacementFilters (categorical); created at parse-time |
 | **SituationCard** | Tactical victory condition defining threshold and rewards |
 | **Soft-Lock** | Game state with no forward progress; TIER 1 violation, never acceptable |
 | **Venue** | Top-level location cluster containing multiple Locations |
@@ -80,7 +82,7 @@ Domain and technical terms used throughout this documentation.
 | **Reference** | Entity refers to another; neither owns the other (NPC → Location) |
 | **Single Source of Truth** | Each state has exactly one canonical storage location |
 | **Stateless Service** | Facade containing logic but no state; operates on GameWorld |
-| **Three-Tier Timing** | Templates (parse) → Instances (spawn) → Actions (query) |
+| **Three-Tier Timing** | Parse-time (SceneTemplates) → Spawn-time (Scene instances, Deferred, empty Situations) → Activation-time (Situation instances, resolved entities) → Query-time (ephemeral actions). NO Scene instances at parse-time. See §8.4 |
 | **Whitebox** | Internal decomposition of a higher-level blackbox |
 
 ---

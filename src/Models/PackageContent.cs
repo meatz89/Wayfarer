@@ -207,14 +207,7 @@ public class PackageContent
     /// <summary>
     /// Scene templates - immutable archetypes for procedural narrative spawning
     /// Defines multi-situation branching narratives with placement filters (Sir Brante pattern)
+    /// UNIFIED PATH: Only templates loaded at parse-time. Scene instances created at spawn-time via SpawnStarterScenes().
     /// </summary>
     public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
-
-    /// <summary>
-    /// Scene instances - used for BOTH creation and runtime (arc42 §8.28)
-    /// Authored: JSON contains creation properties (context, template ref)
-    /// Procedural: Code creates DTO with same properties
-    /// Same DTO serves both purposes - parser has no knowledge of source
-    /// </summary>
-    public List<SceneDTO> Scenes { get; set; } = new List<SceneDTO>();
 }

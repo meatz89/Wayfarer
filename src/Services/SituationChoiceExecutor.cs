@@ -22,17 +22,18 @@ public class SituationChoiceExecutor
     /// Validate ChoiceTemplate and extract execution plan for scene-based actions
     /// Used by: LocationAction (scene-based), NPCAction (all), PathCard (scene-based)
     ///
-    /// TWO-PHASE SCALING: Accepts optional pre-scaled requirement/consequence.
-    /// If scaledRequirement/scaledConsequence provided, uses those for validation/execution.
+    /// TWO-PHASE SCALING: Accepts pre-scaled requirement/consequence (nullable).
+    /// If scaledRequirement/scaledConsequence non-null, uses those for validation/execution.
     /// Otherwise falls back to template values (unscaled).
     /// GameWorld accessed via _gameWorld (never passed as parameter).
     /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
+    /// HIGHLANDER: All parameters required - caller passes scaled values explicitly (even if null)
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(
         ChoiceTemplate template,
         string actionName,
-        CompoundRequirement scaledRequirement = null,
-        Consequence scaledConsequence = null)
+        CompoundRequirement scaledRequirement,
+        Consequence scaledConsequence)
     {
         Player player = _gameWorld.GetPlayer();
         // TWO-PHASE SCALING: Use pre-scaled values if provided, otherwise use template values

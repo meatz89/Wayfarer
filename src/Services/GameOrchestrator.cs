@@ -44,6 +44,7 @@ public class GameOrchestrator
     private readonly PackageLoader _packageLoader;
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly ProceduralContentTracer _proceduralTracer;
 
     // Composed services (extracted via COMPOSITION OVER INHERITANCE)
     // Only DebugCommandHandler remains - it's compliant (uses RewardApplicationService, not facades)
@@ -80,6 +81,7 @@ public class GameOrchestrator
         PackageLoader packageLoader,
         HexRouteGenerator hexRouteGenerator,
         ContentGenerationFacade contentGenerationFacade,
+        ProceduralContentTracer proceduralTracer,
         DebugCommandHandler debugCommandHandler)
     {
         _gameWorld = gameWorld;
@@ -111,6 +113,7 @@ public class GameOrchestrator
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _proceduralTracer = proceduralTracer ?? throw new ArgumentNullException(nameof(proceduralTracer));
         _debugCommandHandler = debugCommandHandler ?? throw new ArgumentNullException(nameof(debugCommandHandler));
     }
 
@@ -255,7 +258,7 @@ public class GameOrchestrator
         // No lookup needed!
         if (route == null)
         {
-            _narrativeFacade.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
+            _narrativeFacade.AddSystemMessage("Route not found", SystemMessageTypes.Danger, null);
             return false;
         }
 
@@ -284,7 +287,8 @@ public class GameOrchestrator
         {
             _narrativeFacade.AddSystemMessage(
                 $"Too exhausted to travel. Travel costs {hungerCost} hunger, but you have {player.Hunger}/{player.MaxHunger} hunger",
-                SystemMessageTypes.Warning);
+                SystemMessageTypes.Warning,
+                null);
             return false;
         }
 
@@ -292,7 +296,7 @@ public class GameOrchestrator
         int coinCost = route.BaseCoinCost;
         if (coinCost > 0 && player.Coins < coinCost)
         {
-            _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning);
+            _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning, null);
             return false;
         }
 
@@ -365,7 +369,7 @@ public class GameOrchestrator
                 }
             }
 
-            _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info);
+            _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info, null);
         }
 
         return travelResult.Success;
@@ -619,7 +623,7 @@ public class GameOrchestrator
         // NPC passed as object - no lookup needed
         if (npc == null)
         {
-            _messageSystem.AddSystemMessage($"NPC is null", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"NPC is null", SystemMessageTypes.Danger, null);
             return null;
         }
 
@@ -645,7 +649,7 @@ public class GameOrchestrator
 
         if (!availableExchanges.Any())
         {
-            _messageSystem.AddSystemMessage($"{npc.Name} has no exchanges available", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"{npc.Name} has no exchanges available", SystemMessageTypes.Info, null);
             return null;
         }
 
@@ -654,7 +658,7 @@ public class GameOrchestrator
         ExchangeSession session = _exchangeFacade.CreateExchangeSession(npc);
         if (session == null)
         {
-            _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger, null);
             return null;
         }
 
@@ -709,11 +713,8 @@ public class GameOrchestrator
         }
 
         // PROCEDURAL CONTENT TRACING: Clear trace data for new game
-        if (_gameWorld.ProceduralTracer != null)
-        {
-            _gameWorld.ProceduralTracer.Clear();
-            Console.WriteLine("[StartGameAsync] Procedural content trace cleared");
-        }
+        _proceduralTracer.Clear();
+        Console.WriteLine("[StartGameAsync] Procedural content trace cleared");
 
         // Initialize player at starting location from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
@@ -772,7 +773,7 @@ public class GameOrchestrator
 
         // PHASE 4: Mark game as started (LAST - game is now fully initialized and ready)
         _gameWorld.IsGameStarted = true;
-        _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success, null);
     }
 
     // ========== INTENT PROCESSING ==========
@@ -859,7 +860,7 @@ public class GameOrchestrator
         PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.Wait);
         if (action == null)
         {
-            _messageSystem.AddSystemMessage("Wait action not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Wait action not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -886,7 +887,7 @@ public class GameOrchestrator
         PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.SleepOutside);
         if (action == null)
         {
-            _messageSystem.AddSystemMessage("SleepOutside action not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("SleepOutside action not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -897,7 +898,8 @@ public class GameOrchestrator
 
         _messageSystem.AddSystemMessage(
             $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
-            SystemMessageTypes.Warning);
+            SystemMessageTypes.Warning,
+            null);
 
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -924,7 +926,7 @@ public class GameOrchestrator
         LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.Rest);
         if (action == null)
         {
-            _messageSystem.AddSystemMessage("Rest action not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Rest action not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -952,7 +954,7 @@ public class GameOrchestrator
         LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.SecureRoom);
         if (action == null)
         {
-            _messageSystem.AddSystemMessage("SecureRoom action not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("SecureRoom action not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -984,7 +986,7 @@ public class GameOrchestrator
         if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
         if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
         if (consequence.FullRecovery) recoveryMessage += " (Fully recovered)";
-        _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success, null);
 
         // Advance to next day morning
         TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
@@ -1001,7 +1003,7 @@ public class GameOrchestrator
         LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.Work);
         if (action == null)
         {
-            _messageSystem.AddSystemMessage("Work action not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Work action not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1015,7 +1017,7 @@ public class GameOrchestrator
         Location currentSpot = GetCurrentLocation();
         if (currentSpot == null)
         {
-            _messageSystem.AddSystemMessage("No current location to investigate", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("No current location to investigate", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1039,14 +1041,14 @@ public class GameOrchestrator
         // Validation: Can only have one active job
         if (player.HasActiveDeliveryJob)
         {
-            _messageSystem.AddSystemMessage("You already have an active delivery job", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("You already have an active delivery job", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
         // Validate job is available
         if (job == null || !job.IsAvailable)
         {
-            _messageSystem.AddSystemMessage("Job no longer available", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Job no longer available", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1054,7 +1056,7 @@ public class GameOrchestrator
         player.ActiveDeliveryJob = job;
         job.IsAvailable = false;
 
-        _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success, null);
 
         // Close modal and refresh location
         return IntentResult.Executed(requiresRefresh: true);
@@ -1067,14 +1069,14 @@ public class GameOrchestrator
         // Validation: Must have active job
         if (!player.HasActiveDeliveryJob)
         {
-            _messageSystem.AddSystemMessage("No active delivery job", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("No active delivery job", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
         DeliveryJob job = player.ActiveDeliveryJob;
         if (job == null)
         {
-            _messageSystem.AddSystemMessage("Delivery job data not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Delivery job data not found", SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1098,7 +1100,7 @@ public class GameOrchestrator
             SegmentsAdvanced = 1
         });
 
-        _messageSystem.AddSystemMessage($"Delivery complete! Earned {job.Payment} coins", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Delivery complete! Earned {job.Payment} coins", SystemMessageTypes.Success, null);
 
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -1111,7 +1113,7 @@ public class GameOrchestrator
         if (npc == null)
             return IntentResult.Failed();
 
-        _messageSystem.AddSystemMessage($"Talking to NPC {npc.Name} not yet implemented", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"Talking to NPC {npc.Name} not yet implemented", SystemMessageTypes.Info, null);
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: false);
     }
@@ -1169,7 +1171,8 @@ public class GameOrchestrator
             _gameWorld.ActiveEmergency = activeEmergency;
             _messageSystem.AddSystemMessage(
                 $"EMERGENCY: {activeEmergency.Template.Name}",
-                SystemMessageTypes.Warning);
+                SystemMessageTypes.Warning,
+                null);
         }
 
         // SCENE EXPIRATION ENFORCEMENT (HIGHLANDER sync point for time-based state changes)
@@ -1188,9 +1191,9 @@ public class GameOrchestrator
                 scene.State = SceneState.Expired;
 
                 // PROCEDURAL CONTENT TRACING: Update scene state to Expired
-                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+                if (_proceduralTracer.IsEnabled)
                 {
-                    _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
+                    _proceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
                 }
             }
         }
@@ -1239,7 +1242,7 @@ public class GameOrchestrator
     public string DebugGetStatInfo()
         => _debugCommandHandler.GetStatInfo();
 
-    public async Task DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
+    public async Task DebugGiveResources(int coins, int health, int hunger)
         => await _debugCommandHandler.GiveResources(coins, health, hunger);
 
     public void DebugTeleportToLocation(string venueName, string locationName)
@@ -1255,8 +1258,8 @@ public class GameOrchestrator
     /// </summary>
     public async Task EvaluateObligationDiscovery()
     {
-        Player player = _gameWorld.GetPlayer();// Evaluate which obligations can be discovered
-        List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations(player);// For each discovered obligation, trigger discovery flow
+        List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations();
+        // For each discovered obligation, trigger discovery flow
         foreach (Obligation obligation in discoverable)
         {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
          // No return value - situation is added directly to Location.ActiveSituations
@@ -1447,68 +1450,42 @@ public class GameOrchestrator
     /// GameOrchestrator is SOLE orchestrator for multi-facade operations
     /// LET IT CRASH: Pipeline succeeds completely or throws exception with stack trace
     /// </summary>
-    public async Task<Scene> SpawnSceneWithDynamicContent(
+    public Task<Scene> SpawnSceneWithDynamicContent(
         SceneTemplate template,
         SceneSpawnReward spawnReward,
         SceneSpawnContext context)
     {
-        // HIGHLANDER FLOW: Generate JSON and load via PackageLoader
-        string packageJson = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
-
-        if (string.IsNullOrEmpty(packageJson))
-        {
-            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed spawn conditions");
-            return null;
-        }
-
-        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
-        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
-        Scene scene = loadResult.ScenesAdded.FirstOrDefault();
+        // HIGHLANDER FLOW: Create Scene via SceneInstantiator → PackageLoader.CreateSingleScene(dto)
+        Scene scene = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
 
         if (scene == null)
         {
-            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed to load via PackageLoader");
-            return null;
+            Console.WriteLine($"[GameOrchestrator] Scene '{template.Id}' failed spawn conditions");
         }
 
-        return scene;
+        return Task.FromResult(scene);
     }
 
     /// <summary>
     /// TWO-PHASE SPAWNING - PHASE 1: Create deferred scene WITHOUT dependent resources
-    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
     /// Scene.State = Deferred (dependent resources not spawned yet)
-    /// HIGHLANDER FLOW: JSON → PackageLoader → SceneParser → Scene entity
+    /// HIGHLANDER FLOW: SceneInstantiator → PackageLoader.CreateSingleScene(dto) → Scene entity
     /// </summary>
-    private async Task<Scene> CreateDeferredSceneWithDynamicContent(
+    private Task<Scene> CreateDeferredSceneWithDynamicContent(
         SceneTemplate template,
         SceneSpawnReward spawnReward,
         SceneSpawnContext context)
     {
-        // PHASE 1: Generate JSON package with ONLY Scene + Situations (empty lists for dependent resources)
-        string packageJson = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
+        // PHASE 1: Create deferred scene via HIGHLANDER path (no JSON round-trip)
+        Scene scene = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
 
-        if (packageJson == null)
+        if (scene == null)
         {
             // Scene not eligible (spawn conditions failed)
-            return null;
+            return Task.FromResult<Scene>(null);
         }
 
-        // Write to disk and load via PackageLoader
-        // HIGHLANDER: Get direct object reference from result
-        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
-        await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
-        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
-
-        // Get spawned scene from result (HIGHLANDER: direct object reference)
-        Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();
-
-        if (spawnedScene == null)
-        {
-            throw new InvalidOperationException($"Deferred scene from template '{template.Id}' failed to load via PackageLoader");
-        }
-
-        return spawnedScene;
+        return Task.FromResult(scene);
     }
 
     /// <summary>
@@ -1604,7 +1581,7 @@ public class GameOrchestrator
 
         if (!plan.IsValid)
         {
-            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1714,7 +1691,7 @@ public class GameOrchestrator
 
         if (!plan.IsValid)
         {
-            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -1825,7 +1802,7 @@ public class GameOrchestrator
 
         if (!plan.IsValid)
         {
-            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage(plan.FailureReason, SystemMessageTypes.Warning, null);
             return IntentResult.Failed();
         }
 
@@ -2052,9 +2029,9 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingSocialContext?.ChoiceExecution;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+        if (_proceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
+            _proceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2079,9 +2056,9 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            if (_proceduralTracer.IsEnabled && choiceNode != null)
             {
-                _gameWorld.ProceduralTracer.PopChoiceContext();
+                _proceduralTracer.PopChoiceContext();
             }
             _gameWorld.PendingSocialContext = null;
         }
@@ -2095,9 +2072,9 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingMentalContext?.ChoiceExecution;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+        if (_proceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
+            _proceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2122,9 +2099,9 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            if (_proceduralTracer.IsEnabled && choiceNode != null)
             {
-                _gameWorld.ProceduralTracer.PopChoiceContext();
+                _proceduralTracer.PopChoiceContext();
             }
             _gameWorld.PendingMentalContext = null;
         }
@@ -2138,9 +2115,9 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingPhysicalContext?.ChoiceExecution;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+        if (_proceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
+            _proceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2165,9 +2142,9 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            if (_proceduralTracer.IsEnabled && choiceNode != null)
             {
-                _gameWorld.ProceduralTracer.PopChoiceContext();
+                _proceduralTracer.PopChoiceContext();
             }
             _gameWorld.PendingPhysicalContext = null;
         }

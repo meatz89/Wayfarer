@@ -24,9 +24,13 @@
             </h2>
         </div>
 
-        <!-- Narrative Section -->
-        <div class="scene-narrative">
-            @CurrentSituation.Description
+        <!-- Narrative Section (Typewriter Effect) -->
+        <div class="scene-narrative @(IsStreamingComplete ? "" : "streaming")">
+            @StreamedDescription
+            @if (!IsStreamingComplete)
+            {
+                <span class="typewriter-cursor">|</span>
+            }
         </div>
 
         <!-- Choices Section -->

@@ -35,7 +35,7 @@ namespace Wayfarer.Pages.Components
                 // Show error message through GameOrchestrator message system
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to select response",
-                    SystemMessageTypes.Danger);
+                    SystemMessageTypes.Danger, null);
                 return;
             }
 

@@ -22,12 +22,13 @@ public class BindingObligationSystem
 
     /// <summary>
     /// Create a new binding obligation from a conversation choice
+    /// HIGHLANDER: segmentsUntilDue REQUIRED - duration comes from content/GDD
     /// </summary>
     public void CreateObligation(
         NPC npc,
         ObligationType type,
         string description,
-        int segmentsUntilDue = 24)
+        int segmentsUntilDue)
     {
         BindingObligation obligation = new BindingObligation
         {

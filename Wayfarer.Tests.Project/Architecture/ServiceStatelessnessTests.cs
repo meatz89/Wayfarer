@@ -204,7 +204,7 @@ public class ServiceStatelessnessTests
             }
         }
 
-        Assert.Empty(violations);
+        Assert.True(violations.Count == 0, $"GameWorld parameter violations:\n{string.Join("\n", violations)}");
     }
 
     /// <summary>
@@ -239,7 +239,7 @@ public class ServiceStatelessnessTests
             }
         }
 
-        Assert.Empty(violations);
+        Assert.True(violations.Count == 0, $"Player parameter violations:\n{string.Join("\n", violations)}");
     }
 
     /// <summary>

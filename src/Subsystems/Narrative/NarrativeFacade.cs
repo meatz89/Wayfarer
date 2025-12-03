@@ -28,18 +28,20 @@ public class NarrativeFacade
 
     /// <summary>
     /// Add a system message with narrative flair
+    /// HIGHLANDER: type and category required - caller must be explicit
     /// </summary>
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddSystemMessage(string message, SystemMessageTypes type, MessageCategory? category)
     {
-        _messageSystem.AddSystemMessage(message, type);
+        _messageSystem.AddSystemMessage(message, type, category);
     }
 
     /// <summary>
     /// Add a narrative event message
+    /// HIGHLANDER: type and category required - caller must be explicit
     /// </summary>
-    public void AddNarrativeMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddNarrativeMessage(string message, SystemMessageTypes type, MessageCategory? category)
     {
-        _messageSystem.AddSystemMessage(message, type);
+        _messageSystem.AddSystemMessage(message, type, category);
     }
 
     // ========== NARRATIVE GENERATION ==========

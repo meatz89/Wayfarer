@@ -66,19 +66,7 @@ public static class SpawnConditionsParser
             }
         }
 
-        // Convert LocationVisits from DTO to domain entry
-        List<LocationVisitEntry> locationVisits = new List<LocationVisitEntry>();
-        if (dto.LocationVisits != null)
-        {
-            foreach (LocationVisitEntry entry in dto.LocationVisits)
-            {
-                locationVisits.Add(new LocationVisitEntry
-                {
-                    LocationId = entry.LocationId,
-                    VisitCount = entry.VisitCount
-                });
-            }
-        }
+        // LocationVisits DELETED - §8.30: SpawnConditions must reference existing entities via object refs
 
         return new PlayerStateConditions
         {
@@ -88,8 +76,7 @@ public static class SpawnConditionsParser
             MinCaution = minCaution,
             MinTransparency = minTransparency,
             MinFame = minFame,
-            RequiredItems = dto.RequiredItems ?? new List<string>(),
-            LocationVisits = locationVisits
+            RequiredItems = dto.RequiredItems ?? new List<string>()
         };
     }
 
@@ -150,60 +137,15 @@ public static class SpawnConditionsParser
 
     /// <summary>
     /// Parse EntityStateConditions from DTO
-    /// Converts DTO entry lists to domain entry lists
+    /// §8.30: NPCBond, LocationReputation, RouteTravelCount DELETED - must use object refs not string IDs
     /// </summary>
     private static EntityStateConditions ParseEntityStateConditions(EntityStateConditionsDTO dto)
     {
         if (dto == null)
             return new EntityStateConditions();
 
-        // Convert NPCBond list from DTO to domain entry
-        List<NPCBondEntry> npcBond = new List<NPCBondEntry>();
-        if (dto.NPCBond != null)
-        {
-            foreach (NPCBondEntry entry in dto.NPCBond)
-            {
-                npcBond.Add(new NPCBondEntry
-                {
-                    NpcId = entry.NpcId,
-                    BondStrength = entry.BondStrength
-                });
-            }
-        }
-
-        // Convert LocationReputation list from DTO to domain entry
-        List<LocationReputationEntry> locationReputation = new List<LocationReputationEntry>();
-        if (dto.LocationReputation != null)
-        {
-            foreach (LocationReputationEntry entry in dto.LocationReputation)
-            {
-                locationReputation.Add(new LocationReputationEntry
-                {
-                    LocationId = entry.LocationId,
-                    ReputationScore = entry.ReputationScore
-                });
-            }
-        }
-
-        // Convert RouteTravelCount list from DTO to domain entry
-        List<RouteTravelCountEntry> routeTravelCount = new List<RouteTravelCountEntry>();
-        if (dto.RouteTravelCount != null)
-        {
-            foreach (RouteTravelCountEntry entry in dto.RouteTravelCount)
-            {
-                routeTravelCount.Add(new RouteTravelCountEntry
-                {
-                    RouteId = entry.RouteId,
-                    TravelCount = entry.TravelCount
-                });
-            }
-        }
-
         return new EntityStateConditions
         {
-            NPCBond = npcBond,
-            LocationReputation = locationReputation,
-            RouteTravelCount = routeTravelCount,
             Properties = dto.Properties ?? new List<string>()
         };
     }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 /// Full-screen takeover showing scene narrative with 2-4 choices.
 /// Handles both Cascade (continue in scene) and Breathe (return to location) progression modes.
 /// </summary>
-public class SceneContentBase : ComponentBase
+public class SceneContentBase : ComponentBase, IDisposable
 {
     [Parameter] public SceneContext Context { get; set; }
     [Parameter] public EventCallback OnSceneEnd { get; set; }
@@ -16,10 +16,17 @@ public class SceneContentBase : ComponentBase
     [Inject] protected SceneFacade SceneFacade { get; set; }
     [Inject] protected RewardApplicationService RewardApplicationService { get; set; }
     [Inject] protected SituationCompletionHandler SituationCompletionHandler { get; set; }
+    [Inject] protected NarrativeStreamingService NarrativeStreamingService { get; set; }
+    [Inject] protected ProceduralContentTracer ProceduralTracer { get; set; }
 
     protected Scene Scene { get; set; }
     protected Situation CurrentSituation { get; set; }
     protected List<ActionCardViewModel> Choices { get; set; } = new List<ActionCardViewModel>();
+
+    // Typewriter streaming state
+    protected string StreamedDescription { get; set; } = "";
+    protected bool IsStreamingComplete { get; set; } = false;
+    private CancellationTokenSource _streamingCts;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -30,9 +37,49 @@ public class SceneContentBase : ComponentBase
 
             // Get choices for current situation
             LoadChoices();
+
+            // Start typewriter streaming for situation description
+            await StartDescriptionStreaming();
         }
 
         await base.OnParametersSetAsync();
+    }
+
+    private async Task StartDescriptionStreaming()
+    {
+        // Cancel any existing streaming
+        _streamingCts?.Cancel();
+        _streamingCts = new CancellationTokenSource();
+
+        // Reset streaming state
+        StreamedDescription = "";
+        IsStreamingComplete = false;
+        StateHasChanged();
+
+        if (string.IsNullOrWhiteSpace(CurrentSituation?.Description))
+        {
+            IsStreamingComplete = true;
+            return;
+        }
+
+        // Stream the description with typewriter effect
+        await foreach (NarrativeChunk chunk in NarrativeStreamingService.StreamNarrativeAsync(
+            CurrentSituation.Description,
+            _streamingCts.Token))
+        {
+            if (_streamingCts.Token.IsCancellationRequested)
+                break;
+
+            StreamedDescription += (StreamedDescription.Length > 0 ? " " : "") + chunk.Text;
+            IsStreamingComplete = chunk.IsComplete;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        _streamingCts?.Cancel();
+        _streamingCts?.Dispose();
     }
 
     private void LoadChoices()
@@ -483,10 +530,10 @@ public class SceneContentBase : ComponentBase
         // PROCEDURAL CONTENT TRACING: Record choice execution for ALL paths (instant + challenge)
         // UNIFIED ARCHITECTURE: Choice is a choice, whether instant or challenge
         ChoiceExecutionNode choiceNode = null;
-        if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+        if (ProceduralTracer.IsEnabled)
         {
-            SituationSpawnNode situationNode = GameWorld.ProceduralTracer.GetNodeForSituation(CurrentSituation);
-            choiceNode = GameWorld.ProceduralTracer.RecordChoiceExecution(
+            SituationSpawnNode situationNode = ProceduralTracer.GetNodeForSituation(CurrentSituation);
+            choiceNode = ProceduralTracer.RecordChoiceExecution(
                 choiceTemplate,
                 situationNode,
                 choiceTemplate.ActionTextTemplate,
@@ -572,9 +619,9 @@ public class SceneContentBase : ComponentBase
                 Console.WriteLine($"[HandleChoiceSelected.DEBUG]   SpawnNextMainStoryScene = {spawn.SpawnNextMainStoryScene}");
             }
             // PROCEDURAL CONTENT TRACING: Push context for instant consequence application
-            if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            if (ProceduralTracer.IsEnabled && choiceNode != null)
             {
-                GameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
+                ProceduralTracer.PushChoiceContext(choiceNode);
             }
 
             try
@@ -585,9 +632,9 @@ public class SceneContentBase : ComponentBase
             finally
             {
                 // ALWAYS pop context (even on exception)
-                if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+                if (ProceduralTracer.IsEnabled && choiceNode != null)
                 {
-                    GameWorld.ProceduralTracer.PopChoiceContext();
+                    ProceduralTracer.PopChoiceContext();
                 }
             }
         }
@@ -620,6 +667,7 @@ public class SceneContentBase : ComponentBase
                 // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
                 CurrentSituation = nextSituation;
                 LoadChoices();
+                await StartDescriptionStreaming();
                 StateHasChanged();
             }
             else

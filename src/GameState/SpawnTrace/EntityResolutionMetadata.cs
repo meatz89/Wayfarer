@@ -95,3 +95,20 @@ public class EntityResolutionMetadata
         };
     }
 }
+
+/// <summary>
+/// HIGHLANDER: Bundles optional entity resolution metadata into single required parameter.
+/// Replaces three optional parameters with one required context object.
+/// All internal fields nullable (situation may not involve all entity types).
+/// </summary>
+public class EntityResolutionContext
+{
+    public EntityResolutionMetadata LocationResolution { get; set; }
+    public EntityResolutionMetadata NpcResolution { get; set; }
+    public EntityResolutionMetadata RouteResolution { get; set; }
+
+    /// <summary>
+    /// Empty context (no resolution metadata captured)
+    /// </summary>
+    public static EntityResolutionContext Empty() => new EntityResolutionContext();
+}

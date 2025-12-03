@@ -35,9 +35,8 @@ public class PackageLoadResult
     public List<MentalChallengeDeck> MentalChallengeDecksAdded { get; set; } = new List<MentalChallengeDeck>();
     public List<PhysicalChallengeDeck> PhysicalChallengeDecksAdded { get; set; } = new List<PhysicalChallengeDeck>();
 
-    // Strategic layer - Scene system
+    // Strategic layer - Scene system (UNIFIED PATH: Only templates, no instances at parse-time)
     public List<SceneTemplate> SceneTemplatesAdded { get; set; } = new List<SceneTemplate>();
-    public List<Scene> ScenesAdded { get; set; } = new List<Scene>();
 
     // Supporting systems
     public List<ExchangeCard> ExchangeCardsAdded { get; set; } = new List<ExchangeCard>();
@@ -59,7 +58,6 @@ public class PackageLoadResult
         MentalChallengeDecksAdded.Count +
         PhysicalChallengeDecksAdded.Count +
         SceneTemplatesAdded.Count +
-        ScenesAdded.Count +
         ExchangeCardsAdded.Count;
 
     public bool HasEntities => TotalEntityCount > 0;
@@ -79,7 +77,6 @@ public class PackageLoadResult
         MentalChallengeDecksAdded.Clear();
         PhysicalChallengeDecksAdded.Clear();
         SceneTemplatesAdded.Clear();
-        ScenesAdded.Clear();
         ExchangeCardsAdded.Clear();
 
         PackageId = "unknown";

@@ -98,7 +98,7 @@ public class DebugLogger
         if (!_enabled) return;
 
         string message = $"POLL: {component} | {state}";
-        AddLog(DebugLogCategory.Polling, message, verbose: true);
+        AddVerboseLog(DebugLogCategory.Polling, message);
     }
 
     public void LogError(string component, string error, Exception ex)
@@ -231,10 +231,30 @@ public class DebugLogger
         return string.Join("\n", report);
     }
 
-    private void AddLog(DebugLogCategory category, string message, bool verbose = false)
+    /// <summary>
+    /// Add a normal log entry
+    /// HIGHLANDER: No optional parameters - use AddVerboseLog for verbose logs
+    /// </summary>
+    private void AddLog(DebugLogCategory category, string message)
+    {
+        DebugLogEntry entry = new DebugLogEntry
+        {
+            Timestamp = DateTime.Now,
+            Category = category,
+            Message = message
+        };
+
+        _logs.Add(entry);
+    }
+
+    /// <summary>
+    /// Add a verbose log entry (skipped in production)
+    /// HIGHLANDER: Explicit method for verbose logging
+    /// </summary>
+    private void AddVerboseLog(DebugLogCategory category, string message)
     {
         // Skip verbose logs in production
-        if (verbose && !IsDebugMode())
+        if (!IsDebugMode())
             return;
 
         DebugLogEntry entry = new DebugLogEntry

@@ -16,12 +16,12 @@ public class SceneSituationSystemLoader
     /// <summary>
     /// Load all scene/situation content from a package.
     /// Called by PackageLoader during package loading.
+    /// UNIFIED PATH: Loads SceneTemplates only - Scene instances created at spawn-time via SpawnStarterScenes().
     /// </summary>
     public void LoadSceneSituationContent(
         List<StateDTO> stateDtos,
         List<AchievementDTO> achievementDtos,
         List<SceneTemplateDTO> sceneTemplateDtos,
-        List<SceneDTO> sceneDtos,
         List<ConversationTreeDTO> conversationTreeDtos,
         List<ObservationSceneDTO> observationSceneDtos,
         List<EmergencySituationDTO> emergencySituationDtos,
@@ -32,7 +32,6 @@ public class SceneSituationSystemLoader
         LoadStates(stateDtos, allowSkeletons);
         LoadAchievements(achievementDtos, allowSkeletons);
         LoadSceneTemplates(sceneTemplateDtos, result, allowSkeletons);
-        LoadScenes(sceneDtos, result, allowSkeletons);
         LoadConversationTrees(conversationTreeDtos, allowSkeletons);
         LoadObservationScenes(observationSceneDtos, allowSkeletons);
         LoadEmergencySituations(emergencySituationDtos, allowSkeletons);
@@ -76,23 +75,6 @@ public class SceneSituationSystemLoader
         if (sceneTemplateDtos.Count > 0)
         {
             Console.WriteLine($"[SceneSituationSystemLoader] Loaded {sceneTemplateDtos.Count} SceneTemplates");
-        }
-    }
-
-    private void LoadScenes(List<SceneDTO> sceneDtos, PackageLoadResult result, bool allowSkeletons)
-    {
-        if (sceneDtos == null) return;
-
-        foreach (SceneDTO dto in sceneDtos)
-        {
-            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld);
-            _gameWorld.Scenes.Add(scene);
-            result.ScenesAdded.Add(scene);
-        }
-
-        if (sceneDtos.Count > 0)
-        {
-            Console.WriteLine($"[SceneSituationSystemLoader] Loaded {sceneDtos.Count} Scene instances");
         }
     }
 

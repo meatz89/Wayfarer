@@ -3,6 +3,7 @@
 @inject GameOrchestrator GameOrchestrator
 @inject MessageSystem MessageSystem
 @inject NavigationManager NavigationManager
+@inject ProceduralContentTracer ProceduralTracer
 
 <div class="debug-panel @(IsExpanded ? "expanded" : "collapsed")">
     <div class="debug-toggle" @onclick="TogglePanel">
@@ -72,7 +73,7 @@
                 </div>
                 @if (showSpawnTrace)
                 {
-                    <SpawnGraphViewer Tracer="@GameOrchestrator.GameWorld.ProceduralTracer" />
+                    <SpawnGraphViewer Tracer="@ProceduralTracer" />
                 }
             </div>
         </div>
@@ -120,7 +121,7 @@
     private void ShowStatInfo()
     {
         string info = GameOrchestrator.DebugGetStatInfo();
-        MessageSystem.AddSystemMessage(info, SystemMessageTypes.Info);
+        MessageSystem.AddSystemMessage(info, SystemMessageTypes.Info, null);
     }
 
     private async Task GiveResources(int coins, int health, int hunger)
@@ -132,19 +133,19 @@
     private void RevealAllPaths()
     {
         // This would need to be implemented in TravelFacade
-        MessageSystem.AddSystemMessage("Path revelation not yet implemented", SystemMessageTypes.Warning);
+        MessageSystem.AddSystemMessage("Path revelation not yet implemented", SystemMessageTypes.Warning, null);
     }
 
     private void UnlockAllTokens()
     {
         // This would need to be implemented in TokenFacade
-        MessageSystem.AddSystemMessage("Token unlock not yet implemented", SystemMessageTypes.Warning);
+        MessageSystem.AddSystemMessage("Token unlock not yet implemented", SystemMessageTypes.Warning, null);
     }
 
     private void SkipTime()
     {
         // This would need to be implemented in TimeFacade
-        MessageSystem.AddSystemMessage("Time skip not yet implemented", SystemMessageTypes.Warning);
+        MessageSystem.AddSystemMessage("Time skip not yet implemented", SystemMessageTypes.Warning, null);
     }
 
     private void TeleportToElena()

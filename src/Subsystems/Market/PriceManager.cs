@@ -340,8 +340,9 @@ public class PriceManager
     /// <summary>
     /// Find items with best profit margins at a location
     /// HIGHLANDER: Accept Location object
+    /// HIGHLANDER: topN REQUIRED - caller specifies how many items to return
     /// </summary>
-    public List<PricingInfo> GetHighMarginItems(Location location, int topN = 5)
+    public List<PricingInfo> GetHighMarginItems(Location location, int topN)
     {
         List<PricingInfo> prices = GetLocationPrices(location);
 

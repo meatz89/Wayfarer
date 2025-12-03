@@ -24,7 +24,7 @@ public class EntityNodeModel : NodeModel
     /// </summary>
     public EntityResolutionMetadata Resolution { get; }
 
-    public EntityNodeModel(Point position, LocationSnapshot location, EntityResolutionMetadata resolution = null) : base(position)
+    public EntityNodeModel(Point position, LocationSnapshot location, EntityResolutionMetadata resolution) : base(position)
     {
         EntityType = SpawnGraphEntityType.Location;
         EntityName = location?.Name ?? "Location";
@@ -32,7 +32,7 @@ public class EntityNodeModel : NodeModel
         Resolution = resolution;
     }
 
-    public EntityNodeModel(Point position, NPCSnapshot npc, EntityResolutionMetadata resolution = null) : base(position)
+    public EntityNodeModel(Point position, NPCSnapshot npc, EntityResolutionMetadata resolution) : base(position)
     {
         EntityType = SpawnGraphEntityType.NPC;
         EntityName = npc?.Name ?? "NPC";
@@ -40,7 +40,7 @@ public class EntityNodeModel : NodeModel
         Resolution = resolution;
     }
 
-    public EntityNodeModel(Point position, RouteSnapshot route, EntityResolutionMetadata resolution = null) : base(position)
+    public EntityNodeModel(Point position, RouteSnapshot route, EntityResolutionMetadata resolution) : base(position)
     {
         EntityType = SpawnGraphEntityType.Route;
         EntityName = route != null ? route.OriginLocationName + " -> " + route.DestinationLocationName : "Route";

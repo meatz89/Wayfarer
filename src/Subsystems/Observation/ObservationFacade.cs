@@ -216,7 +216,7 @@ public class ObservationFacade
             {
                 player.Knowledge.Add(knowledge);
                 result.KnowledgeGained.Add(knowledge);
-                _messageSystem.AddSystemMessage($"Discovered: {knowledge}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Discovered: {knowledge}", SystemMessageTypes.Info, null);
             }
         }
 
@@ -230,7 +230,7 @@ public class ObservationFacade
             if (deterministicValue <= point.FindItemChance)
             {
                 result.ItemFound = point.FoundItem;
-                _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info, null);
             }
         }
 
@@ -238,21 +238,21 @@ public class ObservationFacade
         if (point.SpawnedSituation != null)
         {
             result.SituationSpawned = point.SpawnedSituation;
-            _messageSystem.AddSystemMessage($"New situation available: {point.SpawnedSituation.Name}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"New situation available: {point.SpawnedSituation.Name}", SystemMessageTypes.Info, null);
         }
 
         // Spawn conversations (using object reference)
         if (point.SpawnedConversation != null)
         {
             result.ConversationSpawned = point.SpawnedConversation;
-            _messageSystem.AddSystemMessage($"New conversation available: {point.SpawnedConversation.Name}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"New conversation available: {point.SpawnedConversation.Name}", SystemMessageTypes.Info, null);
         }
 
         // Check for revealed points (using object reference)
         if (point.RevealsExaminationPoint != null)
         {
             result.PointRevealed = point.RevealsExaminationPoint;
-            _messageSystem.AddSystemMessage($"New examination point revealed: {point.RevealsExaminationPoint.Title}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"New examination point revealed: {point.RevealsExaminationPoint.Title}", SystemMessageTypes.Info, null);
         }
 
         // Check if scene is fully examined (using state, not template)
@@ -263,7 +263,7 @@ public class ObservationFacade
         {
             state.IsCompleted = true; // Mutate state, not template
             result.SceneCompleted = true;
-            _messageSystem.AddSystemMessage("Scene investigation complete", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage("Scene investigation complete", SystemMessageTypes.Info, null);
         }
 
         return result;

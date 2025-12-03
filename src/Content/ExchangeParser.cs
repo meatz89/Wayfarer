@@ -22,7 +22,7 @@ public static class ExchangeParser
             throw new InvalidOperationException($"Exchange '{dto.Name}' missing required 'providerFilter' field");
 
         // EntityResolver.Find pattern - find-only at parse-time (NPCs should already exist)
-        PlacementFilter providerFilter = PlacementFilterParser.Parse(dto.ProviderFilter, $"Exchange:{dto.Name}");
+        PlacementFilter providerFilter = PlacementFilterParser.Parse(dto.ProviderFilter, $"Exchange:{dto.Name}", null);
         NPC npc = entityResolver.FindNPC(providerFilter, null);
         if (npc == null)
         {

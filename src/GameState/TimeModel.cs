@@ -31,7 +31,7 @@ public class TimeModel
 
     // Events removed per architecture guidelines - use return values instead
 
-    public TimeModel(int startDay = 1)
+    public TimeModel(int startDay)
     {
         _currentState = new TimeState(startDay);
     }

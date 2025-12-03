@@ -27,8 +27,9 @@ public class MovementValidator
     /// <summary>
     /// Validate the current state before movement.
     /// </summary>
-    public bool ValidateCurrentState(Player player, Venue currentLocation, Location currentSpot)
+    public bool ValidateCurrentState(Venue currentLocation, Location currentSpot)
     {
+        Player player = _gameWorld.GetPlayer();
         if (player == null) return false;
         if (currentSpot == null) return false;
         if (currentLocation == null) return false;

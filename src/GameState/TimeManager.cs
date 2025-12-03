@@ -31,8 +31,9 @@ public class TimeManager
 
     /// <summary>
     /// Checks if an action requiring specified segments can be performed.
+    /// HIGHLANDER: segmentsRequired REQUIRED - comes from Consequence.TimeSegments
     /// </summary>
-    public bool CanPerformAction(int segmentsRequired = 1)
+    public bool CanPerformAction(int segmentsRequired)
     {
         return _timeModel.CanPerformAction(segmentsRequired);
     }
@@ -102,7 +103,8 @@ public class TimeManager
         {
             _messageSystem.AddSystemMessage(
                 $"Not enough segments remaining. Need {segments} segments, have {SegmentsRemainingInDay}.",
-                SystemMessageTypes.Warning);
+                SystemMessageTypes.Warning,
+                null);
             return false;
         }
 

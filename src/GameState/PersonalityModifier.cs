@@ -1,4 +1,14 @@
 /// <summary>
+/// Entry for modifier parameter values.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class ModifierParameterEntry
+{
+    public string ParameterName { get; set; }
+    public int Value { get; set; }
+}
+
+/// <summary>
 /// Represents a personality-specific conversation modifier
 /// Maps a personality type to its mechanical effect and parameters
 /// </summary>

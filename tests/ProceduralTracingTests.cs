@@ -191,26 +191,26 @@ public class ProceduralTracingTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
-        gameWorld.ProceduralTracer = new ProceduralContentTracer();
-        gameWorld.ProceduralTracer.IsEnabled = true;
+        ProceduralContentTracer tracer = new ProceduralContentTracer();
+        tracer.IsEnabled = true;
 
-        Scene scene = CreateTestSceneWithSituation(gameWorld);
+        Scene scene = CreateTestSceneWithSituation(gameWorld, tracer);
         Situation situation = scene.Situations[0];
         ChoiceTemplate choice = CreateInstantChoiceWithSceneReward();
 
         // Act - Execute choice (simulates SceneContent.HandleChoiceSelected)
-        SituationSpawnNode situationNode = gameWorld.ProceduralTracer.GetNodeForSituation(situation);
-        ChoiceExecutionNode choiceNode = gameWorld.ProceduralTracer.RecordChoiceExecution(choice, situationNode, "Instant Action", true);
+        SituationSpawnNode situationNode = tracer.GetNodeForSituation(situation);
+        ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(choice, situationNode, "Instant Action", true);
 
-        gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
-        Scene spawnedScene = await ApplyConsequence(choice.Consequence, gameWorld);
-        gameWorld.ProceduralTracer.PopChoiceContext();
+        tracer.PushChoiceContext(choiceNode);
+        Scene spawnedScene = await ApplyConsequence(choice.Consequence, gameWorld, tracer);
+        tracer.PopChoiceContext();
 
         // Assert - Choice recorded, scene spawned and linked
         Assert.NotNull(choiceNode);
         Assert.Same(situationNode, choiceNode.ParentSituation);
 
-        SceneSpawnNode spawnedSceneNode = gameWorld.ProceduralTracer.GetNodeForScene(spawnedScene);
+        SceneSpawnNode spawnedSceneNode = tracer.GetNodeForScene(spawnedScene);
         Assert.NotNull(spawnedSceneNode);
         Assert.Same(choiceNode, spawnedSceneNode.ParentChoice);
         Assert.Contains(spawnedSceneNode, choiceNode.SpawnedScenes);
@@ -221,16 +221,16 @@ public class ProceduralTracingTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
-        gameWorld.ProceduralTracer = new ProceduralContentTracer();
-        gameWorld.ProceduralTracer.IsEnabled = true;
+        ProceduralContentTracer tracer = new ProceduralContentTracer();
+        tracer.IsEnabled = true;
 
-        Scene scene = CreateTestSceneWithSituation(gameWorld);
+        Scene scene = CreateTestSceneWithSituation(gameWorld, tracer);
         Situation situation = scene.Situations[0];
         ChoiceTemplate choice = CreateChallengeChoiceWithSuccessReward();
 
         // Act - Part 1: Record choice, store in context (simulates SceneContent)
-        SituationSpawnNode situationNode = gameWorld.ProceduralTracer.GetNodeForSituation(situation);
-        ChoiceExecutionNode choiceNode = gameWorld.ProceduralTracer.RecordChoiceExecution(choice, situationNode, "Challenge Action", true);
+        SituationSpawnNode situationNode = tracer.GetNodeForSituation(situation);
+        ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(choice, situationNode, "Challenge Action", true);
 
         gameWorld.PendingSocialContext = new SocialChallengeContext
         {
@@ -246,12 +246,12 @@ public class ProceduralTracingTests
         ChoiceExecutionNode storedChoice = gameWorld.PendingSocialContext.ChoiceExecution;
         Assert.Same(choiceNode, storedChoice); // Verify object identity
 
-        gameWorld.ProceduralTracer.PushChoiceContext(storedChoice);
-        Scene spawnedScene = await ApplyConsequence(choice.OnSuccessConsequence, gameWorld);
-        gameWorld.ProceduralTracer.PopChoiceContext();
+        tracer.PushChoiceContext(storedChoice);
+        Scene spawnedScene = await ApplyConsequence(choice.OnSuccessConsequence, gameWorld, tracer);
+        tracer.PopChoiceContext();
 
         // Assert - Scene spawned by choice
-        SceneSpawnNode spawnedSceneNode = gameWorld.ProceduralTracer.GetNodeForScene(spawnedScene);
+        SceneSpawnNode spawnedSceneNode = tracer.GetNodeForScene(spawnedScene);
         Assert.NotNull(spawnedSceneNode);
         Assert.Same(choiceNode, spawnedSceneNode.ParentChoice);
     }
@@ -261,24 +261,24 @@ public class ProceduralTracingTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
-        gameWorld.ProceduralTracer = new ProceduralContentTracer();
-        gameWorld.ProceduralTracer.IsEnabled = true;
+        ProceduralContentTracer tracer = new ProceduralContentTracer();
+        tracer.IsEnabled = true;
 
-        Scene scene = CreateTestSceneWithSituation(gameWorld);
+        Scene scene = CreateTestSceneWithSituation(gameWorld, tracer);
         Situation parentSituation = scene.Situations[0];
         Situation childSituation = CreateTestSituation();
 
-        SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.GetNodeForScene(scene);
-        SituationSpawnNode parentNode = gameWorld.ProceduralTracer.GetNodeForSituation(parentSituation);
+        SceneSpawnNode sceneNode = tracer.GetNodeForScene(scene);
+        SituationSpawnNode parentNode = tracer.GetNodeForSituation(parentSituation);
 
         // Act - Simulate SpawnService.ExecuteSpawnRules
-        gameWorld.ProceduralTracer.PushSituationContext(parentNode);
-        SituationSpawnNode childNode = gameWorld.ProceduralTracer.RecordSituationSpawn(
+        tracer.PushSituationContext(parentNode);
+        SituationSpawnNode childNode = tracer.RecordSituationSpawn(
             childSituation,
             sceneNode,
             SituationSpawnTriggerType.SuccessSpawn
         );
-        gameWorld.ProceduralTracer.PopSituationContext();
+        tracer.PopSituationContext();
 
         // Assert - HIGHLANDER: Child links to parent via object
         Assert.Same(parentNode, childNode.ParentSituation);
@@ -327,7 +327,7 @@ public class ProceduralTracingTests
         };
     }
 
-    private Scene CreateTestSceneWithSituation(GameWorld gameWorld)
+    private Scene CreateTestSceneWithSituation(GameWorld gameWorld, ProceduralContentTracer tracer)
     {
         Scene scene = CreateTestScene();
         Situation situation = CreateTestSituation();
@@ -338,8 +338,8 @@ public class ProceduralTracingTests
 
         // Record in tracer
         Player player = gameWorld.GetPlayer();
-        SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.RecordSceneSpawn(scene, scene.TemplateId, false, SpawnTriggerType.Initial, player);
-        gameWorld.ProceduralTracer.RecordSituationSpawn(situation, sceneNode, SituationSpawnTriggerType.InitialScene);
+        SceneSpawnNode sceneNode = tracer.RecordSceneSpawn(scene, scene.TemplateId, false, SpawnTriggerType.Initial, player);
+        tracer.RecordSituationSpawn(situation, sceneNode, SituationSpawnTriggerType.InitialScene);
 
         return scene;
     }
@@ -375,7 +375,7 @@ public class ProceduralTracingTests
         };
     }
 
-    private async Task<Scene> ApplyConsequence(Consequence consequence, GameWorld gameWorld)
+    private async Task<Scene> ApplyConsequence(Consequence consequence, GameWorld gameWorld, ProceduralContentTracer tracer)
     {
         // Simplified consequence application - in real code this goes through ConsequenceApplicationService
         Scene spawnedScene = new Scene
@@ -389,7 +389,7 @@ public class ProceduralTracingTests
 
         // Record in tracer
         Player player = gameWorld.GetPlayer();
-        gameWorld.ProceduralTracer.RecordSceneSpawn(spawnedScene, spawnedScene.TemplateId, true, SpawnTriggerType.ChoiceReward, player);
+        tracer.RecordSceneSpawn(spawnedScene, spawnedScene.TemplateId, true, SpawnTriggerType.ChoiceReward, player);
 
         return spawnedScene;
     }

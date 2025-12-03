@@ -6,14 +6,16 @@ namespace Wayfarer.Tests.Project;
 /// Integration tests for tutorial inn_lodging scene.
 /// Tests PLAYER EXPERIENCE: Can player actually play through tutorial?
 /// REWRITTEN from scratch for hierarchical placement architecture.
+///
+/// Uses IntegrationTestBase - tests EXACT production initialization path.
 /// </summary>
-public class TutorialInnLodgingIntegrationTest
+public class TutorialInnLodgingIntegrationTest : IntegrationTestBase
 {
     [Fact]
     public void Tutorial_LoadsSceneTemplates()
     {
-        // ARRANGE & ACT
-        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
+        // ARRANGE & ACT - uses production initialization via IntegrationTestBase
+        GameWorld gameWorld = GetGameWorld();
 
         // ASSERT: Tutorial scene templates exist (semantic query by MainStory category and modal presentation)
         // Scenes activate via LOCATION ONLY when player enters matching location
@@ -31,8 +33,8 @@ public class TutorialInnLodgingIntegrationTest
     [Fact]
     public void Tutorial_SituationTemplates_HaveLocationFilters()
     {
-        // ARRANGE & ACT
-        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
+        // ARRANGE & ACT - uses production initialization via IntegrationTestBase
+        GameWorld gameWorld = GetGameWorld();
         // Semantic query by MainStory category and modal presentation
         SceneTemplate tutorialLodging = gameWorld.SceneTemplates
             .First(st => st.Category == StoryCategory.MainStory &&
@@ -55,8 +57,8 @@ public class TutorialInnLodgingIntegrationTest
     [Fact]
     public void Tutorial_FirstSituation_HasMultipleChoicePaths()
     {
-        // ARRANGE & ACT
-        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
+        // ARRANGE & ACT - uses production initialization via IntegrationTestBase
+        GameWorld gameWorld = GetGameWorld();
         // Semantic query by MainStory category and modal presentation
         SceneTemplate tutorialLodging = gameWorld.SceneTemplates
             .First(st => st.Category == StoryCategory.MainStory &&

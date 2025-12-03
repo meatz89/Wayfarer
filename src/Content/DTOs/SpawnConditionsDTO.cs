@@ -44,10 +44,7 @@ public class PlayerStateConditionsDTO
     /// </summary>
     public List<string> RequiredItems { get; set; } = new List<string>();
 
-    /// <summary>
-    /// Location visit count requirements
-    /// </summary>
-    public List<LocationVisitEntry> LocationVisits { get; set; } = new List<LocationVisitEntry>();
+    // LocationVisits DELETED - §8.30: SpawnConditions must reference existing entities via object refs
 }
 
 /// <summary>
@@ -82,25 +79,11 @@ public class WorldStateConditionsDTO
 }
 
 /// <summary>
-/// Entity state conditions DTO - relationships and reputation
+/// Entity state conditions DTO - entity properties
+/// §8.30: NPCBond, LocationReputation, RouteTravelCount DELETED - must use object refs not string IDs
 /// </summary>
 public class EntityStateConditionsDTO
 {
-    /// <summary>
-    /// NPC bond requirements
-    /// </summary>
-    public List<NPCBondEntry> NPCBond { get; set; } = new List<NPCBondEntry>();
-
-    /// <summary>
-    /// Location reputation requirements
-    /// </summary>
-    public List<LocationReputationEntry> LocationReputation { get; set; } = new List<LocationReputationEntry>();
-
-    /// <summary>
-    /// Route travel count requirements
-    /// </summary>
-    public List<RouteTravelCountEntry> RouteTravelCount { get; set; } = new List<RouteTravelCountEntry>();
-
     /// <summary>
     /// Required entity properties
     /// </summary>
