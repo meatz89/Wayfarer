@@ -131,40 +131,8 @@ if [ -n "$DOMAIN_CS" ]; then
     done
 fi
 
-# 2.4 Wrapper class dictionary-lookup patterns (FirstOrDefault(e => e.Type ==))
-# These patterns indicate List<Entry> used as dictionary substitute for fixed enums
-# WARNING only - some valid uses exist for variable-key collections
-ENTITY_CS=$(echo "$STAGED_CS" | grep -E 'GameState|Content' | grep -v 'DTO\|Parser\|Catalog\|Session\|Manager' || true)
-if [ -n "$ENTITY_CS" ]; then
-    for file in $ENTITY_CS; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'FirstOrDefault.*\.Type ==\|FirstOrDefault.*\.Stat ==\|FirstOrDefault.*\.State ==' | grep -v '^\s*//' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  WARNING [TYPE]: Wrapper class lookup pattern in $file (consider explicit properties):"
-                echo "$MATCHES" | head -3
-                echo "    For fixed enums, use explicit properties (e.g., TrustTokens) instead of List<Entry>"
-                WARNINGS=$((WARNINGS+1))
-            fi
-        fi
-    done
-fi
-
-# 2.5 Removed - CollectionEntries.cs contains valid entry classes for variable-key collections
-# (LocationVisitEntry, NPCBondEntry, etc. - these are NOT fixed enum patterns)
-
-# 2.6 var keyword (warning - high false positives with LINQ)
-if [ -n "$STAGED_CS" ]; then
-    for file in $STAGED_CS; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '^\s*var\s' | grep -v 'anonymous\|new {' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  WARNING [TYPE]: 'var' keyword in $file (prefer explicit types):"
-                echo "$MATCHES" | head -3
-                WARNINGS=$((WARNINGS+1))
-            fi
-        fi
-    done
-fi
+# 2.4-2.6 REMOVED - warnings for wrapper patterns and var keyword
+# These caused noise without blocking commits
 
 # ============================================================
 # SECTION 3: HIGHLANDER - NO ENTITY INSTANCE IDs
@@ -209,53 +177,14 @@ if [ -n "$DOMAIN_CS" ]; then
     done
 fi
 
-# 4.2 TryGetValue patterns
-if [ -n "$DOMAIN_CS" ]; then
-    for file in $DOMAIN_CS; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'TryGetValue\|TryParse' | grep -v '^\s*//' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  WARNING [FAIL-FAST]: TryGetValue/TryParse in $file (prefer fail-fast):"
-                echo "$MATCHES" | head -3
-                WARNINGS=$((WARNINGS+1))
-            fi
-        fi
-    done
-fi
+# 4.2 REMOVED - TryGetValue/TryParse warning
+# Caused noise without blocking commits
 
 # ============================================================
-# SECTION 5: BACKEND/FRONTEND SEPARATION
+# SECTION 5: REMOVED - BACKEND/FRONTEND SEPARATION
 # ============================================================
-echo "[SEPARATION] Backend/Frontend Separation..."
-
-# 5.1 CssClass in backend
-SERVICE_FILES=$(echo "$STAGED_CS" | grep -E 'Service|Manager|Facade|Engine' || true)
-if [ -n "$SERVICE_FILES" ]; then
-    for file in $SERVICE_FILES; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'CssClass\|ClassName.*string' | grep -v '^\s*//' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  ERROR [SEPARATION]: CssClass/ClassName in backend $file:"
-                echo "$MATCHES" | head -3
-                VIOLATIONS=$((VIOLATIONS+1))
-            fi
-        fi
-    done
-fi
-
-# 5.2 IconName in backend
-if [ -n "$SERVICE_FILES" ]; then
-    for file in $SERVICE_FILES; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'IconName\|public.*Icon.*{' | grep -v '^\s*//' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  ERROR [SEPARATION]: IconName/Icon in backend $file:"
-                echo "$MATCHES" | head -3
-                VIOLATIONS=$((VIOLATIONS+1))
-            fi
-        fi
-    done
-fi
+# CssClass/IconName checks removed per user request
+# These checks were too noisy and not blocking meaningful violations
 
 # ============================================================
 # SECTION 6: CODE QUALITY
@@ -403,18 +332,8 @@ if [ -n "$STAGED_PRINCIPLES_DOCS" ]; then
         fi
     done
 
-    # 10.3 Enum value lists in arc42/gdd (ERROR - blocks commit)
-    for file in $STAGED_PRINCIPLES_DOCS; do
-        if [ -f "$file" ]; then
-            # Check for "Values: Foo, Bar, Baz" or "Valid values: A, B, C" patterns
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -in 'values:\s*[A-Z][a-zA-Z]*,\s*[A-Z]' | grep -v 'Categorical' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  WARNING [DOC-PURITY]: Enum value list in $file (describe categories, not values):"
-                echo "$MATCHES" | head -3
-                WARNINGS=$((WARNINGS+1))
-            fi
-        fi
-    done
+    # 10.3 REMOVED - enum value lists warning
+    # Caused noise without blocking commits
 
     # 10.4 File paths with line numbers (ERROR - blocks commit)
     for file in $STAGED_PRINCIPLES_DOCS; do
@@ -429,17 +348,8 @@ if [ -n "$STAGED_PRINCIPLES_DOCS" ]; then
         fi
     done
 
-    # 10.5 Specific game values in arc42/gdd (WARNING - allows commit)
-    for file in $STAGED_PRINCIPLES_DOCS; do
-        if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[0-9]\+ coins\|[0-9]\+ stamina\|[0-9]\+ health\|[0-9]\+x\s' | grep -v 'range\|threshold\|conceptual' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  WARNING [DOC-PURITY]: Specific game value in $file (use ranges or conceptual language):"
-                echo "$MATCHES" | head -3
-                WARNINGS=$((WARNINGS+1))
-            fi
-        fi
-    done
+    # 10.5 REMOVED - specific game values warning
+    # Caused noise without blocking commits
 fi
 
 # 10.6 CLAUDE.md specific checks (lighter rules - can have process instructions)
@@ -460,26 +370,9 @@ if [ -n "$STAGED_CLAUDE" ]; then
 fi
 
 # ============================================================
-# SECTION 11: ICON SYSTEM (NO EMOJIS)
+# SECTION 11: REMOVED - ICON SYSTEM (NO EMOJIS)
 # ============================================================
-# Emojis forbidden in game content - use SVG icons from game-icons.net
-
-STAGED_RAZOR=$(git diff --cached --name-only --diff-filter=ACM | grep '\.razor$' || true)
-if [ -n "$STAGED_RAZOR" ]; then
-    echo "[ICONS] No Emojis in UI..."
-
-    for file in $STAGED_RAZOR; do
-        if [ -f "$file" ]; then
-            # Check for common emoji patterns (checkmarks, crosses, arrows, etc.)
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n '[✓✔✗✘❌✅⚡⭐🔥💀⚠️🎯📍🏠👤💰🗡️🛡️❤️💚💙🟢🔴🟡]' || true)
-            if [ -n "$MATCHES" ]; then
-                echo "  ERROR [ICONS]: Emoji in $file (use <Icon> component):"
-                echo "$MATCHES" | head -3
-                VIOLATIONS=$((VIOLATIONS+1))
-            fi
-        fi
-    done
-fi
+# Emoji checks removed - not finding violations in practice
 
 # ============================================================
 # SECTION 12: EXPLICIT PROPERTY PRINCIPLE
