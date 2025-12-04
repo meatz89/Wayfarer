@@ -253,8 +253,6 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 
-        services.AddSingleton<MusicService>();
-
         return services;
     }
 
