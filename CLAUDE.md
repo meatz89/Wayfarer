@@ -317,6 +317,83 @@ Same generation code handles both. HIGHLANDER compliance achieved through contex
 
 ---
 
+# TWO-PASS PROCEDURAL GENERATION (NO HAND-AUTHORED CONTENT)
+
+**THE RULE:** ALL content is procedurally generated. Hand-authored narrative text is FORBIDDEN.
+
+## The Two-Pass Architecture
+
+| Pass | Purpose | When | Output |
+|------|---------|------|--------|
+| **Pass 1: Mechanical** | Generate choices, costs, rewards from archetypes | Parse-time | Concrete mechanical values (integers, enums) |
+| **Pass 2: AI Narrative** | Generate flavor text from game context | Activation-time | Narrative descriptions persisted to entity |
+
+## Pass 1: Mechanical Generation
+
+Categorical properties flow through archetypes and catalogues to produce concrete mechanical content:
+
+```
+SceneArchetypeType + GenerationContext
+    ↓
+SceneArchetypeCatalog.Generate()
+    ↓
+SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext()
+    ↓
+Concrete ChoiceTemplates with scaled costs/rewards
+```
+
+**Key Drivers:**
+- RhythmPattern (Building/Crisis/Mixed) → Choice STRUCTURE
+- PowerDynamic, NPCDemeanor, Quality → Value SCALING
+- Location.Difficulty, Tier → Threshold ADJUSTMENTS
+
+## Pass 2: AI Narrative Enrichment
+
+After mechanical generation, AI receives complete game context and generates narrative text:
+
+```
+Situation (mechanical entity) + ScenePromptContext (NPC, Location, Player, World State)
+    ↓
+SceneNarrativeService.GenerateSituationNarrative()
+    ↓
+Narrative text PERSISTED to Situation.Description
+    ↓
+Displayed in UI (not regenerated)
+```
+
+**Context includes:** NPC demeanor, location atmosphere, player stats, time of day, weather, narrative hints (tone, theme, style).
+
+## CRITICAL: How to Fix Problems
+
+| Problem | WRONG Fix | CORRECT Fix |
+|---------|-----------|-------------|
+| Generic choice labels | "Add narrative text to JSON" | Enable/fix AI Pass 2 |
+| Wrong coin cost | "Change JSON value to 10" | Fix archetype formula or categorical property |
+| Inverted economics | "Flip sign in JSON" | Use correct archetype (income vs expense) |
+| Missing stat growth | "Add stat reward to JSON" | Change archetype to include stat growth choices |
+| No narrative flavor | "Write description in JSON" | Verify AI narrative service runs at activation |
+
+## FORBIDDEN
+
+- Hand-written narrative text in JSON content
+- Direct JSON value fixes for mechanical issues
+- "Fixing" individual choice costs/rewards without understanding archetype
+- Bypassing archetypes with hardcoded values
+- Writing narrative descriptions manually
+
+## CORRECT APPROACHES
+
+- **Mechanical issue?** → Trace to archetype/catalogue, fix formula
+- **Wrong archetype?** → Change which archetype generates the scene
+- **Missing narrative?** → Debug AI Pass 2 (context, service, persistence)
+- **Scaling wrong?** → Fix categorical property derivation in GenerationContext
+
+**Philosophy:** Content authors specify WHAT (categorical properties). Archetypes determine HOW (mechanical structure). AI generates WHY (narrative meaning). Never short-circuit this pipeline.
+
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.28
+
+---
+
 # FAIL-FAST PHILOSOPHY
 
 **THE RULE:** Missing data should fail loudly, not silently default.

@@ -972,6 +972,73 @@ SituationTemplates within scenes may describe entities to be CREATED or RESOLVED
 
 ---
 
+## 8.28 Two-Pass Procedural Generation
+
+**"Mechanics first, narrative second. Never hand-author content."**
+
+All game content flows through a two-pass generation pipeline. Hand-authored narrative text is architecturally forbidden.
+
+### The Two-Pass Architecture
+
+| Pass | Purpose | Timing | Output |
+|------|---------|--------|--------|
+| **Pass 1: Mechanical** | Generate choices, costs, rewards from archetypes | Parse-time | Concrete mechanical values |
+| **Pass 2: AI Narrative** | Generate flavor text from game context | Activation-time | Narrative persisted to entity |
+
+### Pass 1: Mechanical Generation
+
+Categorical properties flow through archetypes to produce concrete mechanical content:
+
+| Input | Processor | Output |
+|-------|-----------|--------|
+| SceneArchetypeType + GenerationContext | SceneArchetypeCatalog | SituationTemplates with choices |
+| RhythmPattern | SituationArchetypeCatalog | Choice STRUCTURE (Building/Crisis/Mixed) |
+| PowerDynamic, NPCDemeanor, Quality | GenerationContext scaling | Value ADJUSTMENTS (thresholds, costs) |
+
+**Key Principle:** Archetypes are reusable across all contexts. Tutorial and late-game use identical archetype code; categorical properties create appropriate difficulty.
+
+### Pass 2: AI Narrative Enrichment
+
+After mechanical generation, AI receives complete game context and generates narrative:
+
+| Input | Processor | Output |
+|-------|-----------|--------|
+| Situation + ScenePromptContext | SceneNarrativeService | Description text |
+| NarrativeHints (tone, theme, style) | AI provider | Contextual flavor |
+
+**Key Principle:** Narrative is PERSISTED to the entity after generation. UI displays stored narrative, never regenerates.
+
+### Fixing Content Problems
+
+| Symptom | Wrong Approach | Correct Approach |
+|---------|----------------|------------------|
+| Generic choice labels | Write narrative in JSON | Enable/debug AI Pass 2 |
+| Wrong costs/rewards | Edit JSON values | Fix archetype formula |
+| Inverted economics | Flip sign in JSON | Use correct archetype type |
+| Missing choice options | Add choice to JSON | Modify archetype generator |
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| Hand-written narrative in JSON | Bypasses AI enrichment, not scalable |
+| Direct JSON value fixes | Bypasses archetype formulas |
+| Tutorial-specific branches | Violates archetype reusability |
+| Hardcoded choice structures | Prevents categorical scaling |
+
+**Consequences:**
+- Content authors specify WHAT (categorical properties)
+- Archetypes determine HOW (mechanical structure)
+- AI generates WHY (narrative meaning)
+- Changes propagate through proper channel, not ad-hoc fixes
+
+**Cross-References:**
+- §8.2 Catalogue Pattern (parse-time translation)
+- §8.23 Archetype Reusability (no tutorial hardcoding)
+- §8.25 Context Injection (HIGHLANDER for content paths)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
