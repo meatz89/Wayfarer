@@ -392,6 +392,8 @@ Displayed in UI (not regenerated)
 
 **Details:** See `arc42/08_crosscutting_concepts.md` §8.28
 
+**AI Narrative Optimization:** See `AI_NARRATIVE_OPTIMIZATION.md` for prompt optimization, testing methodology, and troubleshooting.
+
 ---
 
 # FAIL-FAST PHILOSOPHY

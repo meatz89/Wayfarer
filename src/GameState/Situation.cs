@@ -254,6 +254,16 @@ public class Situation
     public NarrativeHints NarrativeHints { get; set; }
 
     /// <summary>
+    /// Runtime Choice instances created from Template.ChoiceTemplates during activation
+    /// Part of Template/Instance pattern: ChoiceTemplate (immutable) → Choice (mutable)
+    /// Created in SceneInstantiator Pass 2B with:
+    /// - AI-generated Label (persisted, not regenerated)
+    /// - Pre-scaled costs/rewards (calculated once at activation)
+    /// - Template reference for accessing immutable archetype properties
+    /// </summary>
+    public List<Choice> Choices { get; set; } = new List<Choice>();
+
+    /// <summary>
     /// Object reference to parent obligation (for runtime navigation)
     /// </summary>
     public Obligation Obligation { get; set; }

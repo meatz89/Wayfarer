@@ -22,8 +22,8 @@ public class ScenePromptBuilder
 
         // System instruction
         prompt.AppendLine("You are a narrative writer for a Victorian-era social adventure game.");
-        prompt.AppendLine("Generate a brief, atmospheric description (2-3 sentences) for a game situation.");
-        prompt.AppendLine("Focus on mood, tension, and character dynamics. Be evocative but concise.");
+        prompt.AppendLine("Generate ONE atmospheric sentence (50-120 characters). Strict limit.");
+        prompt.AppendLine("Use a single vivid sensory detail. Pure atmosphere, no action.");
         prompt.AppendLine();
 
         // World context
@@ -107,13 +107,101 @@ public class ScenePromptBuilder
         }
 
         // Output instruction
-        prompt.AppendLine("## Output");
-        prompt.AppendLine("Write a 2-3 sentence atmospheric description that:");
-        prompt.AppendLine("1. Sets the scene with sensory details");
-        prompt.AppendLine("2. Establishes the tension or mood");
-        prompt.AppendLine("3. Hints at what the player might do without being prescriptive");
+        prompt.AppendLine("## Output Rules");
+        prompt.AppendLine("1. ONE sentence only. 50-120 characters. Count carefully.");
+        prompt.AppendLine("2. Pure sensory atmosphere: sight, sound, smell, or touch.");
+        prompt.AppendLine("3. NO character actions or dialogue. Scene-setting ONLY.");
+        prompt.AppendLine("4. Vary your openings - avoid 'dust motes', 'the air', or common clichés.");
+        prompt.AppendLine("5. Entity names: Use EXACT names from context or generic terms. NEVER invent.");
+        prompt.AppendLine("6. Plain text only. NO markdown, quotes, or formatting.");
+
+        return prompt.ToString();
+    }
+
+    /// <summary>
+    /// Build AI prompt for generating Choice action label.
+    /// Contextualizes the mechanical choice template with situation narrative and entity context.
+    /// Generates 5-12 word action label that player clicks.
+    /// </summary>
+    public string BuildChoiceLabelPrompt(
+        ScenePromptContext context,
+        Situation situation,
+        ChoiceTemplate choiceTemplate,
+        CompoundRequirement scaledRequirement,
+        Consequence scaledConsequence)
+    {
+        StringBuilder prompt = new StringBuilder();
+
+        prompt.AppendLine("You are a narrative writer for a Victorian-era social adventure game.");
+        prompt.AppendLine("Generate a SHORT action label (5-12 words) for a player choice button.");
+        prompt.AppendLine("The label should be a concrete action, not generic. Use the context provided.");
         prompt.AppendLine();
-        prompt.AppendLine("Output ONLY the narrative description, no JSON or formatting.");
+
+        prompt.AppendLine("## Situation Context");
+        prompt.AppendLine($"- Description: {situation.Description}");
+        prompt.AppendLine($"- Type: {situation.Type}");
+        prompt.AppendLine();
+
+        if (context.NPC != null)
+        {
+            prompt.AppendLine("## Character Present");
+            prompt.AppendLine($"- Name: {context.NPC.Name}");
+            prompt.AppendLine($"- Personality: {context.NPC.PersonalityType}");
+            prompt.AppendLine($"- Profession: {context.NPC.Profession}");
+            prompt.AppendLine();
+        }
+
+        if (context.Location != null)
+        {
+            prompt.AppendLine("## Location");
+            prompt.AppendLine($"- Name: {context.Location.Name}");
+            prompt.AppendLine($"- Purpose: {context.Location.Purpose}");
+            prompt.AppendLine();
+        }
+
+        prompt.AppendLine("## Choice Mechanics");
+        prompt.AppendLine($"- Template Action: {choiceTemplate.ActionTextTemplate}");
+        prompt.AppendLine($"- Action Type: {choiceTemplate.ActionType}");
+        prompt.AppendLine($"- Path Type: {choiceTemplate.PathType}");
+
+        if (scaledRequirement != null && scaledRequirement.OrPaths != null && scaledRequirement.OrPaths.Count > 0)
+        {
+            prompt.AppendLine("- Requirements:");
+            foreach (OrPath path in scaledRequirement.OrPaths)
+            {
+                if (path.InsightRequired.HasValue)
+                    prompt.AppendLine($"  * Insight: {path.InsightRequired}");
+                if (path.RapportRequired.HasValue)
+                    prompt.AppendLine($"  * Rapport: {path.RapportRequired}");
+                if (path.AuthorityRequired.HasValue)
+                    prompt.AppendLine($"  * Authority: {path.AuthorityRequired}");
+                if (path.DiplomacyRequired.HasValue)
+                    prompt.AppendLine($"  * Diplomacy: {path.DiplomacyRequired}");
+                if (path.CunningRequired.HasValue)
+                    prompt.AppendLine($"  * Cunning: {path.CunningRequired}");
+            }
+        }
+
+        if (scaledConsequence != null)
+        {
+            prompt.AppendLine("- Consequences:");
+            if (scaledConsequence.Coins != 0)
+                prompt.AppendLine($"  * Coins: {(scaledConsequence.Coins > 0 ? "+" : "")}{scaledConsequence.Coins}");
+            if (scaledConsequence.Health != 0)
+                prompt.AppendLine($"  * Health: {(scaledConsequence.Health > 0 ? "+" : "")}{scaledConsequence.Health}");
+            if (scaledConsequence.Resolve != 0)
+                prompt.AppendLine($"  * Resolve: {(scaledConsequence.Resolve > 0 ? "+" : "")}{scaledConsequence.Resolve}");
+        }
+
+        prompt.AppendLine();
+        prompt.AppendLine("## Output Requirements");
+        prompt.AppendLine("Write a 5-12 word action label that:");
+        prompt.AppendLine("1. Is a concrete action (\"Ask Elena about lodging rates\" not \"Approach with diplomacy\")");
+        prompt.AppendLine("2. Uses the NPC's name if present");
+        prompt.AppendLine("3. Reflects the mechanical intent (negotiate, persuade, threaten, etc.)");
+        prompt.AppendLine("4. Matches the situation's mood and context");
+        prompt.AppendLine();
+        prompt.AppendLine("Output ONLY the action label text, no quotes or formatting.");
 
         return prompt.ToString();
     }

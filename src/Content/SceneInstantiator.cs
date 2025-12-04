@@ -332,6 +332,82 @@ public class SceneInstantiator
 
         Console.WriteLine($"[SceneInstantiator] ✅ Pass 2 complete: AI narratives generated for all situations");
 
+        // ==================== PASS 2B: CHOICE INSTANCE CREATION ====================
+        // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+        // Pass 2B: Create Choice instances from ChoiceTemplates with:
+        //   - AI-generated labels (5s timeout, fallback to template)
+        //   - Pre-scaled requirements/consequences (calculated once, used for display AND execution)
+        //
+        // CRITICAL: Runs AFTER Pass 2 because choice labels reference Situation.Description
+        Console.WriteLine($"[SceneInstantiator] Starting Pass 2B: Choice Instance Creation");
+
+        foreach (Situation situation in scene.Situations)
+        {
+            if (situation.Template?.ChoiceTemplates == null || situation.Template.ChoiceTemplates.Count == 0)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ⚠️ Situation '{situation.Name}' has no ChoiceTemplates");
+                continue;
+            }
+
+            // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
+            RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
+                situation.Npc,
+                situation.Location,
+                player);
+
+            // Build ScenePromptContext for AI label generation (reuse from Pass 2)
+            ScenePromptContext promptContext = new ScenePromptContext
+            {
+                NPC = situation.Npc,
+                Location = situation.Location,
+                Player = player,
+                Route = situation.Route,
+                ArchetypeId = scene.Template?.Id,
+                SceneDisplayName = scene.DisplayName,
+                CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
+                CurrentWeather = _gameWorld.CurrentWeather.ToString(),
+                CurrentDay = _gameWorld.CurrentDay,
+                NPCBondLevel = situation.Npc?.BondStrength ?? 0
+            };
+
+            foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
+            {
+                // Step 1: Apply scaling to requirements and consequences (calculated ONCE)
+                CompoundRequirement scaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula);
+                Consequence scaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence);
+                Consequence scaledOnSuccess = scalingContext.ApplyToConsequence(choiceTemplate.OnSuccessConsequence);
+                Consequence scaledOnFailure = scalingContext.ApplyToConsequence(choiceTemplate.OnFailureConsequence);
+
+                // Step 2: Generate AI label (5s timeout, fallback to template)
+                string label = await _narrativeService.GenerateChoiceLabelAsync(
+                    promptContext,
+                    situation,
+                    choiceTemplate,
+                    scaledRequirement,
+                    scaledConsequence);
+
+                // Step 3: Create Choice instance
+                Choice choice = new Choice
+                {
+                    Template = choiceTemplate,
+                    Label = label,
+                    ScaledRequirement = scaledRequirement,
+                    ScaledConsequence = scaledConsequence,
+                    ScaledOnSuccessConsequence = scaledOnSuccess,
+                    ScaledOnFailureConsequence = scaledOnFailure
+                };
+
+                // Step 4: Add to Situation.Choices
+                situation.Choices.Add(choice);
+
+                Console.WriteLine($"[SceneInstantiator]     ✅ Choice '{choiceTemplate.Id}' created with label: {label}");
+            }
+
+            Console.WriteLine($"[SceneInstantiator]   ✅ Created {situation.Choices.Count} Choice instances for '{situation.Name}'");
+        }
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Pass 2B complete: Choice instances created for all situations");
+
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;
         scene.SituationCount = scene.Situations.Count;

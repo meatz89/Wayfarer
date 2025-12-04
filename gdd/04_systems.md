@@ -233,6 +233,74 @@ See [arc42/08_crosscutting_concepts.md §8.16](../arc42/08_crosscutting_concepts
 
 ---
 
+## 4.6 AI Narrative Generation
+
+### What AI Narrative Does
+
+AI generates atmospheric text that brings mechanical situations to life. Every scene in Wayfarer has both **mechanical data** (who, where, what choices) and **narrative flavor** (atmosphere, mood, sensory details).
+
+| Component | Source | Example |
+|-----------|--------|---------|
+| **Mechanical** | Archetypes + catalogues | "NPC: Martha Holloway, Innkeeper" |
+| **Narrative** | AI generation | "The firelight dances across worn floorboards as the rain drums steadily on the roof." |
+
+### Why AI, Not Hand-Written
+
+| Hand-Written Narrative | AI Narrative |
+|----------------------|--------------|
+| Limited by author time | Unlimited unique variations |
+| Repetitive across playthroughs | Fresh each playthrough |
+| Disconnected from mechanical context | Responds to time, weather, NPC mood |
+| Static | Dynamic (tired NPC at evening feels different than morning) |
+
+**Design goal:** Every scene FEELS unique because the narrative responds to the complete context (time of day, weather, NPC personality, location atmosphere, situation type).
+
+### The Additive Principle
+
+AI narrative is **ADDITIVE** to mechanical context, never **CONFLICTING**.
+
+| What This Means | Player Experience |
+|-----------------|-------------------|
+| AI adds mood and atmosphere | World feels alive and immersive |
+| AI respects mechanical facts | No confusing contradictions |
+| Names match visible entities | Coherent, trustworthy game world |
+
+**Example of VALID narrative:**
+- Player sees "Martha Holloway - Innkeeper" in NPC panel
+- Narrative: "The innkeeper offers a tired smile, gesturing to the empty rooms upstairs."
+- Result: Coherent—"innkeeper" matches visible profession
+
+**Example of INVALID narrative:**
+- Player sees "Martha Holloway - Innkeeper" in NPC panel
+- Narrative: "Sarah greets you warmly from behind the bar."
+- Result: **BROKEN**—who is Sarah? Contradicts visible entity
+
+### Player-Facing Quality
+
+Players experience AI narrative as seamless storytelling. They don't know (or care) that it's generated. What matters:
+
+| Quality | Why It Matters |
+|---------|---------------|
+| **Brevity** | UI space is limited; 1-2 sentences max |
+| **Atmosphere** | Creates mood without info-dumping |
+| **Consistency** | Names, places match what player sees elsewhere |
+| **Variety** | Same situation in different contexts feels different |
+
+### Design Goals Summary
+
+| Goal | How AI Achieves It |
+|------|-------------------|
+| **Infinite replayability** | Unique narrative each playthrough |
+| **Contextual immersion** | Narrative responds to time, weather, mood |
+| **Mechanical integrity** | AI enriches, never contradicts |
+| **Production scalability** | No hand-authoring bottleneck |
+
+See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md#828-two-pass-procedural-generation) for the two-pass generation architecture.
+See [arc42/08_crosscutting_concepts.md §8.29](../arc42/08_crosscutting_concepts.md#829-ai-narrative-additive-principle) for the additive principle implementation.
+See [AI_NARRATIVE_OPTIMIZATION.md](../AI_NARRATIVE_OPTIMIZATION.md) for prompt optimization and quality validation workflow.
+
+---
+
 ## Cross-References
 
 - **Balance Philosophy**: See [06_balance.md](06_balance.md) for difficulty scaling

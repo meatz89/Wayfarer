@@ -100,11 +100,12 @@ public static class ServiceConfiguration
         services.AddSingleton<DialogueGenerationService>();
 
         // Narrative Generation System (AI and JSON fallback)
-        // Infrastructure for Ollama
-        services.AddHttpClient<OllamaClient>(client =>
+        // Infrastructure for Ollama - Register as interface for testability
+        services.AddHttpClient<IAICompletionProvider, OllamaClient>(client =>
         {
-            // Short timeout to prevent hanging when Ollama unavailable
-            client.Timeout = TimeSpan.FromSeconds(5);
+            // 25-second timeout to allow for model cold-start (loads into GPU memory on first request)
+            // First request may take 6-8 seconds for model loading, subsequent requests are fast
+            client.Timeout = TimeSpan.FromSeconds(25);
         });
         services.AddSingleton<OllamaConfiguration>();
 
