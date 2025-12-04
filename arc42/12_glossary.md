@@ -82,7 +82,7 @@ Domain and technical terms used throughout this documentation.
 | **Reference** | Entity refers to another; neither owns the other (NPC → Location) |
 | **Single Source of Truth** | Each state has exactly one canonical storage location |
 | **Stateless Service** | Facade containing logic but no state; operates on GameWorld |
-| **Three-Tier Timing** | Parse-time (SceneTemplates) → Spawn-time (Scene instances, Deferred, empty Situations) → Activation-time (Situation instances, resolved entities) → Query-time (ephemeral actions). NO Scene instances at parse-time. See §8.4 |
+| **Four-Tier Timing** | Parse-time (SceneTemplates) → Spawn-time (Scene instances, Deferred, empty Situations) → Activation-time (Situation instances, resolved entities) → Query-time (ephemeral actions). NO Scene instances at parse-time. See §8.4 |
 | **Whitebox** | Internal decomposition of a higher-level blackbox |
 
 ---

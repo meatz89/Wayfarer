@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 [assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
@@ -22,7 +21,6 @@ public class SceneInstantiator
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
-    private readonly VenueGeneratorService _venueGenerator;
     private readonly PackageLoader _packageLoader;
     private readonly ProceduralContentTracer _proceduralTracer;
 
@@ -30,14 +28,12 @@ public class SceneInstantiator
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        VenueGeneratorService venueGenerator,
         PackageLoader packageLoader,
         ProceduralContentTracer proceduralTracer)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
-        _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _proceduralTracer = proceduralTracer ?? throw new ArgumentNullException(nameof(proceduralTracer));
     }
@@ -89,8 +85,12 @@ public class SceneInstantiator
     /// - For each Situation, resolve entities (find-or-create) via EntityResolver + PackageLoader
     /// - Write entity references directly to Situation instances
     /// Scene transitions: Deferred → Active
+    ///
+    /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+    /// - Pass 1: Mechanical generation (Situations, Choices, Costs, Rewards) - synchronous
+    /// - Pass 2: AI Narrative generation (Situation.Description) - async with 5s timeout
     /// </summary>
-    public void ActivateScene(Scene scene, SceneSpawnContext context)
+    public async Task ActivateSceneAsync(Scene scene, SceneSpawnContext context)
     {
         if (scene.State != SceneState.Deferred)
         {
@@ -254,7 +254,7 @@ public class SceneInstantiator
                 }
 
                 // Build resolution metadata for discovered route
-                routeResolution = BuildRouteDiscoveredMetadata(situation.RouteFilter, route);
+                routeResolution = BuildRouteDiscoveredMetadata(situation.RouteFilter);
                 string routeResolutionType = situation.RouteFilter.Proximity == PlacementProximity.SameLocation
                     ? "SameLocation proximity"
                     : "categorical filter";
@@ -289,6 +289,48 @@ public class SceneInstantiator
                 }
             }
         }
+
+        // ==================== PASS 2: AI NARRATIVE GENERATION ====================
+        // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+        // Pass 1 (above): Mechanical generation - Situations, Choices, Costs, Rewards
+        // Pass 2 (here): AI Narrative - Generate Situation.Description from entity context
+        //
+        // CRITICAL: All entities are resolved at this point. ScenePromptContext can access
+        // NPC, Location, Route properties for contextually appropriate narrative.
+        Console.WriteLine($"[SceneInstantiator] Starting Pass 2: AI Narrative Generation for {scene.Situations.Count} situations");
+
+        Player player = context.Player ?? _gameWorld.GetPlayer();
+
+        foreach (Situation situation in scene.Situations)
+        {
+            // Build ScenePromptContext from resolved entities
+            ScenePromptContext promptContext = new ScenePromptContext
+            {
+                NPC = situation.Npc,
+                Location = situation.Location,
+                Player = player,
+                Route = situation.Route,
+                ArchetypeId = scene.Template?.Id,
+                SceneDisplayName = scene.DisplayName,
+                CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
+                CurrentWeather = _gameWorld.CurrentWeather,
+                CurrentDay = _gameWorld.CurrentDay,
+                NPCBondLevel = situation.Npc?.BondStrength ?? 0
+            };
+
+            // Generate narrative via AI (5s timeout, fallback to template-based)
+            string narrative = await _narrativeService.GenerateSituationNarrativeAsync(
+                promptContext,
+                situation.NarrativeHints,
+                situation);
+
+            // Persist generated narrative to entity
+            situation.Description = narrative;
+
+            Console.WriteLine($"[SceneInstantiator]   ✅ Narrative generated for '{situation.Name}'");
+        }
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Pass 2 complete: AI narratives generated for all situations");
 
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;
@@ -514,7 +556,7 @@ public class SceneInstantiator
     /// Build resolution metadata for a discovered route
     /// Routes are always discovered (find-only, no creation)
     /// </summary>
-    private EntityResolutionMetadata BuildRouteDiscoveredMetadata(PlacementFilter filter, RouteOption route)
+    private EntityResolutionMetadata BuildRouteDiscoveredMetadata(PlacementFilter filter)
     {
         PlacementFilterSnapshot filterSnapshot = SnapshotFactory.CreatePlacementFilterSnapshot(filter);
         List<string> matchedProperties = new List<string>();
@@ -594,212 +636,7 @@ public class SceneInstantiator
 
         return dto;
     }
-
-    /// <summary>
-    /// Generate SituationDTOs from template's SituationTemplates
-    /// Replaces InstantiateSituation() - generates DTOs instead of entities
-    /// </summary>
-    private List<SituationDTO> GenerateSituationDTOs(
-        SceneTemplate template,
-        SceneDTO sceneDto,
-        SceneSpawnContext context)
-    {
-        List<SituationDTO> situationDtos = new List<SituationDTO>();
-
-        foreach (SituationTemplate sitTemplate in template.SituationTemplates)
-        {
-            // Generate unique Situation ID (pure identifier, TemplateId property tracks source template)
-            string situationId = Guid.NewGuid().ToString();
-
-            // Use narrative template (narrative generation with resolved entities happens later in System 5)
-            string description = sitTemplate.NarrativeTemplate;
-            if (string.IsNullOrEmpty(description))
-            {
-                description = "A situation unfolds before you.";
-            }
-
-            // AI generates complete text with entity context (no placeholder replacement needed)
-
-            // Get DeckId from Challenge choice template (set at parse-time from archetype)
-            string deckId = sitTemplate.ChoiceTemplates
-                .FirstOrDefault(c => c.PathType == ChoicePathType.Challenge)
-                ?.DeckId ?? string.Empty;
-
-            // Explicit placement filters (NO CSS-style inheritance)
-            // Each situation MUST specify explicit filters in its template
-            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter);
-            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter);
-            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter);
-
-            // Build Situation DTO from template
-            // Scene-based situations use templates - most DTO properties are for standalone situations
-            SituationDTO situationDto = new SituationDTO
-            {
-                Id = situationId,
-                TemplateId = sitTemplate.Id,
-                Name = sitTemplate.Name,
-                Description = description,
-                InteractionType = "Instant",  // Scene situations present choices (instant interaction, choice determines next action)
-                SystemType = sitTemplate.SystemType.ToString(),
-                DeckId = deckId,
-                // Explicit placement filters (no inheritance - situations specify their own filters)
-                LocationFilter = effectiveLocationFilter,
-                NpcFilter = effectiveNpcFilter,
-                RouteFilter = effectiveRouteFilter
-            };
-
-            // Copy narrative hints if present
-            if (sitTemplate.NarrativeHints != null)
-            {
-                situationDto.NarrativeHints = new NarrativeHintsDTO
-                {
-                    Tone = sitTemplate.NarrativeHints.Tone,
-                    Theme = sitTemplate.NarrativeHints.Theme,
-                    Context = sitTemplate.NarrativeHints.Context,
-                    Style = sitTemplate.NarrativeHints.Style
-                };
-            }
-
-            situationDtos.Add(situationDto);
-        }
-
-        // Set CurrentSituationId to first situation
-        if (situationDtos.Any())
-        {
-            sceneDto.CurrentSituationId = situationDtos.First().Id;
-        }
-
-        return situationDtos;
-    }
-
-    /// <summary>
-    /// Format PlacementFilter criteria for diagnostic error messages
-    /// Returns human-readable summary of all filter criteria
-    /// </summary>
-    private string FormatFilterCriteria(PlacementFilter filter)
-    {
-        List<string> criteria = new List<string>();
-
-        criteria.Add($"PlacementType: {filter.PlacementType}");
-
-        // NPC filters
-        if (filter.PersonalityType.HasValue)
-            criteria.Add($"Personality Type: {filter.PersonalityType.Value}");
-        if (filter.MinBond.HasValue)
-            criteria.Add($"MinBond: {filter.MinBond.Value}");
-        if (filter.MaxBond.HasValue)
-            criteria.Add($"MaxBond: {filter.MaxBond.Value}");
-        if (filter.NpcTags != null && filter.NpcTags.Count > 0)
-            criteria.Add($"NPC Tags: [{string.Join(", ", filter.NpcTags)}]");
-
-        // Location filters
-        if (filter.LocationRole.HasValue)
-            criteria.Add($"Location Role: {filter.LocationRole}");
-        if (filter.Purpose.HasValue)
-            criteria.Add($"Purpose: {filter.Purpose}");
-        if (!string.IsNullOrEmpty(filter.DistrictName))
-            criteria.Add($"District: {filter.DistrictName}");
-        if (!string.IsNullOrEmpty(filter.RegionName))
-            criteria.Add($"Region: {filter.RegionName}");
-
-        // Route filters
-        if (filter.Terrain != null)
-            criteria.Add($"Terrain: {filter.Terrain}");
-        if (filter.MinDifficulty.HasValue)
-            criteria.Add($"Min Difficulty: {filter.MinDifficulty.Value}");
-        if (filter.MaxDifficulty.HasValue)
-            criteria.Add($"Max Difficulty: {filter.MaxDifficulty.Value}");
-
-        // Player state filters
-        if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
-            criteria.Add($"Required States: [{string.Join(", ", filter.RequiredStates)}]");
-        if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
-            criteria.Add($"Forbidden States: [{string.Join(", ", filter.ForbiddenStates)}]");
-        if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
-            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements.Select(a => a.Name))}]");
-        if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
-            criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
-
-        return string.Join("\n", criteria);
-    }
-
-    /// <summary>
-    /// Format available entities for diagnostic error messages
-    /// Shows what entities exist in GameWorld for given PlacementType
-    /// </summary>
-    private string FormatAvailableEntities(PlacementType placementType)
-    {
-        switch (placementType)
-        {
-            case PlacementType.Location:
-                int locationCount = _gameWorld.Locations.Count;
-                List<string> locationSummaries = _gameWorld.Locations
-                    .Take(10) // Show first 10
-                    .Select(loc => $"  - {loc.Name}: Role={loc.Role}, Purpose={loc.Purpose}")
-                    .ToList();
-                if (locationCount > 10)
-                    locationSummaries.Add($"  ... and {locationCount - 10} more locations");
-                return $"Total Locations: {locationCount}\n{string.Join("\n", locationSummaries)}";
-
-            case PlacementType.NPC:
-                int npcCount = _gameWorld.NPCs.Count;
-                List<string> npcSummaries = _gameWorld.NPCs
-                    .Take(10)
-                    .Select(npc => $"  - {npc.Name}: Personality={npc.PersonalityType}, Bond={npc.BondStrength}")
-                    .ToList();
-                if (npcCount > 10)
-                    npcSummaries.Add($"  ... and {npcCount - 10} more NPCs");
-                return $"Total NPCs: {npcCount}\n{string.Join("\n", npcSummaries)}";
-
-            case PlacementType.Route:
-                int routeCount = _gameWorld.Routes.Count;
-                List<string> routeSummaries = _gameWorld.Routes
-                    .Take(10)
-                    .Select(route => $"  - {route.Name}: Danger={route.DangerRating}")
-                    .ToList();
-                if (routeCount > 10)
-                    routeSummaries.Add($"  ... and {routeCount - 10} more routes");
-                return $"Total Routes: {routeCount}\n{string.Join("\n", routeSummaries)}";
-
-            default:
-                return $"Unknown PlacementType: {placementType}";
-        }
-    }
-
-    /// <summary>
-    /// Format spawn context for diagnostic error messages
-    /// Shows player state and current context when filter evaluation failed
-    /// </summary>
-    private string FormatSpawnContext(SceneSpawnContext context)
-    {
-        List<string> contextInfo = new List<string>();
-
-        contextInfo.Add($"Player: {context.Player?.Name ?? "null"}");
-        contextInfo.Add($"Player Position: {context.Player?.CurrentPosition}");
-        contextInfo.Add($"Player Resolve: {context.Player?.Resolve}");
-        contextInfo.Add($"Player States: {(context.Player?.ActiveStates.Count ?? 0)} active");
-
-        if (context.CurrentLocation != null)
-            contextInfo.Add($"Current Location: {context.CurrentLocation.Name}");
-        else
-            contextInfo.Add($"Current Location: null");
-
-        if (context.CurrentNPC != null)
-            contextInfo.Add($"Current NPC: {context.CurrentNPC.Name}");
-        else
-            contextInfo.Add($"Current NPC: null");
-
-        if (context.CurrentRoute != null)
-            contextInfo.Add($"Current Route: {context.CurrentRoute.Name}");
-        else
-            contextInfo.Add($"Current Route: null");
-
-        return string.Join("\n", contextInfo);
-    }
-
-    // Selection strategy methods extracted to PlacementSelectionStrategies.cs
-    // Use PlacementSelectionStrategies.ApplyStrategyNPC() and ApplyStrategyLocation()
-
+    
     /// <summary>
     /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization
     /// System 3: Writes categorical specifications to JSON (NO entity resolution)

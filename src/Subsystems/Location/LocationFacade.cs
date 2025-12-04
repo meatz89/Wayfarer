@@ -458,7 +458,8 @@ public class LocationFacade
             Console.WriteLine($"[SceneActivation] Starting activation for scene '{scene.DisplayName}' (Template: {scene.TemplateId})");
 
             // INTEGRATED ACTIVATION: Creates Situations AND resolves entities in one call
-            _sceneInstantiator.ActivateScene(scene, activationContext);
+            // TWO-PASS: Pass 1 (mechanical) + Pass 2 (AI narrative)
+            await _sceneInstantiator.ActivateSceneAsync(scene, activationContext);
 
             Console.WriteLine($"[LocationFacade] ✅ Scene '{scene.DisplayName}' activated successfully (State: {scene.State})");
         }

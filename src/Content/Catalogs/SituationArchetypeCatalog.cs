@@ -58,6 +58,7 @@ public static class SituationArchetypeCatalog
             SituationArchetypeType.EnteringPrivateSpace => SituationArchetypeDefinitions.CreateEnteringPrivateSpace(),
             SituationArchetypeType.DepartingPrivateSpace => SituationArchetypeDefinitions.CreateDepartingPrivateSpace(),
             SituationArchetypeType.ServiceNegotiation => SituationArchetypeDefinitions.CreateServiceNegotiation(),
+            SituationArchetypeType.ContractNegotiation => SituationArchetypeDefinitions.CreateContractNegotiation(),
             SituationArchetypeType.ServiceExecutionRest => SituationArchetypeDefinitions.CreateServiceExecutionRest(),
             SituationArchetypeType.ServiceDeparture => SituationArchetypeDefinitions.CreateServiceDeparture(),
             SituationArchetypeType.MeditationAndReflection => SituationArchetypeDefinitions.CreateMeditationAndReflection(),
@@ -99,6 +100,16 @@ public static class SituationArchetypeCatalog
             _ => archetype.CoinCost
         };
 
+        // Scale coin reward by Quality (INCOME archetypes - better deals at higher quality venues)
+        int scaledCoinReward = context.Quality switch
+        {
+            Quality.Basic => archetype.CoinReward - 2,
+            Quality.Standard => archetype.CoinReward,
+            Quality.Premium => archetype.CoinReward + 3,
+            Quality.Luxury => archetype.CoinReward + 5,
+            _ => archetype.CoinReward
+        };
+
         // Adjust by NpcDemeanor for additional nuance
         if (context.NpcDemeanor == NPCDemeanor.Hostile)
         {
@@ -123,11 +134,20 @@ public static class SituationArchetypeCatalog
         // Also scale coin costs by difficulty (further locations = more expensive economy)
         scaledCoinCost = scaledCoinCost + (context.LocationDifficulty * 2);
 
+        // Also scale coin rewards by difficulty (further locations = better paying contracts)
+        scaledCoinReward = scaledCoinReward + (context.LocationDifficulty * 2);
+
         // Ensure minimum threshold of 1 (never negative)
         scaledStatThreshold = Math.Max(1, scaledStatThreshold);
 
         // Ensure minimum cost of 1 (never free or negative)
         scaledCoinCost = Math.Max(1, scaledCoinCost);
+
+        // Ensure minimum reward of 1 if archetype has CoinReward (never 0 or negative for income archetypes)
+        if (archetype.CoinReward > 0)
+        {
+            scaledCoinReward = Math.Max(1, scaledCoinReward);
+        }
 
         // SIR BRANTE RHYTHM PATTERN: Same archetype produces different choices based on rhythm
         // Building = All positive (stat grants, no requirements)
@@ -139,9 +159,9 @@ public static class SituationArchetypeCatalog
         return rhythm switch
         {
             RhythmPattern.Building => GenerateBuildingChoices(archetype, situationTemplateId),
-            RhythmPattern.Crisis => GenerateCrisisChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
-            RhythmPattern.Mixed => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost),
-            _ => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost)
+            RhythmPattern.Crisis => GenerateCrisisChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost, scaledCoinReward),
+            RhythmPattern.Mixed => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost, scaledCoinReward),
+            _ => GenerateMixedChoices(archetype, situationTemplateId, scaledStatThreshold, scaledCoinCost, scaledCoinReward)
         };
     }
 
@@ -276,12 +296,14 @@ public static class SituationArchetypeCatalog
     /// Generate CRISIS rhythm choices - damage mitigation, stat gates avoid penalty.
     /// Requirements prevent penalty, fallback TAKES penalty.
     /// Used for: A3 crisis, high stakes moments, dramatic tension.
+    /// INCOME ARCHETYPES: scaledCoinReward passed for consistency but not used in Crisis (no earning during crisis).
     /// </summary>
     private static List<ChoiceTemplate> GenerateCrisisChoices(
         SituationArchetype archetype,
         string situationTemplateId,
         int scaledStatThreshold,
-        int scaledCoinCost)
+        int scaledCoinCost,
+        int scaledCoinReward)
     {
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
@@ -323,7 +345,7 @@ public static class SituationArchetypeCatalog
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
             ChallengeType = archetype.ChallengeType,
-            DeckId = archetype.DeckId
+            ChallengeDeckName = archetype.ChallengeDeckName
         });
 
         // Choice 4: Fallback TAKES the penalty
@@ -344,14 +366,24 @@ public static class SituationArchetypeCatalog
     /// Generate MIXED rhythm choices - standard trade-off gameplay.
     /// Requirements gate best outcome, fallback is poor but available.
     /// Used for: Normal gameplay, most procedural content.
+    /// INCOME ARCHETYPES: When CoinReward > 0, Choice 2 generates income instead of expense.
     /// </summary>
     private static List<ChoiceTemplate> GenerateMixedChoices(
         SituationArchetype archetype,
         string situationTemplateId,
         int scaledStatThreshold,
-        int scaledCoinCost)
+        int scaledCoinCost,
+        int scaledCoinReward)
     {
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // Choice 1: Stat-gated best outcome
+        // For INCOME archetypes: Best payment + flat bonus
+        // For EXPENSE archetypes: Free access if stat met
+        // DDR-007 COMPLIANT: Fixed flat bonus (+3), not percentage-based
+        Consequence statGatedConsequence = archetype.CoinReward > 0
+            ? new Consequence { Coins = scaledCoinReward + 3 } // INCOME: Best payment (reward + flat bonus)
+            : new Consequence(); // EXPENSE: No cost if stat met
 
         choices.Add(new ChoiceTemplate
         {
@@ -359,17 +391,28 @@ public static class SituationArchetypeCatalog
             PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = GenerateStatGatedActionText(archetype),
             RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
-            Consequence = new Consequence(),
+            Consequence = statGatedConsequence,
             ActionType = ChoiceActionType.Instant
         });
+
+        // Choice 2: Money path
+        // For INCOME archetypes: Accept standard contract terms (earn coins)
+        // For EXPENSE archetypes: Pay to access (spend coins)
+        Consequence moneyConsequence = archetype.CoinReward > 0
+            ? new Consequence { Coins = scaledCoinReward } // INCOME: Standard payment
+            : new Consequence { Coins = -scaledCoinCost }; // EXPENSE: Pay the cost
+
+        string moneyActionText = archetype.CoinReward > 0
+            ? GenerateIncomeActionText(archetype)
+            : GenerateMoneyActionText(archetype);
 
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_money",
             PathType = ChoicePathType.InstantSuccess,
-            ActionTextTemplate = GenerateMoneyActionText(archetype),
+            ActionTextTemplate = moneyActionText,
             RequirementFormula = new CompoundRequirement(),
-            Consequence = new Consequence { Coins = -scaledCoinCost },
+            Consequence = moneyConsequence,
             ActionType = ChoiceActionType.Instant
         });
 
@@ -394,7 +437,7 @@ public static class SituationArchetypeCatalog
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
             ChallengeType = archetype.ChallengeType,
-            DeckId = archetype.DeckId
+            ChallengeDeckName = archetype.ChallengeDeckName
         });
 
         choices.Add(new ChoiceTemplate
@@ -641,6 +684,19 @@ public static class SituationArchetypeCatalog
             SituationArchetypeType.EnteringPrivateSpace => "Request comfort amenities",
             SituationArchetypeType.DepartingPrivateSpace => "Leave generous gratuity for staff",
             _ => "Pay to resolve"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text for INCOME archetypes (ContractNegotiation, etc.)
+    /// Choice 2 for income archetypes - accepting standard terms to EARN coins.
+    /// </summary>
+    private static string GenerateIncomeActionText(SituationArchetype archetype)
+    {
+        return archetype.Type switch
+        {
+            SituationArchetypeType.ContractNegotiation => "Accept the standard contract terms",
+            _ => "Accept the offered payment"
         };
     }
 

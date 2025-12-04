@@ -12,9 +12,15 @@
 - **Active Scene** → Scene-based actions from Situations (dynamic narrative)
 - **Fallback Scene** → Atmospheric actions (always-present baseline: Travel, Work, Rest)
 
-Both are "scenes" conceptually, but with different implementation patterns (direct properties vs ChoiceTemplate). The overlay pattern means GameFacade returns EITHER active scene actions OR fallback scene actions, never both.
+Both are "scenes" conceptually, but with different implementation patterns (direct properties vs ChoiceTemplate).
 
-This keeps scene logic consistent while maintaining separate data patterns for performance/simplicity reasons.
+**Screen-Based Display (NOT Overlay):** Actions are mutually exclusive based on context:
+- **Location with active situation** → Scene-based actions only
+- **Location without situation** → Atmospheric actions only
+- **NPC with active situation** → Action to enter situation
+- **NPC without situation** → Cannot interact
+
+GameFacade returns ONE action set per screen context, never both layered together.
 
 ---
 
@@ -240,10 +246,9 @@ Before removing ANY property from LocationAction or PathCard:
 2. ✅ Check LocationActionCatalog - does it use this property?
 3. ✅ Check PathCard generation - does route system use this?
 4. ✅ Read arc42/12_glossary.md entries for Action types
-5. ✅ Read design/12_design_glossary.md for Atmospheric Action Layer
-6. ✅ Verify pattern discrimination logic in executors
-7. ✅ Confirm property is truly unused in BOTH patterns
-8. ✅ Ask: Does deleting this break atmospheric scaffolding?
+5. ✅ Verify pattern discrimination logic in executors
+6. ✅ Confirm property is truly unused in BOTH patterns
+7. ✅ Ask: Does deleting this break atmospheric scaffolding?
 
 **IF IN DOUBT, ASK BEFORE DELETING. Atmospheric system is CRITICAL.**
 

@@ -38,7 +38,7 @@ Located in `arc42/` subdirectory as numbered markdown files (01-12):
 
 ### Game Design Document (GDD)
 
-Primary GDD in `gdd/` subdirectory (~1,200 lines, vision-focused):
+Primary GDD in `gdd/` subdirectory:
 
 - **[gdd/00_one_pager.md](gdd/00_one_pager.md)** - Elevator pitch, design pillars, audience
 - **[gdd/01_vision.md](gdd/01_vision.md)** - Core experience, anti-goals, pillars explained
@@ -52,20 +52,9 @@ Primary GDD in `gdd/` subdirectory (~1,200 lines, vision-focused):
 
 **Start here for design understanding:** Read 00, 01, and 03 for foundational philosophy.
 
-### Game Design Reference Documentation
-
-Detailed reference in `design/` subdirectory (~15,000 lines, exhaustive detail):
-
-- **[design/07_content_generation.md](design/07_content_generation.md)** - 21 archetypes, categorical scaling
-- **[design/08_balance_philosophy.md](design/08_balance_philosophy.md)** - Complete balance methodology
-- **[design/12_design_glossary.md](design/12_design_glossary.md)** - 67 term definitions
-
-**Use reference docs for:** Detailed mechanics, archetype catalog, balance tuning.
-
 ### Additional Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** - Constitutional process philosophy for AI agents working on codebase
-- **[design/README.md](design/README.md)** - Game design documentation structure guide
 
 ### Documentation Philosophy
 
@@ -120,8 +109,7 @@ Wayfarer/
 │   └── wwwroot/             # CSS, assets
 ├── tests/                   # Test projects
 ├── arc42/                   # Arc42 technical documentation (01-12)
-├── gdd/                     # Game Design Document (~1,200 lines)
-├── design/                  # Game design reference documentation (~15,000 lines)
+├── gdd/                     # Game Design Document
 ├── CLAUDE.md                # Constitutional process philosophy
 └── README.md                # This file
 ```

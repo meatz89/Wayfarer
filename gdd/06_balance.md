@@ -386,18 +386,18 @@ Difficulty scales through entity properties:
 
 These adjust base archetype costs, creating contextual difficulty without explicit "level 5 required" gates.
 
-### Progression Tier Expectations
+### Progression Expectations
 
-As A-story advances, expected player state increases:
+As A-story advances, expected player capability increases:
 
-| Tier | A-Story | Expected Stats | Economic State |
-|------|---------|----------------|----------------|
-| Tutorial | A1-A3 | 1-2 in primary | Tight margins |
-| Early | A4-A6 | 2-3 in primary | Moderate surplus |
-| Mid | A7-A12 | 3-4 in primary | Strategic reserves |
-| Late | A13+ | 4-5 in primary | Optimized efficiency |
+| Phase | A-Story | Player Growth |
+|-------|---------|---------------|
+| Tutorial | A1-A3 | Learning systems, building foundation |
+| Early | A4-A6 | Specialization begins |
+| Mid | A7-A12 | Build identity established |
+| Late | A13+ | Optimization and mastery |
 
-**Key:** Margins remain tight at every tier. Late-game players face scaled challenges, not trivial content.
+**Key:** Margins remain tight throughout. Difficulty scales with distance from world center, not story sequence. Late-game players face appropriately scaled challenges.
 
 ---
 
@@ -577,24 +577,27 @@ When intensity history is balanced, scenes tend to follow this flow (NOT a hardc
 - Peaceful is EARNED through story structure, not given when player struggles
 - Category + RhythmPattern combine to produce appropriate choice structures
 
-### Scene Selection Factors (IMPLEMENTED)
+### Scene Selection Factors
 
 Scene selection is deterministic: same inputs always produce same output.
 
-| Factor | Effect on Selection | Implementation |
-|--------|---------------------|----------------|
-| **Intensity History** | Computes RhythmPattern (Building/Crisis/Mixed) | Primary driver |
-| **Anti-repetition** | Penalizes recently-used categories | IMPLEMENTED |
-| **Location Context** | Safety/Purpose bias category weight | IMPLEMENTED |
-| **Player Resources** | NO influence (Challenge Philosophy) | By design |
+| Factor | Effect on Selection |
+|--------|---------------------|
+| **Intensity History** | Computes RhythmPattern (Building/Crisis/Mixed) |
+| **Anti-repetition** | Penalizes recently-used categories |
+
+**What does NOT influence selection:**
+- Location context (safety, purpose, difficulty)
+- Player stats, resources, or Resolve
+- Story sequence number
+
+Location properties affect CHOICE SCALING (stat requirements), not SCENE SELECTION. See §6.4 for authoritative definition.
 
 **Key Principles:**
 
 - **History Over State:** RhythmPattern reads PAST intensity, never reacts to PRESENT player state
-- **Peaceful is Earned:** Heavy demanding history triggers Peaceful selection via intensity tracking
-- **No Resource Filtering:** Player Health, Stamina, Focus, and Resolve do NOT influence category selection
-- **Deterministic but Responsive:** Same game state always produces same selection
-- **Context Injection:** Scene Instance = Template + Context; both authored and procedural use same code path
+- **Peaceful is Earned:** Heavy demanding history triggers recovery scenes
+- **Deterministic:** Same game state always produces same selection
 
 ### Context Injection Principle (HIGHLANDER Compliance)
 
@@ -673,8 +676,5 @@ Key design insight from developer: "The protagonist ain't almighty and his inner
 
 ## Cross-References
 
-- **Vision**: See [01_vision.md §1.4](01_vision.md#14-anti-goals-what-wayfarer-is-not) for "Not Over-Forgiving" anti-goal
-- **Tier Hierarchy**: See [01_vision.md §1.6](01_vision.md#16-design-principle-tier-hierarchy) for soft-lock scope (A-story only)
-- **Numeric Values**: See [design/BASELINE_ECONOMY.md](../design/BASELINE_ECONOMY.md) for exact costs/rewards
-- **Detailed Philosophy**: See [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for exhaustive treatment
-- **Design Methodology**: See [design/DESIGN_GUIDE.md](../design/DESIGN_GUIDE.md) for practical balance workflow
+- **Vision**: See [01_vision.md](01_vision.md) for design pillars and anti-goals
+- **Technical Implementation**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for system architecture

@@ -43,18 +43,18 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
-            LoadTravelState();
+            await LoadTravelStateAsync();
         }
 
         protected override async Task OnParametersSetAsync()
         {
-            LoadTravelState();
+            await LoadTravelStateAsync();
         }
 
-        private void LoadTravelState()
+        private async Task LoadTravelStateAsync()
         {
             // Check if there's an active travel session
-            CurrentTravelContext = TravelFacade.GetCurrentTravelContext();
+            CurrentTravelContext = await TravelFacade.GetCurrentTravelContextAsync();
 
             // If no active travel session, load available routes for selection
             if (CurrentTravelContext == null)
@@ -262,7 +262,7 @@ namespace Wayfarer.Pages.Components
             if (success)
             {
                 // Refresh to show the path cards interface
-                LoadTravelState();
+                await LoadTravelStateAsync();
                 StateHasChanged();
             }
         }

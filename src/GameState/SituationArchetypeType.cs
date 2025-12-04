@@ -108,8 +108,15 @@ public enum SituationArchetypeType
 
     /// <summary>
     /// Service negotiation: securing services (inn booking, etc.)
+    /// EXPENSE archetype - player pays for service
     /// </summary>
     ServiceNegotiation,
+
+    /// <summary>
+    /// Contract negotiation: accepting work contracts (delivery jobs, etc.)
+    /// INCOME archetype - player earns money from successful negotiation
+    /// </summary>
+    ContractNegotiation,
 
     /// <summary>
     /// Service execution rest: using secured service (staying at inn)

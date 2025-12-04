@@ -209,11 +209,17 @@ Scene generation is deterministic based on what HAS HAPPENED, not what the playe
 
 ### What Drives Scene Selection
 
-| Factor | Examples | How It Works |
-|--------|----------|--------------|
-| **Intensity History** | Recent demanding/recovery counts, scenes since last crisis | Determines rhythm phase (accumulation, test, recovery) |
-| **Location Context** | Safety, purpose, privacy, activity level | Influences appropriate scene categories for the setting |
-| **Categorical Properties** | NPC demeanor, quality tier, power dynamic | Combine through deterministic logic to select archetype |
+| Factor | Purpose |
+|--------|---------|
+| **Rhythm Pattern** | Computed from intensity history; determines Building/Crisis/Mixed |
+| **Anti-Repetition** | Prevents immediate category repetition |
+
+**What does NOT drive selection:**
+- Location context (affects choice SCALING, not scene SELECTION)
+- Player stats, resources, or Resolve
+- Story sequence number
+
+Location properties and NPC demeanor affect how CHOICES within a scene scale, not which scene is selected.
 
 ### HIGHLANDER Principle for Generation
 
@@ -246,5 +252,4 @@ The tutorial produces specific scenes NOT through overrides or bypasses, but bec
 - **Balance**: See [06_balance.md](06_balance.md) for how scarcity creates depth
 - **Rhythm System**: See [06_balance.md §6.4](06_balance.md) for Sir Brante rhythm implementation
 - **Challenge Philosophy**: See [06_balance.md §6.8](06_balance.md#68-challenge-and-consequence-philosophy) for fair-not-forgiving principle
-- **Psychological Laws**: See [design/13_player_experience_emergence_laws.md](../design/13_player_experience_emergence_laws.md) for player psychology
-- **Detailed Design**: See [design/01_design_vision.md](../design/01_design_vision.md) for exhaustive treatment
+- **Technical Architecture**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for implementation patterns

@@ -23,7 +23,7 @@ public class ScenePromptContext
 
     // World state
     public TimeBlocks CurrentTimeBlock { get; set; }
-    public string CurrentWeather { get; set; }
+    public WeatherCondition CurrentWeather { get; set; }
     public int CurrentDay { get; set; }
 
     // Player relationship history (for contextual generation)

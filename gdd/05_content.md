@@ -90,9 +90,35 @@ Separate reusable mechanical patterns from narrative content. Same archetype + d
 - Base reward formulas
 
 **What an Archetype Does NOT Define:**
-- Narrative text (generated from context)
+- Narrative text (AI-generated from game context at activation-time)
 - Specific entity IDs (uses categorical filters)
 - Absolute numeric values (scaled by properties)
+
+### Two-Pass Generation Pipeline
+
+All content flows through a two-pass pipeline. Hand-authored narrative text is forbidden.
+
+**Pass 1: Mechanical Generation (Parse-Time)**
+- Archetypes generate choice structures from categorical properties
+- Catalogues translate properties to concrete costs/rewards
+- Result: Mechanically complete entity with scaled values
+
+**Pass 2: AI Narrative Enrichment (Activation-Time)**
+- AI receives complete game context (NPC, Location, Player, World State)
+- AI generates narrative flavor from context
+- Result: Narrative text persisted to entity, displayed in UI
+
+**Why Two Passes:**
+- Mechanics are deterministic and testable (Pass 1)
+- Narrative emerges from context, not pre-written (Pass 2)
+- Same mechanical archetype + different context = different narrative
+- Enables infinite unique content from finite patterns
+
+**Forbidden Shortcuts:**
+- Hand-writing narrative text in JSON content
+- Fixing mechanical issues by editing JSON values
+- Different archetypes for tutorial vs procedural
+- Bypassing the generation pipeline with hardcoded content
 
 ### Example: Negotiation Archetype
 

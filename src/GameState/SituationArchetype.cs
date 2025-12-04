@@ -56,10 +56,18 @@ public class SituationArchetype
     public int StatThreshold { get; init; }
 
     /// <summary>
-    /// Coin cost for Choice 2 (money option)
+    /// Coin cost for Choice 2 (money option) - EXPENSE archetypes
     /// Investigation: 10, Negotiation/Confrontation: 15, Crisis: 25+
     /// </summary>
     public int CoinCost { get; init; }
+
+    /// <summary>
+    /// Coin reward for Choice 2 (money option) - INCOME archetypes
+    /// Used for contract negotiations where success means EARNING coins.
+    /// When > 0, Choice 2 generates income instead of expense.
+    /// ContractNegotiation: 10 base reward
+    /// </summary>
+    public int CoinReward { get; init; }
 
     /// <summary>
     /// Challenge type for Choice 3 (challenge option)
@@ -68,14 +76,15 @@ public class SituationArchetype
     public TacticalSystemType ChallengeType { get; init; }
 
     /// <summary>
-    /// Deck ID for Choice 3 (challenge option)
+    /// Challenge deck template name for Choice 3 (challenge option)
     /// Specifies which challenge deck to use within the tactical system
     /// Social: "friendly_chat" or "desperate_request"
     /// Mental: "mental_challenge"
     /// Physical: "physical_challenge"
     /// Determined at parse-time based on archetype identity
+    /// NOTE: This is a TEMPLATE REFERENCE (like SceneTemplate.Id), not an entity instance ID
     /// </summary>
-    public string DeckId { get; init; }
+    public string ChallengeDeckName { get; init; }
 
     /// <summary>
     /// Resolve cost for Choice 3 (challenge option)

@@ -2,7 +2,7 @@
 
 ## Why This Document Exists
 
-This glossary defines essential game design terms for quick reference. For comprehensive definitions of all 67+ terms, see [design/12_design_glossary.md](../design/12_design_glossary.md).
+This glossary defines essential game design terms for quick reference.
 
 ---
 
@@ -152,5 +152,4 @@ Scene activation uses these properties for categorical matching—scenes activat
 
 ## Cross-References
 
-- **Complete Glossary**: See [design/12_design_glossary.md](../design/12_design_glossary.md) for all 67+ terms
 - **Technical Terms**: See [arc42/12_glossary.md](../arc42/12_glossary.md) for implementation terminology

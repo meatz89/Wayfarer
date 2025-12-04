@@ -61,8 +61,9 @@ public class TravelManager
 
     /// <summary>
     /// Get available cards for the current segment (works for both FixedPath and Event segments)
+    /// TWO-PASS: Encounter segments trigger async scene activation with AI narrative
     /// </summary>
-    public List<PathCardDTO> GetSegmentCards()
+    public async Task<List<PathCardDTO>> GetSegmentCardsAsync()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
@@ -90,7 +91,7 @@ public class TravelManager
         {
             // Encounter segments use Scene-Situation system, not PathCards
             // Spawn Scene from MandatorySceneTemplate if not already spawned
-            SpawnEncounterScene(segment, session);
+            await SpawnEncounterSceneAsync(segment, session);
             return new List<PathCardDTO>(); // No cards - UI shows Scene instead
         }
 
@@ -100,9 +101,10 @@ public class TravelManager
     /// <summary>
     /// Spawn Scene from Encounter segment's MandatorySceneTemplate
     /// Scene is spawned once when player reaches segment, stored in PendingScene
-    /// Uses SceneInstantiator.ActivateScene() for proper entity resolution
+    /// Uses SceneInstantiator.ActivateSceneAsync() for proper entity resolution
+    /// TWO-PASS: Pass 1 (mechanical) + Pass 2 (AI narrative)
     /// </summary>
-    private void SpawnEncounterScene(RouteSegment segment, TravelSession session)
+    private async Task SpawnEncounterSceneAsync(RouteSegment segment, TravelSession session)
     {
         // Already spawned - don't respawn
         if (session.PendingScene != null)
@@ -153,7 +155,8 @@ public class TravelManager
         };
 
         // Activate scene - creates Situations and resolves entities
-        _sceneInstantiator.ActivateScene(scene, activationContext);
+        // TWO-PASS: Pass 1 (mechanical) + Pass 2 (AI narrative)
+        await _sceneInstantiator.ActivateSceneAsync(scene, activationContext);
 
         // Set as pending scene for this segment
         session.PendingScene = scene;
@@ -393,8 +396,8 @@ public class TravelManager
         }
         else
         {
-            // Move to next segment
-            AdvanceSegment(session);
+            // Move to next segment (async for Encounter segments with AI narrative)
+            await AdvanceSegmentAsync(session);
         }
 
         return true;
@@ -449,8 +452,9 @@ public class TravelManager
     /// Resolve pending scene after player completes scene situations
     /// Called by GameOrchestrator after scene intensity reaches 0
     /// ADR-007: Accept Scene object (not sceneId string)
+    /// TWO-PASS: Async for Encounter segments with AI narrative generation
     /// </summary>
-    public bool ResolveScene(Scene scene)
+    public async Task<bool> ResolveSceneAsync(Scene scene)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         // ADR-007: Check if PendingScene matches (object reference, not ID comparison)
@@ -476,7 +480,7 @@ public class TravelManager
         }
         else
         {
-            AdvanceSegment(session);
+            await AdvanceSegmentAsync(session);
         }
 
         return true;
@@ -711,8 +715,9 @@ public class TravelManager
 
     /// <summary>
     /// Advance to next segment or mark journey as ready to complete
+    /// TWO-PASS: Async for Encounter segments with AI narrative generation
     /// </summary>
-    private void AdvanceSegment(TravelSession session)
+    private async Task AdvanceSegmentAsync(TravelSession session)
     {
         RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null) return;
@@ -731,7 +736,8 @@ public class TravelManager
             // Pre-load cards for the new segment (works for both FixedPath and Event segments)
             // For Event segments, this triggers event selection and sets CurrentEvent
             // For FixedPath segments, this just ensures cards are ready
-            GetSegmentCards();
+            // For Encounter segments, this triggers async scene activation with AI narrative
+            await GetSegmentCardsAsync();
         }
         // Note: IsReadyToComplete is set in SelectPathCard when on the last segment
         // This ensures The Single Player must select a card even on the final segment

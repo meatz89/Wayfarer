@@ -85,4 +85,3 @@ Days have limited time blocks. NO Seasons (timespan is days or weeks). Nothing h
 
 - **Travel Mechanics**: See [03_core_loop.md](03_core_loop.md) for route gameplay
 - **Technical Implementation**: See [arc42/05_building_block_view.md](../arc42/05_building_block_view.md) for spatial entity architecture
-- **Detailed Design**: See [design/06_narrative_design.md](../design/06_narrative_design.md) for world-building depth

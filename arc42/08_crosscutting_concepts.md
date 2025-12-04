@@ -4,6 +4,31 @@ This section documents patterns and practices that apply across multiple buildin
 
 ---
 
+## 8.0 Core Architectural Constraints
+
+Two foundational principles govern ALL design decisions. These are TIER 1 non-negotiables (see `gdd/01_vision.md`).
+
+| Principle | Definition | Consequence |
+|-----------|------------|-------------|
+| **Perfect Information** | Display = Execution. All costs, requirements, and outcomes visible before selection. | No hidden gotchas. Players can calculate and plan. Strategy replaces surprise. |
+| **No Soft-Locks** | A-story ALWAYS has fallback choice. Forward progress guaranteed regardless of player state. | Player can never become stuck. Fallback may have consequences, but exists. |
+
+### Why These Are TIER 1
+
+| Tier | Principles | Rule |
+|------|------------|------|
+| **TIER 1** | No Soft-Locks, HIGHLANDER | Never compromise |
+| **TIER 2** | Perfect Information, Playability | Compromise only for TIER 1 |
+| **TIER 3** | Elegance, Verisimilitude | Compromise for TIER 1 or 2 |
+
+When principles conflict, higher tier wins. See `gdd/01_vision.md §1.6` for resolution examples.
+
+**Cross-References:**
+- §8.15 Fallback Context Rules (No Soft-Lock implementation)
+- §8.25 Context Injection (Perfect Information in choice display)
+
+---
+
 ## 8.1 HIGHLANDER Principle
 
 **"There can be only one."**
@@ -69,101 +94,78 @@ Domain entities have no instance IDs. Relationships use direct object references
 
 ---
 
-## 8.4 Three-Tier Timing Model
+## 8.4 Four-Tier Timing Model
 
-Content instantiates lazily across three timing tiers. Scene and Situation creation follows a UNIFIED path for both authored and procedural content.
+Content instantiates lazily across timing tiers. Scene creation follows a UNIFIED path for both authored and procedural content.
 
 ### Overview
 
-| Tier | When | What Exists | What Does NOT Exist |
-|------|------|-------------|---------------------|
-| **Parse-time** | Game initialization | SceneTemplates, SituationTemplates | Scene instances, Situation instances |
-| **Spawn-time** | Game start or choice reward | Scene instance (Deferred state) | Situation instances |
-| **Activation-time** | Player enters location | Situation instances, resolved entities | N/A - fully materialized |
-| **Query-time** | UI requests options | Ephemeral actions | N/A - regenerated each query |
+| Tier | When | What Happens |
+|------|------|--------------|
+| **Parse-time** | Game initialization | Templates loaded (no instances) |
+| **Spawn-time** | Choice reward executes | Scene instance created (Deferred state) |
+| **Activation-time** | Player enters location | Situations resolved, entities materialized |
+| **Query-time** | UI requests options | Ephemeral actions regenerated |
 
-### Scene Instantiation Pipeline (UNIFIED PATH)
+### Scene Creation (UNIFIED MECHANISM)
 
-**Critical principle:** There is NO difference between authored and procedural scene creation. Both use the same mechanism: SceneTemplate + Context → Scene Instance.
+**ALL scenes are created via ONE mechanism:** SceneTemplate + Context → SceneSpawnResult → Scene Instance
+
+| Content Type | Context Source | Mechanism |
+|--------------|----------------|-----------|
+| **Authored (A1-A10)** | Extracted from current SceneTemplate | SceneSpawnResult from final choice |
+| **Procedural (A11+)** | Computed from rhythm + GameWorld state | SceneSpawnResult from final choice |
+
+**There is NO DIFFERENCE in HOW scenes are created.** The only difference is WHERE context comes from.
+
+### The ONE Exception: First Starter Scene
+
+The VERY FIRST scene cannot be created from SceneSpawnResult (no prior scene exists).
+
+| Requirement | Why |
+|-------------|-----|
+| GameWorld complete | All SceneTemplates loaded |
+| DI registration complete | Services available |
+| Created as DEFERRED | Not activated until player enters location |
+
+### The Chain Mechanism
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           PARSE-TIME (GameWorldInitializer)                      │
-│                                                                                  │
-│   JSON files ──► PackageLoader ──► SceneTemplates (with SituationTemplates)     │
-│                                                                                  │
-│   • SceneTemplates stored in GameWorld.SceneTemplates                           │
-│   • Each template has: Id, SituationTemplates[], IsStarter, MainStorySequence   │
-│   • NO Scene instances created                                                   │
-│   • NO Situation instances created                                               │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                    ┌───────────────────┴───────────────────┐
-                    ▼                                       ▼
-┌───────────────────────────────────┐   ┌───────────────────────────────────────────┐
-│     STARTER SCENE (Game Start)    │   │     CHAIN SCENES (Choice Rewards)         │
-│                                   │   │                                           │
-│  SpawnStarterScenes()             │   │  SceneSpawnReward on final choices        │
-│  • Finds IsStarter=true templates │   │  • SpawnNextMainStoryScene=true           │
-│  • ONE scene only (A1)            │   │  • Sequence lookup: GetNextMainStoryTemplate()
-│                                   │   │  • Authored (1-10) or Procedural (11+)    │
-└───────────────────────────────────┘   └───────────────────────────────────────────┘
-                    │                                       │
-                    └───────────────────┬───────────────────┘
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           SPAWN-TIME (After DI Available)                        │
-│                                                                                  │
-│   SceneInstantiator.CreateDeferredScene(template, context)                      │
-│                                                                                  │
-│   • Scene instance created with State = Deferred                                │
-│   • Situations list = EMPTY (no instances yet)                                  │
-│   • LocationActivationFilter stored (trigger condition)                         │
-│   • Template reference stored (for later SituationTemplate access)              │
-│   • Scene added to GameWorld.Scenes                                             │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      ACTIVATION-TIME (Player Enters Location)                    │
-│                                                                                  │
-│   SceneInstantiator.ActivateScene(scene, context)                               │
-│                                                                                  │
-│   For each SituationTemplate in scene.Template.SituationTemplates:              │
-│     1. Create Situation instance                                                │
-│     2. Resolve Location (find-or-create from PlacementFilter)                   │
-│     3. Resolve NPC (find-or-create from PlacementFilter)                        │
-│     4. Resolve Route (find-only, fail-fast if not found)                        │
-│     5. Add Situation to scene.Situations                                        │
-│                                                                                  │
-│   Scene.State transitions: Deferred → Active                                    │
-└─────────────────────────────────────────────────────────────────────────────────┘
+GAME START: First starter scene spawned (deferred)
+     │
+     ▼
+A1 activates ──► final choice has SceneSpawnResult ──► A2 (deferred)
+                                                          │
+A2 activates ──► final choice has SceneSpawnResult ──► A3 (deferred)
+                                                          │
+... continues for ALL scenes (authored and procedural use SAME mechanism)
 ```
 
-### A-Story Chain Mechanism
+### Template vs Instance
 
-Main story scenes chain via SceneSpawnReward on the final situation's choices:
+Templates are immutable archetypes. Instances are mutable game state.
 
-| Scene | Trigger | Next Scene Lookup |
-|-------|---------|-------------------|
-| **A1** (InnLodging) | SpawnStarterScenes (IsStarter=true) | N/A - first scene |
-| **A2-A10** (Authored) | SceneSpawnReward on A(n-1) final choice | GetNextMainStoryTemplate(n) |
-| **A11+** (Procedural) | SceneSpawnReward on A(n-1) final choice | Procedural generation fallback |
+| Aspect | Template | Instance |
+|--------|----------|----------|
+| **Created** | Parse-time | Spawn-time (Scene) / Activation-time (Situation) |
+| **Mutability** | Immutable | Mutable |
+| **Entity References** | PlacementFilters (categorical) | Direct object references (resolved) |
 
-**Enrichment:** `SceneTemplateParser.EnrichMainStoryFinalChoices()` adds `SceneSpawnReward { SpawnNextMainStoryScene = true }` to every choice in the final situation of MainStory scenes at parse-time.
-
-**Sequence lookup:** `GetNextMainStoryTemplate(currentSequence)` returns the template where `MainStorySequence == currentSequence + 1`. If none found, procedural generation creates the next template.
+| Rule | Why |
+|------|-----|
+| **NO Scene instances at parse-time** | Templates only until game starts |
+| **NO Situation instances until activation** | Deferred scenes have empty situations |
+| **Instances reference templates** | Traceability back to source |
 
 ### Forbidden Patterns
 
 | Pattern | Why Forbidden |
 |---------|---------------|
-| Scene instances in JSON | Bypasses spawn-time, creates parse-time instances |
-| Situation instances at parse-time | Entities cannot be resolved before DI available |
-| Multiple paths for scene creation | Violates HIGHLANDER - one mechanism for all scenes |
-| Direct SceneParser calls for authored content | Must go through spawn-time pipeline |
+| Scene instances in JSON | Bypasses spawn-time pipeline |
+| Multiple creation paths | Violates HIGHLANDER |
+| Special authored vs procedural logic | Same mechanism for both |
 
-**Consequence:** Memory contains only currently accessible content. All scenes follow the same Template → Deferred → Active lifecycle regardless of source.
+**Consequence:** All scenes follow Template → Deferred → Active lifecycle regardless of source.
 
 ---
 
@@ -345,97 +347,37 @@ Filters specify WHERE entities should be found or created, using proximity and i
 
 ---
 
-## 8.13 Template vs Instance Lifecycle
+## 8.13 Entity Resolution (Find-Or-Create)
 
-Templates are immutable archetypes. Instances are mutable game state. They exist at different times and serve different purposes.
-
-### Template Characteristics
-
-| Entity Type | Template | Instance |
-|-------------|----------|----------|
-| **Scene** | SceneTemplate | Scene |
-| **Situation** | SituationTemplate | Situation |
-| **Choice** | ChoiceTemplate | N/A (templates used directly) |
-
-| Aspect | Template | Instance |
-|--------|----------|----------|
-| **Created** | Parse-time | Spawn-time (Scene) / Activation-time (Situation) |
-| **Mutability** | Immutable | Mutable |
-| **Lifecycle** | Entire game | Created, used, potentially completed/expired |
-| **Entity References** | PlacementFilters (categorical) | Direct object references (resolved) |
-| **Storage** | GameWorld.SceneTemplates | GameWorld.Scenes |
-
-### Critical Rules
-
-| Rule | Consequence |
-|------|-------------|
-| **NO Scene instances at parse-time** | JSON must contain `sceneTemplates`, never `scenes` |
-| **NO Situation instances until activation** | Deferred scenes have `Situations = []` (empty) |
-| **Templates own SituationTemplates** | SceneTemplate.SituationTemplates[] contains all situation blueprints |
-| **Instances reference Templates** | Scene.Template links back to source SceneTemplate |
-
-### State Transitions
-
-```
-SceneTemplate (immutable, parse-time)
-       │
-       ▼  SpawnStarterScenes() or SceneSpawnReward
-Scene (Deferred) ────────────────────────────────────►  Scene (Active)
-  • State = Deferred                                      • State = Active
-  • Situations = [] (EMPTY)                               • Situations = [resolved instances]
-  • Template = reference                                  • All entities resolved
-       │                                                       │
-       │                                                       ▼
-       │                                               Situation (instance)
-       │                                                 • Location = resolved object
-       │                                                 • NPC = resolved object
-       │                                                 • Route = resolved object
-       ▼
-  Activation trigger:
-  Player enters location matching LocationActivationFilter
-```
-
-**Key Insight:** Deferred scenes have NO situation instances. Situations are only created at activation when entity references can be resolved. This prevents orphaned situations and ensures all entities exist when needed.
-
----
-
-## 8.14 Entity Resolution (Find-Or-Create)
-
-Entities are resolved at scene ACTIVATION, not parse-time. This is when categorical PlacementFilters become concrete object references.
+Entities are resolved at scene ACTIVATION, not parse-time. Categorical filters become concrete object references.
 
 ### Resolution Timing
 
 | Tier | Entity Resolution | Why |
 |------|-------------------|-----|
-| **Parse-time** | NEVER | DI not available, entities may not exist |
-| **Spawn-time** | NEVER | Scene is Deferred, not yet needed |
-| **Activation-time** | YES | Player is at location, entities needed NOW |
+| **Parse-time** | NEVER | Entities may not exist |
+| **Spawn-time** | NEVER | Scene is Deferred |
+| **Activation-time** | YES | Player at location, entities needed |
 
-### Resolution Process (SceneInstantiator.ActivateScene)
+### Resolution Strategy
 
-For each SituationTemplate in scene.Template.SituationTemplates:
+| Entity | If Not Found |
+|--------|--------------|
+| **Location** | Create dynamically (procedural generation) |
+| **NPC** | Create dynamically (procedural generation) |
+| **Route** | FAIL FAST (navigation graph must be complete) |
 
-| Step | Entity | Strategy | If Not Found |
-|------|--------|----------|--------------|
-| 1 | Location | EntityResolver.FindLocation() | PackageLoader.CreateSingleLocation() |
-| 2 | NPC | EntityResolver.FindNPC() | PackageLoader.CreateSingleNpc() |
-| 3 | Route | EntityResolver.FindRoute() | FAIL FAST (routes must exist) |
+### Filter to Reference Transformation
 
-**Find-or-Create principle:** Location and NPC can be created dynamically via procedural generation. Routes must be pre-existing (navigation graph integrity).
+At activation, categorical filters resolve to concrete objects:
+- Filter: "find Commerce location" → Reference: actual Location object
+- Filter: "find Innkeeper NPC" → Reference: actual NPC object
 
-### PlacementFilter → Object Reference
-
-| Before Activation | After Activation |
-|-------------------|------------------|
-| `situation.LocationFilter = { Purpose: Commerce }` | `situation.Location = <actual Location object>` |
-| `situation.NpcFilter = { Profession: Innkeeper }` | `situation.Npc = <actual NPC object>` |
-| `situation.RouteFilter = { Segment: 0 }` | `situation.Route = <actual RouteOption object>` |
-
-**HIGHLANDER:** Each entity resolved ONCE at activation. No re-resolution, no caching, no duplicate lookups.
+**HIGHLANDER:** Each entity resolved ONCE at activation. No re-resolution, no caching.
 
 ---
 
-## 8.15 Separated Responsibilities (HIGHLANDER)
+## 8.14 Separated Responsibilities (HIGHLANDER)
 
 Entity resolution follows strict responsibility separation to prevent circular dependencies.
 
@@ -453,7 +395,7 @@ Entity resolution follows strict responsibility separation to prevent circular d
 
 ---
 
-## 8.16 Fallback Context Rules (No Soft-Lock Guarantee)
+## 8.15 Fallback Context Rules (No Soft-Lock Guarantee)
 
 Fallback choices are the safety valve that guarantees forward progress.
 
@@ -478,7 +420,7 @@ Every situation MUST have a Fallback choice. This is non-negotiable per the No S
 
 ---
 
-## 8.17 Consequence ValueObject Pattern
+## 8.16 Consequence ValueObject Pattern
 
 Unified representation of all costs and rewards using signed values.
 
@@ -495,7 +437,7 @@ The Consequence provides projection methods for perfect information display:
 
 ---
 
-## 8.18 Centralized Invariant Enforcement
+## 8.17 Centralized Invariant Enforcement
 
 **"Scene invariants belong in the parser, not the archetypes."**
 
@@ -520,7 +462,7 @@ Centralize invariant enforcement at parse-time. Parser applies category-specific
 
 ---
 
-## 8.19 Explicit Property Principle
+## 8.18 Explicit Property Principle
 
 Use explicit strongly-typed properties for state modifications. Never route changes through string-based generic systems.
 
@@ -552,96 +494,51 @@ Replace string routing with explicit strongly-typed properties.
 
 ---
 
-## 8.20 Unified Resource Availability (HIGHLANDER)
+## 8.19 Unified Resource Availability (HIGHLANDER)
 
-ALL resource availability checks happen in ONE place: `CompoundRequirement`. This eliminates duplication and ensures consistent behavior across the codebase.
+**"One place to check if player can do something."**
 
-### The HIGHLANDER Principle Applied
+ALL resource availability checks use ONE mechanism. This eliminates duplication and ensures consistent behavior.
 
-Resource availability was previously checked in 4 different places. Now it's checked in ONE:
+### The Principle
 
-| Check | Single Source of Truth |
-|-------|------------------------|
-| Stats (Insight, Rapport, etc.) | `OrPath.IsSatisfied()` |
-| Resolve (Sir Brante gate) | `OrPath.IsSatisfied()` |
-| Coins, Health, Stamina, Focus | `OrPath.IsSatisfied()` |
-| Hunger capacity | `OrPath.IsSatisfied()` |
+| Aspect | Rule |
+|--------|------|
+| **Single check location** | One class handles all availability checks |
+| **Two check patterns** | Gate logic (can attempt?) vs Affordability logic (can afford?) |
+| **No scattered checks** | No manual checks in executors, services, or UI |
 
-### Resource Check Types
+### Two Check Patterns
 
-The same `OrPath` mechanism handles two patterns via different VALUES:
-
-| Resource | Check Type | OrPath Property | Value | Logic |
-|----------|------------|-----------------|-------|-------|
-| **Resolve** | Gate | `ResolveRequired = 0` | 0 | `player.Resolve >= 0` |
-| **Coins** | Affordability | `CoinsRequired = cost` | cost | `player.Coins >= cost` |
-| **Health** | Affordability | `HealthRequired = cost` | cost | `player.Health >= cost` |
-| **Stamina** | Affordability | `StaminaRequired = cost` | cost | `player.Stamina >= cost` |
-| **Focus** | Affordability | `FocusRequired = cost` | cost | `player.Focus >= cost` |
-| **Hunger** | Capacity | `HungerCapacityRequired = cost` | cost | `player.Hunger + cost <= MaxHunger` |
+| Pattern | Question | Can Go Negative? |
+|---------|----------|------------------|
+| **Gate** | "Can you ATTEMPT this?" | Yes (Resolve) |
+| **Affordability** | "Can you AFFORD this?" | No (all other resources) |
 
 ### Sir Brante Willpower Pattern
 
-Resolve uses **gate logic** (special case):
-- Requirement: `Resolve >= 0` (can you ATTEMPT?)
-- Consequence: `Resolve -= N` (CAN go negative)
+Resolve uses gate logic (inspired by The Life and Suffering of Sir Brante):
 
-Other resources use **affordability logic**:
-- Requirement: `Resource >= cost` (can you AFFORD?)
-- Consequence: `Resource -= cost` (CANNOT go negative)
+| Phase | Player State | Resolve Effect |
+|-------|--------------|----------------|
+| **Building** | Earning through choices | Accumulates |
+| **Spending** | Taking costly choices | Depletes (can go negative) |
+| **Locked** | Negative resolve | Blocks costly choices |
+| **Recovery** | Finding restoration | Rebuilds to positive |
 
-### Factory Method: CreateForConsequence
+This prevents "abundance trivializes mechanic" - players must manage willpower strategically.
 
-`CompoundRequirement.CreateForConsequence(Consequence)` generates ALL resource requirements:
+### Forbidden Patterns
 
-| Consequence Property | Generated Requirement |
-|---------------------|----------------------|
-| `Resolve < 0` | `ResolveRequired = 0` (gate) |
-| `Coins < 0` | `CoinsRequired = -Coins` (affordability) |
-| `Health < 0` | `HealthRequired = -Health` (affordability) |
-| `Stamina < 0` | `StaminaRequired = -Stamina` (affordability) |
-| `Focus < 0` | `FocusRequired = -Focus` (affordability) |
-| `Hunger > 0` | `HungerCapacityRequired = Hunger` (capacity) |
-
-### What Was DELETED (No Longer Exists)
-
-| Deleted | Reason |
-|---------|--------|
-| `Consequence.IsAffordable()` | Redundant - OrPath handles this |
-| Manual checks in `SceneContent.LoadChoices()` | Redundant - RequirementFormula handles this |
-| Manual checks in `SceneContent.HandleChoiceSelected()` | Redundant - RequirementFormula handles this |
-| Manual checks in `SituationChoiceExecutor` | Redundant - RequirementFormula handles this |
-| `ActionCardViewModel.IsAffordable` property | Redundant - `RequirementsMet` covers everything |
-
-### Architecture
-
-```
-SINGLE check path for ALL availability:
-└─ RequirementFormula.IsAnySatisfied(player, gameWorld)
-    └─ OrPath.IsSatisfied()
-        ├─ Stats (Insight >= N, Rapport >= N, ...)
-        ├─ Resolve (Resolve >= 0)  ← Sir Brante gate
-        ├─ Coins (Coins >= cost)
-        ├─ Health (Health >= cost)
-        ├─ Stamina (Stamina >= cost)
-        ├─ Focus (Focus >= cost)
-        └─ Hunger (Hunger + cost <= MaxHunger)
-```
-
-### Game Design: Why Resolve Differs
-
-Resolve follows the "Sir Brante Willpower" pattern from The Life and Suffering of Sir Brante:
-
-1. **Building Phase:** Player earns resolve through positive choices
-2. **Spending Phase:** Player can take costly choices (depletes reserve)
-3. **Locked Phase:** Negative resolve blocks costly choices until rebuilt
-4. **Recovery Phase:** Player finds opportunities to restore willpower
-
-This prevents the "abundance trivializes mechanic" trap of traditional resource pools.
+| Pattern | Why Forbidden |
+|---------|---------------|
+| Multiple affordability check locations | Violates HIGHLANDER |
+| Manual checks in executors | Bypasses unified system |
+| Affordability methods on domain objects | Separates check from requirement |
 
 ---
 
-## 8.21 Behavior-Only Testing Principle
+## 8.20 Behavior-Only Testing Principle
 
 **"Test what it DOES, not what it SAYS."**
 
@@ -688,84 +585,55 @@ None of these are regressions. The behavior (invalid when insufficient, valid wh
 
 ---
 
-## 8.22 Unified Cost/Reward Application (HIGHLANDER)
+## 8.21 Unified Cost/Reward Application (HIGHLANDER)
 
-**"There can be only ONE way to change player resources."**
+**"One place to change player resources."**
 
-ALL player resource mutations (costs AND rewards) flow through a single method: `RewardApplicationService.ApplyConsequence()`. No direct player mutations anywhere else in the codebase.
+ALL player resource mutations (costs AND rewards) flow through ONE location. No direct player mutations anywhere else.
 
-### The TWO PILLARS (HIGHLANDER Resource Classes)
+### The Two Pillars
 
-Together with §8.20, these form the TWO PILLARS of resource management:
+Together with §8.19, these form the TWO PILLARS of resource management:
 
-| Pillar | Class | Purpose | Single Entry Point |
-|--------|-------|---------|-------------------|
-| **Availability** | `CompoundRequirement` | Check if player CAN do something | `IsAnySatisfied(player, gameWorld)` |
-| **Application** | `Consequence` | Apply costs/rewards | `ApplyConsequence(consequence, situation)` |
-
-**HIGHLANDER ENFORCEMENT:** These are the ONLY classes that handle resource values. No other classes may contain resource properties (Coins, Health, Stamina, Focus, Resolve, Hunger).
-
-| Class | Status |
-|-------|--------|
-| `Consequence` | ALLOWED (unified costs/rewards) |
-| `CompoundRequirement.OrPath` | ALLOWED (unified prerequisites) |
-| Any other class with resource properties | FORBIDDEN |
-
-**NO EXCEPTIONS.** No individual property checks. No direct mutations. No optional parameters.
+| Pillar | Purpose |
+|--------|---------|
+| **Availability** (§8.19) | Check if player CAN do something |
+| **Application** (this section) | Apply costs/rewards |
 
 ### Sign Convention
 
-The Consequence class uses signed values to distinguish costs from rewards:
+Signed values distinguish costs from rewards:
 
-| Direction | Sign | Example |
-|-----------|------|---------|
-| **Cost** | Negative | `Coins = -10` (pay 10 coins) |
-| **Reward** | Positive | `Health = 5` (heal 5 HP) |
-| **Hunger (special)** | Positive = bad | `Hunger = 10` (increases hunger, which is bad) |
+| Direction | Sign | Effect |
+|-----------|------|--------|
+| **Cost** | Negative | Player loses resource |
+| **Reward** | Positive | Player gains resource |
+| **Hunger** | Positive = bad | Hunger increases (harmful) |
 
-### What Is FORBIDDEN
+### Forbidden Patterns
 
-| Forbidden Pattern | Why |
-|-------------------|-----|
-| `player.Coins -= 10` | Direct mutation bypasses clamping, validation |
-| `player.Health -= damage` | Same - must go through Consequence |
-| `ApplyCosts(player, coins: 10)` | Optional parameters hide what's being changed |
-| `if (player.Coins < cost) return false` | Must use CompoundRequirement |
-
-### What Is REQUIRED
-
-| Correct Pattern | Usage |
-|-----------------|-------|
-| Build Consequence object | `new Consequence { Coins = -10, Health = -5 }` |
-| Apply via service | `await _rewardService.ApplyConsequence(costs, situation)` |
-| Check via requirement | `requirement.IsAnySatisfied(player, gameWorld)` |
-
-### Where Mutations ARE Allowed
-
-`RewardApplicationService.ApplyConsequence()` is the SINGLE location authorized to mutate player resources. This method:
-
-- Applies costs (negative values) with appropriate clamping
-- Applies rewards (positive values) with appropriate capping
-- Handles special cases (FullRecovery, Hunger inversion)
-- Processes non-resource consequences (bonds, achievements, items, scene spawns)
+| Pattern | Why Forbidden |
+|---------|---------------|
+| Direct player mutations | Bypasses clamping, validation |
+| Scattered mutation logic | Violates HIGHLANDER |
+| Optional parameter mutations | Hides what's being changed |
+| Manual availability checks | Must use unified availability (§8.19) |
 
 ### Rationale
 
 Without unified application:
-- Clamping logic duplicated across facades
+- Clamping logic duplicated
 - Inconsistent floor/ceiling behavior
-- Some paths forget to validate before mutation
-- Bugs in one facade don't exist in another (inconsistent behavior)
+- Changes require multiple updates
 
 With unified application:
-- Single clamping implementation
+- Single mutation implementation
 - Consistent behavior everywhere
-- Changes to resource logic happen in ONE place
-- Guaranteed consistency across all game systems
+- Changes happen in ONE place
 
 ---
 
-## 8.23 Archetype Reusability (No Tutorial Hardcoding)
+## 8.22 Archetype Reusability (No Tutorial Hardcoding)
 
 **"Archetypes are context-agnostic mechanical patterns."**
 
@@ -773,61 +641,58 @@ Every scene archetype must produce appropriate experiences across ALL contexts t
 
 ### The Problem
 
-Tutorial scenes and procedural scenes need different difficulty levels. A naive implementation might check story sequence:
-
-```
-if (AStorySequence == 1) { /* easy tutorial path */ }
-else { /* harder standard path */ }
-```
-
-This violates reusability: the archetype becomes unusable in new contexts, tutorial behavior is buried in code, and the same archetype produces fundamentally different experiences based on hidden branching.
+Tutorial scenes and procedural scenes need different difficulty levels. A naive implementation might check story sequence. This violates reusability: the archetype becomes unusable in new contexts, tutorial behavior is buried in code, and the same archetype produces fundamentally different experiences based on hidden branching.
 
 ### The Solution
 
 Categorical properties drive ALL variation. The archetype code is identical regardless of context.
 
-| Categorical Property | Effect on Archetype |
-|---------------------|---------------------|
-| **Tier** | Base difficulty level (0-4) |
-| **NPCDemeanor** | Stat requirement adjustment (Friendly -2, Hostile +2) |
-| **Quality** | Cost adjustment (Basic -3, Premium +5, Luxury +10) |
-| **PowerDynamic** | Threshold adjustment (Dominant -2, Submissive +2) |
+| Scaling Source | Effect |
+|----------------|--------|
+| **Location difficulty** | Base challenge level (distance from world center) |
+| **NPC demeanor** | Stat requirement adjustment |
+| **Quality** | Cost adjustment |
+| **Power dynamic** | Threshold adjustment |
 
 ### Tutorial as Context, Not Code
 
-Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical context:
+Tutorial scenes use the SAME archetypes as procedural scenes. The tutorial experience emerges from categorical context (safe location, friendly NPC, basic quality), not from special tutorial code paths.
 
-| Scene | Archetype | Context | Result |
-|-------|-----------|---------|--------|
-| A1 Inn | InnLodging | Tier 0, Friendly, Basic | Easy negotiation, cheap room, modest recovery |
-| A50 Inn | InnLodging | Tier 3, Hostile, Premium | Hard negotiation, expensive room, excellent recovery |
-
-Both use identical InnLodging archetype code. Categorical scaling produces different player experiences.
+Same archetype + different context = different player experience. The archetype code doesn't know whether it's tutorial or procedural.
 
 ### Forbidden Patterns
 
 | Pattern | Why Forbidden |
 |---------|---------------|
-| `if (AStorySequence == N)` | Tutorial hardcoding |
-| `if (context.IsTutorial)` | Hidden branching |
+| Story sequence checks | Tutorial hardcoding |
+| Tutorial-specific branches | Hidden branching |
 | Different choice structures per context | Non-reusable archetype |
 | Hardcoded reward/cost values | No categorical scaling |
 
 ### Required Patterns
 
-| Pattern | Implementation |
-|---------|----------------|
-| Categorical property access | `context.NPCDemeanor`, `context.Quality`, `context.Power` |
-| Scaled formulas | `baseThreshold + demeanorAdjustment + powerAdjustment` |
-| Consistent structure | Same 4-choice pattern regardless of context |
+- All scaling via categorical properties
+- Consistent structure regardless of context
+- Context-agnostic archetype code
 
-### Enforcement
+### Archetype Categories (Functional, Not Usage-Based)
 
-Archetypes are validated at parse-time. Any archetype that produces different STRUCTURES (not just values) based on context is a design error.
+Archetypes are categorized by FUNCTION, not by when they appear:
+
+| Category | Function |
+|----------|----------|
+| **Travel** | Moving between places |
+| **Service** | Transactional interactions |
+| **Information** | Learning and discovery |
+| **Social** | Relationships and connections |
+| **Conflict** | Opposition and stakes |
+| **Reflection** | Processing and deciding |
+
+Any category can appear in tutorial OR procedural content. ALL archetypes are available to ALL story categories (A/B/C). Tutorial is "first instantiation," not "special archetypes."
 
 ---
 
-## 8.24 DDR-007: Intentional Numeric Design
+## 8.23 DDR-007: Intentional Numeric Design
 
 **"If you can't do it in your head, the design is wrong."**
 
@@ -871,238 +736,29 @@ When encountering percentage-based patterns, transform to DDR-007 compliant form
 
 DDR-007 compliance is enforced at multiple levels:
 
-| Layer | Mechanism | Location |
-|-------|-----------|----------|
-| **Compile-Time** | Type system (int only) | C# compiler |
-| **Test-Time** | DDR007ComplianceTests.cs | Architecture tests |
-| **Pre-Commit** | Pattern detection hook | scripts/hooks/pre-commit |
-| **CI** | Grep-based pattern check | .github/workflows/build-test.yml |
-| **Review** | CLAUDE.md guidance | Code review |
+| Layer | Mechanism |
+|-------|-----------|
+| **Compile-Time** | Type system (int only) |
+| **Test-Time** | Architecture tests |
+| **Pre-Commit** | Pattern detection hook |
+| **CI** | Pattern check |
+| **Review** | Documentation guidance |
 
 ### Exempt Patterns
 
 | Context | Reason |
 |---------|--------|
 | **UI rendering** | Visual layout requires floating-point geometry |
-| **Tactical layer** | Card shuffling (Pile.cs) uses Random per design |
-| **Parsing layer** | External format translation may require conversion |
+| **Tactical layer** | Card shuffling uses Random per design |
+| **Parsing layer** | External format translation |
 
 ### Player Experience Impact
 
-Players can perform all calculations mentally:
-- Travel time: "4 hexes + 2 forest = 6 segments"
-- Trade profit: "Buy for 10, sell for 18 = 8 coin profit"
-- Conversation: "My Flow is 5, their Patience is 4, so I qualify"
-
-No calculator, no percentage math, no multiplicative confusion.
-
-**Reference:** `gdd/06_design_discipline.md` DDR-007, `compliance-audit/ddr007/00_MASTER_SUMMARY.md`
+Players can perform all calculations mentally. No calculator, no percentage math, no multiplicative confusion.
 
 ---
 
-## 8.25 Scene Archetype Unification
-
-**"One archetype, one implementation, infinite contexts."**
-
-Scene archetypes are NOT divided into "service" vs "narrative" categories. ALL archetypes are reusable throughout the game for any story category (A/B/C).
-
-### The Anti-Pattern (FORBIDDEN)
-
-```
-Service Archetypes: InnLodging, DeliveryContract, RouteTravel → Used only in tutorial
-Narrative Archetypes: Investigation, Confrontation, Crisis → Used only in procedural
-```
-
-This creates two parallel systems that cannot share content. Tutorial becomes "special" instead of "first instantiation."
-
-### The Correct Pattern (REQUIRED)
-
-```
-Universal Archetypes: InnLodging, DeliveryContract, RouteTravel, Investigation, Confrontation, Crisis
-├── Tutorial uses: Any archetype with tutorial-appropriate context
-└── Procedural uses: Any archetype with procedural context
-```
-
-ALL archetypes are available to ALL story categories. Context (Tier, NPCDemeanor, Quality) creates appropriate difficulty.
-
-### Scene Archetype Categories (Functional, Not Usage-Based)
-
-Archetypes are categorized by FUNCTION, not by where they're used:
-
-| Category | Archetypes | Function |
-|----------|-----------|----------|
-| **Travel** | RouteTravel | Moving between places |
-| **Service** | InnLodging, DeliveryContract | Transactional interactions |
-| **Information** | Investigation, GatherTestimony, SeekAudience | Learning and discovery |
-| **Social** | MeetContact, BuildRelationship | Relationships and connections |
-| **Conflict** | Confrontation, UrgentDecision | Opposition and stakes |
-| **Reflection** | MoralChoice, ConsequenceReflection | Processing and deciding |
-
-Any category can appear in tutorial OR procedural content. The category describes WHAT the scene does, not WHEN it appears.
-
----
-
-## 8.26 Sir Brante Rhythm Pattern
-
-**"Building accumulates capability; Crisis tests it."**
-
-Content rhythm controls how situations present choices to players. Rhythm is contextual - determined by current game state and story beat, enabling AI to generate appropriate content at runtime.
-
-### Design Vision: AI-Generated Procedural Content
-
-At runtime, AI generates scene structures procedurally for current context. SituationArchetypes are the vocabulary AI uses to compose scenes - the catalogue handles mechanics, AI handles structure.
-
-| Layer | Responsibility | Timing |
-|-------|---------------|--------|
-| **AI** | Decides scene structure (which archetypes in what order) | Runtime |
-| **Context** | Provides rhythm, tier, NPC demeanor, quality | Runtime |
-| **Catalogue** | Generates rhythm-aware choices from archetypes | Runtime |
-| **Game** | Executes choices with mechanical consistency | Runtime |
-
-**AI says "Negotiation → Confrontation → Crisis" with Building rhythm; catalogue generates stat-granting choices.**
-
-### Rhythm as Contextual Property
-
-RhythmPattern flows through GenerationContext. Like other Context Injection properties (§8.28), rhythm has two sources:
-
-| Source | How Rhythm Is Set | Use Case |
-|--------|-------------------|----------|
-| **Authored** | Explicit RhythmPattern in SceneTemplateDTO | Tutorial sequences, hand-crafted narrative beats |
-| **Procedural** | Computed from intensity history | Infinite A-story continuation |
-
-**Procedural Rhythm Computation (from intensity history):**
-- Heavy demanding history → Building rhythm (recovery needed)
-- Long since last recovery → Building rhythm (accumulation opportunity)
-- Balanced history → Mixed rhythm (standard trade-offs)
-- Full accumulation cycle complete → Crisis rhythm (test investments)
-
-| Rhythm | Choice Generation | Player Experience |
-|--------|-------------------|-------------------|
-| **Building** | No requirements, choices GRANT different stats | Identity formation - "Who am I becoming?" |
-| **Crisis** | Requirements gate avoiding penalty, fallback takes damage | Test investments - "Can I avoid harm?" |
-| **Mixed** | Standard trade-offs with requirements and costs | Strategic decisions - "What do I value?" |
-
-**Rhythm flows through the same parse-time generation as all categorical properties.**
-
-### Orthogonal Concept: ArchetypeIntensity
-
-Two independent systems describe procedural content: RhythmPattern (choice structure) and ArchetypeIntensity (content categorization). Named distinctly to avoid collision.
-
-| Concept | Purpose | Values | Describes |
-|---------|---------|--------|-----------|
-| **RhythmPattern** | Choice generation | Building / Crisis / Mixed | HOW choices are structured |
-| **ArchetypeIntensity** | Content categorization | Recovery / Standard / Demanding | Inherent challenge level of content |
-
-**ArchetypeIntensity categorizes content challenge level:**
-
-| Intensity | Content Focus | Typical Archetypes |
-|-----------|--------------|-------------------|
-| Recovery | Restoration, reflection | Peaceful archetypes (rest, study, casual) |
-| Standard | Moderate trade-offs | Investigation, Social archetypes |
-| Demanding | High-stakes tests | Crisis, Confrontation archetypes |
-
-**Challenge and Consequence Philosophy:**
-
-Player state does NOT affect situation visibility. All situations display regardless of player resource levels. Learning comes from seeing choices players cannot afford (greyed-out requirements), not from hidden situations. Fair rhythm emerges from **RhythmPattern-driven generation** (computed from intensity history), not from player state filtering.
-
-Intensity propagates at parse-time: Archetype → SituationTemplate → Situation (copied at spawn). Runtime uses intensity only for descriptive purposes, never for filtering visibility.
-
-### HIGHLANDER Compliance
-
-ALL situation archetypes use ONE generation path. No routing, no special cases:
-
-| Rhythm | All Archetypes Produce |
-|--------|----------------------|
-| **Building** | 4 choices with no requirements, each GRANTS a different stat |
-| **Crisis** | 4 choices where stat/coin requirements gate avoiding penalty; fallback takes penalty |
-| **Mixed** | 4 choices with standard trade-offs (requirements, costs, rewards) |
-
-**Same archetype + different rhythm = different choice structures. No category routing.**
-
-### Rhythm Anti-Patterns
-
-| Anti-Pattern | What It Looks Like | Why It's Wrong |
-|--------------|-------------------|----------------|
-| **Hardcoded sequence checks** | If MainStorySequence == 3 | Violates archetype reusability |
-| **Tutorial-specific branches** | If IsTutorial then... | Same scene should work anywhere |
-| **Crisis spam** | Crisis → Crisis → Crisis | Player never accumulates capability |
-| **Endless building** | Building × 10 | No tension, stakes feel fake |
-
-### Resource Duality in Requirements
-
-Requirements and consequences use the SAME resources in different roles:
-
-| Resource | As Requirement | As Cost | As Reward |
-|----------|---------------|---------|-----------|
-| **Stats** | Threshold gate | Rare (crisis damage) | Stat increase |
-| **Resolve** | Minimum threshold | Resolve drain | Resolve restoration |
-| **Coins** | None typical | Service payment | Payment received |
-| **Relationships** | NPC disposition | Relationship degradation | Relationship improvement |
-
-A single choice may have: Stat requirement + Resolve requirement + Coin cost + Stat reward + Relationship change.
-
-### Compound Requirement Patterns
-
-OrPath supports multiple qualification routes:
-
-| Path Type | Implementation |
-|-----------|---------------|
-| **High stat only** | Single OrPath with stat threshold |
-| **Lower stat + resolve** | OrPath with reduced stat AND resolve requirement |
-| **Resource alternative** | OrPath with coin cost only |
-| **Relationship gate** | OrPath with NPC relationship status |
-| **Multiple OR** | Multiple OrPaths, any one qualifies |
-
-**Example:** "Negotiate" choice qualifies via: (High Diplomacy) OR (Moderate Rapport AND Resolve) OR (Coin payment)
-
-### Two-Phase Scaling Model
-
-Entity-derived scaling happens in two phases, enabling AI generation at parse-time while respecting runtime entity relationships:
-
-| Phase | Timing | What Gets Scaled | Source |
-|-------|--------|-----------------|--------|
-| **Parse-Time** | Catalogue generation | Rhythm structure, tier-based values | GenerationContext.Tier, RhythmPattern |
-| **Query-Time** | Action instantiation | Stat requirements, costs | RuntimeScalingContext from current entities |
-
-**Why Two Phases?**
-- Parse-time: Entities don't exist yet (procedural generation)
-- Query-time: Entities are resolved, relationships known
-- Player sees AND receives adjusted requirements reflecting current NPC relationship
-
-**Perfect Information Compliance**
-
-Scaling MUST affect both display AND execution. The player sees adjusted costs, and execution applies those same adjusted costs.
-
-| Principle | Requirement |
-|-----------|------------|
-| **Display = Execution** | ScaledRequirement used for both UI display and requirement checking |
-| **No Hidden Mechanics** | Player can calculate exact costs before selecting action |
-| **Relationship Matters** | Friendly NPC visibly AND mechanically reduces difficulty |
-
-**Forbidden:** Display showing scaled values while execution uses original values. This violates Perfect Information.
-
-**RuntimeScalingContext Adjustments (Query-Time)**
-
-| Property | Source | Effect |
-|----------|--------|--------|
-| **StatRequirementAdjustment** | NPC demeanor | Hostile increases difficulty, Friendly reduces |
-| **CoinCostAdjustment** | Location quality | Basic reduces costs, Luxury increases |
-| **ResolveCostAdjustment** | Power dynamic | Dominant reduces cost, Submissive increases |
-
-**Flow:**
-1. AI generates scene structure with rhythm (parse-time)
-2. Catalogue generates choices with tier-based values (parse-time)
-3. Scene activates, entities resolved (activation-time)
-4. SceneFacade derives RuntimeScalingContext from entities (query-time)
-5. SceneFacade creates ScaledRequirement and ScaledConsequence
-6. UI displays scaled values (display-time)
-7. Executor uses scaled values for requirement checking and cost application (execution-time)
-
-**HIGHLANDER Compliance:** Original templates immutable. Scaling creates new instances used for both display AND execution.
-
----
-
-## 8.27 Two-Phase Entity Creation
+## 8.24 Two-Phase Entity Creation
 
 **"Create mechanics first; finalize narrative after mechanical context is complete."**
 
@@ -1126,38 +782,41 @@ Procedural entities are created in two distinct phases. Names and descriptions p
 
 **Principle:** Narrative finalization happens ONCE after mechanical creation, generating PERSISTENT names displayed consistently throughout the game.
 
-### Phase 1: Mechanical Creation (Complete)
+### Phase 1: Mechanical Creation
 
-ProceduralAStoryService creates structure with generic identifiers:
-- ArchetypeCategory (categorical property for Catalogue resolution)
-- Tier (difficulty scaling)
-- RhythmPattern (choice generation pattern)
-- PlacementFilter (categorical entity resolution)
-- Object references (NPC, Location, Venue assignments)
-- Generic identifiers until Phase 2 completes
+Creates structure with categorical properties:
+- Archetype category
+- Location difficulty context
+- Rhythm pattern
+- Placement filters for entity resolution
+- Object references
 
-### Phase 2: Narrative Finalization (Future Feature)
+### Phase 2: Narrative Finalization
 
-After all object references are established, AI examines:
-- Complete mechanical structure with all relationships
-- Categorical properties of each entity
-- Game state (player resources, time, active scenes)
-- Event history (completed scenes, NPC interactions)
-- Relationship web (bonds, reputation, standing)
-
-Generates PERSISTENT names stored on entity properties. Names display consistently in UI for remainder of game.
+After all references established, generates PERSISTENT names stored on entity properties.
 
 **Forbidden:**
 - Narrative generation during mechanical creation (context incomplete)
 - Per-entity naming without relationship awareness
 - Display-time regeneration (names must persist)
-- Placeholder syntax in templates (AI generates complete text)
 
 ---
 
-## 8.28 Context Injection (HIGHLANDER Scene Generation)
+## 8.25 Context Injection (HIGHLANDER Scene Generation)
 
 **"RhythmPattern drives selection. Location difficulty drives scaling. Never mixed."**
+
+### RhythmPattern Definitions
+
+Content rhythm controls how situations present choices to players:
+
+| Rhythm | Choice Structure | Player Experience |
+|--------|------------------|-------------------|
+| **Building** | All positive—choose which stat to gain | Identity formation |
+| **Crisis** | All negative—choose which loss to minimize | Test investments |
+| **Mixed** | Trade-offs—sacrifice for gain | Strategic decisions |
+
+**Rhythm emerges from intensity history, not player state.** Player resources do NOT affect which rhythm is selected—the rhythm comes from PAST scenes, not CURRENT state.
 
 ### Two Distinct Systems
 
@@ -1181,24 +840,22 @@ Scene archetype selection uses ONLY:
 
 ### Choice Scaling: Location Difficulty
 
-When a situation is instantiated from template, choices receive scaling from location:
+When a situation is instantiated, choices receive scaling from location:
 
-| Input | Source | Effect |
-|-------|--------|--------|
-| **Location Difficulty** | Hex distance from world center / 5 | Modifies stat requirements and reward magnitudes |
-| **Net Challenge** | Location difficulty - player strength | Applied via ApplyStatAdjustment() |
+| Input | Effect |
+|-------|--------|
+| **Location Difficulty** | Modifies stat requirements and reward magnitudes |
+| **Player Strength Offset** | Adjusts for player capability |
 
 Scaling happens at instantiation—AFTER selection is complete.
 
 ### Context Flow
 
 ```
-SceneSpawnReward → RhythmPattern → SelectArchetypeCategory → SceneTemplate
-                                                                    ↓
-                         Location.Difficulty → Choice Instantiation
+SceneSpawnResult → RhythmPattern → Select Category → SceneTemplate
+                                                          ↓
+                              Location Difficulty → Choice Scaling
 ```
-
-SceneSpawnReward is THE source of RhythmPattern context. Choice scaling reads from current Location.
 
 ### HIGHLANDER Compliance
 
@@ -1206,102 +863,67 @@ SceneSpawnReward is THE source of RhythmPattern context. Choice scaling reads fr
 |-----------|-----------------|
 | **Same selection logic** | RhythmPattern processed identically for authored/procedural |
 | **Same scaling logic** | Location difficulty applied identically to all choices |
-| **No source detection** | Selection doesn't know if context was authored |
+| **No source detection** | Selection doesn't know if context was authored or procedural |
 
 ### Forbidden Patterns
 
 | Pattern | Why It's Wrong |
 |---------|----------------|
-| LocationSafety/Purpose in selection | Legacy properties—DELETED |
-| Tier in selection | Legacy property—DELETED |
+| Location properties in selection | Selection uses rhythm only |
 | Player stats influencing selection | Game doesn't cushion poor play |
-| Merging authored with game state | Context is all-or-nothing |
-| Context derivation at parse time | Context set by SceneSpawnReward only |
-| `HasAuthoredContext` checks | Removed—all scenes have RhythmPattern |
+| Different paths for authored vs procedural | Same mechanism for both |
 
 **Cross-References:**
-- §8.1 HIGHLANDER: One code path for all scene generation
-- §8.26 Sir Brante Rhythm: RhythmPattern computation from intensity history
-- §8.30 Net Challenge: Location difficulty scaling system
+- §8.4 Three-Tier Timing: Unified scene creation mechanism
 
 ---
 
-## 8.29 Domain Collection Principle (No Key-Value Patterns)
+## 8.26 Domain Collection Principle (No Key-Value Patterns)
 
 **"Explicit properties, not generic key-value pairs."**
 
-Dictionary and KeyValuePair patterns are forbidden at ALL layers - JSON content, DTOs, parsers, and domain entities. Use `List<T>` with strongly-typed entry classes throughout.
+Dictionary and KeyValuePair patterns are forbidden at ALL layers. Use arrays of objects with explicit properties throughout.
 
 ### Why Key-Value Patterns Are Forbidden
 
 | Problem | Impact |
 |---------|--------|
-| **Hidden semantics** | `kvp.Key` and `kvp.Value` reveal nothing about domain meaning |
-| **Parser complexity** | Dictionary-to-List conversion adds unnecessary translation layer |
-| **Inconsistent patterns** | JSON uses objects, DTOs use Dictionary, entities use List - confusion |
+| **Hidden semantics** | Generic accessors reveal nothing about domain meaning |
+| **Parser complexity** | Dictionary-to-List conversion adds translation layer |
+| **Inconsistent patterns** | Different structures at different layers |
 | **LINQ impedance** | Dictionary iteration differs from List iteration |
 
-### The Principle: Arrays of Objects Everywhere
+### The Principle
 
 | Layer | Pattern |
 |-------|---------|
 | **JSON** | Arrays of objects with explicit properties |
-| **DTO** | `List<EntryDTO>` with explicit properties |
-| **Parser** | Direct mapping (no conversion needed) |
-| **Entity** | `List<Entry>` with explicit properties |
-
-### Transformation Example
-
-**Before (Forbidden):**
-
-JSON: `{ "statRequirements": { "Insight": 5, "Rapport": 3 } }`
-
-DTO: `public Dictionary<string, int> StatRequirements { get; set; }`
-
-Parser: `foreach (KeyValuePair<string, int> kvp in dto.StatRequirements)`
-
-**After (Required):**
-
-JSON: `{ "statRequirements": [ { "stat": "Insight", "value": 5 }, { "stat": "Rapport", "value": 3 } ] }`
-
-DTO: `public List<StatRequirementDTO> StatRequirements { get; set; }`
-
-Parser: `dto.StatRequirements.Select(r => new StatRequirementEntry { ... })`
+| **DTO** | Lists with explicit properties |
+| **Parser** | Direct mapping (no conversion) |
+| **Entity** | Lists with explicit properties |
 
 ### Benefits
 
 | Benefit | How Achieved |
 |---------|--------------|
-| **Semantic clarity** | Property names describe meaning (`entry.Stat` not `kvp.Key`) |
-| **No conversion** | Same structure flows JSON → DTO → Entity |
-| **Uniform LINQ** | All layers use identical `.Where()`, `.Select()`, `.FirstOrDefault()` |
+| **Semantic clarity** | Property names describe domain meaning |
+| **No conversion** | Same structure flows through all layers |
+| **Uniform queries** | All layers use identical patterns |
 | **IDE support** | Autocomplete on all property names |
-| **Validation** | Parse-time type checking on entry class properties |
 
-### Acceptable Exception
+### Exception
 
-Dictionary acceptable ONLY for:
-- Blazor framework parameters (framework requirement)
-- External API response caching (ephemeral, not domain state)
+Dictionary acceptable ONLY for Blazor framework parameters (framework requirement).
 
-**Never acceptable for:** Game content, DTOs, domain entities, or any persistent state.
-
-### Enforcement
-
-| Mechanism | What It Catches |
-|-----------|-----------------|
-| **Pre-commit hook** | `Dictionary<` pattern in domain code |
-| **CI tests** | Architecture tests verify no Dictionary in GameState/ |
-| **Code review** | CLAUDE.md guidance on JSON structure |
+**Never acceptable for:** Game content, DTOs, domain entities, or persistent state.
 
 **Cross-References:**
-- CLAUDE.md: DOMAIN COLLECTION PRINCIPLE (user-facing rule)
-- §8.3: Entity Identity Model (no instance IDs - related principle)
-- §8.19: Explicit Property Principle (strongly-typed over generic)
+- §8.3 Entity Identity Model (related principle)
+- §8.18 Explicit Property Principle
 
 ---
 
-## 8.30 Entity Reference vs Categorical Description
+## 8.27 Entity Reference vs Categorical Description
 
 **"Conditions reference existing; Templates describe creation."**
 
@@ -1345,8 +967,103 @@ SituationTemplates within scenes may describe entities to be CREATED or RESOLVED
 
 **Cross-References:**
 - §8.3 Entity Identity Model (no instance IDs)
-- §8.14 Entity Resolution (find-or-create at activation)
+- §8.13 Entity Resolution (find-or-create at activation)
 - §8.12 PlacementFilter Architecture (categorical entity resolution)
+
+---
+
+## 8.28 Two-Pass Procedural Generation
+
+**"Mechanics first, narrative second. Never hand-author content."**
+
+All game content flows through a two-pass generation pipeline. Hand-authored narrative text is architecturally forbidden.
+
+### The Two-Pass Architecture
+
+| Pass | Purpose | Timing | Output |
+|------|---------|--------|--------|
+| **Pass 1: Mechanical** | Generate choices, costs, rewards from archetypes | Parse-time | Concrete mechanical values |
+| **Pass 2: AI Narrative** | Generate flavor text from game context | Activation-time | Narrative persisted to entity |
+
+### Pass 1: Mechanical Generation
+
+Categorical properties flow through archetypes to produce concrete mechanical content:
+
+| Input | Processor | Output |
+|-------|-----------|--------|
+| SceneArchetypeType + GenerationContext | SceneArchetypeCatalog | SituationTemplates with choices |
+| RhythmPattern | SituationArchetypeCatalog | Choice STRUCTURE (Building/Crisis/Mixed) |
+| PowerDynamic, NPCDemeanor, Quality | GenerationContext scaling | Value ADJUSTMENTS (thresholds, costs) |
+
+**Key Principle:** Archetypes are reusable across all contexts. Tutorial and late-game use identical archetype code; categorical properties create appropriate difficulty.
+
+### Pass 2: AI Narrative Enrichment
+
+After mechanical generation, AI receives complete game context and generates narrative:
+
+| Input | Processor | Output |
+|-------|-----------|--------|
+| Situation + ScenePromptContext | SceneNarrativeService | Description text |
+| NarrativeHints (tone, theme, style) | AI provider | Contextual flavor |
+
+**Key Principle:** Narrative is PERSISTED to the entity after generation. UI displays stored narrative, never regenerates.
+
+**Timing:** Pass 2 runs during `SceneInstantiator.ActivateScene()`, AFTER all Situations are mechanically complete.
+
+| Component | Responsibility |
+|-----------|----------------|
+| **ScenePromptBuilder** | Build AI prompt from ScenePromptContext (NPC, Location, time, weather, narrative hints) |
+| **SceneNarrativeService** | Orchestrate AI call with timeout, fallback to template-based generation |
+| **OllamaClient** | Execute AI inference with streaming response |
+
+**Graceful Degradation:**
+
+| Condition | Behavior |
+|-----------|----------|
+| AI available | Generate rich contextual narrative |
+| AI timeout (5s) | Use fallback template-based generation |
+| AI unavailable | Use fallback immediately |
+
+**ScenePromptContext Contents:**
+- Entity references: NPC, Location, Player, Route (complete objects, not IDs)
+- Narrative hints: Tone, Theme, Context, Style (from SituationTemplate)
+- World state: TimeBlock, Weather, Day
+- Mechanical context: Archetype type, choice labels, domain
+
+**Fallback Generation:**
+When AI unavailable, `GenerateFallbackSituationNarrative()` produces contextual text from entity properties:
+- Time/weather atmospheric sentence
+- NPC personality-driven greeting
+- Theme-based contextual hint
+
+### Fixing Content Problems
+
+| Symptom | Wrong Approach | Correct Approach |
+|---------|----------------|------------------|
+| Generic choice labels | Write narrative in JSON | Enable/debug AI Pass 2 |
+| Wrong costs/rewards | Edit JSON values | Fix archetype formula |
+| Inverted economics | Flip sign in JSON | Use correct archetype type |
+| Missing choice options | Add choice to JSON | Modify archetype generator |
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| Hand-written narrative in JSON | Bypasses AI enrichment, not scalable |
+| Direct JSON value fixes | Bypasses archetype formulas |
+| Tutorial-specific branches | Violates archetype reusability |
+| Hardcoded choice structures | Prevents categorical scaling |
+
+**Consequences:**
+- Content authors specify WHAT (categorical properties)
+- Archetypes determine HOW (mechanical structure)
+- AI generates WHY (narrative meaning)
+- Changes propagate through proper channel, not ad-hoc fixes
+
+**Cross-References:**
+- §8.2 Catalogue Pattern (parse-time translation)
+- §8.23 Archetype Reusability (no tutorial hardcoding)
+- §8.25 Context Injection (HIGHLANDER for content paths)
 
 ---
 

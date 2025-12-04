@@ -24,7 +24,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
-            DeckId = "physical_challenge",
+            ChallengeDeckName = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Demanding
@@ -48,7 +48,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -72,7 +72,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -96,7 +96,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "friendly_chat",
+            ChallengeDeckName = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -120,7 +120,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 4,
             CoinCost = 25,
             ChallengeType = TacticalSystemType.Physical,
-            DeckId = "physical_challenge",
+            ChallengeDeckName = "physical_challenge",
             ResolveCost = 10,
             FallbackTimeCost = 2,
             Intensity = ArchetypeIntensity.Demanding
@@ -144,7 +144,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 0,
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -168,7 +168,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
-            DeckId = "physical_challenge",
+            ChallengeDeckName = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -192,7 +192,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "friendly_chat",
+            ChallengeDeckName = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -216,7 +216,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -240,7 +240,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "friendly_chat",
+            ChallengeDeckName = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Demanding
@@ -264,7 +264,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 20,
             ChallengeType = TacticalSystemType.Physical,
-            DeckId = "physical_challenge",
+            ChallengeDeckName = "physical_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Demanding
@@ -288,7 +288,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 2,
             Intensity = ArchetypeIntensity.Standard
@@ -312,7 +312,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -336,7 +336,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "desperate_request",
+            ChallengeDeckName = "desperate_request",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -360,7 +360,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "desperate_request",
+            ChallengeDeckName = "desperate_request",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -384,7 +384,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -408,7 +408,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Standard
@@ -432,7 +432,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 2,
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 5,
             FallbackTimeCost = 2,
             Intensity = ArchetypeIntensity.Standard
@@ -443,6 +443,7 @@ internal static class SituationArchetypeDefinitions
     /// SERVICE NEGOTIATION archetype (REUSABLE)
     /// Domain: Economic | Primary: Rapport | Challenge: Social
     /// When Used: Negotiating access to any service (lodging, bathing, healing)
+    /// EXPENSE archetype - player pays coins for service
     /// </summary>
     internal static SituationArchetype CreateServiceNegotiation()
     {
@@ -455,8 +456,35 @@ internal static class SituationArchetypeDefinitions
             SecondaryStat = PlayerStatType.Diplomacy,
             StatThreshold = 3,
             CoinCost = 5,
+            CoinReward = 0,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = "friendly_chat",
+            ChallengeDeckName = "friendly_chat",
+            ResolveCost = 5,
+            FallbackTimeCost = 0,
+            Intensity = ArchetypeIntensity.Standard
+        };
+    }
+
+    /// <summary>
+    /// CONTRACT NEGOTIATION archetype (REUSABLE)
+    /// Domain: Economic | Primary: Diplomacy | Challenge: Social
+    /// When Used: Accepting work contracts (delivery jobs, courier work)
+    /// INCOME archetype - player earns coins from contract
+    /// </summary>
+    internal static SituationArchetype CreateContractNegotiation()
+    {
+        return new SituationArchetype
+        {
+            Type = SituationArchetypeType.ContractNegotiation,
+            Name = "Contract Negotiation",
+            Domain = Domain.Economic,
+            PrimaryStat = PlayerStatType.Diplomacy,
+            SecondaryStat = PlayerStatType.Insight,
+            StatThreshold = 3,
+            CoinCost = 0,
+            CoinReward = 10,
+            ChallengeType = TacticalSystemType.Social,
+            ChallengeDeckName = "friendly_chat",
             ResolveCost = 5,
             FallbackTimeCost = 0,
             Intensity = ArchetypeIntensity.Standard
@@ -481,7 +509,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 0,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Physical,
-            DeckId = string.Empty,
+            ChallengeDeckName = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
             Intensity = ArchetypeIntensity.Recovery
@@ -505,7 +533,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 2,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = "mental_challenge",
+            ChallengeDeckName = "mental_challenge",
             ResolveCost = 0,
             FallbackTimeCost = 1,
             Intensity = ArchetypeIntensity.Recovery
@@ -532,7 +560,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 0,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = string.Empty,
+            ChallengeDeckName = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
             Intensity = ArchetypeIntensity.Recovery
@@ -557,7 +585,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 0,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Social,
-            DeckId = string.Empty,
+            ChallengeDeckName = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
             Intensity = ArchetypeIntensity.Recovery
@@ -582,7 +610,7 @@ internal static class SituationArchetypeDefinitions
             StatThreshold = 0,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Mental,
-            DeckId = string.Empty,
+            ChallengeDeckName = string.Empty,
             ResolveCost = 0,
             FallbackTimeCost = 0,
             Intensity = ArchetypeIntensity.Recovery

@@ -305,8 +305,9 @@ public class TravelFacade
 
     /// <summary>
     /// Get current travel context for active path card session
+    /// TWO-PASS: Async for Encounter segments with AI narrative generation
     /// </summary>
-    public TravelContext GetCurrentTravelContext()
+    public async Task<TravelContext> GetCurrentTravelContextAsync()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
@@ -322,7 +323,8 @@ public class TravelFacade
         }
 
         // Get current segment cards - delegate to TravelManager which handles both FixedPath and Event segments
-        List<PathCardDTO> currentSegmentCards = _travelManager.GetSegmentCards();
+        // For Encounter segments, this triggers async scene activation with AI narrative
+        List<PathCardDTO> currentSegmentCards = await _travelManager.GetSegmentCardsAsync();
 
         // Check if player must turn back (exhausted with no paths available)
         bool mustTurnBack = session.CurrentState == TravelState.Exhausted &&
@@ -435,11 +437,13 @@ public class TravelFacade
     /// <summary>
     /// Get available path cards for the current segment with discovery states
     /// Delegates to TravelManager for card data, handles discovery logic based on segment type
+    /// TWO-PASS: Async for Encounter segments with AI narrative generation
     /// </summary>
-    public List<PathCardInfo> GetAvailablePathCards()
+    public async Task<List<PathCardInfo>> GetAvailablePathCardsAsync()
     {
         // Delegate card retrieval to TravelManager
-        List<PathCardDTO> cards = _travelManager.GetSegmentCards();
+        // For Encounter segments, this triggers async scene activation with AI narrative
+        List<PathCardDTO> cards = await _travelManager.GetSegmentCardsAsync();
         if (cards == null || cards.Count == 0)
         {
             return new List<PathCardInfo>();
@@ -680,10 +684,11 @@ public class TravelFacade
     /// <summary>
     /// Resolve pending scene after player completes scene situations
     /// Called after scene intensity reaches 0
+    /// TWO-PASS: Async for Encounter segments with AI narrative generation
     /// </summary>
-    public bool ResolveScene(Scene scene)
+    public async Task<bool> ResolveSceneAsync(Scene scene)
     {
-        return _travelManager.ResolveScene(scene);
+        return await _travelManager.ResolveSceneAsync(scene);
     }
 
     // ========== CORE LOOP: PATH FILTERING ==========

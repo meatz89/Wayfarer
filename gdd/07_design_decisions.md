@@ -198,5 +198,4 @@ Bonuses apply as flat additions, never multipliers. A friendly NPC reduces requi
 
 ## Cross-References
 
-- **Complete DDR Documentation**: See [design/11_design_decisions.md](../design/11_design_decisions.md) for all DDRs
 - **Related ADRs**: See [arc42/09_architecture_decisions.md](../arc42/09_architecture_decisions.md) for technical decisions
