@@ -109,7 +109,7 @@ public class SceneNarrativeService
     /// Call this before running tests to ensure model is loaded into memory.
     /// Returns true if model responded, false if unavailable.
     /// </summary>
-    public async Task<bool> WarmupModelAsync(int timeoutSeconds = 60)
+    public async Task<bool> WarmupModelAsync(int timeoutSeconds)
     {
         if (_aiProvider == null)
             return false;
