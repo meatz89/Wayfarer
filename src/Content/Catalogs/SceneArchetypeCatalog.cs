@@ -1,5 +1,5 @@
 /// <summary>
-/// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
+/// PARSE-TIME ONLY CATALOGUE
 ///
 /// Coordinator for scene archetype generation. Dispatches to specialized archetype files
 /// organized by PLAYER ACTIVITY (not legacy rotation categories):

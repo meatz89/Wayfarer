@@ -86,7 +86,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // This prevents race condition where GameScreen initializes before player position is set
         if (!GameWorld.IsGameStarted)
         {
-            Console.WriteLine("[GameScreen.OnInitializedAsync] ⚠️ Game not started yet - skipping initialization");
+            Console.WriteLine("[GameScreen.OnInitializedAsync] Game not started yet - skipping initialization");
             return;
         }
 

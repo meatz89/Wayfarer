@@ -1,5 +1,5 @@
 /// <summary>
-/// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
+/// PARSE-TIME ONLY CATALOGUE
 ///
 /// Defines 21 situation archetypes for procedural choice generation.
 /// Creates learnable mechanical patterns players recognize and prepare for.

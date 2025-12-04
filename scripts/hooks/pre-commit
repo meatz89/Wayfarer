@@ -259,14 +259,14 @@ fi
 # ============================================================
 echo "[DETERMINISM] Strategic Determinism..."
 
-# 8.1 Random usage (only allowed in Pile.cs)
+# 8.1 Random/seeds/hash-based selection (only allowed in Pile.cs)
 STRATEGIC_CS=$(echo "$STAGED_CS" | grep -v 'Pile\.cs\|Test' || true)
 if [ -n "$STRATEGIC_CS" ]; then
     for file in $STRATEGIC_CS; do
         if [ -f "$file" ]; then
-            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'new Random\|Random()\|\.Next(' | grep -v '^\s*//' || true)
+            MATCHES=$(git show ":$file" 2>/dev/null | grep -n 'new Random\|Random()\|\.Next(\|\.GetHashCode(' | grep -v '^\s*//' || true)
             if [ -n "$MATCHES" ]; then
-                echo "  ERROR [DETERMINISM]: Random in strategic code $file (only Pile.cs allowed):"
+                echo "  ERROR [DETERMINISM]: Random/GetHashCode in strategic code $file (only Pile.cs allowed):"
                 echo "$MATCHES" | head -3
                 VIOLATIONS=$((VIOLATIONS+1))
             fi

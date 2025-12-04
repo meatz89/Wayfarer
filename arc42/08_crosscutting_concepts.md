@@ -703,7 +703,7 @@ All game mechanics use integer-only arithmetic with values small enough for ment
 | Principle | Description | Forbidden |
 |-----------|-------------|-----------|
 | **Mental Math Design** | Values fit in working memory (range: -20 to +20) | Large numbers, complex formulas |
-| **Deterministic Arithmetic** | Strategic outcomes predictable from inputs | Random in strategic layer |
+| **Deterministic Arithmetic** | Strategic outcomes predictable from inputs | Random, seeds, or hash-based selection in strategic layer |
 | **Absolute Modifiers** | Bonuses stack additively | Multiplicative scaling, percentages |
 
 ### Numeric Type Usage
