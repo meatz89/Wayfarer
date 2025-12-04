@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
-public class OllamaClient
+public class OllamaClient : IAICompletionProvider
 {
     private readonly HttpClient httpClient;
     private readonly OllamaConfiguration configuration;
@@ -59,13 +59,20 @@ public class OllamaClient
 
     public async Task<bool> CheckHealthAsync(CancellationToken cancellationToken)
     {
-        // Use a reasonable timeout for health checks
+        // Use a reasonable timeout for health checks (increased for slow starts)
         using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-        string healthUrl = $"{configuration.BaseUrl}/api/tags"; HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
-        HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
-
-        bool isHealthy = response.IsSuccessStatusCode; return isHealthy;
+        try
+        {
+            string healthUrl = $"{configuration.BaseUrl}/api/tags";
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
+            HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

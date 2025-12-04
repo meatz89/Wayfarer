@@ -8,7 +8,7 @@ using System.Text.Json;
 /// </summary>
 public class AINarrativeProvider : INarrativeProvider
 {
-    private readonly OllamaClient ollamaClient;
+    private readonly IAICompletionProvider aiProvider;
     private readonly SocialNarrativeGenerator generator;
     private readonly PromptBuilder promptBuilder;
     private readonly IConfiguration configuration;
@@ -16,17 +16,17 @@ public class AINarrativeProvider : INarrativeProvider
     /// <summary>
     /// Initializes the AI narrative provider with required dependencies.
     /// </summary>
-    /// <param name="ollamaClient">Ollama client for AI generation</param>
+    /// <param name="aiProvider">AI completion provider for text generation</param>
     /// <param name="generator">Backwards construction algorithm generator</param>
     /// <param name="promptBuilder">Prompt template builder</param>
     /// <param name="configuration">Application configuration</param>
     public AINarrativeProvider(
-        OllamaClient ollamaClient,
+        IAICompletionProvider aiProvider,
         SocialNarrativeGenerator generator,
         PromptBuilder promptBuilder,
         IConfiguration configuration)
     {
-        this.ollamaClient = ollamaClient;
+        this.aiProvider = aiProvider;
         this.generator = generator;
         this.promptBuilder = promptBuilder;
         this.configuration = configuration;
@@ -151,7 +151,7 @@ public class AINarrativeProvider : INarrativeProvider
     public async Task<bool> IsAvailableAsync()
     {
         // Properly await the async operation instead of blocking
-        bool isAvailable = await ollamaClient.CheckHealthAsync(CancellationToken.None);
+        bool isAvailable = await aiProvider.CheckHealthAsync(CancellationToken.None);
         if (!isAvailable)
         { }
         return isAvailable;
@@ -170,7 +170,7 @@ public class AINarrativeProvider : INarrativeProvider
     {
         StringBuilder responseBuilder = new StringBuilder();
 
-        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt, cancellationToken))
+        await foreach (string token in aiProvider.StreamCompletionAsync(prompt, cancellationToken))
         {
             responseBuilder.Append(token);
         }

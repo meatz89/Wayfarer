@@ -88,26 +88,22 @@ public class SceneContentBase : ComponentBase, IDisposable
         if (CurrentSituation != null)
         {
             Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Name = {CurrentSituation.Name}");
-            Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template null? {CurrentSituation.Template == null}");
-            if (CurrentSituation.Template != null)
+            Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Choices null? {CurrentSituation.Choices == null}");
+            if (CurrentSituation.Choices != null)
             {
-                Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template.ChoiceTemplates null? {CurrentSituation.Template.ChoiceTemplates == null}");
-                if (CurrentSituation.Template.ChoiceTemplates != null)
-                {
-                    Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template.ChoiceTemplates.Count = {CurrentSituation.Template.ChoiceTemplates.Count}");
-                }
+                Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Choices.Count = {CurrentSituation.Choices.Count}");
             }
         }
 
-        if (CurrentSituation?.Template?.ChoiceTemplates == null)
+        if (CurrentSituation?.Choices == null)
         {
-            Console.WriteLine($"[SceneContent.LoadChoices] EARLY RETURN - CurrentSituation/Template/ChoiceTemplates is null");
+            Console.WriteLine($"[SceneContent.LoadChoices] EARLY RETURN - CurrentSituation/Choices is null");
             return;
         }
 
-        if (CurrentSituation.Template.ChoiceTemplates.Count == 0)
+        if (CurrentSituation.Choices.Count == 0)
         {
-            Console.WriteLine($"[SceneContent.LoadChoices] ERROR - Situation '{CurrentSituation.Name}' has empty ChoiceTemplates (soft-lock risk)");
+            Console.WriteLine($"[SceneContent.LoadChoices] ERROR - Situation '{CurrentSituation.Name}' has empty Choices (soft-lock risk)");
             return;
         }
 
@@ -115,21 +111,17 @@ public class SceneContentBase : ComponentBase, IDisposable
 
         Player player = GameOrchestrator.GetPlayer();
 
-        // TWO-PHASE SCALING: Derive RuntimeScalingContext from situation entities
-        // Parse-time: Catalogue generated rhythm structure + tier-based values
-        // Query-time: Entity-derived adjustments for BOTH display AND execution
-        // Perfect Information: Player sees AND receives adjusted costs (arc42 §8.26)
-        RuntimeScalingContext scalingContext = RuntimeScalingContext.FromEntities(
-            CurrentSituation.Npc,
-            CurrentSituation.Location,
-            player);
+        // Template/Instance pattern: Choice instances have pre-scaled values from Pass 2B
+        // NO runtime scaling needed - values calculated once at activation time
+        // Perfect Information: Player sees AND receives pre-calculated costs (arc42 §8.26)
 
-        foreach (ChoiceTemplate choiceTemplate in CurrentSituation.Template.ChoiceTemplates)
+        foreach (Choice choice in CurrentSituation.Choices)
         {
-            // TWO-PHASE SCALING: Apply entity-derived adjustments
+            // TEMPLATE/INSTANCE: Use pre-scaled values from Choice entity (calculated at activation)
             // ScaledRequirement and ScaledConsequence used for BOTH display AND execution
-            CompoundRequirement scaledRequirement = scalingContext.ApplyToRequirement(choiceTemplate.RequirementFormula);
-            Consequence scaledConsequence = scalingContext.ApplyToConsequence(choiceTemplate.Consequence);
+            ChoiceTemplate choiceTemplate = choice.Template;
+            CompoundRequirement scaledRequirement = choice.ScaledRequirement;
+            Consequence scaledConsequence = choice.ScaledConsequence;
 
             // Check requirements using SCALED values (Perfect Information compliance)
             bool requirementsMet = true;
@@ -289,10 +281,10 @@ public class SceneContentBase : ComponentBase, IDisposable
                 }
             }
 
-            ActionCardViewModel choice = new ActionCardViewModel
+            ActionCardViewModel choiceVM = new ActionCardViewModel
             {
                 SourceTemplate = choiceTemplate, // HIGHLANDER: Store template reference for execution
-                Name = choiceTemplate.ActionTextTemplate,
+                Name = choice.Label, // AI-GENERATED LABEL from Pass 2B (persisted on Choice entity)
                 Description = "",
                 RequirementsMet = requirementsMet,
                 LockReason = lockReason,
@@ -371,7 +363,7 @@ public class SceneContentBase : ComponentBase, IDisposable
                 RequirementPaths = requirementPaths
             };
 
-            Choices.Add(choice);
+            Choices.Add(choiceVM);
         }
     }
 

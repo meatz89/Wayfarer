@@ -1067,6 +1067,70 @@ When AI unavailable, `GenerateFallbackSituationNarrative()` produces contextual 
 
 ---
 
+## 8.29 AI Narrative Additive Principle
+
+**"AI narrative enriches mechanical context without contradiction."**
+
+AI-generated narrative text must be ADDITIVE to mechanical entities, never CONFLICTING. Both AI narrative AND mechanical entities display to players in UI simultaneously—inconsistency breaks immersion.
+
+### The Additive Rule
+
+| Scenario | Result | Why |
+|----------|--------|-----|
+| AI writes pure atmosphere without names | **VALID** | Additive (adds mood, no conflict) |
+| AI uses EXACT names from context | **VALID** | Consistent with displayed entities |
+| AI invents different names | **INVALID** | Contradicts visible mechanical data |
+
+**The key insight:** AI narrative does NOT need to always reference entities by name. A description like "The firelight dances across worn floorboards" is perfectly valid even when NPC "Martha Holloway" is mechanically present. But if the narrative DOES reference an entity, it MUST use the correct name.
+
+### Why This Matters
+
+Players see mechanical entities in UI (NPC panel shows "Martha Holloway", location header shows "The Weary Traveler Inn"). If AI narrative calls her "Sarah" or the inn "The Dusty Traveler", players lose trust in the game world's consistency.
+
+| Layer | What Player Sees |
+|-------|------------------|
+| **Mechanical UI** | "Martha Holloway - Innkeeper" |
+| **Narrative Text** | "The innkeeper offers a tired smile." |
+| **Combined** | Coherent world (generic description matches visible NPC) |
+
+| Layer | What Player Sees |
+|-------|------------------|
+| **Mechanical UI** | "Martha Holloway - Innkeeper" |
+| **Narrative Text** | "Sarah gestures to the empty rooms upstairs." |
+| **Combined** | **BROKEN** (who is Sarah? contradicts visible data) |
+
+### Validation Philosophy
+
+| Concern | Approach |
+|---------|----------|
+| **Context awareness** | Threshold-based atmospheric markers (N of M must appear) |
+| **Entity name correctness** | Prompt guidance + human review (hard to automate) |
+| **Length constraints** | UI-driven limits with enforcement |
+| **Tone matching** | Documented in fixtures for human review |
+
+**Automated validation** confirms AI is aware of context (atmospheric markers prove it read the input).
+
+**Human/AI review** catches fabricated names and tone mismatches (subjective qualities requiring judgment).
+
+### Prompt Guidance Strategy
+
+ScenePromptBuilder includes explicit rules:
+
+| Rule | Purpose |
+|------|---------|
+| Entity names provided in prompt | AI knows what names exist |
+| "Use EXACT names or generic terms" | Prevents invention |
+| "NEVER invent names" | Explicit prohibition |
+| Examples of wrong vs right | Concrete guidance |
+
+### Cross-References
+
+- §8.28 Two-Pass Procedural Generation (mechanical pass + narrative pass)
+- §8.24 Two-Phase Entity Creation (names persist after generation)
+- [AI_NARRATIVE_OPTIMIZATION.md](../AI_NARRATIVE_OPTIMIZATION.md) — Practical testing and prompt optimization workflow
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

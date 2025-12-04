@@ -9,22 +9,156 @@ using System.Text;
 /// ARCHITECTURE PRINCIPLE: Called during SceneInstantiator.ActivateScene() AFTER
 /// all Situations are mechanically complete with resolved entities.
 ///
-/// AI INTEGRATION: Uses OllamaClient with 20-second timeout (cold-start), graceful fallback.
+/// AI INTEGRATION: Uses IAICompletionProvider with retry + exponential backoff, graceful fallback.
+/// TESTABILITY: Accepts interface for mock injection in tests.
+///
+/// TEST/PRODUCTION PARITY: GetPrompt* methods expose exact prompts that production will use.
+/// Tests MUST use these methods to ensure prompt parity - no duplicate prompt building allowed.
 /// </summary>
 public class SceneNarrativeService
 {
     private readonly GameWorld _gameWorld;
-    private readonly OllamaClient _ollamaClient;
+    private readonly IAICompletionProvider _aiProvider;
     private readonly ScenePromptBuilder _promptBuilder;
+
+    // Retry configuration
+    private const int MaxRetries = 3;
+    private const int InitialDelayMs = 1000; // 1 second, doubles each retry
+    private const int SituationTimeoutSeconds = 30; // Increased from 20 for slow PCs
+    private const int ChoiceLabelTimeoutSeconds = 10; // Increased from 5 for slow PCs
 
     public SceneNarrativeService(
         GameWorld gameWorld,
-        OllamaClient ollamaClient,
+        IAICompletionProvider aiProvider,
         ScenePromptBuilder promptBuilder)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _ollamaClient = ollamaClient; // Can be null - graceful degradation
+        _aiProvider = aiProvider; // Can be null - graceful degradation
         _promptBuilder = promptBuilder ?? throw new ArgumentNullException(nameof(promptBuilder));
+    }
+
+    // ==================== PROMPT VISIBILITY FOR TEST PARITY ====================
+
+    /// <summary>
+    /// Get the exact prompt that would be sent to AI for situation narrative generation.
+    /// USE THIS IN TESTS to ensure test prompts match production prompts exactly.
+    /// HIGHLANDER: This is the ONLY way to see the prompt - prevents test/production divergence.
+    /// </summary>
+    public string GetSituationPrompt(ScenePromptContext context, NarrativeHints hints, Situation situation)
+    {
+        return _promptBuilder.BuildSituationPrompt(context, hints, situation);
+    }
+
+    /// <summary>
+    /// Get the exact prompt that would be sent to AI for choice label generation.
+    /// USE THIS IN TESTS to ensure test prompts match production prompts exactly.
+    /// </summary>
+    public string GetChoiceLabelPrompt(
+        ScenePromptContext context,
+        Situation situation,
+        ChoiceTemplate choiceTemplate,
+        CompoundRequirement scaledRequirement,
+        Consequence scaledConsequence)
+    {
+        return _promptBuilder.BuildChoiceLabelPrompt(context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
+    }
+
+    // ==================== EXTENDED GENERATION WITH METADATA ====================
+
+    /// <summary>
+    /// Generate situation narrative with full result metadata.
+    /// Returns both the narrative AND information about how it was generated.
+    /// USE THIS IN TESTS to capture whether fallback was used and why.
+    /// </summary>
+    public async Task<NarrativeGenerationResult> GenerateSituationNarrativeWithMetadataAsync(
+        ScenePromptContext context,
+        NarrativeHints narrativeHints,
+        Situation situation)
+    {
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
+
+        NarrativeGenerationResult result = new NarrativeGenerationResult
+        {
+            Prompt = GetSituationPrompt(context, narrativeHints, situation)
+        };
+
+        if (_aiProvider != null)
+        {
+            (string aiNarrative, string failureReason) = await TryGenerateAINarrativeWithRetryAsync(context, narrativeHints, situation);
+            if (!string.IsNullOrEmpty(aiNarrative))
+            {
+                result.Narrative = aiNarrative;
+                result.UsedFallback = false;
+                return result;
+            }
+            result.FallbackReason = failureReason;
+        }
+        else
+        {
+            result.FallbackReason = "AI provider not configured";
+        }
+
+        result.Narrative = GenerateFallbackSituationNarrative(context, narrativeHints);
+        result.UsedFallback = true;
+        return result;
+    }
+
+    /// <summary>
+    /// Warm up the AI model by sending a simple prompt.
+    /// Call this before running tests to ensure model is loaded into memory.
+    /// Returns true if model responded, false if unavailable.
+    /// </summary>
+    public async Task<bool> WarmupModelAsync(int timeoutSeconds = 60)
+    {
+        if (_aiProvider == null)
+            return false;
+
+        Console.WriteLine("[SceneNarrativeService] Starting model warmup...");
+
+        for (int attempt = 1; attempt <= MaxRetries; attempt++)
+        {
+            try
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
+                StringBuilder responseBuilder = new StringBuilder();
+                await foreach (string token in _aiProvider.StreamCompletionAsync("Say 'ready' in one word.", cts.Token))
+                {
+                    responseBuilder.Append(token);
+                    // Got any response = model is warm
+                    if (responseBuilder.Length > 0)
+                    {
+                        Console.WriteLine($"[SceneNarrativeService] Model warmup successful on attempt {attempt}");
+                        return true;
+                    }
+                }
+
+                if (responseBuilder.Length > 0)
+                {
+                    Console.WriteLine($"[SceneNarrativeService] Model warmup successful on attempt {attempt}");
+                    return true;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"[SceneNarrativeService] Warmup attempt {attempt} timed out ({timeoutSeconds}s)");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"[SceneNarrativeService] Warmup attempt {attempt} failed: {ex.Message}");
+            }
+
+            if (attempt < MaxRetries)
+            {
+                int delayMs = InitialDelayMs * (int)Math.Pow(2, attempt - 1);
+                Console.WriteLine($"[SceneNarrativeService] Retrying warmup in {delayMs}ms...");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        Console.WriteLine("[SceneNarrativeService] Model warmup failed after all retries");
+        return false;
     }
 
     /// <summary>
@@ -49,8 +183,8 @@ public class SceneNarrativeService
         if (context == null)
             throw new ArgumentNullException(nameof(context));
 
-        // Try AI generation if client available
-        if (_ollamaClient != null)
+        // Try AI generation if provider available
+        if (_aiProvider != null)
         {
             string aiNarrative = await TryGenerateAINarrativeAsync(context, narrativeHints, situation);
             if (!string.IsNullOrEmpty(aiNarrative))
@@ -80,57 +214,200 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Try AI narrative generation with timeout.
-    /// Pattern from AINarrativeProvider (lines 57-66):
-    /// - 20-second timeout via CancellationTokenSource (allows model cold-start)
-    /// - Catch OperationCanceledException → return empty
-    /// - Return generated text or empty on failure
+    /// Try AI narrative generation with retry and exponential backoff.
+    /// Returns tuple of (result, failureReason) for metadata tracking.
+    /// </summary>
+    private async Task<(string result, string failureReason)> TryGenerateAINarrativeWithRetryAsync(
+        ScenePromptContext context,
+        NarrativeHints narrativeHints,
+        Situation situation)
+    {
+        string prompt = _promptBuilder.BuildSituationPrompt(context, narrativeHints, situation);
+        string lastError = "";
+
+        for (int attempt = 1; attempt <= MaxRetries; attempt++)
+        {
+            try
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(SituationTimeoutSeconds));
+
+                StringBuilder responseBuilder = new StringBuilder();
+                await foreach (string token in _aiProvider.StreamCompletionAsync(prompt, cts.Token))
+                {
+                    responseBuilder.Append(token);
+                }
+
+                string result = responseBuilder.ToString().Trim();
+                result = CleanAIResponse(result);
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return (result, "");
+                }
+
+                lastError = "Empty response from AI";
+            }
+            catch (OperationCanceledException)
+            {
+                lastError = $"Timeout ({SituationTimeoutSeconds}s) on attempt {attempt}";
+                Console.WriteLine($"[SceneNarrativeService] {lastError}");
+            }
+            catch (HttpRequestException ex)
+            {
+                lastError = $"HTTP error on attempt {attempt}: {ex.Message}";
+                Console.WriteLine($"[SceneNarrativeService] {lastError}");
+            }
+            catch (Exception ex)
+            {
+                lastError = $"Error on attempt {attempt}: {ex.GetType().Name}: {ex.Message}";
+                Console.WriteLine($"[SceneNarrativeService] {lastError}");
+            }
+
+            // Exponential backoff before retry
+            if (attempt < MaxRetries)
+            {
+                int delayMs = InitialDelayMs * (int)Math.Pow(2, attempt - 1);
+                Console.WriteLine($"[SceneNarrativeService] Retrying in {delayMs}ms...");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        return ("", $"All {MaxRetries} attempts failed. Last error: {lastError}");
+    }
+
+    /// <summary>
+    /// Try AI narrative generation with timeout (legacy single-attempt version).
+    /// Kept for backwards compatibility with existing callers.
     /// </summary>
     private async Task<string> TryGenerateAINarrativeAsync(
         ScenePromptContext context,
         NarrativeHints narrativeHints,
         Situation situation)
     {
-        try
+        (string result, string _) = await TryGenerateAINarrativeWithRetryAsync(context, narrativeHints, situation);
+        return result;
+    }
+
+    /// <summary>
+    /// Generate AI choice label from entity context and mechanical properties.
+    /// Async method - tries AI generation with timeout, falls back to template-based.
+    ///
+    /// CRITICAL: This is called during Pass 2B AFTER Situation.Description is generated.
+    /// Choice labels use situation context for narrative coherence.
+    ///
+    /// Pattern: 5-second timeout (shorter than situations - labels are simpler)
+    /// </summary>
+    /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
+    /// <param name="situation">The parent Situation (for narrative context)</param>
+    /// <param name="choiceTemplate">The ChoiceTemplate being instantiated</param>
+    /// <param name="scaledRequirement">Pre-scaled requirement</param>
+    /// <param name="scaledConsequence">Pre-scaled consequence</param>
+    /// <returns>Generated action label for Choice.Label</returns>
+    public async Task<string> GenerateChoiceLabelAsync(
+        ScenePromptContext context,
+        Situation situation,
+        ChoiceTemplate choiceTemplate,
+        CompoundRequirement scaledRequirement,
+        Consequence scaledConsequence)
+    {
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
+        if (choiceTemplate == null)
+            throw new ArgumentNullException(nameof(choiceTemplate));
+
+        if (_aiProvider != null)
         {
-            // Build prompt
-            string prompt = _promptBuilder.BuildSituationPrompt(context, narrativeHints, situation);
-
-            // 20-second timeout (allows model cold-start on first request)
-            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-
-            // Stream response and collect
-            StringBuilder responseBuilder = new StringBuilder();
-            await foreach (string token in _ollamaClient.StreamCompletionAsync(prompt, cts.Token))
+            string aiLabel = await TryGenerateAIChoiceLabelAsync(
+                context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
+            if (!string.IsNullOrEmpty(aiLabel))
             {
-                responseBuilder.Append(token);
+                Console.WriteLine($"[SceneNarrativeService] AI generated label for choice '{choiceTemplate.Id}'");
+                return aiLabel;
+            }
+        }
+
+        Console.WriteLine($"[SceneNarrativeService] Using fallback label for choice '{choiceTemplate.Id}'");
+        return GenerateFallbackChoiceLabel(context, choiceTemplate);
+    }
+
+    /// <summary>
+    /// Try AI choice label generation with retry and exponential backoff.
+    /// </summary>
+    private async Task<string> TryGenerateAIChoiceLabelAsync(
+        ScenePromptContext context,
+        Situation situation,
+        ChoiceTemplate choiceTemplate,
+        CompoundRequirement scaledRequirement,
+        Consequence scaledConsequence)
+    {
+        string prompt = _promptBuilder.BuildChoiceLabelPrompt(
+            context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
+
+        for (int attempt = 1; attempt <= MaxRetries; attempt++)
+        {
+            try
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(ChoiceLabelTimeoutSeconds));
+
+                StringBuilder responseBuilder = new StringBuilder();
+                await foreach (string token in _aiProvider.StreamCompletionAsync(prompt, cts.Token))
+                {
+                    responseBuilder.Append(token);
+                }
+
+                string result = responseBuilder.ToString().Trim();
+                result = CleanAIResponse(result);
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return result;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"[SceneNarrativeService] Choice label timeout ({ChoiceLabelTimeoutSeconds}s) on attempt {attempt}");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"[SceneNarrativeService] Choice label HTTP error on attempt {attempt}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SceneNarrativeService] Choice label error on attempt {attempt}: {ex.GetType().Name}: {ex.Message}");
             }
 
-            string result = responseBuilder.ToString().Trim();
+            // Exponential backoff before retry
+            if (attempt < MaxRetries)
+            {
+                int delayMs = InitialDelayMs * (int)Math.Pow(2, attempt - 1);
+                await Task.Delay(delayMs);
+            }
+        }
 
-            // Clean up common AI artifacts (remove markdown formatting if present)
-            result = CleanAIResponse(result);
+        return string.Empty;
+    }
 
-            return result;
-        }
-        catch (OperationCanceledException)
-        {
-            // Timeout - expected, use fallback
-            Console.WriteLine("[SceneNarrativeService] AI generation timed out (20s), using fallback");
-            return string.Empty;
-        }
-        catch (HttpRequestException ex)
-        {
-            // Network error - expected when Ollama not running
-            Console.WriteLine($"[SceneNarrativeService] AI unavailable: {ex.Message}");
-            return string.Empty;
-        }
-        catch (Exception ex)
-        {
-            // Unexpected error - log and fallback
-            Console.WriteLine($"[SceneNarrativeService] AI error: {ex.GetType().Name}: {ex.Message}");
-            return string.Empty;
-        }
+    /// <summary>
+    /// Generate fallback choice label from template with placeholder substitution.
+    /// Uses ActionTextTemplate with {NPCName}, {LocationName} replaced.
+    /// </summary>
+    private string GenerateFallbackChoiceLabel(ScenePromptContext context, ChoiceTemplate choiceTemplate)
+    {
+        string label = choiceTemplate.ActionTextTemplate ?? "Take action";
+
+        if (context.NPC != null)
+            label = label.Replace("{NPCName}", context.NPC.Name);
+        else
+            label = label.Replace("{NPCName}", "them");
+
+        if (context.Location != null)
+            label = label.Replace("{LocationName}", context.Location.Name);
+        else
+            label = label.Replace("{LocationName}", "here");
+
+        return label;
     }
 
     /// <summary>
@@ -143,6 +420,10 @@ public class SceneNarrativeService
 
         // Remove markdown code blocks if present
         response = response.Replace("```", "").Trim();
+
+        // Remove model-specific artifacts (Gemma3 end tokens, etc.)
+        response = response.Replace("</end_of_turn>", "").Trim();
+        response = response.Replace("<end_of_turn>", "").Trim();
 
         // Remove leading/trailing quotes if wrapped
         if (response.StartsWith("\"") && response.EndsWith("\""))
