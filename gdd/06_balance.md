@@ -676,8 +676,5 @@ Key design insight from developer: "The protagonist ain't almighty and his inner
 
 ## Cross-References
 
-- **Vision**: See [01_vision.md §1.4](01_vision.md#14-anti-goals-what-wayfarer-is-not) for "Not Over-Forgiving" anti-goal
-- **Tier Hierarchy**: See [01_vision.md §1.6](01_vision.md#16-design-principle-tier-hierarchy) for soft-lock scope (A-story only)
-- **Numeric Values**: See [design/BASELINE_ECONOMY.md](../design/BASELINE_ECONOMY.md) for exact costs/rewards
-- **Detailed Philosophy**: See [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for exhaustive treatment
-- **Design Methodology**: See [design/DESIGN_GUIDE.md](../design/DESIGN_GUIDE.md) for practical balance workflow
+- **Vision**: See [01_vision.md](01_vision.md) for design pillars and anti-goals
+- **Technical Implementation**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for system architecture

@@ -252,5 +252,4 @@ The tutorial produces specific scenes NOT through overrides or bypasses, but bec
 - **Balance**: See [06_balance.md](06_balance.md) for how scarcity creates depth
 - **Rhythm System**: See [06_balance.md §6.4](06_balance.md) for Sir Brante rhythm implementation
 - **Challenge Philosophy**: See [06_balance.md §6.8](06_balance.md#68-challenge-and-consequence-philosophy) for fair-not-forgiving principle
-- **Psychological Laws**: See [design/13_player_experience_emergence_laws.md](../design/13_player_experience_emergence_laws.md) for player psychology
-- **Detailed Design**: See [design/01_design_vision.md](../design/01_design_vision.md) for exhaustive treatment
+- **Technical Architecture**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for implementation patterns

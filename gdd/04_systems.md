@@ -236,7 +236,4 @@ See [arc42/08_crosscutting_concepts.md §8.16](../arc42/08_crosscutting_concepts
 ## Cross-References
 
 - **Balance Philosophy**: See [06_balance.md](06_balance.md) for difficulty scaling
-- **Progression Details**: See [design/03_progression_systems.md](../design/03_progression_systems.md) for stat advancement and equipment
-- **Resource Details**: See [design/05_resource_economy.md](../design/05_resource_economy.md) for exhaustive treatment
-- **Challenge Details**: See [design/04_challenge_mechanics.md](../design/04_challenge_mechanics.md) for card mechanics
 - **Technical Implementation**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for system architecture

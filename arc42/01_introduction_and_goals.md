@@ -79,4 +79,4 @@ When quality goals conflict, resolution follows tier priority:
 - [02_constraints.md](02_constraints.md) — Technical and organizational boundaries
 - [04_solution_strategy.md](04_solution_strategy.md) — Fundamental decisions realizing these goals
 - [10_quality_requirements.md](10_quality_requirements.md) — Testable quality scenarios
-- [design/01_design_vision.md](../design/01_design_vision.md) — Game design philosophy (player experience, not technical)
+- [../gdd/01_vision.md](../gdd/01_vision.md) — Game design philosophy

@@ -48,6 +48,6 @@ Arc42 is a **cabinet, not a form**. We use it as organized drawers for architect
 
 ## Related Documentation
 
-- [../design/](../design/) — Game design documentation (player experience, not technical)
+- [../gdd/](../gdd/) — Game design documentation (player experience, not technical)
 - [../CLAUDE.md](../CLAUDE.md) — AI assistant coding standards and enforcement
 - [../DUAL_TIER_ACTION_ARCHITECTURE.md](../DUAL_TIER_ACTION_ARCHITECTURE.md) — Detailed action architecture reference

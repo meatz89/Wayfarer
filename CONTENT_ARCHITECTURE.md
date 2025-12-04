@@ -507,7 +507,11 @@ LocationAction discriminated by presence of ChoiceTemplate.
 | Properties | Via ChoiceTemplate |
 | Purpose | Narrative choices |
 
-**Layering:** Player at any location sees Tier 1 actions (always available) plus Tier 2 actions (if scene active at that location).
+**Screen-Based Display:** Actions are mutually exclusive per screen context:
+- **Location with active situation** → Scene-based actions only
+- **Location without situation** → Atmospheric actions only
+- **NPC with active situation** → Action to enter situation
+- **NPC without situation** → Cannot interact
 
 ---
 

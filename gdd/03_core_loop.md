@@ -137,4 +137,3 @@ Choices spawn challenges when player opts into tactical layer:
 
 - **Challenge Mechanics**: See [04_systems.md](04_systems.md) for tactical layer details
 - **Resource Economy**: See [04_systems.md](04_systems.md) for how scarcity creates tension
-- **Detailed Design**: See [design/02_core_gameplay_loops.md](../design/02_core_gameplay_loops.md) for exhaustive treatment

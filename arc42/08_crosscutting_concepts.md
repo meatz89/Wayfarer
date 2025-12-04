@@ -94,7 +94,7 @@ Domain entities have no instance IDs. Relationships use direct object references
 
 ---
 
-## 8.4 Three-Tier Timing Model
+## 8.4 Four-Tier Timing Model
 
 Content instantiates lazily across timing tiers. Scene creation follows a UNIFIED path for both authored and procedural content.
 

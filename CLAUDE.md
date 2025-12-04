@@ -276,7 +276,7 @@ JSON → DTO → Parser → Entity → Service/UI
 - Hardcoded values that don't scale with categorical properties
 
 **Required:**
-- All scaling via categorical properties (NPCDemeanor, Quality, PowerDynamic, Tier)
+- All scaling via categorical properties (NPCDemeanor, ArchetypeIntensity, PowerDynamic, Tier)
 - Same four-choice structure regardless of context
 - Context-agnostic archetype implementations
 
@@ -344,7 +344,7 @@ Concrete ChoiceTemplates with scaled costs/rewards
 
 **Key Drivers:**
 - RhythmPattern (Building/Crisis/Mixed) → Choice STRUCTURE
-- PowerDynamic, NPCDemeanor, Quality → Value SCALING
+- PowerDynamic, NPCDemeanor, ArchetypeIntensity → Value SCALING
 - Location.Difficulty, Tier → Threshold ADJUSTMENTS
 
 ## Pass 2: AI Narrative Enrichment

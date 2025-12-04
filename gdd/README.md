@@ -8,7 +8,7 @@ This GDD follows modern agile documentation principles:
 - **Rationale over facts**: Explain WHY decisions create intended experiences
 - **Searchable and scannable**: Clear headings, short sections, good cross-references
 
-For detailed reference material, see [design/](../design/) subdirectory.
+For technical architecture, see [arc42/](../arc42/) subdirectory.
 
 ---
 
@@ -38,32 +38,29 @@ For detailed reference material, see [design/](../design/) subdirectory.
 ### "I need to create content"
 1. Read [05_content.md](05_content.md) for structure
 2. Reference [08_glossary.md](08_glossary.md) for terms
-3. See [design/07_content_generation.md](../design/07_content_generation.md) for archetype details
+3. See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for archetype patterns
 
 ### "I need to balance a situation"
 1. Read [06_balance.md](06_balance.md) for principles
-2. See [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for detailed methodology
-3. Reference [design/BASELINE_ECONOMY.md](../design/BASELINE_ECONOMY.md) for numeric values
+2. See [06_balance.md §6.4](06_balance.md#64-the-sir-brante-rhythm-reference-model) for detailed methodology
 
 ### "I need to understand a design decision"
 1. Check [07_design_decisions.md](07_design_decisions.md) for key DDRs
-2. See [design/11_design_decisions.md](../design/11_design_decisions.md) for complete DDR catalog
+2. See [arc42/09_architecture_decisions.md](../arc42/09_architecture_decisions.md) for technical ADRs
 
 ---
 
-## GDD vs Reference Documentation
+## GDD vs Technical Documentation
 
 **This GDD (gdd/ folder):**
 - WHAT the game is and WHY it works
 - Concise, scannable, vision-focused
-- ~1,500 lines total
 - Start here for understanding
 
-**Reference Documentation (design/ folder):**
-- HOW to implement specific systems
-- Detailed, exhaustive, practical
-- ~15,000 lines total
-- Go here for depth
+**Technical Documentation (arc42/ folder):**
+- HOW systems are implemented technically
+- Architecture patterns, decisions, constraints
+- Go here for implementation details
 
 ---
 
