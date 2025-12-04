@@ -1,35 +1,74 @@
+using System.Text;
 
 /// <summary>
 /// Service that generates narrative text for Scenes and Situations from entity context.
-/// Implements AI generation pattern: Entity context → AI prompt → Generated narrative.
+/// Implements Two-Pass Procedural Generation (arc42 §8.28):
+/// Pass 1 (Mechanical) produces complete Situation entities
+/// Pass 2 (AI Narrative) generates contextual narrative text
 ///
-/// ARCHITECTURE PRINCIPLE: Called at Scene finalization (SceneInstantiator.FinalizeScene)
-/// when complete entity context is available (NPC/Location/Player objects with all properties).
+/// ARCHITECTURE PRINCIPLE: Called during SceneInstantiator.ActivateScene() AFTER
+/// all Situations are mechanically complete with resolved entities.
 ///
-/// CURRENT IMPLEMENTATION: Fallback narrative generation
-/// FUTURE ENHANCEMENT: Full AI integration via OllamaClient (following AINarrativeProvider pattern)
+/// AI INTEGRATION: Uses OllamaClient with 5-second timeout, graceful fallback.
 /// </summary>
 public class SceneNarrativeService
 {
     private readonly GameWorld _gameWorld;
+    private readonly OllamaClient _ollamaClient;
+    private readonly ScenePromptBuilder _promptBuilder;
 
-    public SceneNarrativeService(GameWorld gameWorld)
+    public SceneNarrativeService(
+        GameWorld gameWorld,
+        OllamaClient ollamaClient,
+        ScenePromptBuilder promptBuilder)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _ollamaClient = ollamaClient; // Can be null - graceful degradation
+        _promptBuilder = promptBuilder ?? throw new ArgumentNullException(nameof(promptBuilder));
     }
 
     /// <summary>
     /// Generate situation narrative from entity context and narrative hints.
-    /// Returns AI-generated text if available, fallback text otherwise.
+    /// Async method - tries AI generation with timeout, falls back to template-based.
     ///
-    /// CRITICAL: This is called at finalization when all entity context is resolved.
+    /// CRITICAL: This is called during Pass 2 when all entity context is resolved.
     /// Context contains ACTUAL entity objects (NPC/Location/Route with full properties).
     ///
-    /// SYNCHRONOUS: Uses fallback text generation from entity properties.
+    /// Pattern from AINarrativeProvider: 5-second timeout, catch OperationCanceledException.
     /// </summary>
     /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
     /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate</param>
+    /// <param name="situation">The Situation being enriched (for mechanical context)</param>
     /// <returns>Generated narrative text for Situation.Description</returns>
+    public async Task<string> GenerateSituationNarrativeAsync(
+        ScenePromptContext context,
+        NarrativeHints narrativeHints,
+        Situation situation)
+    {
+        // Validate required context
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
+
+        // Try AI generation if client available
+        if (_ollamaClient != null)
+        {
+            string aiNarrative = await TryGenerateAINarrativeAsync(context, narrativeHints, situation);
+            if (!string.IsNullOrEmpty(aiNarrative))
+            {
+                Console.WriteLine($"[SceneNarrativeService] AI generated narrative for '{situation?.Name ?? "unknown"}'");
+                return aiNarrative;
+            }
+        }
+
+        // Fallback to template-based generation
+        Console.WriteLine($"[SceneNarrativeService] Using fallback narrative for '{situation?.Name ?? "unknown"}'");
+        return GenerateFallbackSituationNarrative(context, narrativeHints);
+    }
+
+    /// <summary>
+    /// Synchronous fallback method for backwards compatibility.
+    /// Used when async context not available.
+    /// </summary>
     public string GenerateSituationNarrative(ScenePromptContext context, NarrativeHints narrativeHints)
     {
         // Validate required context
@@ -38,6 +77,78 @@ public class SceneNarrativeService
 
         // Generate contextual narrative from entity properties
         return GenerateFallbackSituationNarrative(context, narrativeHints);
+    }
+
+    /// <summary>
+    /// Try AI narrative generation with timeout.
+    /// Pattern from AINarrativeProvider (lines 57-66):
+    /// - 5-second timeout via CancellationTokenSource
+    /// - Catch OperationCanceledException → return empty
+    /// - Return generated text or empty on failure
+    /// </summary>
+    private async Task<string> TryGenerateAINarrativeAsync(
+        ScenePromptContext context,
+        NarrativeHints narrativeHints,
+        Situation situation)
+    {
+        try
+        {
+            // Build prompt
+            string prompt = _promptBuilder.BuildSituationPrompt(context, narrativeHints, situation);
+
+            // 5-second timeout (matching AINarrativeProvider)
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            // Stream response and collect
+            StringBuilder responseBuilder = new StringBuilder();
+            await foreach (string token in _ollamaClient.StreamCompletionAsync(prompt, cts.Token))
+            {
+                responseBuilder.Append(token);
+            }
+
+            string result = responseBuilder.ToString().Trim();
+
+            // Clean up common AI artifacts (remove markdown formatting if present)
+            result = CleanAIResponse(result);
+
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            // Timeout - expected, use fallback
+            Console.WriteLine("[SceneNarrativeService] AI generation timed out (5s), using fallback");
+            return string.Empty;
+        }
+        catch (HttpRequestException ex)
+        {
+            // Network error - expected when Ollama not running
+            Console.WriteLine($"[SceneNarrativeService] AI unavailable: {ex.Message}");
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            // Unexpected error - log and fallback
+            Console.WriteLine($"[SceneNarrativeService] AI error: {ex.GetType().Name}: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Clean common AI response artifacts
+    /// </summary>
+    private string CleanAIResponse(string response)
+    {
+        if (string.IsNullOrEmpty(response))
+            return response;
+
+        // Remove markdown code blocks if present
+        response = response.Replace("```", "").Trim();
+
+        // Remove leading/trailing quotes if wrapped
+        if (response.StartsWith("\"") && response.EndsWith("\""))
+            response = response.Substring(1, response.Length - 2);
+
+        return response.Trim();
     }
 
     /// <summary>

@@ -85,8 +85,12 @@ public class SceneInstantiator
     /// - For each Situation, resolve entities (find-or-create) via EntityResolver + PackageLoader
     /// - Write entity references directly to Situation instances
     /// Scene transitions: Deferred → Active
+    ///
+    /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+    /// - Pass 1: Mechanical generation (Situations, Choices, Costs, Rewards) - synchronous
+    /// - Pass 2: AI Narrative generation (Situation.Description) - async with 5s timeout
     /// </summary>
-    public void ActivateScene(Scene scene, SceneSpawnContext context)
+    public async Task ActivateSceneAsync(Scene scene, SceneSpawnContext context)
     {
         if (scene.State != SceneState.Deferred)
         {
@@ -285,6 +289,48 @@ public class SceneInstantiator
                 }
             }
         }
+
+        // ==================== PASS 2: AI NARRATIVE GENERATION ====================
+        // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+        // Pass 1 (above): Mechanical generation - Situations, Choices, Costs, Rewards
+        // Pass 2 (here): AI Narrative - Generate Situation.Description from entity context
+        //
+        // CRITICAL: All entities are resolved at this point. ScenePromptContext can access
+        // NPC, Location, Route properties for contextually appropriate narrative.
+        Console.WriteLine($"[SceneInstantiator] Starting Pass 2: AI Narrative Generation for {scene.Situations.Count} situations");
+
+        Player player = context.Player ?? _gameWorld.GetPlayer();
+
+        foreach (Situation situation in scene.Situations)
+        {
+            // Build ScenePromptContext from resolved entities
+            ScenePromptContext promptContext = new ScenePromptContext
+            {
+                NPC = situation.Npc,
+                Location = situation.Location,
+                Player = player,
+                Route = situation.Route,
+                ArchetypeId = scene.Template?.Id,
+                SceneDisplayName = scene.DisplayName,
+                CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
+                CurrentWeather = _gameWorld.CurrentWeather.ToString(),
+                CurrentDay = _gameWorld.CurrentDay,
+                NPCBondLevel = situation.Npc?.BondStrength ?? 0
+            };
+
+            // Generate narrative via AI (5s timeout, fallback to template-based)
+            string narrative = await _narrativeService.GenerateSituationNarrativeAsync(
+                promptContext,
+                situation.NarrativeHints,
+                situation);
+
+            // Persist generated narrative to entity
+            situation.Description = narrative;
+
+            Console.WriteLine($"[SceneInstantiator]   ✅ Narrative generated for '{situation.Name}'");
+        }
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Pass 2 complete: AI narratives generated for all situations");
 
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;

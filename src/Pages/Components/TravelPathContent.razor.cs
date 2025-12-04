@@ -20,10 +20,10 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnParametersSetAsync()
         {
-            LoadPathCards();
+            await LoadPathCardsAsync();
         }
 
-        private void LoadPathCards()
+        private async Task LoadPathCardsAsync()
         {
             if (TravelContext == null)
             {
@@ -32,18 +32,15 @@ namespace Wayfarer.Pages.Components
             }
 
             // Get path cards for current segment with discovery state
-            AvailablePathCards = TravelFacade.GetAvailablePathCards();
+            AvailablePathCards = await TravelFacade.GetAvailablePathCardsAsync();
         }
 
         /// <summary>
-        /// Get available path cards for display
+        /// Get available path cards for display (cached from last load)
         /// </summary>
         protected List<PathCardInfo> GetAvailablePathCards()
         {
-            if (TravelContext == null)
-                return new List<PathCardInfo>();
-
-            return TravelFacade.GetAvailablePathCards();
+            return AvailablePathCards;
         }
 
         /// <summary>
@@ -583,8 +580,8 @@ namespace Wayfarer.Pages.Components
         private async Task RefreshTravelContext()
         {
             // Get updated context from TravelFacade
-            TravelContext = TravelFacade.GetCurrentTravelContext();
-            LoadPathCards();
+            TravelContext = await TravelFacade.GetCurrentTravelContextAsync();
+            await LoadPathCardsAsync();
 
             // Check if journey completed
             if (TravelContext == null)

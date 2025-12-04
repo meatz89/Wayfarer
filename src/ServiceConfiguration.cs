@@ -144,7 +144,8 @@ public static class ServiceConfiguration
 
         // Scene Instantiation System (needed by ObligationActivity)
         services.AddSingleton<SpawnConditionsEvaluator>();
-        services.AddSingleton<SceneNarrativeService>();
+        services.AddSingleton<ScenePromptBuilder>(); // AI prompt builder for Pass 2 narrative
+        services.AddSingleton<SceneNarrativeService>(); // Depends on ScenePromptBuilder, OllamaClient
         services.AddSingleton<SceneGenerationFacade>(); // MOVED: Must be before PackageLoader (dependency)
         services.AddSingleton<PackageLoader>(); // Depends on SceneGenerationFacade
         services.AddSingleton<HexRouteGenerator>();

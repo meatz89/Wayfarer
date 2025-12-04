@@ -68,7 +68,7 @@ internal static class JourneyArchetypes
             RouteFilter = null
         };
 
-        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ContractNegotiation);
         List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             negotiateSitId,
@@ -93,7 +93,7 @@ internal static class JourneyArchetypes
                 ActionType = choice.ActionType,
                 ChallengeId = choice.ChallengeId,
                 ChallengeType = choice.ChallengeType,
-                DeckId = choice.DeckId,
+                ChallengeDeckName = choice.ChallengeDeckName,
                 NavigationPayload = choice.NavigationPayload
             });
         }

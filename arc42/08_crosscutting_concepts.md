@@ -1008,6 +1008,34 @@ After mechanical generation, AI receives complete game context and generates nar
 
 **Key Principle:** Narrative is PERSISTED to the entity after generation. UI displays stored narrative, never regenerates.
 
+**Timing:** Pass 2 runs during `SceneInstantiator.ActivateScene()`, AFTER all Situations are mechanically complete.
+
+| Component | Responsibility |
+|-----------|----------------|
+| **ScenePromptBuilder** | Build AI prompt from ScenePromptContext (NPC, Location, time, weather, narrative hints) |
+| **SceneNarrativeService** | Orchestrate AI call with timeout, fallback to template-based generation |
+| **OllamaClient** | Execute AI inference with streaming response |
+
+**Graceful Degradation:**
+
+| Condition | Behavior |
+|-----------|----------|
+| AI available | Generate rich contextual narrative |
+| AI timeout (5s) | Use fallback template-based generation |
+| AI unavailable | Use fallback immediately |
+
+**ScenePromptContext Contents:**
+- Entity references: NPC, Location, Player, Route (complete objects, not IDs)
+- Narrative hints: Tone, Theme, Context, Style (from SituationTemplate)
+- World state: TimeBlock, Weather, Day
+- Mechanical context: Archetype type, choice labels, domain
+
+**Fallback Generation:**
+When AI unavailable, `GenerateFallbackSituationNarrative()` produces contextual text from entity properties:
+- Time/weather atmospheric sentence
+- NPC personality-driven greeting
+- Theme-based contextual hint
+
 ### Fixing Content Problems
 
 | Symptom | Wrong Approach | Correct Approach |

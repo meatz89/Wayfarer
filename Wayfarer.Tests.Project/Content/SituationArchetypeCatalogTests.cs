@@ -138,4 +138,83 @@ public class SituationArchetypeCatalogTests
 
         Assert.NotEmpty(choices);
     }
+
+    // ==================== INCOME ARCHETYPES ====================
+    // CRITICAL: ContractNegotiation earns coins (income), ServiceNegotiation costs coins (expense)
+
+    [Fact]
+    public void ContractNegotiation_HasPositiveCoinReward()
+    {
+        // CRITICAL: ContractNegotiation is an INCOME archetype - CoinReward must be positive
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ContractNegotiation);
+
+        Assert.True(archetype.CoinReward > 0,
+            $"ContractNegotiation must have positive CoinReward (income archetype), got {archetype.CoinReward}");
+        Assert.Equal(0, archetype.CoinCost); // Income archetypes don't cost coins
+    }
+
+    [Fact]
+    public void ServiceNegotiation_HasPositiveCoinCost()
+    {
+        // CRITICAL: ServiceNegotiation is an EXPENSE archetype - CoinCost must be positive
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
+
+        Assert.True(archetype.CoinCost > 0,
+            $"ServiceNegotiation must have positive CoinCost (expense archetype), got {archetype.CoinCost}");
+        Assert.Equal(0, archetype.CoinReward); // Expense archetypes don't earn coins
+    }
+
+    [Fact]
+    public void ContractNegotiation_GeneratesPositiveCoinConsequences()
+    {
+        // CRITICAL: ContractNegotiation choices must have POSITIVE coin consequences (player EARNS)
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ContractNegotiation);
+        GenerationContext context = new GenerationContext
+        {
+            Rhythm = RhythmPattern.Mixed, // DeliveryContract A2 uses Mixed rhythm
+            NpcDemeanor = NPCDemeanor.Neutral,
+            Quality = Quality.Standard,
+            LocationDifficulty = 0
+        };
+
+        List<ChoiceTemplate> choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            archetype,
+            "test_contract",
+            context);
+
+        // Find the money choice (Choice 2)
+        ChoiceTemplate moneyChoice = choices.FirstOrDefault(c => c.Id.Contains("money"));
+        Assert.NotNull(moneyChoice);
+
+        // CRITICAL: Money choice consequence must have POSITIVE coins (income, not expense)
+        Assert.True(moneyChoice.Consequence.Coins > 0,
+            $"ContractNegotiation money choice must have positive coin consequence (income), got {moneyChoice.Consequence.Coins}");
+    }
+
+    [Fact]
+    public void ServiceNegotiation_GeneratesNegativeCoinConsequences()
+    {
+        // CRITICAL: ServiceNegotiation choices must have NEGATIVE coin consequences (player SPENDS)
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
+        GenerationContext context = new GenerationContext
+        {
+            Rhythm = RhythmPattern.Mixed,
+            NpcDemeanor = NPCDemeanor.Neutral,
+            Quality = Quality.Standard,
+            LocationDifficulty = 0
+        };
+
+        List<ChoiceTemplate> choices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
+            archetype,
+            "test_service",
+            context);
+
+        // Find the money choice (Choice 2)
+        ChoiceTemplate moneyChoice = choices.FirstOrDefault(c => c.Id.Contains("money"));
+        Assert.NotNull(moneyChoice);
+
+        // CRITICAL: Money choice consequence must have NEGATIVE coins (expense, not income)
+        Assert.True(moneyChoice.Consequence.Coins < 0,
+            $"ServiceNegotiation money choice must have negative coin consequence (expense), got {moneyChoice.Consequence.Coins}");
+    }
 }
