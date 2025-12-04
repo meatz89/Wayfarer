@@ -378,10 +378,11 @@ public static class SituationArchetypeCatalog
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
         // Choice 1: Stat-gated best outcome
-        // For INCOME archetypes: Best payment + bonus
+        // For INCOME archetypes: Best payment + flat bonus
         // For EXPENSE archetypes: Free access if stat met
+        // DDR-007 COMPLIANT: Fixed flat bonus (+3), not percentage-based
         Consequence statGatedConsequence = archetype.CoinReward > 0
-            ? new Consequence { Coins = scaledCoinReward + 5 } // INCOME: Best payment (reward + bonus)
+            ? new Consequence { Coins = scaledCoinReward + 3 } // INCOME: Best payment (reward + flat bonus)
             : new Consequence(); // EXPENSE: No cost if stat met
 
         choices.Add(new ChoiceTemplate

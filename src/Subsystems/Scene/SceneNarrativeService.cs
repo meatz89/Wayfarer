@@ -36,18 +36,21 @@ public class SceneNarrativeService
     ///
     /// Pattern from AINarrativeProvider: 5-second timeout, catch OperationCanceledException.
     /// </summary>
-    /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
-    /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate</param>
-    /// <param name="situation">The Situation being enriched (for mechanical context)</param>
+    /// <param name="context">Complete entity context with NPC/Location/Player objects (required)</param>
+    /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate (optional)</param>
+    /// <param name="situation">The Situation being enriched (required for prompt building)</param>
     /// <returns>Generated narrative text for Situation.Description</returns>
     public async Task<string> GenerateSituationNarrativeAsync(
         ScenePromptContext context,
         NarrativeHints narrativeHints,
         Situation situation)
     {
-        // Validate required context
+        // FAIL-FAST: Validate required parameters
         if (context == null)
             throw new ArgumentNullException(nameof(context));
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
+        // narrativeHints is optional - may be null for situations without template hints
 
         // Try AI generation if client available
         if (_ollamaClient != null)
@@ -55,13 +58,13 @@ public class SceneNarrativeService
             string aiNarrative = await TryGenerateAINarrativeAsync(context, narrativeHints, situation);
             if (!string.IsNullOrEmpty(aiNarrative))
             {
-                Console.WriteLine($"[SceneNarrativeService] AI generated narrative for '{situation?.Name ?? "unknown"}'");
+                Console.WriteLine($"[SceneNarrativeService] AI generated narrative for '{situation.Name}'");
                 return aiNarrative;
             }
         }
 
         // Fallback to template-based generation
-        Console.WriteLine($"[SceneNarrativeService] Using fallback narrative for '{situation?.Name ?? "unknown"}'");
+        Console.WriteLine($"[SceneNarrativeService] Using fallback narrative for '{situation.Name}'");
         return GenerateFallbackSituationNarrative(context, narrativeHints);
     }
 
@@ -188,7 +191,7 @@ public class SceneNarrativeService
     /// <summary>
     /// Generate time/weather atmospheric narrative
     /// </summary>
-    private string GetTimeWeatherNarrative(TimeBlocks timeBlock, string weather)
+    private string GetTimeWeatherNarrative(TimeBlocks timeBlock, WeatherCondition weather)
     {
         string timePhrase = timeBlock switch
         {
@@ -199,7 +202,7 @@ public class SceneNarrativeService
             _ => "Time passes."
         };
 
-        if (!string.IsNullOrEmpty(weather) && weather != "clear")
+        if (weather != WeatherCondition.Clear)
         {
             return $"{timePhrase} {GetWeatherNarrative(weather)}";
         }
@@ -210,15 +213,15 @@ public class SceneNarrativeService
     /// <summary>
     /// Generate weather-specific narrative
     /// </summary>
-    private string GetWeatherNarrative(string weather)
+    private string GetWeatherNarrative(WeatherCondition weather)
     {
-        return weather.ToLower() switch
+        return weather switch
         {
-            "rain" => "Rain patters against the buildings.",
-            "storm" => "Storm clouds gather ominously.",
-            "fog" => "Fog obscures distant shapes.",
-            "snow" => "Snow falls silently.",
-            "wind" => "Wind whistles through the streets.",
+            WeatherCondition.Rain => "Rain patters against the buildings.",
+            WeatherCondition.Storm => "Storm clouds gather ominously.",
+            WeatherCondition.Fog => "Fog obscures distant shapes.",
+            WeatherCondition.Snow => "Snow falls silently.",
+            WeatherCondition.Clear => "",
             _ => ""
         };
     }

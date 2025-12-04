@@ -313,7 +313,7 @@ public class SceneInstantiator
                 ArchetypeId = scene.Template?.Id,
                 SceneDisplayName = scene.DisplayName,
                 CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-                CurrentWeather = _gameWorld.CurrentWeather.ToString(),
+                CurrentWeather = _gameWorld.CurrentWeather,
                 CurrentDay = _gameWorld.CurrentDay,
                 NPCBondLevel = situation.Npc?.BondStrength ?? 0
             };

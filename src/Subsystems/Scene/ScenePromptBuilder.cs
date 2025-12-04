@@ -29,8 +29,8 @@ public class ScenePromptBuilder
         // World context
         prompt.AppendLine("## World Context");
         prompt.AppendLine($"- Time: {FormatTimeBlock(context.CurrentTimeBlock)}");
-        if (!string.IsNullOrEmpty(context.CurrentWeather))
-            prompt.AppendLine($"- Weather: {context.CurrentWeather}");
+        if (context.CurrentWeather != WeatherCondition.Clear)
+            prompt.AppendLine($"- Weather: {FormatWeather(context.CurrentWeather)}");
         prompt.AppendLine($"- Day: {context.CurrentDay}");
         prompt.AppendLine();
 
@@ -130,6 +130,22 @@ public class ScenePromptBuilder
             TimeBlocks.Afternoon => "Afternoon (winding down, shadows lengthening)",
             TimeBlocks.Evening => "Evening (darkness falls, day ends)",
             _ => timeBlock.ToString()
+        };
+    }
+
+    /// <summary>
+    /// Format WeatherCondition for natural language display in prompt
+    /// </summary>
+    private string FormatWeather(WeatherCondition weather)
+    {
+        return weather switch
+        {
+            WeatherCondition.Rain => "Rain (wet, puddles forming)",
+            WeatherCondition.Storm => "Storm (thunder, lightning, heavy rain)",
+            WeatherCondition.Fog => "Fog (visibility reduced, mysterious)",
+            WeatherCondition.Snow => "Snow (cold, white blanket)",
+            WeatherCondition.Clear => "Clear (fair weather)",
+            _ => weather.ToString()
         };
     }
 }
