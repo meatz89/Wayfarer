@@ -244,16 +244,26 @@ public class LocationContentBase : ComponentBase
     // VISUAL NOVEL NAVIGATION
     // ============================================
 
-    protected void NavigateToView(LocationViewState newView, object context = null)
+    /// <summary>
+    /// Navigate to a view without context
+    /// HIGHLANDER: No optional parameters - use NavigateToSituationDetail for situation navigation
+    /// </summary>
+    protected void NavigateToView(LocationViewState newView)
     {
         NavigationStack.Push(ViewState);
         ViewState = newView;
+        StateHasChanged();
+    }
 
-        if (newView == LocationViewState.SituationDetail && context is Situation situation)
-        {
-            SelectedSituation = situation;
-        }
-
+    /// <summary>
+    /// Navigate to SituationDetail view with a specific situation
+    /// HIGHLANDER: Explicit method for situation navigation
+    /// </summary>
+    protected void NavigateToSituationDetail(Situation situation)
+    {
+        NavigationStack.Push(ViewState);
+        ViewState = LocationViewState.SituationDetail;
+        SelectedSituation = situation;
         StateHasChanged();
     }
 
@@ -303,7 +313,7 @@ public class LocationContentBase : ComponentBase
     {
         if (situation != null)
         {
-            NavigateToView(LocationViewState.SituationDetail, situation);
+            NavigateToSituationDetail(situation);
         }
     }
 

@@ -4,16 +4,15 @@ using System.Text.Json;
 [assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
 /// <summary>
-/// Domain Service for generating Scene instance DTOs and activating deferred scenes
+/// Domain Service for creating Scene instances and activating deferred scenes
 ///
 /// HIGHLANDER COMPLIANCE: Creates entities via PackageLoader (single creation path)
-/// Entity creation MUST flow through: DTO → PackageLoader.CreateSingle*() → Entity
+/// Entity creation MUST flow through: DTO → PackageLoader.CreateSingleScene(dto) → Entity
 ///
 /// RESPONSIBILITIES:
-/// 1. CreateDeferredScene: Generate deferred scene JSON package (NO Situations)
+/// 1. CreateDeferredScene: Creates Scene via PackageLoader.CreateSingleScene(dto) (NO Situations)
 /// 2. ActivateScene: INTEGRATED process - creates Situations AND resolves entities
-/// 3. GenerateScenePackageJson: Generates complete package JSON for immediate activation
-/// 4. DTO generation: Creates SceneDTO, SituationDTOs, ChoiceTemplateDTOs
+/// 3. DTO generation: Creates SceneDTO internally for PackageLoader consumption
 ///
 /// AI GENERATION INTEGRATION: SceneNarrativeService generates narratives during DTO generation
 /// Generic text used until AI narrative system implemented
@@ -25,41 +24,38 @@ public class SceneInstantiator
     private readonly SceneNarrativeService _narrativeService;
     private readonly VenueGeneratorService _venueGenerator;
     private readonly PackageLoader _packageLoader;
+    private readonly ProceduralContentTracer _proceduralTracer;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
         VenueGeneratorService venueGenerator,
-        PackageLoader packageLoader)
+        PackageLoader packageLoader,
+        ProceduralContentTracer proceduralTracer)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
         _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _proceduralTracer = proceduralTracer ?? throw new ArgumentNullException(nameof(proceduralTracer));
     }
 
     /// <summary>
     /// PHASE 1: Create deferred scene WITHOUT Situations or dependent resources
-    /// Generates JSON package with ONLY Scene (NO Situations, NO dependent locations/items)
     /// Scene.State = "Deferred" (Situations created at activation time)
     /// CORRECT ARCHITECTURE:
     /// - SceneTemplate has ALL SituationTemplates (blueprint)
     /// - Scene (Deferred) = reference to Template ONLY, Situations = EMPTY
     /// - Scene (Active) = Situation INSTANCES created from SituationTemplates
-    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
-    /// NEVER creates entities directly - only DTOs and JSON
+    /// HIGHLANDER: Creates Scene via PackageLoader.CreateSingleScene(dto)
     /// </summary>
-    public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    public Scene CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Evaluate spawn conditions
         // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
-        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
-            template.SpawnConditions,
-            context.Player,
-            placementId: null
-        );
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(template.SpawnConditions);
 
         if (!isEligible)
         {
@@ -76,12 +72,12 @@ public class SceneInstantiator
         // Empty situations list - player can't interact with deferred scene anyway
         sceneDto.Situations = new List<SituationDTO>();
 
-        // Build package with ONLY Scene (empty situations, empty dependent resources)
-        string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
+        // HIGHLANDER: Create Scene via PackageLoader (single creation path)
+        Scene scene = _packageLoader.CreateSingleScene(sceneDto);
 
-        Console.WriteLine($"[SceneInstantiator] Generated DEFERRED scene package '{sceneDto.Id}' (State=Deferred, NO situations - created at activation)");
+        Console.WriteLine($"[SceneInstantiator] Created DEFERRED scene '{scene.DisplayName}' (State=Deferred, NO situations - created at activation)");
 
-        return packageJson;
+        return scene;
     }
 
     /// <summary>
@@ -273,18 +269,22 @@ public class SceneInstantiator
             scene.Situations.Add(situation);
 
             // PROCEDURAL CONTENT TRACING: Record situation spawn during scene activation
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            if (_proceduralTracer.IsEnabled)
             {
-                SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.GetNodeForScene(scene);
+                SceneSpawnNode sceneNode = _proceduralTracer.GetNodeForScene(scene);
                 if (sceneNode != null)
                 {
-                    _gameWorld.ProceduralTracer.RecordSituationSpawn(
+                    EntityResolutionContext resolutionContext = new EntityResolutionContext
+                    {
+                        LocationResolution = locationResolution,
+                        NpcResolution = npcResolution,
+                        RouteResolution = routeResolution
+                    };
+                    _proceduralTracer.RecordSituationSpawn(
                         situation,
                         sceneNode,
                         SituationSpawnTriggerType.InitialScene,
-                        locationResolution,
-                        npcResolution,
-                        routeResolution
+                        resolutionContext
                     );
                 }
             }
@@ -530,44 +530,6 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Generate complete scene package JSON from template.
-    /// Runtime content generation produces JSON packages for PackageLoader (same architecture as authored content).
-    /// Returns JSON string containing Scene + Situations + Dependent Resources.
-    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load.
-    /// NEVER creates entities directly - only DTOs and JSON.
-    /// </summary>
-    public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
-    {
-        // Evaluate spawn conditions
-        // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
-        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
-            template.SpawnConditions,
-            context.Player,
-            placementId: null
-        );
-
-        if (!isEligible)
-        {
-            Console.WriteLine($"[SceneInstantiator] Scene '{template.Id}' REJECTED by spawn conditions");
-            return null; // Scene not eligible - return null
-        }
-
-        // System 3: Generate Scene DTO with categorical specifications (NO resolution)
-        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: false);
-
-        // Generate Situation DTOs (entities reference by categories, no markers)
-        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
-        sceneDto.Situations = situationDtos;
-
-        // Build complete package (locations resolved via EntityResolver, not in package)
-        string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
-
-        Console.WriteLine($"[SceneInstantiator] Generated scene package '{sceneDto.Id}' with {situationDtos.Count} situations");
-
-        return packageJson;
-    }
-
-    /// <summary>
     /// Generate SceneDTO from template with categorical specifications (System 3)
     /// Does NOT resolve entities - writes PlacementFilterDTO to JSON
     /// EntityResolver (System 4) will FindOrCreate from these specifications
@@ -612,6 +574,7 @@ public class SceneInstantiator
         {
             Id = sceneId,
             TemplateId = template.Id,
+            SceneArchetype = template.Id, // REQUIRED: Template ID serves as archetype reference for SceneParser
             // Activation filter: Copied from template, determines activation trigger
             // Scenes activate via LOCATION ONLY when player enters matching location
             LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),
@@ -707,47 +670,6 @@ public class SceneInstantiator
         }
 
         return situationDtos;
-    }
-
-    /// <summary>
-    /// Build complete package JSON with scene, situations, and dependent resources
-    /// TWO-PHASE SUPPORT: sceneDto can be null (Phase 2 activation with only dependent resources)
-    /// </summary>
-    private string BuildScenePackage(SceneDTO sceneDto, List<LocationDTO> dependentLocations, List<ItemDTO> dependentItems)
-    {
-        // TWO-PHASE: For Phase 2 (activation), sceneDto is null and we only have dependent resources
-        string packageName = sceneDto != null
-            ? $"Scene {sceneDto.DisplayName}"
-            : "Scene Activation (Dependent Resources)";
-
-        List<SceneDTO> scenes = sceneDto != null
-            ? new List<SceneDTO> { sceneDto }
-            : new List<SceneDTO>(); // Empty list for Phase 2
-
-        Package package = new Package
-        {
-            PackageId = $"scene_package_{Guid.NewGuid().ToString("N")}",
-            Metadata = new PackageMetadata
-            {
-                Name = packageName,
-                Author = "Scene System",
-                Version = "1.0.0"
-            },
-            Content = new PackageContent
-            {
-                Scenes = scenes,
-                Locations = dependentLocations,
-                Items = dependentItems
-            }
-        };
-
-        JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        };
-
-        return JsonSerializer.Serialize(package, jsonOptions);
     }
 
     /// <summary>

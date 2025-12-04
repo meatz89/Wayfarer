@@ -36,8 +36,8 @@ public class StandingObligationManager
         {
             _messageSystem.AddSystemMessage(
                 $"Cannot accept {obligation.Name}: conflicts with {string.Join(", ", conflicts.Select(c => c.Name))}",
-                SystemMessageTypes.Warning
-            );
+                SystemMessageTypes.Warning,
+                null);
             return false;
         }
 
@@ -46,21 +46,19 @@ public class StandingObligationManager
 
         _messageSystem.AddSystemMessage(
             $"Accepted Standing Obligation: {obligation.Name}",
-            SystemMessageTypes.Success
-        );
+            SystemMessageTypes.Success, null);
 
         // Log the effects for the player
         _messageSystem.AddSystemMessage(
             obligation.GetEffectsSummary(),
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
 
         return true;
     }
 
     // Remove an obligation (rare, usually has consequences)
-    // HIGHLANDER: Accepts obligation object, not string ID
-    public bool RemoveObligation(StandingObligation obligation, bool isVoluntary = true)
+    // HIGHLANDER: Accepts obligation object, not string ID. isVoluntary REQUIRED - caller knows.
+    public bool RemoveObligation(StandingObligation obligation, bool isVoluntary)
     {
         if (obligation == null) return false;
 
@@ -77,8 +75,7 @@ public class StandingObligationManager
 
         _messageSystem.AddSystemMessage(
             $"Standing Obligation removed: {obligation.Name}",
-            isVoluntary ? SystemMessageTypes.Warning : SystemMessageTypes.Info
-        );
+            isVoluntary ? SystemMessageTypes.Warning : SystemMessageTypes.Info, null);
 
         return true;
     }
@@ -221,18 +218,15 @@ public class StandingObligationManager
 
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Activated: {newObligation.Name}",
-            SystemMessageTypes.Warning
-        );
+            SystemMessageTypes.Warning, null);
 
         _messageSystem.AddSystemMessage(
             $"Your {template.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} {currentTokenCount}.",
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
 
         _messageSystem.AddSystemMessage(
             newObligation.GetEffectsSummary(),
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
     }
 
     // Deactivate a threshold-based obligation
@@ -246,13 +240,11 @@ public class StandingObligationManager
 
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Deactivated: {obligation.Name}",
-            SystemMessageTypes.Success
-        );
+            SystemMessageTypes.Success, null);
 
         _messageSystem.AddSystemMessage(
             $"Your {obligation.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} the required threshold.",
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
     }
 
     // Helper methods
@@ -291,8 +283,7 @@ public class StandingObligationManager
 
         _messageSystem.AddSystemMessage(
             $"Lost {GameRules.OBLIGATION_BREAKING_PENALTY} {obligation.RelatedTokenType} tokens for breaking {obligation.Name}",
-            SystemMessageTypes.Danger
-        );
+            SystemMessageTypes.Danger, null);
 
         // CRITICAL: Trigger HOSTILE state by making NPC's letters overdue
         // This creates the path: obligation breaking → overdue letters → HOSTILE state → betrayal cards available
@@ -334,8 +325,8 @@ public class StandingObligationManager
 
             _messageSystem.AddSystemMessage(
                 result.Message,
-                SystemMessageTypes.Info
-            );
+                SystemMessageTypes.Info,
+                null);
         }
     }
 }

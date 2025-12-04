@@ -7,6 +7,10 @@ namespace Wayfarer.Tests.Architecture;
 /// Tests for Service Statelessness compliance (HIGHLANDER principle).
 /// Services contain logic, not state. All state belongs in GameWorld.
 ///
+/// KEY PRINCIPLES:
+/// 1. GameWorld: Inject via DI constructor, NEVER pass as method parameter
+/// 2. Player: NEVER inject or pass - always access via _gameWorld.Player
+///
 /// BEHAVIOR-ONLY TESTING (§8.21): Tests verify structural compliance.
 /// </summary>
 public class ServiceStatelessnessTests
@@ -18,23 +22,13 @@ public class ServiceStatelessnessTests
     };
 
     // Known stateful components (by design)
-    private static readonly HashSet<string> AllowedStatefulTypes = new HashSet<string>
+    private static readonly List<string> AllowedStatefulTypes = new List<string>
     {
         "TimeManager",           // Time is global mutable state (by design)
-        "GameOrchestrator",            // Coordinator, holds references to state containers
+        "GameOrchestrator",      // Coordinator, holds references to state containers
         "StreamingContentState", // Content loading state
         "LoadingStateService",   // UI coordination service for loading indicators (Blazor pattern)
         "MusicService"           // Audio playback state (track queue, playback position - inherently stateful)
-    };
-
-    // Pure utility services that don't need state parameters (string generation, formatting)
-    // Or orchestration services that coordinate other services without needing state objects
-    private static readonly HashSet<string> PureUtilityServices = new HashSet<string>
-    {
-        "NarrativeService",      // Pure string generation utility - works with domain types, not state objects
-        "ObligationActivity",    // Orchestration service - coordinates obligations via injected services, not state objects
-        "TimeBlockCalculator",   // Pure time calculation utility - works with TimeBlocks and ints, not state objects
-        "PermitValidator"        // Pure validation utility - validates permits without game state
     };
 
     /// <summary>
@@ -77,9 +71,10 @@ public class ServiceStatelessnessTests
         }
 
         // Filter out injected dependencies and known acceptable patterns
+        // NOTE: _player is NOT filtered - Player should NEVER be injected (use _gameWorld.Player)
         violations = violations
             .Where(v => !v.Contains("_world"))          // GameWorld dependency is okay
-            .Where(v => !v.Contains("_player"))         // Player dependency is okay
+            .Where(v => !v.Contains("_gameWorld"))      // GameWorld dependency is okay
             .Where(v => !v.Contains("_time"))           // TimeManager dependency is okay
             .Where(v => !v.Contains("_facade"))         // Facade dependencies are okay
             .Where(v => !v.Contains("_resolver"))       // EntityResolver dependency is okay
@@ -176,51 +171,118 @@ public class ServiceStatelessnessTests
     }
 
     /// <summary>
-    /// Verify services receive state through method parameters.
+    /// PRINCIPLE: GameWorld should be injected via DI constructor, NEVER passed as method parameter.
+    /// Services access GameWorld via their _gameWorld field, not method arguments.
     /// </summary>
     [Fact]
-    public void Services_ReceiveState_ThroughMethodParameters()
+    public void Services_ShouldNot_HaveGameWorldAsMethodParameter()
     {
         Assembly assembly = typeof(GameWorld).Assembly;
+        List<string> violations = new List<string>();
 
         foreach (Type type in GetServiceTypes(assembly))
         {
             if (AllowedStatefulTypes.Contains(type.Name)) continue;
-            if (PureUtilityServices.Contains(type.Name)) continue;
 
-            MethodInfo[] publicMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            // Only check PUBLIC methods - private methods are implementation details
+            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            int methodsReceivingState = 0;
-            int totalBusinessMethods = 0;
-
-            foreach (MethodInfo method in publicMethods)
+            foreach (MethodInfo method in methods)
             {
-                // Skip property accessors and standard methods
+                // Skip constructors (GameWorld in constructor is correct - DI)
+                if (method.IsConstructor) continue;
+                // Skip property accessors
                 if (method.IsSpecialName) continue;
-                if (method.Name.StartsWith("get_") || method.Name.StartsWith("set_")) continue;
-                if (method.Name == "ToString" || method.Name == "GetHashCode" || method.Name == "Equals") continue;
 
-                totalBusinessMethods++;
-
-                // Check if method receives state objects as parameters
-                bool receivesState = method.GetParameters().Any(p =>
-                    p.ParameterType == typeof(Player) ||
-                    p.ParameterType == typeof(GameWorld) ||
-                    p.ParameterType == typeof(NPC) ||
-                    p.ParameterType == typeof(Location) ||
-                    p.Name.Contains("context", StringComparison.OrdinalIgnoreCase));
-
-                if (receivesState) methodsReceivingState++;
-            }
-
-            // Services with business methods should receive state parameters
-            // (allows for coordinator/orchestration services that don't)
-            if (totalBusinessMethods > 3)
-            {
-                Assert.True(methodsReceivingState > 0,
-                    $"Service {type.Name} has {totalBusinessMethods} business methods but none receive state parameters");
+                foreach (ParameterInfo param in method.GetParameters())
+                {
+                    if (param.ParameterType == typeof(GameWorld))
+                    {
+                        violations.Add($"{type.Name}.{method.Name}({param.Name}) - GameWorld should be injected via constructor, not passed as parameter");
+                    }
+                }
             }
         }
+
+        Assert.True(violations.Count == 0, $"GameWorld parameter violations:\n{string.Join("\n", violations)}");
+    }
+
+    /// <summary>
+    /// PRINCIPLE: Player should NEVER be passed as method parameter.
+    /// Services access Player via _gameWorld.GetPlayer(), not method arguments.
+    /// </summary>
+    [Fact]
+    public void Services_ShouldNot_HavePlayerAsMethodParameter()
+    {
+        Assembly assembly = typeof(GameWorld).Assembly;
+        List<string> violations = new List<string>();
+
+        foreach (Type type in GetServiceTypes(assembly))
+        {
+            if (AllowedStatefulTypes.Contains(type.Name)) continue;
+
+            // Only check PUBLIC methods - private methods are implementation details
+            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            foreach (MethodInfo method in methods)
+            {
+                // Skip property accessors
+                if (method.IsSpecialName) continue;
+
+                foreach (ParameterInfo param in method.GetParameters())
+                {
+                    if (param.ParameterType == typeof(Player))
+                    {
+                        violations.Add($"{type.Name}.{method.Name}({param.Name}) - Player should be accessed via _gameWorld.GetPlayer(), not passed as parameter");
+                    }
+                }
+            }
+        }
+
+        Assert.True(violations.Count == 0, $"Player parameter violations:\n{string.Join("\n", violations)}");
+    }
+
+    /// <summary>
+    /// PRINCIPLE: Player should NEVER be injected via constructor.
+    /// Services should access Player via _gameWorld.Player instead.
+    /// </summary>
+    [Fact]
+    public void Services_ShouldNot_InjectPlayerViaConstructor()
+    {
+        Assembly assembly = typeof(GameWorld).Assembly;
+        List<string> violations = new List<string>();
+
+        foreach (Type type in GetServiceTypes(assembly))
+        {
+            if (AllowedStatefulTypes.Contains(type.Name)) continue;
+
+            // Check constructor parameters
+            ConstructorInfo[] constructors = type.GetConstructors();
+
+            foreach (ConstructorInfo ctor in constructors)
+            {
+                foreach (ParameterInfo param in ctor.GetParameters())
+                {
+                    if (param.ParameterType == typeof(Player))
+                    {
+                        violations.Add($"{type.Name} constructor injects Player - use _gameWorld.Player instead");
+                    }
+                }
+            }
+
+            // Check for Player field (injected dependency)
+            FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            foreach (FieldInfo field in fields)
+            {
+                if (field.FieldType == typeof(Player))
+                {
+                    violations.Add($"{type.Name}.{field.Name} stores Player reference - use _gameWorld.Player instead");
+                }
+            }
+        }
+
+        Assert.Empty(violations);
     }
 
     /// <summary>
@@ -356,9 +418,10 @@ public class ServiceStatelessnessTests
     private bool IsDependencyType(Type type)
     {
         // Types that are injected dependencies (not state)
-        HashSet<string> dependencyTypeNames = new HashSet<string>
+        // NOTE: Player is NOT here - Player should NEVER be injected (use _gameWorld.Player)
+        List<string> dependencyTypeNames = new List<string>
         {
-            "GameWorld", "Player", "TimeManager", "EntityResolver",
+            "GameWorld", "TimeManager", "EntityResolver",
             "Random", "ILogger", "HttpClient"
         };
 

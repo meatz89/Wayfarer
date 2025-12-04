@@ -155,45 +155,23 @@ public class PriceManager
     /// <summary>
     /// Calculate supply-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
+    /// DDR-007: Delegates to MarketStateTracker tier-based system
     /// </summary>
     private int CalculateSupplyAdjustment(Item item, Location location)
     {
-        int supplyPercent = _marketStateTracker.GetSupplyLevel(item, location);
-
-        // Low supply = higher prices, high supply = lower prices
-        // Supply 0% = +12 coins, Supply 50% = +6 coins, Supply 100% = 0 coins, Supply 200% = -6 coins
-        if (supplyPercent < 100)
-        {
-            // Linear interpolation: 0% = +12, 100% = 0
-            return (100 - supplyPercent) * 12 / 100;
-        }
-        else
-        {
-            // Linear interpolation: 100% = 0, 200% = -6
-            return Math.Max(-6, -(supplyPercent - 100) * 6 / 100);
-        }
+        MarketStateTracker.SupplyTier tier = _marketStateTracker.GetSupplyTier(item, location);
+        return MarketStateTracker.GetSupplyAdjustment(tier);
     }
 
     /// <summary>
     /// Calculate demand-based price adjustment (returns flat coin adjustment)
     /// HIGHLANDER: Accept Item and Location objects
+    /// DDR-007: Delegates to MarketStateTracker tier-based system
     /// </summary>
     private int CalculateDemandAdjustment(Item item, Location location)
     {
-        int demandPercent = _marketStateTracker.GetDemandLevel(item, location);
-
-        // High demand = higher prices, low demand = lower prices
-        // Demand 0% = -6 coins, Demand 50% = -3 coins, Demand 100% = 0 coins, Demand 200% = +4 coins
-        if (demandPercent < 100)
-        {
-            // Linear interpolation: 0% = -6, 100% = 0
-            return -(100 - demandPercent) * 6 / 100;
-        }
-        else
-        {
-            // Linear interpolation: 100% = 0, 200% = +4
-            return Math.Min(4, (demandPercent - 100) * 4 / 100);
-        }
+        MarketStateTracker.DemandTier tier = _marketStateTracker.GetDemandTier(item, location);
+        return MarketStateTracker.GetDemandAdjustment(tier);
     }
 
     /// <summary>
@@ -340,8 +318,9 @@ public class PriceManager
     /// <summary>
     /// Find items with best profit margins at a location
     /// HIGHLANDER: Accept Location object
+    /// HIGHLANDER: topN REQUIRED - caller specifies how many items to return
     /// </summary>
-    public List<PricingInfo> GetHighMarginItems(Location location, int topN = 5)
+    public List<PricingInfo> GetHighMarginItems(Location location, int topN)
     {
         List<PricingInfo> prices = GetLocationPrices(location);
 
@@ -417,16 +396,9 @@ public class PriceManager
         {
             case "festival":
                 // Hunger and luxury items more expensive during festivals
-                // This would update the market state tracker's demand levels
-                List<Item> items = _itemRepository.GetAllItems();
-                foreach (Item item in items.Where(i =>
-                    i.Categories.Contains(ItemCategory.Hunger) ||
-                    i.Categories.Contains(ItemCategory.Luxury_Items)))
-                {
-                    // Increase demand during festival
-                    int currentDemand = _marketStateTracker.GetDemandLevel(item, location);
-                    // Note: Would need to add SetDemandLevel method to MarketStateTracker
-                }
+                // DDR-007: Event pricing would need SetDemandTier method on MarketStateTracker
+                // Note: This is placeholder logic - actual implementation would shift demand tiers
+                // for food and luxury items toward VeryHighPlus4
                 break;
 
             case "shortage":

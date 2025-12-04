@@ -28,13 +28,16 @@ public class LocationPlacementService
     /// NOTE: VenuePurposeCompatibility was REMOVED - it artificially restricted venues
     /// before distance filtering, causing locations to be placed in wrong venues.
     /// Any venue type can host any location Purpose (taverns have commerce, dwelling, etc.).
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public void PlaceLocation(Location location, string distanceHint, Player player)
+    public void PlaceLocation(Location location, string distanceHint)
     {
         if (location == null)
             throw new ArgumentNullException(nameof(location));
+
+        Player player = _gameWorld.GetPlayer();
         if (player == null)
-            throw new ArgumentNullException(nameof(player));
+            throw new InvalidOperationException("Player not found in GameWorld");
 
         Console.WriteLine($"[LocationPlacement] === UNIFIED PLACEMENT ALGORITHM ===");
         Console.WriteLine($"[LocationPlacement] Placing location '{location.Name}' (Purpose: {location.Purpose}) with distance hint '{distanceHint}'");
@@ -109,7 +112,7 @@ public class LocationPlacementService
         // PHASE 7: Hex assignment within venue (atomic venue + hex assignment)
         // Hex-level constraints (SameLocation, AdjacentLocation) handled inside PlaceLocationsInVenue
         Console.WriteLine($"[LocationPlacement] === PHASE 7: Hex Assignment ===");
-        PlaceLocationsInVenue(selectedVenue, new List<Location> { location }, player);
+        PlaceLocationsInVenue(selectedVenue, new List<Location> { location });
 
         Console.WriteLine($"[LocationPlacement] SUCCESS: Placed '{location.Name}' at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) in venue '{selectedVenue.Name}'");
     }
@@ -285,9 +288,11 @@ public class LocationPlacementService
     /// Each location placed at first available unoccupied hex in venue cluster.
     /// HIGHLANDER: FindUnoccupiedHexInVenue is single source for hex availability.
     /// Validates venue capacity, hex availability.
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public void PlaceLocationsInVenue(Venue venue, List<Location> locations, Player player = null)
+    public void PlaceLocationsInVenue(Venue venue, List<Location> locations)
     {
+        Player player = _gameWorld.GetPlayer();
         if (venue == null)
             throw new ArgumentNullException(nameof(venue));
         if (locations == null || locations.Count == 0)

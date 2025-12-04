@@ -96,15 +96,15 @@ public class SituationFacade
             await _rewardApplicationService.ApplyConsequence(strategicCosts, situation);
 
             if (resolveCost > 0)
-                _messageSystem.AddSystemMessage($"Resolve consumed: {resolveCost} (now {player.Resolve})", SystemMessageTypes.Warning);
+                _messageSystem.AddSystemMessage($"Resolve consumed: {resolveCost} (now {player.Resolve})", SystemMessageTypes.Warning, null);
             if (coinsCost > 0)
-                _messageSystem.AddSystemMessage($"Coins spent: {coinsCost}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Coins spent: {coinsCost}", SystemMessageTypes.Info, null);
         }
 
         if (timeCost > 0)
         {
             _timeManager.AdvanceSegments(timeCost);
-            _messageSystem.AddSystemMessage($"Time passed: {timeCost} segments", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Time passed: {timeCost} segments", SystemMessageTypes.Info, null);
         }
 
         // Mark situation as in progress
@@ -151,12 +151,10 @@ public class SituationFacade
         // Mental subsystem will consume Focus (tactical cost) during challenge
         // Strategic cost (Resolve) already consumed above
 
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Mental,
+        return SituationSelectionResult.LaunchMentalChallenge(
             situation,
             situation.Deck,
-            npc: null,
-            location: situation.Location
+            situation.Location
         );
     }
 
@@ -170,12 +168,10 @@ public class SituationFacade
         // Physical subsystem will consume Stamina (tactical cost) during challenge
         // Strategic cost (Resolve) already consumed above
 
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Physical,
+        return SituationSelectionResult.LaunchPhysicalChallenge(
             situation,
             situation.Deck,
-            npc: null,
-            location: situation.Location
+            situation.Location
         );
     }
 
@@ -189,12 +185,10 @@ public class SituationFacade
         // Social subsystem will consume tactical costs during challenge
         // Strategic cost (Resolve) already consumed above
 
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Social,
+        return SituationSelectionResult.LaunchSocialChallenge(
             situation,
             situation.Deck,
-            npc: situation.Npc,
-            location: null
+            situation.Npc
         );
     }
 
@@ -270,21 +264,62 @@ public class SituationSelectionResult
         };
     }
 
-    public static SituationSelectionResult LaunchChallenge(
-        TacticalSystemType challengeType,
+    /// <summary>
+    /// HIGHLANDER: Launch Social challenge - requires NPC
+    /// </summary>
+    public static SituationSelectionResult LaunchSocialChallenge(
         Situation situation,
         object deck,
-        NPC npc = null,
-        Location location = null)
+        NPC npc)
     {
         return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.LaunchChallenge,
-            ChallengeType = challengeType,
+            ChallengeType = TacticalSystemType.Social,
             ChallengeSituation = situation,
             ChallengeDeck = deck,
             ChallengeNpc = npc,
+            ChallengeLocation = null
+        };
+    }
+
+    /// <summary>
+    /// HIGHLANDER: Launch Mental challenge - requires Location
+    /// </summary>
+    public static SituationSelectionResult LaunchMentalChallenge(
+        Situation situation,
+        object deck,
+        Location location)
+    {
+        return new SituationSelectionResult
+        {
+            Success = true,
+            ResultType = SituationResultType.LaunchChallenge,
+            ChallengeType = TacticalSystemType.Mental,
+            ChallengeSituation = situation,
+            ChallengeDeck = deck,
+            ChallengeNpc = null,
+            ChallengeLocation = location
+        };
+    }
+
+    /// <summary>
+    /// HIGHLANDER: Launch Physical challenge - requires Location
+    /// </summary>
+    public static SituationSelectionResult LaunchPhysicalChallenge(
+        Situation situation,
+        object deck,
+        Location location)
+    {
+        return new SituationSelectionResult
+        {
+            Success = true,
+            ResultType = SituationResultType.LaunchChallenge,
+            ChallengeType = TacticalSystemType.Physical,
+            ChallengeSituation = situation,
+            ChallengeDeck = deck,
+            ChallengeNpc = null,
             ChallengeLocation = location
         };
     }

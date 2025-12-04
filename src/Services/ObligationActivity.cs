@@ -148,7 +148,7 @@ public class ObligationActivity
 
         _messageSystem.AddSystemMessage(
             $"Obligation activated: {obligation.Name}",
-            SystemMessageTypes.Info);
+            SystemMessageTypes.Info, null);
     }
 
     /// <summary>
@@ -192,7 +192,8 @@ public class ObligationActivity
 
             _messageSystem.AddSystemMessage(
                 $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
-                SystemMessageTypes.Success);
+                SystemMessageTypes.Success,
+                null);
         }
 
         // Spawn scenes from phase completion rewards using Scene-Situation template architecture
@@ -282,7 +283,7 @@ public class ObligationActivity
 
         _messageSystem.AddSystemMessage(
             $"Obligation complete: {obligation.Name}",
-            SystemMessageTypes.Success);
+            SystemMessageTypes.Success, null);
 
         return result;
     }
@@ -307,7 +308,7 @@ public class ObligationActivity
         {
             _messageSystem.AddSystemMessage(
                 $"Received equipment: {item.Name}",
-                SystemMessageTypes.Success);
+                SystemMessageTypes.Success, null);
         }
 
         // Stats are now simple integers - no XP system
@@ -321,7 +322,7 @@ public class ObligationActivity
             _gameWorld.ObligationJournal.DiscoveredObligations.Add(spawnedObligation);
             _messageSystem.AddSystemMessage(
                 $"New obligation available: {spawnedObligation.Name}",
-                SystemMessageTypes.Info);
+                SystemMessageTypes.Info, null);
         }
 
         // ObservationCardRewards system eliminated - replaced by transparent resource competition
@@ -370,7 +371,8 @@ public class ObligationActivity
 
             _messageSystem.AddSystemMessage(
                 $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
-                SystemMessageTypes.Success);
+                SystemMessageTypes.Success,
+                null);
         }
 
         // HIGHLANDER: Use object references directly
@@ -397,7 +399,7 @@ public class ObligationActivity
 
         _messageSystem.AddSystemMessage(
             $"Obligation discovered: {obligation.Name}",
-            SystemMessageTypes.Info);
+            SystemMessageTypes.Info, null);
     }
 
     /// <summary>
@@ -443,7 +445,8 @@ public class ObligationActivity
 
             _messageSystem.AddSystemMessage(
                 $"Understanding increased by {rewardAmount} (now {newUnderstanding}/10)",
-                SystemMessageTypes.Success);
+                SystemMessageTypes.Success,
+                null);
         }
 
         // Create activation result for UI modal (stored in GameWorld, not service)
@@ -456,7 +459,7 @@ public class ObligationActivity
 
         _messageSystem.AddSystemMessage(
             $"Obligation activated: {obligation.Name}",
-            SystemMessageTypes.Success);
+            SystemMessageTypes.Success, null);
     }
 
     /// <summary>
@@ -479,7 +482,7 @@ public class ObligationActivity
             {
                 _messageSystem.AddSystemMessage(
                     "No next MainStory template found",
-                    SystemMessageTypes.Warning);
+                    SystemMessageTypes.Warning, null);
                 return;
             }
         }
@@ -491,7 +494,7 @@ public class ObligationActivity
         {
             _messageSystem.AddSystemMessage(
                 "SceneSpawnReward has no Template reference",
-                SystemMessageTypes.Warning);
+                SystemMessageTypes.Warning, null);
             return;
         }
 
@@ -504,28 +507,22 @@ public class ObligationActivity
             CurrentSituation = sourceSituation
         };
 
-        // HIGHLANDER FLOW: Single method spawns scene with full orchestration
-        string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
+        // HIGHLANDER FLOW: Create Scene via SceneInstantiator → PackageLoader.CreateSingleScene(dto)
+        Scene scene = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
 
-        if (string.IsNullOrEmpty(packageJson))
+        if (scene == null)
         {
             _messageSystem.AddSystemMessage(
                 $"Scene '{template.Id}' failed to spawn (spawn conditions not met)",
-                SystemMessageTypes.Warning);
+                SystemMessageTypes.Warning,
+                null);
             return;
         }
 
-        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
-        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
-
-        Scene scene = loadResult.ScenesAdded.FirstOrDefault();
-        if (scene != null)
-        {
-            string placementDescription = GetPlacementDescription(scene);
-            _messageSystem.AddSystemMessage(
-                $"New scene appeared: {scene.DisplayName} {placementDescription}",
-                SystemMessageTypes.Warning);
-        }
+        string placementDescription = GetPlacementDescription(scene);
+        _messageSystem.AddSystemMessage(
+            $"New scene appeared: {scene.DisplayName} {placementDescription}",
+            SystemMessageTypes.Warning, null);
     }
     /// <summary>
     /// Get human-readable placement description for system message

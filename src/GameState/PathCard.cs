@@ -57,12 +57,56 @@ public class PathCard
     /// </summary>
     public Item PermitRequirement { get; set; }
 
-    /// <summary>
-    /// Stat requirements - minimum stat levels required to use this path (ATMOSPHERIC PATTERN)
-    /// Player must meet ALL stat requirements
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<StatRequirementEntry> StatRequirements { get; set; } = new List<StatRequirementEntry>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for PlayerStatType (fixed enum)
+    // Stat requirements - minimum stat levels required to use this path (ATMOSPHERIC PATTERN)
+    public int InsightRequirement { get; set; }
+    public int RapportRequirement { get; set; }
+    public int AuthorityRequirement { get; set; }
+    public int DiplomacyRequirement { get; set; }
+    public int CunningRequirement { get; set; }
+
+    public int GetStatRequirement(PlayerStatType stat)
+    {
+        return stat switch
+        {
+            PlayerStatType.Insight => InsightRequirement,
+            PlayerStatType.Rapport => RapportRequirement,
+            PlayerStatType.Authority => AuthorityRequirement,
+            PlayerStatType.Diplomacy => DiplomacyRequirement,
+            PlayerStatType.Cunning => CunningRequirement,
+            _ => 0
+        };
+    }
+
+    public bool HasAnyStatRequirements()
+    {
+        return InsightRequirement > 0 || RapportRequirement > 0 || AuthorityRequirement > 0 ||
+               DiplomacyRequirement > 0 || CunningRequirement > 0;
+    }
+
+    public bool MeetsAllStatRequirements(Player player)
+    {
+        return player.Insight >= InsightRequirement &&
+               player.Rapport >= RapportRequirement &&
+               player.Authority >= AuthorityRequirement &&
+               player.Diplomacy >= DiplomacyRequirement &&
+               player.Cunning >= CunningRequirement;
+    }
+
+    public string GetFirstUnmetStatRequirement(Player player)
+    {
+        if (player.Insight < InsightRequirement)
+            return $"Requires Insight {InsightRequirement}, have {player.Insight}";
+        if (player.Rapport < RapportRequirement)
+            return $"Requires Rapport {RapportRequirement}, have {player.Rapport}";
+        if (player.Authority < AuthorityRequirement)
+            return $"Requires Authority {AuthorityRequirement}, have {player.Authority}";
+        if (player.Diplomacy < DiplomacyRequirement)
+            return $"Requires Diplomacy {DiplomacyRequirement}, have {player.Diplomacy}";
+        if (player.Cunning < CunningRequirement)
+            return $"Requires Cunning {CunningRequirement}, have {player.Cunning}";
+        return null;
+    }
 
     /// <summary>
     /// Stamina cost to use this path (ATMOSPHERIC PATTERN)
@@ -110,12 +154,29 @@ public class PathCard
     /// </summary>
     public PathReward Reward { get; set; } = PathReward.None;
 
-    /// <summary>
-    /// Token gains from using this path (ATMOSPHERIC PATTERN)
-    /// Progression system integration
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<TokenGainEntry> TokenGains { get; set; } = new List<TokenGainEntry>();
+    // DOMAIN COLLECTION PRINCIPLE: Explicit properties for ConnectionType (fixed enum)
+    // Token gains from using this path (ATMOSPHERIC PATTERN)
+    public int TrustTokenGain { get; set; }
+    public int DiplomacyTokenGain { get; set; }
+    public int StatusTokenGain { get; set; }
+    public int ShadowTokenGain { get; set; }
+
+    public int GetTokenGain(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => TrustTokenGain,
+            ConnectionType.Diplomacy => DiplomacyTokenGain,
+            ConnectionType.Status => StatusTokenGain,
+            ConnectionType.Shadow => ShadowTokenGain,
+            _ => 0
+        };
+    }
+
+    public bool HasAnyTokenGains()
+    {
+        return TrustTokenGain > 0 || DiplomacyTokenGain > 0 || StatusTokenGain > 0 || ShadowTokenGain > 0;
+    }
 
     /// <summary>
     /// List of path card IDs revealed when this path is used (ATMOSPHERIC PATTERN)

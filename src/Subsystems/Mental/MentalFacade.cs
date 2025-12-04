@@ -251,9 +251,9 @@ public class MentalFacade
         { }
 
         // Track categories for obligation depth
+        // DOMAIN COLLECTION PRINCIPLE: Explicit properties per enum value
         MentalCategory category = card.MentalCardTemplate.Category;
-        _gameWorld.CurrentMentalSession.CategoryCounts[category] =
-            _gameWorld.CurrentMentalSession.CategoryCounts.GetValueOrDefault(category, 0) + 1;
+        _gameWorld.CurrentMentalSession.IncrementCategoryCount(category);
 
         // ACT: Generate Leads based on card depth
         // Leads determine how many cards OBSERVE will draw

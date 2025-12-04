@@ -1,3 +1,13 @@
+/// <summary>
+/// Entry for stepped threshold levels with flat integer values.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class SteppedThreshold
+{
+    public int Level { get; set; }
+    public int Value { get; set; }
+}
+
 public enum ObligationEffect
 {
     // Entry Position Effects

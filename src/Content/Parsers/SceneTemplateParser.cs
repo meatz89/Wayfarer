@@ -136,14 +136,30 @@ public class SceneTemplateParser
         NPC contextNPC = null;
         Location contextLocation = null;
 
-        Console.WriteLine($"[SceneGeneration] Categorical context: MainStorySequence={dto.MainStorySequence}, Rhythm={rhythmPattern}");
+        Console.WriteLine($"[SceneGeneration] Categorical context: Category={category}, MainStorySequence={dto.MainStorySequence}, Rhythm={rhythmPattern}");
 
-        SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
-            sceneArchetypeType,
-            contextNPC,
-            contextLocation,
-            dto.MainStorySequence,
-            rhythmPattern);
+        // HIGHLANDER: Branch on category, call appropriate method
+        // MainStory scenes have a sequence number, Side/Service content does not
+        SceneArchetypeDefinition archetypeDefinition;
+        if (category == StoryCategory.MainStory)
+        {
+            // MainStory requires sequence (already validated at lines 67-80)
+            archetypeDefinition = _generationFacade.GenerateMainStoryScene(
+                sceneArchetypeType,
+                contextNPC,
+                contextLocation,
+                dto.MainStorySequence.Value,
+                rhythmPattern);
+        }
+        else
+        {
+            // SideStory and Service have no sequence
+            archetypeDefinition = _generationFacade.GenerateSideContentScene(
+                sceneArchetypeType,
+                contextNPC,
+                contextLocation,
+                rhythmPattern);
+        }
 
         List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
         SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;

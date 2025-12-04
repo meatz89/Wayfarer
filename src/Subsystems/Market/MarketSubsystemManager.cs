@@ -397,7 +397,7 @@ public class MarketSubsystemManager
             };
             await _rewardApplicationService.ApplyConsequence(purchaseCost, null);
             success = true;
-            _messageSystem.AddSystemMessage($"Bought {item.Name} for {buyPrice} coins", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Bought {item.Name} for {buyPrice} coins", SystemMessageTypes.Success, null);
         }
 
         result.Success = success;
@@ -483,7 +483,7 @@ public class MarketSubsystemManager
             };
             await _rewardApplicationService.ApplyConsequence(saleConsequence, null);
             success = true;
-            _messageSystem.AddSystemMessage($"Sold {item.Name} for {sellPrice} coins", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Sold {item.Name} for {sellPrice} coins", SystemMessageTypes.Success, null);
         }
 
         result.Success = success;

@@ -7,10 +7,12 @@ public static class PlacementFilterParser
 {
     /// <summary>
     /// Parse PlacementFilter from DTO
+    /// HIGHLANDER: gameWorld required - pass null explicitly if achievement resolution not needed
     /// </summary>
     /// <param name="dto">PlacementFilter DTO from JSON</param>
     /// <param name="contextId">Context identifier for error messages (template ID or instance path)</param>
-    public static PlacementFilter Parse(PlacementFilterDTO dto, string contextId, GameWorld gameWorld = null)
+    /// <param name="gameWorld">GameWorld for achievement resolution, null if not needed</param>
+    public static PlacementFilter Parse(PlacementFilterDTO dto, string contextId, GameWorld gameWorld)
     {
         if (dto == null)
             return null; // Optional - some SceneTemplates may not have filters

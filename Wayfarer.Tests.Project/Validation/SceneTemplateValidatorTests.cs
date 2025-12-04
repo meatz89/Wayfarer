@@ -10,7 +10,6 @@ public class SceneTemplateValidatorTests
         {
             Id = "test_scene",
             SceneArchetype = SceneArchetypeType.InnLodging,
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {
                 new() { Id = "sit1", LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation } },
@@ -50,7 +49,6 @@ public class SceneTemplateValidatorTests
         var template = new SceneTemplate
         {
             Id = null,
-            Tier = 1,
             SituationTemplates = CreateValidTemplate().SituationTemplates,
             SpawnRules = CreateValidTemplate().SpawnRules
         };
@@ -67,7 +65,6 @@ public class SceneTemplateValidatorTests
         var template = new SceneTemplate
         {
             Id = "test_scene",
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>(),
             SpawnRules = CreateValidTemplate().SpawnRules
         };
@@ -84,7 +81,6 @@ public class SceneTemplateValidatorTests
         var template = new SceneTemplate
         {
             Id = "test_scene",
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {
                 new() { Id = null },
@@ -105,7 +101,6 @@ public class SceneTemplateValidatorTests
         var template = new SceneTemplate
         {
             Id = "test_scene",
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {
                 new()
@@ -177,7 +172,6 @@ public class SceneTemplateValidatorTests
         var template = new SceneTemplate
         {
             Id = null,
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>
             {
                 new() { Id = null },

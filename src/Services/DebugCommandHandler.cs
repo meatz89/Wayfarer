@@ -29,7 +29,7 @@ public class DebugCommandHandler
     {
         if (level < 0 || level > 10)
         {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger, null);
             return false;
         }
 
@@ -56,7 +56,7 @@ public class DebugCommandHandler
         };
         await _rewardApplicationService.ApplyConsequence(statChange, null);
 
-        _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success, null);
         return true;
     }
 
@@ -68,7 +68,7 @@ public class DebugCommandHandler
     {
         if (points <= 0)
         {
-            _messageSystem.AddSystemMessage($"Invalid points amount {points}. Must be positive.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid points amount {points}. Must be positive.", SystemMessageTypes.Danger, null);
             return false;
         }
 
@@ -94,7 +94,7 @@ public class DebugCommandHandler
             PlayerStatType.Cunning => player.Cunning,
             _ => 0
         };
-        _messageSystem.AddSystemMessage($"Added {points} to {statType}. Now {newValue}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Added {points} to {statType}. Now {newValue}", SystemMessageTypes.Success, null);
 
         return true;
     }
@@ -106,7 +106,7 @@ public class DebugCommandHandler
     {
         if (level < 0 || level > 10)
         {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger, null);
             return;
         }
 
@@ -115,7 +115,7 @@ public class DebugCommandHandler
             await SetStatLevel(statType, level);
         }
 
-        _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success, null);
     }
 
     /// <summary>
@@ -139,8 +139,9 @@ public class DebugCommandHandler
     /// <summary>
     /// Debug: Grant resources (coins, health, etc.)
     /// TWO PILLARS: Delegates mutations to RewardApplicationService
+    /// HIGHLANDER: All parameters required - caller specifies all resources
     /// </summary>
-    public async Task GiveResources(int coins = 0, int health = 0, int hunger = 0)
+    public async Task GiveResources(int coins, int health, int hunger)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -154,17 +155,17 @@ public class DebugCommandHandler
 
         if (coins != 0)
         {
-            _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success, null);
         }
 
         if (health != 0)
         {
-            _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success, null);
         }
 
         if (hunger != 0)
         {
-            _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success, null);
         }
     }
 
@@ -178,25 +179,25 @@ public class DebugCommandHandler
 
         if (location == null)
         {
-            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning, null);
             return;
         }
 
         if (!location.HexPosition.HasValue)
         {
-            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning, null);
             return;
         }
 
         Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null)
         {
-            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning, null);
             return;
         }
 
         player.CurrentPosition = location.HexPosition.Value;
 
-        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success, null);
     }
 }

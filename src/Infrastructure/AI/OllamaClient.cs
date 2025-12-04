@@ -15,7 +15,7 @@ public class OllamaClient
 
     public async IAsyncEnumerable<string> StreamCompletionAsync(
         string prompt,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         OllamaRequest request = new OllamaRequest
         {
@@ -57,7 +57,7 @@ public class OllamaClient
         }
     }
 
-    public async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> CheckHealthAsync(CancellationToken cancellationToken)
     {
         // Use a reasonable timeout for health checks
         using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

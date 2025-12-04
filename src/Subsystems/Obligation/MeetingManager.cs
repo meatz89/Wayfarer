@@ -141,8 +141,7 @@ public class MeetingManager
 
         _messageSystem.AddSystemMessage(
             $"Met with {meeting.Requester?.Name}",
-            SystemMessageTypes.Success
-        );
+            SystemMessageTypes.Success, null);
 
         return result;
     }
@@ -176,8 +175,7 @@ public class MeetingManager
             _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, 1, meeting.Requester);
             _messageSystem.AddSystemMessage(
                 $"Lost 1 Trust token with {meeting.Requester.Name} for canceling meeting",
-                SystemMessageTypes.Warning
-            );
+                SystemMessageTypes.Warning, null);
         }
 
         result.Success = true;
@@ -185,8 +183,7 @@ public class MeetingManager
 
         _messageSystem.AddSystemMessage(
             $"Canceled meeting with {meeting.Requester?.Name}",
-            SystemMessageTypes.Warning
-        );
+            SystemMessageTypes.Warning, null);
 
         return result;
     }
@@ -286,8 +283,7 @@ public class MeetingManager
 
         _messageSystem.AddSystemMessage(
             $"Meeting with {expiredMeeting.Requester?.Name} has expired!",
-            SystemMessageTypes.Danger
-        );
+            SystemMessageTypes.Danger, null);
 
         return result;
     }
@@ -301,8 +297,7 @@ public class MeetingManager
 
         _messageSystem.AddSystemMessage(
             $"Gained {tokensAwarded} {tokenType} tokens with {meeting.Requester?.Name}",
-            SystemMessageTypes.Success
-        );
+            SystemMessageTypes.Success, null);
     }
 
     private void ApplyMeetingExpirationPenalty(MeetingObligation expiredMeeting)
@@ -314,8 +309,7 @@ public class MeetingManager
 
         _messageSystem.AddSystemMessage(
             $"Lost {tokenPenalty} {tokenType} tokens with {expiredMeeting.Requester?.Name} for missing meeting!",
-            SystemMessageTypes.Danger
-        );
+            SystemMessageTypes.Danger, null);
     }
 
     private MeetingUrgency GetMeetingUrgencyLevel(MeetingObligation meeting)

@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -6,13 +5,13 @@ using System.Text.RegularExpressions;
 /// Builds prompts from templates for AI conversation generation.
 /// Loads markdown templates from Data/Prompts subdirectories and replaces {{placeholders}}
 /// with actual conversation context, NPC data, and card analysis results.
-/// Supports conditional blocks like {{#if condition}}...{{/if}} and caching for performance.
-/// REFACTORED: Uses strongly-typed TemplatePlaceholders instead of Dictionary<string, object>.
+/// Supports conditional blocks like {{#if condition}}...{{/if}}.
+/// NO CACHING - templates read fresh every time (deterministic, simple).
+/// Uses strongly-typed TemplatePlaceholders instead of Dictionary.
 /// </summary>
 public class PromptBuilder
 {
     private readonly IContentDirectory contentDirectory;
-    private readonly ConcurrentDictionary<string, string> templateCache = new ConcurrentDictionary<string, string>();
     private readonly Regex placeholderRegex = new Regex(@"\{\{([^}]+)\}\}", RegexOptions.Compiled);
     private readonly Regex conditionalRegex = new Regex(@"\{\{#if\s+([^}]+)\}\}(.*?)\{\{/if\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
     private readonly Regex eachLoopRegex = new Regex(@"\{\{#each\s+([^}]+)\}\}(.*?)\{\{/each\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
@@ -22,11 +21,11 @@ public class PromptBuilder
         this.contentDirectory = contentDirectory;
     }
 
-    public string BuildIntroductionPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, string conversationType = "standard")
+    public string BuildIntroductionPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
         string template = LoadTemplateFromPath("npc/introduction.md");
         TemplatePlaceholders placeholders = BuildPlaceholders(state, npc, cards, analysis);
-        placeholders.ConversationType = conversationType;
+        // ConversationType already set to "standard" in BuildPlaceholders
 
         return ProcessTemplate(template, placeholders);
     }
@@ -62,16 +61,12 @@ public class PromptBuilder
 
     private string LoadTemplateFromPath(string templatePath)
     {
-        return templateCache.GetOrAdd(templatePath, path =>
+        string fullPath = Path.Combine(contentDirectory.Path, "Prompts", templatePath);
+        if (File.Exists(fullPath))
         {
-            string fullPath = Path.Combine(contentDirectory.Path, "Prompts", path);
-            if (File.Exists(fullPath))
-            {
-                return File.ReadAllText(fullPath);
-            }
-
-            return GetFallbackTemplate(path);
-        });
+            return File.ReadAllText(fullPath);
+        }
+        return GetFallbackTemplate(templatePath);
     }
 
     private string ProcessTemplate(string template, TemplatePlaceholders placeholders)

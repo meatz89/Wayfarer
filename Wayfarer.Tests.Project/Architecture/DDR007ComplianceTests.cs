@@ -442,10 +442,10 @@ public class DDR007ComplianceTests
             NpcDemeanor = NPCDemeanor.Neutral
         };
 
-        List<ChoiceTemplate> dominantChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> dominantChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, dominantContext);
 
-        List<ChoiceTemplate> submissiveChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> submissiveChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, submissiveContext);
 
         ChoiceTemplate dominantStat = dominantChoices.First(c => c.Id.EndsWith("_stat"));
@@ -484,10 +484,10 @@ public class DDR007ComplianceTests
             NpcDemeanor = NPCDemeanor.Neutral
         };
 
-        List<ChoiceTemplate> basicChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> basicChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, basicContext);
 
-        List<ChoiceTemplate> luxuryChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> luxuryChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, luxuryContext);
 
         ChoiceTemplate basicMoney = basicChoices.First(c => c.Id.EndsWith("_money"));
@@ -524,10 +524,10 @@ public class DDR007ComplianceTests
             NpcDemeanor = NPCDemeanor.Hostile
         };
 
-        List<ChoiceTemplate> friendlyChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> friendlyChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, friendlyContext);
 
-        List<ChoiceTemplate> hostileChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+        List<ChoiceTemplate> hostileChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             archetype, situationId, hostileContext);
 
         ChoiceTemplate friendlyStat = friendlyChoices.First(c => c.Id.EndsWith("_stat"));

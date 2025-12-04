@@ -4,25 +4,36 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Wayfarer.Tests;
 
 /// <summary>
-/// Base class for integration tests providing GameWorld and service access.
-/// Uses real facades with test GameWorld for clean integration testing.
+/// Base class for INTEGRATION tests providing GameWorld and service access.
+/// Uses EXACT same initialization as Program.cs - tests verify production code path.
+///
+/// ARCHITECTURAL RULE:
+/// - Integration tests: Use this base class (full production initialization)
+/// - Unit tests: Create `new GameWorld()` manually, never call GameWorldInitializer
 /// </summary>
 public class IntegrationTestBase
 {
-    private GameWorld _gameWorld;
+    private GameInitializationResult _initResult;
     private IServiceProvider _serviceProvider;
 
     /// <summary>
-    /// Get or initialize GameWorld for testing.
-    /// Uses Content/Core for full game content (not test subset).
+    /// Get GameWorld from production initialization.
+    /// Uses CreateInitializationResult() - same as Program.cs.
     /// </summary>
     protected GameWorld GetGameWorld()
     {
-        if (_gameWorld == null)
-        {
-            _gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        }
-        return _gameWorld;
+        EnsureInitialized();
+        return _initResult.GameWorld;
+    }
+
+    /// <summary>
+    /// Get TimeManager from production initialization.
+    /// Uses CreateInitializationResult() - same as Program.cs.
+    /// </summary>
+    protected TimeManager GetTimeManager()
+    {
+        EnsureInitialized();
+        return _initResult.TimeManager;
     }
 
     /// <summary>
@@ -31,11 +42,7 @@ public class IntegrationTestBase
     /// </summary>
     protected GameOrchestrator GetGameOrchestrator()
     {
-        if (_serviceProvider == null)
-        {
-            InitializeServiceProvider();
-        }
-
+        EnsureServiceProvider();
         return _serviceProvider.GetRequiredService<GameOrchestrator>();
     }
 
@@ -45,20 +52,32 @@ public class IntegrationTestBase
     /// </summary>
     protected T GetService<T>() where T : notnull
     {
-        if (_serviceProvider == null)
-        {
-            InitializeServiceProvider();
-        }
-
+        EnsureServiceProvider();
         return _serviceProvider.GetRequiredService<T>();
     }
 
     /// <summary>
-    /// Initialize service provider with GameWorld registered (matches Program.cs pattern).
-    /// GameWorld and IConfiguration MUST be registered before ConfigureServices is called.
+    /// Ensure GameWorld and TimeManager are initialized via production path.
     /// </summary>
-    private void InitializeServiceProvider()
+    private void EnsureInitialized()
     {
+        if (_initResult == null)
+        {
+            // EXACT same call as Program.cs
+            _initResult = GameWorldInitializer.CreateInitializationResult();
+        }
+    }
+
+    /// <summary>
+    /// Initialize service provider matching Program.cs EXACTLY.
+    /// GameWorld, TimeManager, and IConfiguration registered before ConfigureServices.
+    /// </summary>
+    private void EnsureServiceProvider()
+    {
+        if (_serviceProvider != null) return;
+
+        EnsureInitialized();
+
         ServiceCollection services = new ServiceCollection();
 
         // Register IConfiguration (required by some services like AINarrativeProvider)
@@ -72,11 +91,11 @@ public class IntegrationTestBase
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
 
-        // Register GameWorld (same pattern as Program.cs)
-        GameWorld gameWorld = GetGameWorld();
-        services.AddSingleton(gameWorld);
+        // EXACT same registration as Program.cs
+        services.AddSingleton(_initResult.GameWorld);
+        services.AddSingleton(_initResult.TimeManager);
 
-        // Then configure all other services
+        // Then configure all other services (same as Program.cs)
         ServiceConfiguration.ConfigureServices(services);
 
         _serviceProvider = services.BuildServiceProvider();

@@ -6,11 +6,19 @@
 /// </summary>
 public class LocationPlayabilityValidator
 {
+    private readonly GameWorld _gameWorld;
+
+    public LocationPlayabilityValidator(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+    }
+
     /// <summary>
     /// Validate that location meets playability requirements.
     /// Throws InvalidOperationException on validation failure (fail-fast).
+    /// GameWorld accessed via _gameWorld (never passed as parameter).
     /// </summary>
-    public void ValidateLocation(Location location, GameWorld gameWorld)
+    public void ValidateLocation(Location location)
     {
         List<string> errors = new List<string>();
 
@@ -23,7 +31,7 @@ public class LocationPlayabilityValidator
         else
         {
             // Verify hex exists at those coordinates
-            Hex hex = gameWorld.WorldHexGrid.GetHex(location.HexPosition.Value.Q, location.HexPosition.Value.R);
+            Hex hex = _gameWorld.WorldHexGrid.GetHex(location.HexPosition.Value.Q, location.HexPosition.Value.R);
             if (hex == null)
             {
                 // ADR-007: Use Name instead of deleted Id
@@ -32,7 +40,7 @@ public class LocationPlayabilityValidator
         }
 
         // 2. Location must be reachable from player (or within same venue)
-        if (!IsReachableFromPlayer(location, gameWorld))
+        if (!IsReachableFromPlayer(location))
         {
             // ADR-007: Use Name instead of deleted Id
             errors.Add($"Location '{location.Name}' is not reachable - no route exists and not in same venue as player");
@@ -64,12 +72,12 @@ public class LocationPlayabilityValidator
     /// Check if location is reachable from player current position.
     /// Location is reachable if: same venue as player OR route exists.
     /// </summary>
-    private bool IsReachableFromPlayer(Location location, GameWorld gameWorld)
+    private bool IsReachableFromPlayer(Location location)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player == null) return true; // During initialization, player may not exist yet
 
-        Location playerLocation = gameWorld.GetPlayerCurrentLocation();
+        Location playerLocation = _gameWorld.GetPlayerCurrentLocation();
         if (playerLocation == null) return true; // Player not yet placed
 
         // Check if same venue (instant/free travel)
@@ -80,7 +88,7 @@ public class LocationPlayabilityValidator
         }
 
         // Check if any route exists (either direction)
-        bool routeExists = gameWorld.Routes.Any(r =>
+        bool routeExists = _gameWorld.Routes.Any(r =>
             (r.OriginLocation == playerLocation && r.DestinationLocation == location) ||
             (r.OriginLocation == location && r.DestinationLocation == playerLocation)
         );

@@ -16,7 +16,7 @@ public class ObligationDiscoveryEvaluator
     /// Evaluate all Potential obligations and return those ready to be discovered
     /// Called on: Venue entry, knowledge gain, item acquisition, obligation acceptance
     /// </summary>
-    public List<Obligation> EvaluateDiscoverableObligations(Player player)
+    public List<Obligation> EvaluateDiscoverableObligations()
     {
         List<Obligation> discoverable = new List<Obligation>();
 
@@ -34,7 +34,7 @@ public class ObligationDiscoveryEvaluator
                 continue;
             }
 
-            if (IsTriggerConditionMet(obligation, player))
+            if (IsTriggerConditionMet(obligation))
             {
                 discoverable.Add(obligation);
             }
@@ -46,7 +46,7 @@ public class ObligationDiscoveryEvaluator
     /// <summary>
     /// Check if specific obligation's trigger condition is met
     /// </summary>
-    private bool IsTriggerConditionMet(Obligation obligation, Player player)
+    private bool IsTriggerConditionMet(Obligation obligation)
     {
         ObligationPrerequisites prereqs = obligation.IntroAction.TriggerPrerequisites;
         if (prereqs == null) return true; // No prerequisites = always available
@@ -54,12 +54,8 @@ public class ObligationDiscoveryEvaluator
         // Check prerequisites based on trigger type
         return obligation.IntroAction.TriggerType switch
         {
-            DiscoveryTriggerType.ImmediateVisibility => CheckImmediateVisibility(prereqs, player),
-            DiscoveryTriggerType.EnvironmentalObservation => CheckEnvironmentalObservation(prereqs, player),
-            DiscoveryTriggerType.ConversationalDiscovery => CheckConversationalDiscovery(prereqs, player),
-            DiscoveryTriggerType.ItemDiscovery => CheckItemDiscovery(prereqs, player),
-            DiscoveryTriggerType.ObligationTriggered => CheckObligationTriggered(prereqs, player),
-            DiscoveryTriggerType.SituationCompletionTrigger => CheckSituationCompletionTrigger(prereqs),
+            DiscoveryTriggerType.ImmediateVisibility => CheckImmediateVisibility(prereqs),
+            DiscoveryTriggerType.EnvironmentalObservation => CheckEnvironmentalObservation(prereqs),
             _ => false
         };
     }
@@ -68,7 +64,7 @@ public class ObligationDiscoveryEvaluator
     /// ImmediateVisibility: Player is at required location
     /// HIGHLANDER: Prerequisites.Location is object reference, not string ID
     /// </summary>
-    private bool CheckImmediateVisibility(ObligationPrerequisites prereqs, Player player)
+    private bool CheckImmediateVisibility(ObligationPrerequisites prereqs)
     {
         // Check if player is at required location
         if (prereqs.Location != null)
@@ -86,7 +82,7 @@ public class ObligationDiscoveryEvaluator
     /// EnvironmentalObservation: Player is at required location
     /// HIGHLANDER: Prerequisites.Location is object reference, not string ID
     /// </summary>
-    private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs, Player player)
+    private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs)
     {
         // Check if player is at required location
         if (prereqs.Location != null)
@@ -96,54 +92,6 @@ public class ObligationDiscoveryEvaluator
                 return false;
         }
 
-        return true;
-    }
-
-    /// <summary>
-    /// ConversationalDiscovery: Obligation discovered through conversations
-    /// KNOWLEDGE SYSTEM ELIMINATED: No more boolean gates
-    /// Prerequisites: None (Knowledge system was deleted in Phase 2)
-    /// </summary>
-    private bool CheckConversationalDiscovery(ObligationPrerequisites prereqs, Player player)
-    {
-        // Knowledge system eliminated - no prerequisites to check
-        // ConversationalDiscovery now represents narrative triggers without gating
-        return true;
-    }
-
-    /// <summary>
-    /// ItemDiscovery: Obligation discovered through item-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
-    /// Prerequisites: None (RequiredItems system eliminated)
-    /// </summary>
-    private bool CheckItemDiscovery(ObligationPrerequisites prereqs, Player player)
-    {
-        // RequiredItems system eliminated - no prerequisites to check
-        // ItemDiscovery now represents narrative triggers without gating
-        return true;
-    }
-
-    /// <summary>
-    /// ObligationTriggered: Obligation discovered through obligation-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
-    /// Prerequisites: None (RequiredObligation system eliminated)
-    /// </summary>
-    private bool CheckObligationTriggered(ObligationPrerequisites prereqs, Player player)
-    {
-        // RequiredObligation system eliminated - no prerequisites to check
-        // ObligationTriggered now represents narrative triggers without gating
-        return true;
-    }
-
-    /// <summary>
-    /// SituationCompletionTrigger: Obligation discovered through situation-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
-    /// Prerequisites: None (CompletedSituationId system eliminated)
-    /// </summary>
-    private bool CheckSituationCompletionTrigger(ObligationPrerequisites prereqs)
-    {
-        // CompletedSituationId system eliminated - no prerequisites to check
-        // SituationCompletionTrigger now represents narrative triggers without gating
         return true;
     }
 }

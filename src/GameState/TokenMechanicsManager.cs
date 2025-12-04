@@ -71,8 +71,7 @@ public class TokenMechanicsManager
         string bonusText = modifiedCount > count ? $" (+{modifiedCount - count} from equipment)" : "";
         _messageSystem.AddSystemMessage(
             $"🤝 +{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
-            SystemMessageTypes.Success
-        );
+            SystemMessageTypes.Success, null);
 
         // Check relationship milestones
         int totalWithNPC = npc.GetTotalTokens();
@@ -99,15 +98,13 @@ public class TokenMechanicsManager
         // Narrative feedback using NPC object directly (no GetById needed)
         _messageSystem.AddSystemMessage(
             $"You call in {count} {type} favor{(count > 1 ? "s" : "")} with {npc.Name}.",
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
 
         if (npc.GetTokenCount(type) < 0)
         {
             _messageSystem.AddSystemMessage(
                 $"You now owe {npc.Name} for this favor.",
-                SystemMessageTypes.Warning
-            );
+                SystemMessageTypes.Warning, null);
         }
 
         return true;
@@ -179,15 +176,13 @@ public class TokenMechanicsManager
         // Narrative feedback using NPC object directly (no GetById needed)
         _messageSystem.AddSystemMessage(
             $"Your relationship with {npc.Name} has been damaged. (-{count} {type} token{(count > 1 ? "s" : "")})",
-            SystemMessageTypes.Warning
-        );
+            SystemMessageTypes.Warning, null);
 
         if (npc.GetTokenCount(type) < 0)
         {
             _messageSystem.AddSystemMessage(
                 $"{npc.Name} feels you owe them for past failures.",
-                SystemMessageTypes.Danger
-            );
+                SystemMessageTypes.Danger, null);
         }
 
         // Token change notifications are handled by GameOrchestrator orchestration
@@ -235,8 +230,7 @@ public class TokenMechanicsManager
                 {
                     _messageSystem.AddSystemMessage(
                         $"Called in {toSpend} {type} favor{(toSpend > 1 ? "s" : "")} with {npc.Name}",
-                        SystemMessageTypes.Info
-                    );
+                        SystemMessageTypes.Info, null);
                 }
             }
         }
@@ -253,8 +247,7 @@ public class TokenMechanicsManager
         {
             _messageSystem.AddSystemMessage(
                 "ERROR: Cannot spend tokens without specifying NPC. Tokens are relational.",
-                SystemMessageTypes.Danger
-            );
+                SystemMessageTypes.Danger, null);
             return false;
         }
 
@@ -269,8 +262,7 @@ public class TokenMechanicsManager
         // Add narrative feedback
         _messageSystem.AddSystemMessage(
             $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
-            SystemMessageTypes.Info
-        );
+            SystemMessageTypes.Info, null);
 
         return true;
     }
@@ -290,7 +282,7 @@ public class TokenMechanicsManager
 
         if (message != null)
         {
-            _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success, null);
         }
     }
 

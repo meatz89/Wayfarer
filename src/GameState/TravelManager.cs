@@ -111,7 +111,7 @@ public class TravelManager
         SceneTemplate template = segment.MandatorySceneTemplate;
         if (template == null)
         {
-            _messageSystem.AddSystemMessage("Encounter segment has no scene template", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Encounter segment has no scene template", SystemMessageTypes.Warning, null);
             return;
         }
 
@@ -157,7 +157,7 @@ public class TravelManager
 
         // Set as pending scene for this segment
         session.PendingScene = scene;
-        _messageSystem.AddSystemMessage($"Encounter: {scene.DisplayName}", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"Encounter: {scene.DisplayName}", SystemMessageTypes.Info, null);
     }
 
     /// <summary>
@@ -359,7 +359,7 @@ public class TravelManager
         if (card.StaminaCost > 0)
         {
             session.StaminaRemaining -= card.StaminaCost;
-            _messageSystem.AddSystemMessage($"Spent {card.StaminaCost} stamina for path choice", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Spent {card.StaminaCost} stamina for path choice", SystemMessageTypes.Info, null);
         }
 
         // TWO PILLARS: Apply coin cost via Consequence + ApplyConsequence
@@ -367,7 +367,7 @@ public class TravelManager
         {
             Consequence passageCost = new Consequence { Coins = -card.CoinRequirement };
             await _rewardApplicationService.ApplyConsequence(passageCost, null);
-            _messageSystem.AddSystemMessage($"Paid {card.CoinRequirement} coins for passage", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Paid {card.CoinRequirement} coins for passage", SystemMessageTypes.Info, null);
         }
 
         // Apply effects with messages
@@ -378,7 +378,7 @@ public class TravelManager
         if (card.TravelTimeSegments > 0)
         {
             session.SegmentsElapsed += card.TravelTimeSegments;
-            _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeSegments} segments", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeSegments} segments", SystemMessageTypes.Info, null);
         }
 
         // Update travel state based on stamina
@@ -466,7 +466,7 @@ public class TravelManager
 
         // ADR-007: Clear pending scene (null object, not null ID)
         session.PendingScene = null;
-        _messageSystem.AddSystemMessage($"Scene resolved: {scene.DisplayName}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Scene resolved: {scene.DisplayName}", SystemMessageTypes.Success, null);
 
         // Now advance segment or complete route
         RouteOption route = session.Route;  // HIGHLANDER: Object reference
@@ -656,17 +656,17 @@ public class TravelManager
         {
             if (card.HungerEffect > 0)
             {
-                _messageSystem.AddSystemMessage($"Hunger increased by {card.HungerEffect}", SystemMessageTypes.Warning);
+                _messageSystem.AddSystemMessage($"Hunger increased by {card.HungerEffect}", SystemMessageTypes.Warning, null);
             }
             else
             {
-                _messageSystem.AddSystemMessage($"Hunger decreased by {Math.Abs(card.HungerEffect)}", SystemMessageTypes.Success);
+                _messageSystem.AddSystemMessage($"Hunger decreased by {Math.Abs(card.HungerEffect)}", SystemMessageTypes.Success, null);
             }
         }
 
         if (card.CoinReward > 0)
         {
-            _messageSystem.AddSystemMessage($"Gained {card.CoinReward} coins from path", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Gained {card.CoinReward} coins from path", SystemMessageTypes.Success, null);
         }
     }
 
@@ -775,7 +775,7 @@ public class TravelManager
         if (currentCubes < 10)
         {
             route.ExplorationCubes = currentCubes + 1;
-            _messageSystem.AddSystemMessage($"Route mastery increased: {route.ExplorationCubes}/10 exploration cubes", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Route mastery increased: {route.ExplorationCubes}/10 exploration cubes", SystemMessageTypes.Success, null);
         }
 
         // Apply travel time to game world

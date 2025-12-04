@@ -1,3 +1,12 @@
+/// <summary>
+/// Entry for resource tracking with explicit type and amount.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class ResourceEntry
+{
+    public string ResourceType { get; set; }
+    public int Amount { get; set; }
+}
 
 // Player initial configuration data
 public class PlayerInitialConfig

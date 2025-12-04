@@ -30,29 +30,28 @@ public class SceneGenerationFacade
     }
 
     /// <summary>
-    /// Generate scene structure from archetype type with entity context
+    /// Generate scene structure for A-Story (main narrative) scenes.
+    /// A-Story scenes have a sequence number (1-99) for progression tracking.
     ///
     /// Flow:
     /// 1. Extract properties from entities into GenerationContext
     /// 2. Call SceneArchetypeCatalog.Generate() directly (ONE catalogue for ALL archetypes)
     /// 3. Return generated SceneArchetypeDefinition
     ///
-    /// Called at parse time (or via dynamic package generation) with entities from GameWorld
-    /// HIGHLANDER: Accept NPC and Location objects, not string IDs
-    ///
+    /// HIGHLANDER: Distinct method for main story vs side content.
     /// RhythmPattern is AUTHORED (not derived) - comes from SceneTemplate.
     /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
-    public SceneArchetypeDefinition GenerateSceneFromArchetype(
+    public SceneArchetypeDefinition GenerateMainStoryScene(
         SceneArchetypeType archetypeType,
         NPC contextNPC,
         Location contextLocation,
-        int? mainStorySequence = null,
-        RhythmPattern rhythm = RhythmPattern.Mixed)
+        int mainStorySequence,
+        RhythmPattern rhythm)
     {
         Player contextPlayer = _gameWorld.GetPlayer();
 
-        GenerationContext context = GenerationContext.FromEntities(contextNPC, contextLocation, contextPlayer, mainStorySequence, rhythm);
+        GenerationContext context = GenerationContext.ForMainStory(contextNPC, contextLocation, contextPlayer, mainStorySequence, rhythm);
 
         // HIGHLANDER: ONE catalogue handles ALL 13 archetypes (service + narrative)
         SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, context);
@@ -61,26 +60,32 @@ public class SceneGenerationFacade
     }
 
     /// <summary>
-    /// Generate scene structure from archetype ID string (backward compatibility)
-    /// Parses string to enum and delegates to strongly-typed method
+    /// Generate scene structure for Side Content (optional, procedural) scenes.
+    /// Side content has no sequence number - it's not part of the main narrative arc.
+    ///
+    /// Flow:
+    /// 1. Extract properties from entities into GenerationContext
+    /// 2. Call SceneArchetypeCatalog.Generate() directly (ONE catalogue for ALL archetypes)
+    /// 3. Return generated SceneArchetypeDefinition
+    ///
+    /// HIGHLANDER: Distinct method for main story vs side content.
+    /// RhythmPattern is AUTHORED (not derived) - comes from SceneTemplate.
+    /// See arc42/08_crosscutting_concepts.md §8.26 (Sir Brante Rhythm Pattern)
     /// </summary>
-    public SceneArchetypeDefinition GenerateSceneFromArchetype(
-        string archetypeId,
+    public SceneArchetypeDefinition GenerateSideContentScene(
+        SceneArchetypeType archetypeType,
         NPC contextNPC,
         Location contextLocation,
-        int? mainStorySequence = null)
+        RhythmPattern rhythm)
     {
-        if (string.IsNullOrEmpty(archetypeId))
-            throw new ArgumentException("archetypeId cannot be null or empty", nameof(archetypeId));
+        Player contextPlayer = _gameWorld.GetPlayer();
 
-        if (!Enum.TryParse<SceneArchetypeType>(archetypeId, true, out SceneArchetypeType archetypeType))
-        {
-            throw new InvalidOperationException(
-                $"Unknown scene archetype: '{archetypeId}'. " +
-                $"Valid archetypes: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
-        }
+        GenerationContext context = GenerationContext.ForSideContent(contextNPC, contextLocation, contextPlayer, rhythm);
 
-        return GenerateSceneFromArchetype(archetypeType, contextNPC, contextLocation, mainStorySequence);
+        // HIGHLANDER: ONE catalogue handles ALL 13 archetypes (service + narrative)
+        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, context);
+
+        return definition;
     }
 
     /// <summary>

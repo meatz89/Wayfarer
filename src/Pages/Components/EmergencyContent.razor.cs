@@ -31,7 +31,7 @@ namespace Wayfarer.Pages.Components
                 // Show error message through GameOrchestrator message system
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to select response",
-                    SystemMessageTypes.Danger);
+                    SystemMessageTypes.Danger, null);
                 return;
             }
 
@@ -40,7 +40,7 @@ namespace Wayfarer.Pages.Components
             {
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message,
-                    SystemMessageTypes.Info);
+                    SystemMessageTypes.Info, null);
             }
 
             // Emergency resolved, return to location
@@ -57,7 +57,7 @@ namespace Wayfarer.Pages.Components
             {
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message ?? "Failed to ignore emergency",
-                    SystemMessageTypes.Danger);
+                    SystemMessageTypes.Danger, null);
                 return;
             }
 
@@ -66,7 +66,7 @@ namespace Wayfarer.Pages.Components
             {
                 GameOrchestrator.GetMessageSystem().AddSystemMessage(
                     result.Message,
-                    SystemMessageTypes.Warning);
+                    SystemMessageTypes.Warning, null);
             }
 
             // Emergency resolved (ignored), return to location

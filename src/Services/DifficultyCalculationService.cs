@@ -80,8 +80,8 @@ public class DifficultyCalculationService
                 // NPC relationship strength (0-15 per NPC)
                 // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
                 if (situation.Npc == null) return false;
-                // HIGHLANDER: Pass NPC object directly to Player API
-                int tokens = player.GetNPCTokenCount(situation.Npc, ConnectionType.Trust);
+                // HIGHLANDER: NPC owns token counts, query directly
+                int tokens = situation.Npc.GetTokenCount(ConnectionType.Trust);
                 return tokens >= mod.Threshold;
 
             case ModifierType.HasItemCategory:

@@ -1,4 +1,14 @@
 /// <summary>
+/// Entry for segment event draw tracking.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class SegmentEventDrawEntry
+{
+    public string SegmentId { get; set; }
+    public string EventId { get; set; }
+}
+
+/// <summary>
 /// Represents an active travel session with stamina management and progression tracking
 /// </summary>
 public class TravelSession

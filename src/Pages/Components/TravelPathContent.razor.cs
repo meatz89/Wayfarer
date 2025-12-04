@@ -344,13 +344,14 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Check if card is discovered (face-up)
+        /// HIGHLANDER: Uses object reference, not string ID
         /// </summary>
-        protected bool IsCardDiscovered(string pathCardId)
+        protected bool IsCardDiscovered(PathCardDTO card)
         {
             if (TravelContext == null)
                 throw new InvalidOperationException("No active travel context");
-            return TravelContext.CardDiscoveries.Any(d => d.CardId == pathCardId) &&
-                   TravelContext.CardDiscoveries.FirstOrDefault(d => d.CardId == pathCardId)?.IsDiscovered == true;
+            return TravelContext.CardDiscoveries.Any(d => d.Card == card) &&
+                   TravelContext.CardDiscoveries.FirstOrDefault(d => d.Card == card)?.IsDiscovered == true;
         }
 
         /// <summary>
@@ -364,12 +365,13 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Get card CSS classes
+        /// HIGHLANDER: Uses object reference for discovery check
         /// </summary>
         protected string GetPathCardClass(PathCardDTO card)
         {
             List<string> classes = new() { "path-card" };
 
-            if (IsCardDiscovered(card.Id))
+            if (IsCardDiscovered(card))
             {
                 classes.Add("face-up");
             }
@@ -407,9 +409,9 @@ namespace Wayfarer.Pages.Components
             if (card.StatRequirements != null && card.StatRequirements.Count > 0)
             {
                 Player player = GameOrchestrator.GetPlayer();
-                foreach (KeyValuePair<string, int> statReq in card.StatRequirements)
+                foreach (StatRequirementDTO statReq in card.StatRequirements)
                 {
-                    if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                    if (Enum.TryParse<PlayerStatType>(statReq.Stat, true, out PlayerStatType statType))
                     {
                         string statName = GetStatDisplayName(statType);
                         int required = statReq.Value;

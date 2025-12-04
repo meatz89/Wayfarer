@@ -9,11 +9,13 @@ namespace Wayfarer.Tests.Services;
 /// </summary>
 public class LocationActionExecutorTests
 {
+    private readonly GameWorld _gameWorld;
     private readonly LocationActionExecutor _executor;
 
     public LocationActionExecutorTests()
     {
-        _executor = new LocationActionExecutor();
+        _gameWorld = new GameWorld();
+        _executor = new LocationActionExecutor(_gameWorld);
     }
 
     // ========== VALIDATATEANDEXTRACT (LOCATIONACTION) TESTS ==========
@@ -22,7 +24,7 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_SufficientResources_ReturnsValidPlan()
     {
         // Arrange: Player with resources, action with costs
-        Player player = CreateTestPlayer(coins: 10, stamina: 5, focus: 3, health: 8);
+        SetupPlayer(coins: 10, stamina: 5, focus: 3, health: 8);
         LocationAction action = CreateAtmosphericAction(
             coinCost: 5,
             staminaCost: 2,
@@ -31,7 +33,7 @@ public class LocationActionExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -47,10 +49,10 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_InsufficientCoins_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when coins insufficient
-        Player player = CreateTestPlayer(coins: 3, stamina: 10, focus: 10, health: 10);
+        SetupPlayer(coins: 3, stamina: 10, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction(coinCost: 5);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -60,10 +62,10 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_InsufficientStamina_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when stamina insufficient
-        Player player = CreateTestPlayer(coins: 10, stamina: 1, focus: 10, health: 10);
+        SetupPlayer(coins: 10, stamina: 1, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction(staminaCost: 3);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -73,10 +75,10 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_InsufficientFocus_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when focus insufficient
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 0, health: 10);
+        SetupPlayer(coins: 10, stamina: 10, focus: 0, health: 10);
         LocationAction action = CreateAtmosphericAction(focusCost: 2);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -86,10 +88,10 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_InsufficientHealth_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when health insufficient
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 2);
+        SetupPlayer(coins: 10, stamina: 10, focus: 10, health: 2);
         LocationAction action = CreateAtmosphericAction(healthCost: 3);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -99,7 +101,7 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_FreeAction_ReturnsValidPlan()
     {
         // Arrange: Travel action with zero costs (free atmospheric action)
-        Player player = CreateTestPlayer(coins: 0, stamina: 0, focus: 0, health: 1);
+        SetupPlayer(coins: 0, stamina: 0, focus: 0, health: 1);
         LocationAction action = CreateAtmosphericAction(
             coinCost: 0,
             staminaCost: 0,
@@ -108,7 +110,7 @@ public class LocationActionExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -123,7 +125,7 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_ExactResources_ReturnsValidPlan()
     {
         // Arrange: Player has exactly the required resources (boundary case)
-        Player player = CreateTestPlayer(coins: 5, stamina: 2, focus: 1, health: 3);
+        SetupPlayer(coins: 5, stamina: 2, focus: 1, health: 3);
         LocationAction action = CreateAtmosphericAction(
             coinCost: 5,
             staminaCost: 2,
@@ -132,7 +134,7 @@ public class LocationActionExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -143,11 +145,11 @@ public class LocationActionExecutorTests
     {
         // Arrange: Action with rewards (positive values in Consequence)
         // HIGHLANDER: Consequence is the ONLY class for resource outcomes
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
+        SetupPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction(coinReward: 8);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -159,11 +161,11 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_ActionName_SetCorrectly()
     {
         // Arrange
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
+        SetupPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction(name: "Work");
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -174,11 +176,11 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_TimeRequired_SetCorrectly()
     {
         // Arrange: Rest action costs 1 time segment
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
+        SetupPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction(timeRequired: 1);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -189,11 +191,11 @@ public class LocationActionExecutorTests
     public void ValidateAndExtract_ActionType_AlwaysInstant()
     {
         // Arrange: Atmospheric actions are always instant
-        Player player = CreateTestPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
+        SetupPlayer(coins: 10, stamina: 10, focus: 10, health: 10);
         LocationAction action = CreateAtmosphericAction();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(action, player);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(action);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -206,7 +208,7 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_SufficientResources_ReturnsValidPlan()
     {
         // Arrange: Player with resources, PathCard with costs
-        Player player = CreateTestPlayer(coins: 10, stamina: 5);
+        SetupPlayer(coins: 10, stamina: 5);
         PathCard card = CreateAtmosphericPathCard(
             coinRequirement: 5,
             staminaCost: 3,
@@ -214,7 +216,7 @@ public class LocationActionExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -228,10 +230,10 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_InsufficientCoins_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when coins insufficient
-        Player player = CreateTestPlayer(coins: 2, stamina: 10);
+        SetupPlayer(coins: 2, stamina: 10);
         PathCard card = CreateAtmosphericPathCard(coinRequirement: 5);
 
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -241,10 +243,10 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_InsufficientStamina_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when stamina insufficient
-        Player player = CreateTestPlayer(coins: 10, stamina: 1);
+        SetupPlayer(coins: 10, stamina: 1);
         PathCard card = CreateAtmosphericPathCard(staminaCost: 4);
 
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -254,11 +256,11 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_MissingPermit_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when permit missing
-        Player player = CreateTestPlayer(coins: 10, stamina: 10);
+        SetupPlayer(coins: 10, stamina: 10);
         Item requiredPermit = CreateTestItem("Travel Permit");
         PathCard card = CreateAtmosphericPathCard(permitRequirement: requiredPermit);
 
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         Assert.False(plan.IsValid);
         Assert.NotNull(plan.FailureReason);
@@ -269,13 +271,13 @@ public class LocationActionExecutorTests
     {
         // Arrange: Player has required permit
         Item permit = CreateTestItem("Travel Permit");
-        Player player = CreateTestPlayer(coins: 10, stamina: 10);
+        Player player = SetupPlayer(coins: 10, stamina: 10);
         player.Inventory.Add(permit);
 
         PathCard card = CreateAtmosphericPathCard(permitRequirement: permit);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -285,7 +287,7 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_FreePathCard_ReturnsValidPlan()
     {
         // Arrange: PathCard with zero costs (free route)
-        Player player = CreateTestPlayer(coins: 0, stamina: 0);
+        SetupPlayer(coins: 0, stamina: 0);
         PathCard card = CreateAtmosphericPathCard(
             coinRequirement: 0,
             staminaCost: 0,
@@ -293,7 +295,7 @@ public class LocationActionExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -305,11 +307,11 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_HungerEffect_SetCorrectly()
     {
         // Arrange: PathCard increases hunger by 5
-        Player player = CreateTestPlayer(coins: 10, stamina: 10);
+        SetupPlayer(coins: 10, stamina: 10);
         PathCard card = CreateAtmosphericPathCard(hungerEffect: 5);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -320,11 +322,11 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_CardName_SetCorrectly()
     {
         // Arrange
-        Player player = CreateTestPlayer(coins: 10, stamina: 10);
+        SetupPlayer(coins: 10, stamina: 10);
         PathCard card = CreateAtmosphericPathCard(name: "Mountain Pass");
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -335,11 +337,11 @@ public class LocationActionExecutorTests
     public void ValidateAtmosphericPathCard_ActionType_AlwaysInstant()
     {
         // Arrange: Atmospheric PathCards execute instantly
-        Player player = CreateTestPlayer(coins: 10, stamina: 10);
+        SetupPlayer(coins: 10, stamina: 10);
         PathCard card = CreateAtmosphericPathCard();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card, player);
+        ActionExecutionPlan plan = _executor.ValidateAtmosphericPathCard(card);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -349,23 +351,21 @@ public class LocationActionExecutorTests
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Create test player with specified resources
+    /// Setup player in GameWorld with specified resources.
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    private Player CreateTestPlayer(int coins = 10, int stamina = 10, int focus = 10, int health = 10)
+    private Player SetupPlayer(int coins = 10, int stamina = 10, int focus = 10, int health = 10)
     {
-        Player player = new Player
-        {
-            Coins = coins,
-            Stamina = stamina,
-            MaxStamina = 10,
-            Focus = focus,
-            MaxFocus = 10,
-            Health = health,
-            MaxHealth = 10,
-            Hunger = 0,
-            MaxHunger = 100
-        };
-
+        Player player = _gameWorld.GetPlayer();
+        player.Coins = coins;
+        player.Stamina = stamina;
+        player.MaxStamina = 10;
+        player.Focus = focus;
+        player.MaxFocus = 10;
+        player.Health = health;
+        player.MaxHealth = 10;
+        player.Hunger = 0;
+        player.MaxHunger = 100;
         return player;
     }
 
@@ -417,7 +417,7 @@ public class LocationActionExecutorTests
             TravelTimeSegments = travelTimeSegments,
             HungerEffect = hungerEffect,
             PermitRequirement = permitRequirement,
-            StatRequirements = new Dictionary<string, int>(),
+            // DOMAIN COLLECTION PRINCIPLE: Explicit stat properties default to 0
             ChoiceTemplate = null  // ATMOSPHERIC PATTERN
         };
     }

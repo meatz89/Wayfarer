@@ -271,35 +271,40 @@ public class NetChallengeSystemTests
         {
             Difficulty = difficulty,
             HexPosition = new AxialCoordinates(difficulty * 5, 0),
-            Tier = 2,
             Purpose = LocationPurpose.Commerce
         };
     }
 
     private NPC CreateHostileNpc()
     {
-        return new NPC("HostileNPC", PersonalityType.MERCANTILE)
+        return new NPC
         {
+            Name = "HostileNPC",
+            PersonalityType = PersonalityType.MERCANTILE,
             RelationshipFlow = 5, // <= 9 = Hostile
-            Tier = 3
+            Level = 3
         };
     }
 
     private NPC CreateFriendlyNpc()
     {
-        return new NPC("FriendlyNPC", PersonalityType.DEVOTED)
+        return new NPC
         {
+            Name = "FriendlyNPC",
+            PersonalityType = PersonalityType.DEVOTED,
             RelationshipFlow = 18, // > 14 = Friendly
-            Tier = 3
+            Level = 3
         };
     }
 
     private NPC CreateNeutralNpc()
     {
-        return new NPC("NeutralNPC", PersonalityType.STEADFAST)
+        return new NPC
         {
+            Name = "NeutralNPC",
+            PersonalityType = PersonalityType.STEADFAST,
             RelationshipFlow = 12, // 10-14 = Neutral
-            Tier = 3
+            Level = 3
         };
     }
 }

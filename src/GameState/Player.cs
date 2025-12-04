@@ -163,6 +163,7 @@ public class Player
 
     // Physical progression - Mastery cubes earned through repeated challenge success (0-10 per deck)
     // Reduces Physical Danger threshold for specific challenge types (Combat, Athletics, etc.)
+    // DOMAIN COLLECTION PRINCIPLE: ACCEPTABLE - Variable collection (deck IDs are content-defined, not fixed enum)
     public List<MasteryCubeEntry> MasteryCubes { get; set; } = new List<MasteryCubeEntry>();
 
     // Mental resource - Focus depletes with obligation, recovers with rest
@@ -345,8 +346,9 @@ public class Player
     /// Increase route familiarity after successful travel (max 5)
     /// HIGHLANDER: Modifies RouteOption.Familiarity property directly
     /// ZERO NULL TOLERANCE: route must never be null
+    /// Amount is REQUIRED - familiarity gain varies by route properties
     /// </summary>
-    public void IncreaseRouteFamiliarity(RouteOption route, int amount = 1)
+    public void IncreaseRouteFamiliarity(RouteOption route, int amount)
     {
         route.Familiarity = Math.Min(5, route.Familiarity + amount);
     }
@@ -381,18 +383,40 @@ public class Player
         location.Familiarity = Math.Min(3, Math.Max(0, value));
     }
 
-    public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
+    /// <summary>
+    /// Add a permanent memory (story events that never expire)
+    /// HIGHLANDER: Method name declares intent - permanent memories
+    /// </summary>
+    public void AddPermanentMemory(string key, string description, int currentDay, int importance)
     {
         // Remove any existing memory with same key
         Memories.RemoveAll(m => m.Key == key);
 
-        // Add new memory
         Memories.Add(new MemoryFlag
         {
             Key = key,
             Description = description,
             CreationDay = currentDay,
-            ExpirationDay = expirationDays == -1 ? -1 : currentDay + expirationDays,
+            ExpirationDay = -1, // Permanent
+            Importance = importance
+        });
+    }
+
+    /// <summary>
+    /// Add a temporary memory (observations that fade over time)
+    /// HIGHLANDER: Method name declares intent - temporary memories with expiration
+    /// </summary>
+    public void AddTemporaryMemory(string key, string description, int currentDay, int importance, int expirationDays)
+    {
+        // Remove any existing memory with same key
+        Memories.RemoveAll(m => m.Key == key);
+
+        Memories.Add(new MemoryFlag
+        {
+            Key = key,
+            Description = description,
+            CreationDay = currentDay,
+            ExpirationDay = currentDay + expirationDays,
             Importance = importance
         });
     }

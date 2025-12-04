@@ -10,7 +10,6 @@ public class VenueBuilder
     private int _maxLocations;
     private AxialCoordinates _centerHex;
     private HexAllocationStrategy _allocation;
-    private int _tier;
 
     public VenueBuilder()
     {
@@ -19,7 +18,6 @@ public class VenueBuilder
         _maxLocations = 10;
         _centerHex = new AxialCoordinates(0, 0);
         _allocation = HexAllocationStrategy.ClusterOf7;
-        _tier = 1;
     }
 
     public VenueBuilder WithName(string name)
@@ -58,12 +56,6 @@ public class VenueBuilder
         return this;
     }
 
-    public VenueBuilder WithTier(int tier)
-    {
-        _tier = tier;
-        return this;
-    }
-
     public Venue Build()
     {
         Venue venue = new Venue(_name)
@@ -71,8 +63,7 @@ public class VenueBuilder
             Type = _type,
             MaxLocations = _maxLocations,
             CenterHex = _centerHex,
-            HexAllocation = _allocation,
-            Tier = _tier
+            HexAllocation = _allocation
         };
         return venue;
     }

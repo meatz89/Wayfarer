@@ -4,10 +4,12 @@
 /// </summary>
 public class TransportCompatibilityValidator
 {
+    private readonly GameWorld _gameWorld;
     private readonly ItemRepository _itemRepository;
 
-    public TransportCompatibilityValidator(ItemRepository itemRepository)
+    public TransportCompatibilityValidator(GameWorld gameWorld, ItemRepository itemRepository)
     {
+        _gameWorld = gameWorld;
         _itemRepository = itemRepository;
     }
 
@@ -48,9 +50,11 @@ public class TransportCompatibilityValidator
 
     /// <summary>
     /// Check if player's equipment is compatible with transport method
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public TransportCompatibilityResult CheckEquipmentCompatibility(TravelMethods transport, Player player)
+    public TransportCompatibilityResult CheckEquipmentCompatibility(TravelMethods transport)
     {
+        Player player = _gameWorld.GetPlayer();
         List<ItemCategory> playerEquipment = GetPlayerEquipmentCategories(player);
         List<Item> playerItems = GetPlayerItems(player);
 
@@ -80,8 +84,9 @@ public class TransportCompatibilityValidator
 
     /// <summary>
     /// Get comprehensive compatibility result for transport method with route and player state
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public TransportCompatibilityResult CheckFullCompatibility(TravelMethods transport, RouteOption route, Player player)
+    public TransportCompatibilityResult CheckFullCompatibility(TravelMethods transport, RouteOption route)
     {
         // Check terrain compatibility first
         TransportCompatibilityResult terrainResult = CheckTerrainCompatibility(transport, route.TerrainCategories);
@@ -89,7 +94,7 @@ public class TransportCompatibilityValidator
             return terrainResult;
 
         // Check equipment compatibility
-        TransportCompatibilityResult equipmentResult = CheckEquipmentCompatibility(transport, player);
+        TransportCompatibilityResult equipmentResult = CheckEquipmentCompatibility(transport);
         if (!equipmentResult.IsCompatible)
             return equipmentResult;
 

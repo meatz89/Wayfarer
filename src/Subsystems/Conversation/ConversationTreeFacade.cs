@@ -202,7 +202,8 @@ public class ConversationTreeFacade
                     : response.RelationshipDelta.ToString();
                 _messageSystem.AddSystemMessage(
                     $"Relationship with {npc.Name}: {deltaText}",
-                    SystemMessageTypes.Info);
+                    SystemMessageTypes.Info,
+                    null);
             }
         }
 
@@ -212,7 +213,7 @@ public class ConversationTreeFacade
             if (!player.Knowledge.Contains(knowledge))
             {
                 player.Knowledge.Add(knowledge);
-                _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info, null);
             }
         }
 
@@ -221,7 +222,7 @@ public class ConversationTreeFacade
         {
             foreach (Situation situation in response.SpawnedSituations)
             {
-                _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info, null);
             }
         }
 

@@ -15,8 +15,8 @@ public class SituationChoiceExecutorTests
 
     public SituationChoiceExecutorTests()
     {
-        _executor = new SituationChoiceExecutor();
-        _gameWorld = CreateTestGameWorld();
+        _gameWorld = new GameWorld();
+        _executor = new SituationChoiceExecutor(_gameWorld);
     }
 
     // ========== VALIDATEANDEXTRACT (CHOICETEMPLATE) TESTS ==========
@@ -25,7 +25,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_SufficientResources_ReturnsValidPlan()
     {
         // Arrange: Player with resources, template with costs
-        Player player = CreateTestPlayer(resolve: 10, coins: 20, health: 5, stamina: 3, focus: 2);
+        SetupPlayer(resolve: 10, coins: 20, health: 5, stamina: 3, focus: 2);
         ChoiceTemplate template = CreateChoiceTemplate(
             resolveCost: 5,
             coinCost: 10,
@@ -35,7 +35,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -51,7 +51,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_RequirementNotMet_ReturnsInvalid()
     {
         // Arrange: Player doesn't meet requirement (Resolve < 15)
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         CompoundRequirement requirement = CreateCompoundRequirement(
             requirementType: "Resolve",
             threshold: 15
@@ -59,7 +59,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(requirement: requirement);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.False(plan.IsValid);
@@ -74,11 +74,11 @@ public class SituationChoiceExecutorTests
         // This should be VALID because Resolve is not checked for affordability
         // The gate check (Resolve >= 0) is handled by RequirementFormula, not here
         // See arc42/08 §8.20 and ADR-017
-        Player player = CreateTestPlayer(resolve: 3);
+        SetupPlayer(resolve: 3);
         ChoiceTemplate template = CreateChoiceTemplate(resolveCost: 5);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should be VALID - Resolve is not checked for affordability
         Assert.True(plan.IsValid);
@@ -88,10 +88,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_InsufficientCoins_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when coins insufficient
-        Player player = CreateTestPlayer(resolve: 10, coins: 5);
+        SetupPlayer(resolve: 10, coins: 5);
         ChoiceTemplate template = CreateChoiceTemplate(coinCost: 10);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -100,10 +100,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_InsufficientHealth_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when health insufficient
-        Player player = CreateTestPlayer(resolve: 10, health: 2);
+        SetupPlayer(resolve: 10, health: 2);
         ChoiceTemplate template = CreateChoiceTemplate(healthCost: 4);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -112,10 +112,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_InsufficientStamina_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when stamina insufficient
-        Player player = CreateTestPlayer(resolve: 10, stamina: 1);
+        SetupPlayer(resolve: 10, stamina: 1);
         ChoiceTemplate template = CreateChoiceTemplate(staminaCost: 3);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -124,10 +124,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_InsufficientFocus_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when focus insufficient
-        Player player = CreateTestPlayer(resolve: 10, focus: 0);
+        SetupPlayer(resolve: 10, focus: 0);
         ChoiceTemplate template = CreateChoiceTemplate(focusCost: 2);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -136,10 +136,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_HungerWouldExceedMax_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when hunger would exceed max
-        Player player = CreateTestPlayer(resolve: 10, hunger: 95, maxHunger: 100);
+        SetupPlayer(resolve: 10, hunger: 95, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 10);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -148,10 +148,10 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_HungerAtMax_ReturnsInvalid()
     {
         // BEHAVIOR: Cannot execute action when already at max hunger
-        Player player = CreateTestPlayer(resolve: 10, hunger: 100, maxHunger: 100);
+        SetupPlayer(resolve: 10, hunger: 100, maxHunger: 100);
         ChoiceTemplate template = CreateChoiceTemplate(hungerCost: 1);
 
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         Assert.False(plan.IsValid);
     }
@@ -160,11 +160,11 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_NullRequirementFormula_ReturnsValidPlan()
     {
         // Arrange: Template with no requirements (null RequirementFormula)
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(requirement: null);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should pass validation (no requirements to check)
         Assert.True(plan.IsValid);
@@ -174,7 +174,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_EmptyOrPaths_ReturnsValidPlan()
     {
         // Arrange: Template with empty OrPaths (no requirements)
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         CompoundRequirement emptyRequirement = new CompoundRequirement
         {
             OrPaths = new List<OrPath>()  // Empty list
@@ -182,7 +182,7 @@ public class SituationChoiceExecutorTests
         ChoiceTemplate template = CreateChoiceTemplate(requirement: emptyRequirement);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: Should pass validation (empty OrPaths = no requirements)
         Assert.True(plan.IsValid);
@@ -192,7 +192,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ExactResources_ReturnsValidPlan()
     {
         // Arrange: Player has exactly the required resources (boundary case)
-        Player player = CreateTestPlayer(resolve: 5, coins: 10, health: 2, stamina: 3, focus: 1);
+        SetupPlayer(resolve: 5, coins: 10, health: 2, stamina: 3, focus: 1);
         ChoiceTemplate template = CreateChoiceTemplate(
             resolveCost: 5,
             coinCost: 10,
@@ -202,7 +202,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -212,14 +212,14 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ConsequenceRewards_SetCorrectly()
     {
         // Arrange: Template with rewards (positive values in Consequence)
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(
             coinReward: 15,
             resolveReward: 3
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -232,11 +232,11 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ActionName_SetCorrectly()
     {
         // Arrange
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Investigate Scene", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Investigate Scene", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -247,11 +247,11 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_IsAtmosphericAction_AlwaysFalse()
     {
         // Arrange: Scene-based actions are NEVER atmospheric
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate();
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -262,11 +262,11 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ActionType_SetFromTemplate()
     {
         // Arrange: Template with StartChallenge action type
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(actionType: ChoiceActionType.StartChallenge);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -277,14 +277,14 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ChallengeType_SetFromTemplate()
     {
         // Arrange: Template with Social challenge type
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(
             actionType: ChoiceActionType.StartChallenge,
             challengeType: TacticalSystemType.Social
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -295,14 +295,14 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_ChallengeId_SetFromTemplate()
     {
         // Arrange: Template with challenge ID
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(
             actionType: ChoiceActionType.StartChallenge,
             challengeId: "persuasion_challenge_01"
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -313,7 +313,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_NavigationPayload_SetFromTemplate()
     {
         // Arrange: Template with navigation payload
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         Location destination = CreateTestLocation("Test Location");
         NavigationPayload payload = new NavigationPayload
         {
@@ -326,7 +326,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -339,11 +339,11 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_TimeSegments_SetFromTemplate()
     {
         // Arrange: Template with time cost
-        Player player = CreateTestPlayer(resolve: 10);
+        SetupPlayer(resolve: 10);
         ChoiceTemplate template = CreateChoiceTemplate(timeSegments: 3);
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -354,7 +354,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_MultipleCostsAtOnce_ValidatesAll()
     {
         // Arrange: Template with multiple costs, player has sufficient resources
-        Player player = CreateTestPlayer(
+        SetupPlayer(
             resolve: 10,
             coins: 50,
             health: 8,
@@ -374,7 +374,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert: All costs validated, plan is valid
         Assert.True(plan.IsValid);
@@ -391,7 +391,7 @@ public class SituationChoiceExecutorTests
     public void ValidateAndExtract_FreeAction_ReturnsValidPlan()
     {
         // Arrange: Template with zero costs (free scene action)
-        Player player = CreateTestPlayer(resolve: 0, coins: 0);
+        SetupPlayer(resolve: 0, coins: 0);
         ChoiceTemplate template = CreateChoiceTemplate(
             resolveCost: 0,
             coinCost: 0,
@@ -402,7 +402,7 @@ public class SituationChoiceExecutorTests
         );
 
         // Act
-        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", player, _gameWorld);
+        ActionExecutionPlan plan = _executor.ValidateAndExtract(template, "Test Action", null, null);
 
         // Assert
         Assert.True(plan.IsValid);
@@ -413,9 +413,10 @@ public class SituationChoiceExecutorTests
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Create test player with specified resources
+    /// Setup player in GameWorld with specified resources.
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    private Player CreateTestPlayer(
+    private Player SetupPlayer(
         int resolve = 10,
         int coins = 100,
         int health = 10,
@@ -424,29 +425,18 @@ public class SituationChoiceExecutorTests
         int hunger = 0,
         int maxHunger = 100)
     {
-        Player player = new Player
-        {
-            Resolve = resolve,
-            Coins = coins,
-            Health = health,
-            MaxHealth = 10,
-            Stamina = stamina,
-            MaxStamina = 10,
-            Focus = focus,
-            MaxFocus = 10,
-            Hunger = hunger,
-            MaxHunger = maxHunger
-        };
-
+        Player player = _gameWorld.GetPlayer();
+        player.Resolve = resolve;
+        player.Coins = coins;
+        player.Health = health;
+        player.MaxHealth = 10;
+        player.Stamina = stamina;
+        player.MaxStamina = 10;
+        player.Focus = focus;
+        player.MaxFocus = 10;
+        player.Hunger = hunger;
+        player.MaxHunger = maxHunger;
         return player;
-    }
-
-    /// <summary>
-    /// Create test GameWorld (required for CompoundRequirement evaluation)
-    /// </summary>
-    private GameWorld CreateTestGameWorld()
-    {
-        return new GameWorld();
     }
 
     /// <summary>

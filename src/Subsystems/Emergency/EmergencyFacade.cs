@@ -103,7 +103,8 @@ public class EmergencyFacade
                     state.IsResolved = true;
                     _messageSystem.AddSystemMessage(
                         "Emergency situation expired - " + (template.IgnoreOutcome?.NarrativeResult ?? "situation resolved without your involvement"),
-                        SystemMessageTypes.Warning);
+                        SystemMessageTypes.Warning,
+                        null);
                 }
             }
         }
@@ -282,7 +283,8 @@ public class EmergencyFacade
                 : outcome.RelationshipDelta.ToString();
             _messageSystem.AddSystemMessage(
                 $"General reputation: {deltaText}",
-                SystemMessageTypes.Info);
+                SystemMessageTypes.Info,
+                null);
         }
 
         // Apply specific NPC relationship changes
@@ -304,7 +306,8 @@ public class EmergencyFacade
             string deltaText = delta > 0 ? $"+{delta}" : delta.ToString();
             _messageSystem.AddSystemMessage(
                 $"Relationship with {npc.Name}: {deltaText}",
-                SystemMessageTypes.Info);
+                SystemMessageTypes.Info,
+                null);
         }
 
         // Grant knowledge
@@ -313,13 +316,13 @@ public class EmergencyFacade
             if (!player.Knowledge.Contains(knowledge))
             {
                 player.Knowledge.Add(knowledge);
-                _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info, null);
             }
         }
 
         foreach (Item item in outcome.GrantedItems)
         {
-            _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info, null);
         }
 
         // Grant/remove coins directly (sync pattern)
@@ -329,18 +332,18 @@ public class EmergencyFacade
             string rewardText = outcome.CoinReward > 0
                 ? $"+{outcome.CoinReward} coins"
                 : $"{outcome.CoinReward} coins";
-            _messageSystem.AddSystemMessage(rewardText, SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage(rewardText, SystemMessageTypes.Info, null);
         }
 
         foreach (Situation situation in outcome.SpawnedSituations)
         {
-            _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info, null);
         }
 
         // Display narrative result
         if (!string.IsNullOrEmpty(outcome.NarrativeResult))
         {
-            _messageSystem.AddSystemMessage(outcome.NarrativeResult, SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage(outcome.NarrativeResult, SystemMessageTypes.Info, null);
         }
     }
 }

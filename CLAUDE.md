@@ -399,8 +399,9 @@ When the collection contains truly VARIABLE items (NPCs, Locations, Items), use 
 
 **Exception:** Dictionary acceptable ONLY for:
 - Blazor framework parameters (required by framework)
-- External API caching (ephemeral, not domain state)
-- Never for game state or content
+- Never for game state, content, or caching
+
+**NO CACHING PRINCIPLE:** Caching is FORBIDDEN anywhere in the game. All data should be read fresh. Templates, configurations, and state must never be cached. This ensures determinism, simplicity, and debuggability.
 
 **Details:** See `arc42/08_crosscutting_concepts.md` §8.29
 
@@ -651,7 +652,9 @@ These layers MUST match. Changing one without the others creates:
 
 **Enforcement:** Pre-commit hook blocks commits with files exceeding 1000 lines.
 
-**Exception:** `GameOrchestrator.cs` is exempt from the 1000-line limit. Its role is to coordinate ALL facades per FACADE ISOLATION principle - this inherently requires more code. Extracting orchestration logic would either duplicate responsibility (executors already exist) or violate FACADE ISOLATION (new classes calling facades directly).
+**Exceptions:**
+- `GameOrchestrator.cs` - Coordinates ALL facades per FACADE ISOLATION principle. Extracting orchestration logic would either duplicate responsibility (executors already exist) or violate FACADE ISOLATION (new classes calling facades directly).
+- `GameWorld.cs` - Single source of truth for ALL game state. As the central state container, it inherently requires many properties (entity collections) and methods (state queries). Extracting would create artificial seams and split state ownership.
 
 ---
 

@@ -1,4 +1,14 @@
 /// <summary>
+/// Entry for item count tracking.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class ItemCountEntry
+{
+    public string ItemName { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>
 /// Represents an active exchange session between the player and an NPC.
 /// Tracks the state of negotiation and available exchanges.
 /// No hidden state - all mechanics are explicit and visible.

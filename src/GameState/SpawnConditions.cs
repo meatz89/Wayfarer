@@ -92,12 +92,7 @@ public record PlayerStateConditions
     /// </summary>
     public List<string> RequiredItems { get; init; } = new List<string>();
 
-    /// <summary>
-    /// Location visit count requirements
-    /// Example: LocationId "tavern" with VisitCount 3 = spawn only if player visited tavern 3+ times
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<LocationVisitEntry> LocationVisits { get; init; } = new List<LocationVisitEntry>();
+    // LocationVisits DELETED - §8.30: SpawnConditions must reference existing entities via object refs, not string IDs
 }
 
 /// <summary>
@@ -148,32 +143,13 @@ public record WorldStateConditions
 }
 
 /// <summary>
-/// Entity state conditions - relationships and reputation
-/// Validates NPC bonds, location reputation, route familiarity, entity properties
+/// Entity state conditions - entity properties
+/// §8.30: SpawnConditions must reference existing entities via object refs, not string IDs
+/// NPCBond, LocationReputation, RouteTravelCount DELETED - violated §8.30
+/// If/when these features are needed, implement with object references: NPC Npc, Location Location, RouteOption Route
 /// </summary>
 public record EntityStateConditions
 {
-    /// <summary>
-    /// NPC bond requirements
-    /// Example: NpcId "elena" with BondStrength 10 = spawn only if Elena bond >= 10
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<NPCBondEntry> NPCBond { get; init; } = new List<NPCBondEntry>();
-
-    /// <summary>
-    /// Location reputation requirements
-    /// Example: LocationId "market_square" with ReputationScore 5 = spawn only if market reputation >= 5
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<LocationReputationEntry> LocationReputation { get; init; } = new List<LocationReputationEntry>();
-
-    /// <summary>
-    /// Route travel count requirements
-    /// Example: RouteId "mountain_pass" with TravelCount 2 = spawn only if traveled mountain pass 2+ times
-    /// DOMAIN COLLECTION PRINCIPLE: List<T> instead of Dictionary
-    /// </summary>
-    public List<RouteTravelCountEntry> RouteTravelCount { get; init; } = new List<RouteTravelCountEntry>();
-
     /// <summary>
     /// Required entity properties
     /// Entity must have ALL these properties

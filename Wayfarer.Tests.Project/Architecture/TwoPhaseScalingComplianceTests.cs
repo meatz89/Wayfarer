@@ -22,7 +22,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create hostile NPC (RelationshipFlow <= 9)
         NPC hostileNpc = new NPC { RelationshipFlow = 5 };
-        Location location = new Location { Difficulty = 1 };
+        Location location = new Location("TestLocation") { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -37,7 +37,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create friendly NPC (RelationshipFlow >= 15)
         NPC friendlyNpc = new NPC { RelationshipFlow = 18 };
-        Location location = new Location { Difficulty = 1 };
+        Location location = new Location("TestLocation") { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -52,7 +52,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Create neutral NPC (RelationshipFlow 10-14)
         NPC neutralNpc = new NPC { RelationshipFlow = 12 };
-        Location location = new Location { Difficulty = 1 };
+        Location location = new Location("TestLocation") { Difficulty = 1 };
         Player player = new Player();
 
         // Act
@@ -67,7 +67,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Basic location (Difficulty 0 = Basic quality)
         NPC npc = new NPC { RelationshipFlow = 12 };
-        Location basicLocation = new Location { Difficulty = 0 };
+        Location basicLocation = new Location("BasicLocation") { Difficulty = 0 };
         Player player = new Player();
 
         // Act
@@ -82,7 +82,7 @@ public class TwoPhaseScalingComplianceTests
     {
         // Arrange: Luxury location (Difficulty >= 3 = Luxury quality)
         NPC npc = new NPC { RelationshipFlow = 12 };
-        Location luxuryLocation = new Location { Difficulty = 3 };
+        Location luxuryLocation = new Location("LuxuryLocation") { Difficulty = 3 };
         Player player = new Player();
 
         // Act

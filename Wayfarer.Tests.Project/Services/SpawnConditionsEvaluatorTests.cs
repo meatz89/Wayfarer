@@ -61,7 +61,7 @@ public class SpawnConditionsEvaluatorTests
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
         // Act
-        bool result = evaluator.EvaluateAll(SpawnConditions.AlwaysEligible, player);
+        bool result = evaluator.EvaluateAll(SpawnConditions.AlwaysEligible);
 
         // Assert
         Assert.True(result);
@@ -82,7 +82,7 @@ public class SpawnConditionsEvaluatorTests
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
         // Act - AlwaysEligible should still return true
-        bool result = evaluator.EvaluateAll(SpawnConditions.AlwaysEligible, player);
+        bool result = evaluator.EvaluateAll(SpawnConditions.AlwaysEligible);
 
         // Assert
         Assert.True(result);
@@ -97,7 +97,7 @@ public class SpawnConditionsEvaluatorTests
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => evaluator.EvaluateAll(null, player));
+        Assert.Throws<ArgumentNullException>(() => evaluator.EvaluateAll(null));
     }
 
     // ========== PLAYERSTATECONDIT IONS TESTS (12 tests) ==========
@@ -116,16 +116,13 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 }
-                }
+                MinMorality = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -145,16 +142,13 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 }
-                }
+                MinMorality = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -176,18 +170,15 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 },
-                    { ScaleType.Lawfulness, 7 },
-                    { ScaleType.Fame, 5 }
-                }
+                MinMorality = 5,
+                MinLawfulness = 7,
+                MinFame = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -209,18 +200,15 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>
-                {
-                    { ScaleType.Morality, 5 },
-                    { ScaleType.Lawfulness, 7 },
-                    { ScaleType.Fame, 5 }
-                }
+                MinMorality = 5,
+                MinLawfulness = 7,
+                MinFame = 5
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -239,13 +227,13 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int>() // Empty
+                // DOMAIN COLLECTION PRINCIPLE: Explicit properties, all null by default (no requirements)
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -273,7 +261,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -299,7 +287,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -331,7 +319,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -362,7 +350,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -387,75 +375,13 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
     }
 
-    [Fact]
-    public void EvaluateAll_LocationVisits_FamiliarityMeetsThreshold_ReturnsTrue()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Location tavern = new Location("Tavern") { HexPosition = new AxialCoordinates(0, 0) };
-        world.Locations.Add(tavern);
-
-        Player player = CreatePlayer(world);
-        player.SetLocationFamiliarity(tavern, 3); // High familiarity
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            PlayerState = new PlayerStateConditions
-            {
-                LocationVisits = new Dictionary<string, int>
-                {
-                    { "Tavern", 2 } // Require 2 visits (familiarity maps to visits)
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_LocationVisits_FamiliarityBelowThreshold_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Location tavern = new Location("Tavern") { HexPosition = new AxialCoordinates(0, 0) };
-        world.Locations.Add(tavern);
-
-        Player player = CreatePlayer(world);
-        player.SetLocationFamiliarity(tavern, 1); // Low familiarity
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            PlayerState = new PlayerStateConditions
-            {
-                LocationVisits = new Dictionary<string, int>
-                {
-                    { "Tavern", 3 } // Require 3 visits
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
+    // LocationVisits tests DELETED - §8.30: Feature removed (used string IDs instead of object refs)
 
     // ========== WORLDSTATECONDITIONS TESTS (13 tests) ==========
 
@@ -479,7 +405,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -505,7 +431,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -531,7 +457,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -557,7 +483,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -583,7 +509,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -609,7 +535,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -635,7 +561,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -661,7 +587,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -687,7 +613,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -713,7 +639,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -739,7 +665,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -765,7 +691,7 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -792,21 +718,22 @@ public class SpawnConditionsEvaluatorTests
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
     }
 
-    // ========== ENTITYSTATECONDITIONS TESTS (9 tests) ==========
+    // ========== ENTITYSTATECONDITIONS TESTS ==========
+    // NPCBond, RouteTravelCount, LocationReputation tests DELETED - §8.30: Features removed (used string IDs instead of object refs)
+    // EntityStateConditions now only contains Properties field
 
     [Fact]
-    public void EvaluateAll_NPCBond_MeetsThreshold_ReturnsTrue()
+    public void EvaluateAll_EntityState_EmptyProperties_ReturnsTrue()
     {
         // Arrange
         GameWorld world = CreateGameWorld();
         Player player = CreatePlayer(world);
-        player.Relationships.SetLevel("elena", 15);
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -814,267 +741,24 @@ public class SpawnConditionsEvaluatorTests
         {
             EntityState = new EntityStateConditions
             {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 }
-                }
+                // Empty Properties = no requirements
             },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
     }
 
-    [Fact]
-    public void EvaluateAll_NPCBond_BelowThreshold_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Player player = CreatePlayer(world);
-        player.Relationships.SetLevel("elena", 5);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
+    // ========== COMBINATIONLOGIC TESTS ==========
+    // Tests updated to not use NPCBond (deleted per §8.30)
+    // EntityState with empty Properties always passes, so combination logic tested via PlayerState + WorldState
 
     [Fact]
-    public void EvaluateAll_NPCBond_MultipleBondsAllMeet_ReturnsTrue()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Player player = CreatePlayer(world);
-        player.Relationships.SetLevel("elena", 15);
-        player.Relationships.SetLevel("marcus", 12);
-        player.Relationships.SetLevel("sara", 8);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 },
-                    { "marcus", 10 },
-                    { "sara", 5 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_NPCBond_MultipleBondsOneFails_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Player player = CreatePlayer(world);
-        player.Relationships.SetLevel("elena", 15);
-        player.Relationships.SetLevel("marcus", 5); // Below threshold
-        player.Relationships.SetLevel("sara", 8);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int>
-                {
-                    { "elena", 10 },
-                    { "marcus", 10 },
-                    { "sara", 5 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_NPCBond_EmptyDictionary_ReturnsTrue()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Player player = CreatePlayer(world);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int>() // Empty
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_RouteTravelCount_FamiliarityMeetsThreshold_ReturnsTrue()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        RouteOption route = new RouteOption { Name = "mountain_pass" };
-        world.Routes.Add(route);
-
-        Player player = CreatePlayer(world);
-        player.SetRouteFamiliarity(route, 5); // High familiarity
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                RouteTravelCount = new Dictionary<string, int>
-                {
-                    { "mountain_pass", 3 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_RouteTravelCount_FamiliarityBelowThreshold_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        RouteOption route = new RouteOption { Name = "mountain_pass" };
-        world.Routes.Add(route);
-
-        Player player = CreatePlayer(world);
-        player.SetRouteFamiliarity(route, 2); // Low familiarity
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                RouteTravelCount = new Dictionary<string, int>
-                {
-                    { "mountain_pass", 3 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_RouteTravelCount_RouteNotFound_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        // Route not added to world
-
-        Player player = CreatePlayer(world);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                RouteTravelCount = new Dictionary<string, int>
-                {
-                    { "mountain_pass", 3 }
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_LocationReputation_AlwaysPasses_NotImplemented()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        Player player = CreatePlayer(world);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            EntityState = new EntityStateConditions
-            {
-                LocationReputation = new Dictionary<string, int>
-                {
-                    { "market_square", 10 } // Not implemented, should pass
-                }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert - LocationReputation currently not implemented, always passes
-        Assert.True(result);
-    }
-
-    // ========== COMBINATIONLOGIC TESTS (8 tests) ==========
-
-    [Fact]
-    public void EvaluateAll_AND_AllThreeDimensionsPass_ReturnsTrue()
+    public void EvaluateAll_AND_BothDimensionsPass_ReturnsTrue()
     {
         // Arrange
         GameWorld world = CreateGameWorld();
@@ -1082,7 +766,6 @@ public class SpawnConditionsEvaluatorTests
 
         Player player = CreatePlayer(world);
         player.Scales.Morality = 10;
-        player.Relationships.SetLevel("elena", 15);
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -1090,21 +773,17 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
                 Weather = WeatherCondition.Rain
             },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
@@ -1119,7 +798,6 @@ public class SpawnConditionsEvaluatorTests
 
         Player player = CreatePlayer(world);
         player.Scales.Morality = 2; // Fails
-        player.Relationships.SetLevel("elena", 15);
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -1127,21 +805,17 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
                 Weather = WeatherCondition.Rain
             },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
@@ -1156,7 +830,6 @@ public class SpawnConditionsEvaluatorTests
 
         Player player = CreatePlayer(world);
         player.Scales.Morality = 10;
-        player.Relationships.SetLevel("elena", 15);
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -1164,28 +837,56 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
                 Weather = WeatherCondition.Rain
             },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
             CombinationLogic = CombinationLogic.AND
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public void EvaluateAll_AND_EntityStateFails_ReturnsFalse()
+    public void EvaluateAll_AND_BothDimensionsFail_ReturnsFalse()
+    {
+        // Arrange
+        GameWorld world = CreateGameWorld();
+        world.CurrentWeather = WeatherCondition.Clear; // Fails
+
+        Player player = CreatePlayer(world);
+        player.Scales.Morality = 2; // Fails
+
+        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
+
+        SpawnConditions conditions = new SpawnConditions
+        {
+            PlayerState = new PlayerStateConditions
+            {
+                MinMorality = 5
+            },
+            WorldState = new WorldStateConditions
+            {
+                Weather = WeatherCondition.Rain
+            },
+            CombinationLogic = CombinationLogic.AND
+        };
+
+        // Act
+        bool result = evaluator.EvaluateAll(conditions);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void EvaluateAll_OR_BothDimensionsPass_ReturnsTrue()
     {
         // Arrange
         GameWorld world = CreateGameWorld();
@@ -1193,7 +894,6 @@ public class SpawnConditionsEvaluatorTests
 
         Player player = CreatePlayer(world);
         player.Scales.Morality = 10;
-        player.Relationships.SetLevel("elena", 5); // Fails
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -1201,110 +901,31 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
                 Weather = WeatherCondition.Rain
-            },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_AND_TwoDimensionsFail_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        world.CurrentWeather = WeatherCondition.Clear; // Fails
-
-        Player player = CreatePlayer(world);
-        player.Scales.Morality = 2; // Fails
-        player.Relationships.SetLevel("elena", 15);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            PlayerState = new PlayerStateConditions
-            {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
-            },
-            WorldState = new WorldStateConditions
-            {
-                Weather = WeatherCondition.Rain
-            },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
-            CombinationLogic = CombinationLogic.AND
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void EvaluateAll_OR_AllThreeDimensionsPass_ReturnsTrue()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        world.CurrentWeather = WeatherCondition.Rain;
-
-        Player player = CreatePlayer(world);
-        player.Scales.Morality = 10;
-        player.Relationships.SetLevel("elena", 15);
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            PlayerState = new PlayerStateConditions
-            {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
-            },
-            WorldState = new WorldStateConditions
-            {
-                Weather = WeatherCondition.Rain
-            },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
             },
             CombinationLogic = CombinationLogic.OR
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
     }
 
     [Fact]
-    public void EvaluateAll_OR_OnlyOneDimensionPasses_ReturnsTrue()
+    public void EvaluateAll_OR_OnlyPlayerStatePasses_ReturnsTrue()
     {
         // Arrange
         GameWorld world = CreateGameWorld();
         world.CurrentWeather = WeatherCondition.Clear; // Fails
 
         Player player = CreatePlayer(world);
-        player.Scales.Morality = 2; // Fails
-        player.Relationships.SetLevel("elena", 15); // Passes
+        player.Scales.Morality = 10; // Passes
 
         SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
 
@@ -1312,60 +933,20 @@ public class SpawnConditionsEvaluatorTests
         {
             PlayerState = new PlayerStateConditions
             {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
+                MinMorality = 5
             },
             WorldState = new WorldStateConditions
             {
                 Weather = WeatherCondition.Rain
             },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
             CombinationLogic = CombinationLogic.OR
         };
 
         // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
+        bool result = evaluator.EvaluateAll(conditions);
 
         // Assert
         Assert.True(result);
     }
 
-    [Fact]
-    public void EvaluateAll_OR_AllDimensionsFail_ReturnsFalse()
-    {
-        // Arrange
-        GameWorld world = CreateGameWorld();
-        world.CurrentWeather = WeatherCondition.Clear; // Fails
-
-        Player player = CreatePlayer(world);
-        player.Scales.Morality = 2; // Fails
-        player.Relationships.SetLevel("elena", 5); // Fails
-
-        SpawnConditionsEvaluator evaluator = CreateEvaluator(world);
-
-        SpawnConditions conditions = new SpawnConditions
-        {
-            PlayerState = new PlayerStateConditions
-            {
-                MinStats = new Dictionary<ScaleType, int> { { ScaleType.Morality, 5 } }
-            },
-            WorldState = new WorldStateConditions
-            {
-                Weather = WeatherCondition.Rain
-            },
-            EntityState = new EntityStateConditions
-            {
-                NPCBond = new Dictionary<string, int> { { "elena", 10 } }
-            },
-            CombinationLogic = CombinationLogic.OR
-        };
-
-        // Act
-        bool result = evaluator.EvaluateAll(conditions, player);
-
-        // Assert
-        Assert.False(result);
-    }
 }

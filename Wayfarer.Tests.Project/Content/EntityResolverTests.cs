@@ -510,19 +510,16 @@ public class EntityResolverTests
         {
             PlacementType = PlacementType.Location,
             Purpose = LocationPurpose.Commerce,
-            SelectionStrategy = PlacementSelectionStrategy.Random
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
-        // Act: Call multiple times, check if different locations returned (statistical test)
-        HashSet<Location> selectedLocations = new HashSet<Location>();
-        for (int i = 0; i < 50; i++)
-        {
-            Location result = resolver.FindLocation(filter, null);
-            selectedLocations.Add(result);
-        }
+        // Act: Call multiple times, check deterministic behavior (DDR-007 compliance)
+        Location firstResult = resolver.FindLocation(filter, null);
+        Location secondResult = resolver.FindLocation(filter, null);
 
-        // Assert: At least 2 different locations selected (randomness works)
-        Assert.True(selectedLocations.Count >= 2, "Random selection should pick different locations");
+        // Assert: DDR-007 - same filter produces same result (deterministic)
+        Assert.NotNull(firstResult);
+        Assert.Equal(firstResult, secondResult);
     }
 
     [Fact]

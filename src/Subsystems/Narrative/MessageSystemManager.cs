@@ -28,16 +28,18 @@ public class MessageSystemManager
 
     /// <summary>
     /// Add a standard system message
+    /// HIGHLANDER: type and category required - caller must be explicit
     /// </summary>
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
+    public void AddSystemMessage(string message, SystemMessageTypes type, MessageCategory? category)
     {
         _messageSystem.AddSystemMessage(message, type, category);
     }
 
     /// <summary>
     /// Add a narrative-styled message
+    /// HIGHLANDER: type and category required - caller must be explicit
     /// </summary>
-    public void AddNarrativeMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
+    public void AddNarrativeMessage(string message, SystemMessageTypes type, MessageCategory? category)
     {
         // Add narrative flourish based on type
         string styledMessage = ApplyNarrativeStyling(message, type);
@@ -46,25 +48,27 @@ public class MessageSystemManager
 
     /// <summary>
     /// Add multiple messages as a narrative sequence
+    /// HIGHLANDER: type required - caller must be explicit
     /// </summary>
-    public void AddNarrativeSequence(string[] messages, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddNarrativeSequence(string[] messages, SystemMessageTypes type)
     {
         foreach (string message in messages)
         {
             if (!string.IsNullOrEmpty(message))
             {
-                AddNarrativeMessage(message, type);
+                AddNarrativeMessage(message, type, null);
             }
         }
     }
 
     /// <summary>
     /// Add a timed narrative message that appears after a delay
+    /// HIGHLANDER: type required - caller must be explicit
     /// </summary>
-    public void AddDelayedNarrativeMessage(string message, int delayMs, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddDelayedNarrativeMessage(string message, int delayMs, SystemMessageTypes type)
     {
         // For now, add immediately - could be enhanced to support actual delays
-        AddNarrativeMessage(message, type);
+        AddNarrativeMessage(message, type, null);
     }
 
     /// <summary>
@@ -135,11 +139,11 @@ public class MessageSystemManager
 
         if (context?.Urgency == true)
         {
-            AddNarrativeMessage(contextualMessage, SystemMessageTypes.Warning);
+            AddNarrativeMessage(contextualMessage, SystemMessageTypes.Warning, null);
         }
         else
         {
-            AddNarrativeMessage(contextualMessage, SystemMessageTypes.Info);
+            AddNarrativeMessage(contextualMessage, SystemMessageTypes.Info, null);
         }
     }
 
@@ -161,7 +165,7 @@ public class MessageSystemManager
             message = $"{action}: Nearly done ({current}/{total})";
         }
 
-        AddNarrativeMessage(message, type);
+        AddNarrativeMessage(message, type, null);
     }
 
     /// <summary>
@@ -171,7 +175,7 @@ public class MessageSystemManager
     {
         string message = $"Your relationship with {npcName} {change}";
         SystemMessageTypes type = isPositive ? SystemMessageTypes.Success : SystemMessageTypes.Warning;
-        AddNarrativeMessage(message, type);
+        AddNarrativeMessage(message, type, null);
     }
 
     /// <summary>
@@ -190,7 +194,7 @@ public class MessageSystemManager
     {
         string message = $"{action} resulted in: {consequence}";
         SystemMessageTypes type = isPositive ? SystemMessageTypes.Success : SystemMessageTypes.Warning;
-        AddNarrativeMessage(message, type);
+        AddNarrativeMessage(message, type, null);
     }
 
     /// <summary>
@@ -213,7 +217,7 @@ public class MessageSystemManager
         }
 
         string message = $"{urgency}{event_} in {timeRemaining} {timeUnit}";
-        AddNarrativeMessage(message, type);
+        AddNarrativeMessage(message, type, null);
     }
 
     /// <summary>
@@ -231,6 +235,6 @@ public class MessageSystemManager
     public void AddHintMessage(string hint)
     {
         string message = $"Hint: {hint}";
-        AddNarrativeMessage(message, SystemMessageTypes.Tutorial);
+        AddNarrativeMessage(message, SystemMessageTypes.Tutorial, null);
     }
 }

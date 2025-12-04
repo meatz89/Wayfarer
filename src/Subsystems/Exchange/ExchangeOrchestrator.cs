@@ -51,7 +51,7 @@ public class ExchangeOrchestrator
 
         _messageSystem.AddSystemMessage(
             $"Exchange session started with {npc.Name}",
-            SystemMessageTypes.Info);
+            SystemMessageTypes.Info, null);
 
         return session;
     }
@@ -72,7 +72,7 @@ public class ExchangeOrchestrator
             // ADR-007: No ID lookup needed - session already has NPC object
             _messageSystem.AddSystemMessage(
                 $"Exchange session with {session.Npc!.Name} ended",
-                SystemMessageTypes.Info);
+                SystemMessageTypes.Info, null);
         }
     }
 

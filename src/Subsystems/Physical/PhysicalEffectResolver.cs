@@ -46,7 +46,7 @@ public class PhysicalEffectResolver
         }
 
         // Calculate player exertion state for dynamic costs
-        PlayerExertionState exertion = _exertionCalculator.CalculateExertion(player);
+        PlayerExertionState exertion = _exertionCalculator.CalculateExertion();
         int costModifier = exertion.GetPhysicalCostModifier();
 
         // ===== EXERTION (Builder Resource) =====

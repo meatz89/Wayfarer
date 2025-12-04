@@ -7,7 +7,10 @@
         _gameWorld = gameWorld;
     }
 
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
+    /// <summary>
+    /// HIGHLANDER: type and category required - caller must be explicit about message type
+    /// </summary>
+    public void AddSystemMessage(string message, SystemMessageTypes type, MessageCategory? category)
     {
         // Different durations based on message importance
         int duration = type switch

@@ -142,7 +142,6 @@ public class SceneArchetypeNamingTests
             Id = "test_scene",
             SceneArchetype = SceneArchetypeType.InnLodging,
             Archetype = SpawnPattern.Linear,
-            Tier = 1,
             SituationTemplates = new List<SituationTemplate>(),
             SpawnRules = new SituationSpawnRules { Pattern = SpawnPattern.Linear }
         };

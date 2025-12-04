@@ -26,7 +26,7 @@ public class Phase2_VenueMatchingTests
         Location commerceLocation = LocationBuilder.Commerce();
 
         // ACT: Place commerce location
-        service.PlaceLocation(commerceLocation, "medium", player);
+        service.PlaceLocation(commerceLocation, "medium");
 
         // ASSERT: Location placed in a venue
         // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
@@ -56,7 +56,7 @@ public class Phase2_VenueMatchingTests
         Location dwellingLocation = LocationBuilder.Dwelling();
 
         // ACT: Place dwelling location
-        service.PlaceLocation(dwellingLocation, "medium", player);
+        service.PlaceLocation(dwellingLocation, "medium");
 
         // ASSERT: Location placed in a venue
         // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
@@ -77,7 +77,7 @@ public class Phase2_VenueMatchingTests
         Location worshipLocation = LocationBuilder.Worship();
 
         // ACT: Place worship location
-        service.PlaceLocation(worshipLocation, "medium", player);
+        service.PlaceLocation(worshipLocation, "medium");
 
         // ASSERT: Location placed in Temple venue
         Assert.NotNull(worshipLocation.Venue);
@@ -100,7 +100,7 @@ public class Phase2_VenueMatchingTests
             .Build();
 
         // ACT: Place generic location
-        service.PlaceLocation(genericLocation, "medium", player);
+        service.PlaceLocation(genericLocation, "medium");
 
         // ASSERT: Location placed successfully
         // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
@@ -115,18 +115,14 @@ public class Phase2_VenueMatchingTests
         GameWorld world = new GameWorldBuilder()
             .WithVenue(VenueBuilder.Market())
             .WithVenue(VenueBuilder.Tavern())
-            .Build();
-
-        (GameWorld _, Player player) = new GameWorldBuilder()
-            .WithVenues(world.Venues.ToList())
             .WithPlayerAt(0, 0)
-            .BuildWithPlayer();
+            .Build();
 
         LocationPlacementService service = new LocationPlacementService(world);
         Location worshipLocation = LocationBuilder.Worship();
 
         // ACT: Place worship location (should succeed - any venue can host any purpose)
-        service.PlaceLocation(worshipLocation, "medium", player);
+        service.PlaceLocation(worshipLocation, "medium");
 
         // ASSERT: Location placed successfully in available venue
         Assert.NotNull(worshipLocation.Venue);
@@ -166,7 +162,7 @@ public class Phase2_VenueMatchingTests
         Location commerceLocation = LocationBuilder.Commerce();
 
         // ACT: Place commerce location with "medium" distance hint
-        service.PlaceLocation(commerceLocation, "medium", player);
+        service.PlaceLocation(commerceLocation, "medium");
 
         // ASSERT: Location placed in one of the compatible venues
         Assert.NotNull(commerceLocation.Venue);
@@ -207,7 +203,7 @@ public class Phase2_VenueMatchingTests
         // ACT: Place all locations
         foreach (Location location in locations)
         {
-            service.PlaceLocation(location, "medium", player);
+            service.PlaceLocation(location, "medium");
         }
 
         // ASSERT: All locations are placed in a venue

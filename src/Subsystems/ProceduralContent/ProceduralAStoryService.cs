@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 [assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
 /// <summary>
@@ -341,10 +343,10 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Get or initialize AStoryContext from GameWorld player state
+    /// Get or initialize AStoryContext from GameWorld scene state
     /// Context tracks progression for intelligent generation decisions
     /// </summary>
-    public AStoryContext GetOrInitializeContext(Player player)
+    public AStoryContext GetOrInitializeContext()
     {
         // Check if player has completed any A-story scenes
         List<Scene> completedAScenes = _gameWorld.Scenes

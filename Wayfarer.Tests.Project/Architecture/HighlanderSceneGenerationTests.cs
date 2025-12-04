@@ -24,8 +24,14 @@ public class HighlanderSceneGenerationTests
     public HighlanderSceneGenerationTests()
     {
         // SelectArchetypeCategory is a pure function - doesn't use these dependencies
-        // Passing nulls is safe for testing the selection logic
-        _service = new ProceduralAStoryService(null, null, null);
+        // Create minimal valid dependencies to satisfy constructor validation
+        GameWorld gameWorld = new GameWorld();
+        SceneGenerationFacade sceneGenFacade = new SceneGenerationFacade(gameWorld);
+        LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator(gameWorld);
+        LocationPlacementService locationPlacementService = new LocationPlacementService(gameWorld);
+        ContentGenerationFacade contentFacade = new ContentGenerationFacade();
+        PackageLoader packageLoader = new PackageLoader(gameWorld, sceneGenFacade, locationValidator, locationPlacementService);
+        _service = new ProceduralAStoryService(gameWorld, contentFacade, packageLoader);
     }
 
     // ==================== IDENTICAL INPUT → IDENTICAL OUTPUT ====================

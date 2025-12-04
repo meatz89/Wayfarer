@@ -45,10 +45,10 @@ public class Phase2_VenueMatchingEdgeCaseTests
         Location shop1 = LocationBuilder.Commerce();
         Location shop2 = LocationBuilder.Commerce();
 
-        service.PlaceLocation(shop1, "near", player);
+        service.PlaceLocation(shop1, "near");
         world.AddOrUpdateLocation(shop1.Name, shop1);  // Add to GameWorld for capacity tracking
 
-        service.PlaceLocation(shop2, "near", player);
+        service.PlaceLocation(shop2, "near");
         world.AddOrUpdateLocation(shop2.Name, shop2);  // Add to GameWorld for capacity tracking
 
         // Verify nearMarket is at capacity via query (AFTER adding to GameWorld)
@@ -59,7 +59,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
 
         // ACT: Place third commerce location (nearMarket is full)
         Location shop3 = LocationBuilder.Commerce();
-        service.PlaceLocation(shop3, "near", player);  // Same distance hint - both venues in range
+        service.PlaceLocation(shop3, "near");  // Same distance hint - both venues in range
 
         // ASSERT: Third location placed in farMerchant (NOT nearMarket which is full)
         Assert.NotNull(shop3.Venue);
@@ -103,9 +103,9 @@ public class Phase2_VenueMatchingEdgeCaseTests
         // Fill both venues to capacity
         Location commerce1 = LocationBuilder.Commerce();
         Location commerce2 = LocationBuilder.Commerce();
-        service.PlaceLocation(commerce1, "medium", player);
+        service.PlaceLocation(commerce1, "medium");
         world.AddOrUpdateLocation(commerce1.Name, commerce1);
-        service.PlaceLocation(commerce2, "medium", player);
+        service.PlaceLocation(commerce2, "medium");
         world.AddOrUpdateLocation(commerce2.Name, commerce2);
 
         // Verify both at capacity via query
@@ -116,7 +116,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
 
         // ACT & ASSERT: Placement fails when all matching venues at capacity
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
-            () => service.PlaceLocation(LocationBuilder.Commerce(), "medium", player)
+            () => service.PlaceLocation(LocationBuilder.Commerce(), "medium")
         );
 
         // ASSERT: Exception message is informative
@@ -146,7 +146,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
         Location commerceLocation = LocationBuilder.Commerce();
 
         // ACT: Place with "near" hint (range 2-5), but only venue is at distance 20
-        service.PlaceLocation(commerceLocation, "near", player);
+        service.PlaceLocation(commerceLocation, "near");
 
         // ASSERT: Location placed anyway (fallback ignores distance constraint)
         Assert.NotNull(commerceLocation.Venue);
@@ -174,7 +174,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
         Location transitLocation = LocationBuilder.Transit();
 
         // ACT: Place transit location (roads, paths, outdoor routes)
-        service.PlaceLocation(transitLocation, "medium", player);
+        service.PlaceLocation(transitLocation, "medium");
 
         // ASSERT: Location placed in a venue
         // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
@@ -206,7 +206,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
             .Build();
 
         // ACT: Place defense location
-        service.PlaceLocation(defenseLocation, "medium", player);
+        service.PlaceLocation(defenseLocation, "medium");
 
         // ASSERT: Location placed in defense venue (Fortress or Guard)
         Assert.NotNull(defenseLocation.Venue);
@@ -233,7 +233,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
             .Build();
 
         // ACT: Place learning location
-        service.PlaceLocation(learningLocation, "medium", player);
+        service.PlaceLocation(learningLocation, "medium");
 
         // ASSERT: Location placed in Academy venue
         Assert.NotNull(learningLocation.Venue);
@@ -265,7 +265,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
             .Build();
 
         // ACT: Place entertainment location
-        service.PlaceLocation(entertainmentLocation, "medium", player);
+        service.PlaceLocation(entertainmentLocation, "medium");
 
         // ASSERT: Location placed in entertainment venue (Theater or Arena)
         Assert.NotNull(entertainmentLocation.Venue);
@@ -302,11 +302,11 @@ public class Phase2_VenueMatchingEdgeCaseTests
         Location commerce1 = LocationBuilder.Commerce();
         Location commerce2 = LocationBuilder.Commerce();
         Location commerce3 = LocationBuilder.Commerce();
-        service.PlaceLocation(commerce1, "medium", player);
+        service.PlaceLocation(commerce1, "medium");
         world.AddOrUpdateLocation(commerce1.Name, commerce1);
-        service.PlaceLocation(commerce2, "medium", player);
+        service.PlaceLocation(commerce2, "medium");
         world.AddOrUpdateLocation(commerce2.Name, commerce2);
-        service.PlaceLocation(commerce3, "medium", player);
+        service.PlaceLocation(commerce3, "medium");
         world.AddOrUpdateLocation(commerce3.Name, commerce3);
 
         // ASSERT: INVARIANT - Capacity equals max (not exceeded)
@@ -316,7 +316,7 @@ public class Phase2_VenueMatchingEdgeCaseTests
 
         // ACT: Attempt to place 4th location (should fail, not exceed capacity)
         Assert.Throws<InvalidOperationException>(
-            () => service.PlaceLocation(LocationBuilder.Commerce(), "medium", player)
+            () => service.PlaceLocation(LocationBuilder.Commerce(), "medium")
         );
 
         // ASSERT: INVARIANT - Capacity STILL equals max (never exceeded)

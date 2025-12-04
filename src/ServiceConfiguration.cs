@@ -34,7 +34,8 @@ public static class ServiceConfiguration
         // Obligation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
 
-        services.AddTimeSystem();
+        // TimeManager registered in Program.cs via GameWorldInitializer.CreateInitializationResult()
+        // TimeModel is a domain model with state - created explicitly, not DI-resolved
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();
@@ -47,6 +48,7 @@ public static class ServiceConfiguration
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<SocialEffectResolver>();
         services.AddSingleton<SocialChallengeDeckBuilder>();
+        services.AddSingleton<SocialResourceCalculator>();
         services.AddSingleton<SocialFacade>();
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
@@ -181,6 +183,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCLocationTracker>();
         services.AddSingleton<LocationActionManager>();
         services.AddSingleton<LocationNarrativeGenerator>();
+        services.AddSingleton<LocationChallengeBuilder>();
         services.AddSingleton<LocationFacade>();
 
         // Obligation Subsystem

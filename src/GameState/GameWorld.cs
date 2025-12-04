@@ -1,3 +1,66 @@
+/// <summary>
+/// Entry for NPC exchange card mapping.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// HIGHLANDER: Object reference only, no string ID.
+/// </summary>
+public class NPCExchangeCardEntry
+{
+    public NPC Npc { get; set; }
+    public List<ExchangeCard> ExchangeCards { get; set; } = new List<ExchangeCard>();
+}
+
+/// <summary>
+/// Entry for skeleton registry mapping.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// </summary>
+public class SkeletonRegistryEntry
+{
+    public string SkeletonKey { get; set; }
+    public string ContentType { get; set; }
+}
+
+/// <summary>
+/// Entry for path card discovery state.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// HIGHLANDER: Uses PathCardDTO object reference, not string ID
+/// </summary>
+public class PathCardDiscoveryEntry
+{
+    public PathCardDTO Card { get; set; }
+    public bool IsDiscovered { get; set; }
+}
+
+/// <summary>
+/// Entry for event deck position tracking.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// HIGHLANDER: Uses PathCardCollectionDTO object reference, not string ID
+/// </summary>
+public class EventDeckPositionEntry
+{
+    public PathCardCollectionDTO Collection { get; set; }
+    public int Position { get; set; }
+}
+
+/// <summary>
+/// Entry for path collection reference.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// HIGHLANDER: Collection object contains Id - no need to store separately.
+/// </summary>
+public class PathCollectionEntry
+{
+    public PathCardCollectionDTO Collection { get; set; }
+}
+
+/// <summary>
+/// Entry for travel event reference.
+/// INLINED from CollectionEntries.cs per HIGHLANDER principle (keep class with its primary consumer)
+/// HIGHLANDER: TravelEvent object contains Id - no need to store separately.
+/// </summary>
+public class TravelEventEntry
+{
+    public TravelEventDTO TravelEvent { get; set; }
+}
+
 public class GameWorld
 {
     // Game mode determines content loading and tutorial state
@@ -139,10 +202,6 @@ public class GameWorld
     public MentalSession CurrentMentalSession { get; set; }
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
-    // PROCEDURAL CONTENT TRACING SYSTEM - Debugging tool for tracking spawn graph
-    // Captures scene spawning, situation creation, choice execution
-    // Null-safe: Check IsEnabled before using
-    public ProceduralContentTracer ProceduralTracer { get; set; }
 
     // ADR-007: Session context IDs DELETED - MentalChallengeContext/PhysicalChallengeContext hold objects
     // Session contexts already contain SituationCard and Obligation object references
@@ -970,17 +1029,18 @@ public class GameWorld
 
     /// <summary>
     /// Set event deck position
+    /// HIGHLANDER: Uses object reference for identity, not string ID
     /// </summary>
-    public void SetEventDeckPosition(string deckId, int position)
+    public void SetEventDeckPosition(PathCardCollectionDTO collection, int position)
     {
-        EventDeckPositionEntry existing = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
+        EventDeckPositionEntry existing = EventDeckPositions.FirstOrDefault(p => p.Collection == collection);
         if (existing != null)
         {
             existing.Position = position;
         }
         else
         {
-            EventDeckPositions.Add(new EventDeckPositionEntry { DeckId = deckId, Position = position });
+            EventDeckPositions.Add(new EventDeckPositionEntry { Collection = collection, Position = position });
         }
     }
 
@@ -998,7 +1058,7 @@ public class GameWorld
         if (card == null)
             throw new ArgumentNullException(nameof(card));
 
-        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
+        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.Card == card);
         if (entry == null)
         {
             return card.StartsRevealed;
@@ -1008,21 +1068,21 @@ public class GameWorld
 
     /// <summary>
     /// Set path card discovery status
-    /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
+    /// HIGHLANDER: Uses object reference for identity, not string ID
     /// </summary>
     public void SetPathCardDiscovered(PathCardDTO card, bool discovered)
     {
         if (card == null)
             throw new ArgumentNullException(nameof(card));
 
-        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
+        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.Card == card);
         if (existing != null)
         {
             existing.IsDiscovered = discovered;
         }
         else
         {
-            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = card.Id, IsDiscovered = discovered });
+            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { Card = card, IsDiscovered = discovered });
         }
     }
 

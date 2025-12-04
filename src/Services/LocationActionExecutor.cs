@@ -6,6 +6,13 @@
 /// </summary>
 public class LocationActionExecutor
 {
+    private readonly GameWorld _gameWorld;
+
+    public LocationActionExecutor(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+    }
+
     /// <summary>
     /// Validate atmospheric LocationAction and extract execution plan
     /// FALLBACK SCENE: These are permanent actions that prevent soft-locks
@@ -14,9 +21,11 @@ public class LocationActionExecutor
     ///
     /// HIGHLANDER: Consequence is the ONLY class for resource outcomes.
     /// Negative values = costs, Positive values = rewards.
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public ActionExecutionPlan ValidateAndExtract(LocationAction action, Player player)
+    public ActionExecutionPlan ValidateAndExtract(LocationAction action)
     {
+        Player player = _gameWorld.GetPlayer();
         // Extract costs from Consequence (negative values become positive cost amounts)
         int coinsCost = action.Consequence.Coins < 0 ? -action.Consequence.Coins : 0;
         int staminaCost = action.Consequence.Stamina < 0 ? -action.Consequence.Stamina : 0;
@@ -63,9 +72,11 @@ public class LocationActionExecutor
     /// Validate ATMOSPHERIC PathCard (route card with direct costs/rewards)
     /// FALLBACK SCENE: Static route path cards defined in route JSON files
     /// PathCards follow same dual-pattern as LocationActions
+    /// Player accessed via _gameWorld.GetPlayer() (never passed as parameter).
     /// </summary>
-    public ActionExecutionPlan ValidateAtmosphericPathCard(PathCard card, Player player)
+    public ActionExecutionPlan ValidateAtmosphericPathCard(PathCard card)
     {
+        Player player = _gameWorld.GetPlayer();
         // STEP 1: Validate costs (atmospheric PathCards have no requirements, only costs)
         if (player.Coins < card.CoinRequirement)
         {
