@@ -66,20 +66,6 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Synchronous fallback method for backwards compatibility.
-    /// Used when async context not available.
-    /// </summary>
-    public string GenerateSituationNarrative(ScenePromptContext context, NarrativeHints narrativeHints)
-    {
-        // Validate required context
-        if (context == null)
-            throw new ArgumentNullException(nameof(context));
-
-        // Generate contextual narrative from entity properties
-        return GenerateFallbackSituationNarrative(context, narrativeHints);
-    }
-
-    /// <summary>
     /// Try AI narrative generation with timeout.
     /// Pattern from AINarrativeProvider (lines 57-66):
     /// - 5-second timeout via CancellationTokenSource
