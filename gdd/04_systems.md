@@ -185,17 +185,26 @@ NPCs provide benefits when cultivated:
 
 ## 4.5 The Four-Choice Archetype
 
-Every A-story situation presents four path types:
+Every A-story situation offers four paths, but the STRUCTURE varies by narrative rhythm:
 
-| Path | Requirement | Cost | Risk | Purpose |
-|------|-------------|------|------|---------|
-| **Stat-Gated** | High stat threshold | Free | None | Rewards specialization |
-| **Resource** | None | Coins/consumables | None | Universal fallback |
-| **Challenge** | Moderate stat | Session entry | Failure possible | Skill expression |
-| **Fallback** | None | Time/social cost | None | Guaranteed progress |
+| Rhythm | Choice Structure | Player Experience |
+|--------|-----------------|-------------------|
+| **Building** | All positive outcomes | "Which stat do I want to grow?" |
+| **Crisis** | All negative outcomes | "Which loss can I minimize?" |
+| **Mixed** | Trade-offs | "What am I willing to sacrifice?" |
+
+**The guaranteed constant:** At least one path is ALWAYS available without requirements (no soft-locks).
+
+### Mixed Rhythm Pattern (Most Common)
+
+| Path | Requirement | Cost | Purpose |
+|------|-------------|------|---------|
+| **Stat-Gated** | High stat threshold | Free | Rewards specialization |
+| **Resource** | None | Coins/consumables | Wealth alternative |
+| **Challenge** | Moderate stat | Session entry | Skill expression |
+| **Fallback** | None | Time/social cost | Guaranteed progress |
 
 **Why this works:**
-- At least one path ALWAYS available (no soft-locks)
 - Orthogonal costs prevent single "best" answer
 - Specialists rewarded but not required
 - Challenge path offers risk/reward for skill expression

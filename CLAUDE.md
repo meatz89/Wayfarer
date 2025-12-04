@@ -1,23 +1,3 @@
-# ARC42 DOCUMENTATION STYLE - ABSOLUTE RULE
-
-**NO CODE EXAMPLES, CONCRETE NUMBERS, OR CALCULATIONS IN ARC42 DOCUMENTS - EVER.**
-
-Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementation details.
-
-| FORBIDDEN in arc42 | REQUIRED in arc42 |
-|-------------------|-------------------|
-| Code blocks (C#, JSON, etc.) | Conceptual descriptions |
-| Specific file paths or line numbers | Pattern names and relationships |
-| Concrete numbers (1.1x, 50 coins) | Trade-off explanations |
-| Enum value lists | Categorical thinking |
-| Implementation switch statements | Decision rationale |
-
-**Philosophy:** Arc42 answers WHY and WHAT, never HOW. Implementation details belong in code with self-documenting names. Documentation describes approaches, rules, principles, tactics, and strategies.
-
-**"Dare to leave gaps"** - Don't cover everything. Travel light. Focus on decisions that matter.
-
----
-
 # REQUIRED READING - START HERE
 
 **Before ANY task, achieve 100% certainty. Read documentation first, never assume.**
@@ -37,15 +17,39 @@ Arc42 documents describe **INTENT, PRINCIPLES, and STRATEGIES** - not implementa
 | `gdd/` subdirectory | Detailed mechanics, archetypes, balance methodology |
 | `arc42/` subdirectory | Complete arc42 technical documentation |
 
-## Reading Order by Task Type
+---
 
-**Implement a feature** → Glossaries → `arc42/08` → `arc42/05` → `gdd/01` → `gdd/03`
+# ARC42 DOCUMENTATION PHILOSOPHY
 
-**Understand balance** → Glossaries → `gdd/01` → `gdd/06` → `gdd/BASELINE_ECONOMY.md`
+Arc42 is a **cabinet, not a form**. Use it as organized drawers for architecture knowledge, not as a template to fill completely.
 
-**Understand an entity** → Glossaries → `arc42/05` → `arc42/08` → Search codebase
+## Core Principles
 
-**Understand a decision** → Glossaries → `gdd/07` → `arc42/09` → `gdd/01`
+| Principle | Meaning |
+|-----------|---------|
+| **"Dare to leave gaps"** | Deliberately exclude irrelevant sections. Empty sections are fine. |
+| **Stakeholder-driven** | Document what stakeholders need, nothing more. |
+| **Concepts over implementation** | Describe patterns and decisions, not property names or formulas. |
+| **5-15 elements** | Diagrams should contain 5-15 elements. More = wrong abstraction level. |
+
+## What Belongs in arc42
+
+- **WHY** decisions were made
+- **WHAT** patterns and principles apply
+- Architectural trade-offs and their rationale
+- Crosscutting concerns that span multiple components
+
+## What Does NOT Belong in arc42
+
+| FORBIDDEN | WHY |
+|-----------|-----|
+| Code blocks | Implementation belongs in code |
+| Specific property names | Code is authoritative for naming |
+| Concrete numbers/formulas | These change; code is source of truth |
+| Enum value lists | Implementation detail |
+| Method signatures | Code documents itself |
+
+**Reference:** [arc42 FAQ](https://leanpub.com/arc42-faq/read), [arc42 in Practice](https://leanpub.com/arc42inpractice/read)
 
 ---
 

@@ -209,11 +209,17 @@ Scene generation is deterministic based on what HAS HAPPENED, not what the playe
 
 ### What Drives Scene Selection
 
-| Factor | Examples | How It Works |
-|--------|----------|--------------|
-| **Intensity History** | Recent demanding/recovery counts, scenes since last crisis | Determines rhythm phase (accumulation, test, recovery) |
-| **Location Context** | Safety, purpose, privacy, activity level | Influences appropriate scene categories for the setting |
-| **Categorical Properties** | NPC demeanor, quality tier, power dynamic | Combine through deterministic logic to select archetype |
+| Factor | Purpose |
+|--------|---------|
+| **Rhythm Pattern** | Computed from intensity history; determines Building/Crisis/Mixed |
+| **Anti-Repetition** | Prevents immediate category repetition |
+
+**What does NOT drive selection:**
+- Location context (affects choice SCALING, not scene SELECTION)
+- Player stats, resources, or Resolve
+- Story sequence number
+
+Location properties and NPC demeanor affect how CHOICES within a scene scale, not which scene is selected.
 
 ### HIGHLANDER Principle for Generation
 
