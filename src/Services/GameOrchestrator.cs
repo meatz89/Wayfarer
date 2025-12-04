@@ -708,7 +708,7 @@ public class GameOrchestrator
         // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
         {
-            Console.WriteLine("[StartGameAsync] ⚠️ Game already started - returning early");
+            Console.WriteLine("[StartGameAsync] Game already started - returning early");
             return;
         }
 

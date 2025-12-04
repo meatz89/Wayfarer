@@ -42,7 +42,7 @@ public static class DeliveryJobCatalog
             // Skip if locations not found
             if (origin == null || destination == null)
             {
-                Console.WriteLine($"[DeliveryJobCatalog] ⚠️ Skipping route '{route.Name}' - origin or destination not found");
+                Console.WriteLine($"[DeliveryJobCatalog] Skipping route '{route.Name}' - origin or destination not found");
                 continue;
             }
 
@@ -57,7 +57,7 @@ public static class DeliveryJobCatalog
             DeliveryJob job = GenerateJob(route, origin, destination);
             jobs.Add(job);
 
-            Console.WriteLine($"[DeliveryJobCatalog] ✅ Generated job to {destination.Name} - {job.DifficultyTier} - {job.Payment} coins");
+            Console.WriteLine($"[DeliveryJobCatalog] Generated job to {destination.Name} - {job.DifficultyTier} - {job.Payment} coins");
         }
 
         Console.WriteLine($"[DeliveryJobCatalog] Generated {jobs.Count} delivery jobs total");
@@ -76,7 +76,7 @@ public static class DeliveryJobCatalog
         // Calculate payment based on economic formula
         int payment = CalculatePayment(route.Segments.Count, tier);
 
-        // Generate cargo description based on tier
+        // Generate cargo description based on tier (categorical, no randomness)
         string cargo = GenerateCargoDescription(tier);
 
         // Create job entity
@@ -132,64 +132,17 @@ public static class DeliveryJobCatalog
     }
 
     /// <summary>
-    /// Generate procedural cargo description based on difficulty tier.
-    /// Simple: letters, documents (small, low-value)
-    /// Moderate: packages, goods (medium-value)
-    /// Dangerous: valuables, urgent packages (high-value, time-sensitive)
+    /// Generate cargo description based on difficulty tier (categorical).
+    /// Each tier maps to ONE canonical cargo type - no randomness or seeds.
     /// </summary>
     private static string GenerateCargoDescription(DifficultyTier tier)
     {
         return tier switch
         {
-            DifficultyTier.Simple => GetSimpleCargo(),
-            DifficultyTier.Moderate => GetModerateCargo(),
-            DifficultyTier.Dangerous => GetDangerousCargo(),
+            DifficultyTier.Simple => "a letter",
+            DifficultyTier.Moderate => "a package",
+            DifficultyTier.Dangerous => "valuable documents",
             _ => "a package"
         };
-    }
-
-    /// <summary>
-    /// Get random simple cargo description.
-    /// </summary>
-    private static string GetSimpleCargo()
-    {
-        string[] cargos = new[]
-        {
-        "a letter",
-        "some documents",
-        "a small parcel",
-        "correspondence"
-    };
-        return cargos[Random.Shared.Next(cargos.Length)];
-    }
-
-    /// <summary>
-    /// Get random moderate cargo description.
-    /// </summary>
-    private static string GetModerateCargo()
-    {
-        string[] cargos = new[]
-        {
-        "a package",
-        "a sack of grain",
-        "trade goods",
-        "merchant supplies"
-    };
-        return cargos[Random.Shared.Next(cargos.Length)];
-    }
-
-    /// <summary>
-    /// Get random dangerous cargo description.
-    /// </summary>
-    private static string GetDangerousCargo()
-    {
-        string[] cargos = new[]
-        {
-        "valuable documents",
-        "an urgent package",
-        "rare goods",
-        "critical supplies"
-    };
-        return cargos[Random.Shared.Next(cargos.Length)];
     }
 }

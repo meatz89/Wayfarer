@@ -121,7 +121,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:9100\" timeout 30 dotnet run:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.arc42.org)",
-      "WebFetch(domain:leanpub.com)"
+      "WebFetch(domain:leanpub.com)",
+      "Bash(dotnet restore:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

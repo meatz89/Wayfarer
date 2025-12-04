@@ -115,7 +115,7 @@ public static class LocationActionCatalog
         // Source location must have hex position
         if (!location.HexPosition.HasValue)
         {
-            Console.WriteLine($"[LocationActionCatalog] ⚠️ Location '{location.Name}' has no HexPosition - cannot generate movement actions");
+            Console.WriteLine($"[LocationActionCatalog] Location '{location.Name}' has no HexPosition - cannot generate movement actions");
             return actions;
         }
 
@@ -186,7 +186,7 @@ public static class LocationActionCatalog
 
         if (newLocation.Venue == null || !newLocation.HexPosition.HasValue)
         {
-            Console.WriteLine($"[LocationActionCatalog] ⚠️ Cannot regenerate actions for '{newLocation.Name}' - missing venue or hex position");
+            Console.WriteLine($"[LocationActionCatalog] Cannot regenerate actions for '{newLocation.Name}' - missing venue or hex position");
             return newActions;
         }
 
