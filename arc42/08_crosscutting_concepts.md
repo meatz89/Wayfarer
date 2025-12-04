@@ -1021,7 +1021,7 @@ After mechanical generation, AI receives complete game context and generates nar
 | Condition | Behavior |
 |-----------|----------|
 | AI available | Generate rich contextual narrative |
-| AI timeout (5s) | Use fallback template-based generation |
+| AI timeout | Use fallback template-based generation |
 | AI unavailable | Use fallback immediately |
 
 **ScenePromptContext Contents:**

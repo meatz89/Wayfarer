@@ -103,8 +103,9 @@ public static class ServiceConfiguration
         // Infrastructure for Ollama
         services.AddHttpClient<OllamaClient>(client =>
         {
-            // Short timeout to prevent hanging when Ollama unavailable
-            client.Timeout = TimeSpan.FromSeconds(5);
+            // 25-second timeout to allow for model cold-start (loads into GPU memory on first request)
+            // First request may take 6-8 seconds for model loading, subsequent requests are fast
+            client.Timeout = TimeSpan.FromSeconds(25);
         });
         services.AddSingleton<OllamaConfiguration>();
 

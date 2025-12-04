@@ -9,7 +9,7 @@ using System.Text;
 /// ARCHITECTURE PRINCIPLE: Called during SceneInstantiator.ActivateScene() AFTER
 /// all Situations are mechanically complete with resolved entities.
 ///
-/// AI INTEGRATION: Uses OllamaClient with 5-second timeout, graceful fallback.
+/// AI INTEGRATION: Uses OllamaClient with 20-second timeout (cold-start), graceful fallback.
 /// </summary>
 public class SceneNarrativeService
 {
@@ -34,7 +34,7 @@ public class SceneNarrativeService
     /// CRITICAL: This is called during Pass 2 when all entity context is resolved.
     /// Context contains ACTUAL entity objects (NPC/Location/Route with full properties).
     ///
-    /// Pattern from AINarrativeProvider: 5-second timeout, catch OperationCanceledException.
+    /// Pattern from AINarrativeProvider: 20-second timeout (cold-start), catch OperationCanceledException.
     /// </summary>
     /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
     /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate</param>
@@ -82,7 +82,7 @@ public class SceneNarrativeService
     /// <summary>
     /// Try AI narrative generation with timeout.
     /// Pattern from AINarrativeProvider (lines 57-66):
-    /// - 5-second timeout via CancellationTokenSource
+    /// - 20-second timeout via CancellationTokenSource (allows model cold-start)
     /// - Catch OperationCanceledException → return empty
     /// - Return generated text or empty on failure
     /// </summary>
@@ -96,8 +96,8 @@ public class SceneNarrativeService
             // Build prompt
             string prompt = _promptBuilder.BuildSituationPrompt(context, narrativeHints, situation);
 
-            // 5-second timeout (matching AINarrativeProvider)
-            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            // 20-second timeout (allows model cold-start on first request)
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 
             // Stream response and collect
             StringBuilder responseBuilder = new StringBuilder();
@@ -116,7 +116,7 @@ public class SceneNarrativeService
         catch (OperationCanceledException)
         {
             // Timeout - expected, use fallback
-            Console.WriteLine("[SceneNarrativeService] AI generation timed out (5s), using fallback");
+            Console.WriteLine("[SceneNarrativeService] AI generation timed out (20s), using fallback");
             return string.Empty;
         }
         catch (HttpRequestException ex)
