@@ -769,7 +769,7 @@ public class GameOrchestrator
             throw new InvalidOperationException($"CRITICAL: Failed to move player to starting location '{startingSpot.Name}'. Game cannot start.");
         }
 
-        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - scene activation complete");
+        Console.WriteLine($"[StartGameAsync] Validated player at '{startingSpot.Name}' - scene activation complete");
 
         // PHASE 4: Mark game as started (LAST - game is now fully initialized and ready)
         _gameWorld.IsGameStarted = true;

@@ -221,17 +221,12 @@ public class ObservationFacade
         }
 
         // Check for item finding (using object reference)
-        // DDR-007: Deterministic item finding based on point properties
+        // DDR-007: Item finding is deterministic - if chance > 0, item is always found
+        // No pseudo-random hash-based selection
         if (point.FoundItem != null && point.FindItemChance > 0)
         {
-            // Deterministic outcome based on examination point title hash
-            // Same point always produces same result (predictable)
-            int deterministicValue = Math.Abs(point.Title.GetHashCode()) % 100 + 1;
-            if (deterministicValue <= point.FindItemChance)
-            {
-                result.ItemFound = point.FoundItem;
-                _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info, null);
-            }
+            result.ItemFound = point.FoundItem;
+            _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info, null);
         }
 
         // Spawn situations (using object reference)

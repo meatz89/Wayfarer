@@ -686,7 +686,7 @@ public class SceneTemplateParser
 
         foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
         {
-            Console.WriteLine($"[MainStory Enrichment] Choice '{choice.Id}' Consequence HashCode: {choice.Consequence.GetHashCode()}, ScenesToSpawn before: {choice.Consequence.ScenesToSpawn.Count}");
+            Console.WriteLine($"[MainStory Enrichment] Choice '{choice.Id}' ScenesToSpawn before: {choice.Consequence.ScenesToSpawn.Count}");
             bool alreadyHasMainStorySpawn = choice.Consequence.ScenesToSpawn.Any(s => s.SpawnNextMainStoryScene);
             if (!alreadyHasMainStorySpawn)
             {

@@ -158,7 +158,7 @@ public class SceneInstantiator
                     }
                     location = sceneRoute.DestinationLocation;
                     locationResolution = EntityResolutionMetadata.ForRouteDestination();
-                    Console.WriteLine($"[SceneInstantiator]     ✅ Using RouteDestination '{location.Name}' from route '{sceneRoute.Name}'");
+                    Console.WriteLine($"[SceneInstantiator]     Using RouteDestination '{location.Name}' from route '{sceneRoute.Name}'");
                 }
                 else
                 {
@@ -183,7 +183,7 @@ public class SceneInstantiator
 
                         // Build resolution metadata for created location
                         locationResolution = BuildLocationCreatedMetadata(situation.LocationFilter);
-                        Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}' (SceneCreated)");
+                        Console.WriteLine($"[SceneInstantiator]     CREATED Location '{location.Name}' (SceneCreated)");
                     }
                     else
                     {
@@ -192,7 +192,7 @@ public class SceneInstantiator
                         string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
                             ? "SameLocation proximity"
                             : "categorical filter";
-                        Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Location '{location.Name}' via {resolutionType}");
+                        Console.WriteLine($"[SceneInstantiator]     FOUND Location '{location.Name}' via {resolutionType}");
                     }
                 }
 
@@ -220,7 +220,7 @@ public class SceneInstantiator
 
                     // Build resolution metadata for created NPC
                     npcResolution = BuildNPCCreatedMetadata(situation.NpcFilter);
-                    Console.WriteLine($"[SceneInstantiator]     ✅ CREATED NPC '{npc.Name}'");
+                    Console.WriteLine($"[SceneInstantiator]     CREATED NPC '{npc.Name}'");
                 }
                 else
                 {
@@ -229,14 +229,14 @@ public class SceneInstantiator
                     string npcResolutionType = situation.NpcFilter.Proximity == PlacementProximity.SameLocation
                         ? "SameLocation proximity"
                         : "categorical filter";
-                    Console.WriteLine($"[SceneInstantiator]     ✅ FOUND NPC '{npc.Name}' via {npcResolutionType}");
+                    Console.WriteLine($"[SceneInstantiator]     FOUND NPC '{npc.Name}' via {npcResolutionType}");
                 }
 
                 situation.Npc = npc;
             }
             else
             {
-                Console.WriteLine($"[SceneInstantiator]     ℹ️ Solo situation (no NPC needed)");
+                Console.WriteLine($"[SceneInstantiator]     Solo situation (no NPC needed)");
             }
 
             // ROUTE: Find only (FAIL FAST if not found - route creation not implemented)
@@ -258,7 +258,7 @@ public class SceneInstantiator
                 string routeResolutionType = situation.RouteFilter.Proximity == PlacementProximity.SameLocation
                     ? "SameLocation proximity"
                     : "categorical filter";
-                Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Route '{route.Name}' via {routeResolutionType}");
+                Console.WriteLine($"[SceneInstantiator]     FOUND Route '{route.Name}' via {routeResolutionType}");
                 situation.Route = route;
 
                 // Track route for RouteDestination proximity (used by later situations like Arrival)
@@ -327,10 +327,10 @@ public class SceneInstantiator
             // Persist generated narrative to entity
             situation.Description = narrative;
 
-            Console.WriteLine($"[SceneInstantiator]   ✅ Narrative generated for '{situation.Name}'");
+            Console.WriteLine($"[SceneInstantiator]   Narrative generated for '{situation.Name}'");
         }
 
-        Console.WriteLine($"[SceneInstantiator] ✅ Pass 2 complete: AI narratives generated for all situations");
+        Console.WriteLine($"[SceneInstantiator] Pass 2 complete: AI narratives generated for all situations");
 
         // ==================== PASS 2B: CHOICE INSTANCE CREATION ====================
         // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
@@ -345,7 +345,7 @@ public class SceneInstantiator
         {
             if (situation.Template?.ChoiceTemplates == null || situation.Template.ChoiceTemplates.Count == 0)
             {
-                Console.WriteLine($"[SceneInstantiator]   ⚠️ Situation '{situation.Name}' has no ChoiceTemplates");
+                Console.WriteLine($"[SceneInstantiator]   Situation '{situation.Name}' has no ChoiceTemplates");
                 continue;
             }
 
@@ -365,7 +365,7 @@ public class SceneInstantiator
                 ArchetypeId = scene.Template?.Id,
                 SceneDisplayName = scene.DisplayName,
                 CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-                CurrentWeather = _gameWorld.CurrentWeather.ToString(),
+                CurrentWeather = _gameWorld.CurrentWeather,
                 CurrentDay = _gameWorld.CurrentDay,
                 NPCBondLevel = situation.Npc?.BondStrength ?? 0
             };
@@ -400,13 +400,13 @@ public class SceneInstantiator
                 // Step 4: Add to Situation.Choices
                 situation.Choices.Add(choice);
 
-                Console.WriteLine($"[SceneInstantiator]     ✅ Choice '{choiceTemplate.Id}' created with label: {label}");
+                Console.WriteLine($"[SceneInstantiator]     Choice '{choiceTemplate.Id}' created with label: {label}");
             }
 
-            Console.WriteLine($"[SceneInstantiator]   ✅ Created {situation.Choices.Count} Choice instances for '{situation.Name}'");
+            Console.WriteLine($"[SceneInstantiator]   Created {situation.Choices.Count} Choice instances for '{situation.Name}'");
         }
 
-        Console.WriteLine($"[SceneInstantiator] ✅ Pass 2B complete: Choice instances created for all situations");
+        Console.WriteLine($"[SceneInstantiator] Pass 2B complete: Choice instances created for all situations");
 
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;
@@ -415,7 +415,7 @@ public class SceneInstantiator
         // Transition state: Deferred → Active
         scene.State = SceneState.Active;
 
-        Console.WriteLine($"[SceneInstantiator] ✅ Scene '{scene.DisplayName}' activated with {scene.Situations.Count} Situations (State=Active)");
+        Console.WriteLine($"[SceneInstantiator] Scene '{scene.DisplayName}' activated with {scene.Situations.Count} Situations (State=Active)");
     }
 
     /// <summary>
@@ -663,7 +663,10 @@ public class SceneInstantiator
             : null;
 
         // Use templates directly (AI generates complete text with entity context)
-        string displayName = template.DisplayNameTemplate;
+        // Fallback to template.Id if DisplayNameTemplate is empty (common for archetype-generated scenes)
+        string displayName = !string.IsNullOrEmpty(template.DisplayNameTemplate)
+            ? template.DisplayNameTemplate
+            : template.Id;
         string introNarrative = template.IntroNarrativeTemplate;
 
         // Parse spawn rules DTO

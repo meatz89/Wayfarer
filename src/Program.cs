@@ -34,7 +34,6 @@ builder.Services.AddSingleton(initResult.GameWorld);
 builder.Services.AddSingleton(initResult.TimeManager);
 
 builder.Services.ConfigureServices();
-builder.Services.AddSingleton<IAICompletionProvider, OllamaClient>();
 
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()

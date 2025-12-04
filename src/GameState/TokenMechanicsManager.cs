@@ -70,7 +70,7 @@ public class TokenMechanicsManager
         // Narrative feedback using NPC object directly (no GetById needed)
         string bonusText = modifiedCount > count ? $" (+{modifiedCount - count} from equipment)" : "";
         _messageSystem.AddSystemMessage(
-            $"🤝 +{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
+            $"+{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
             SystemMessageTypes.Success, null);
 
         // Check relationship milestones

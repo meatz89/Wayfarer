@@ -190,72 +190,71 @@ public class NarrativeService
     /// <summary>
     /// Generate narrative for token spending (queue manipulation)
     /// DDR-007: Deterministic selection based on amount spent
+    /// DOMAIN COLLECTION PRINCIPLE: Switch-based lookup instead of Dictionary
     /// </summary>
     public string GenerateTokenSpendingNarrative(ConnectionType type, int amount, string action)
     {
-        Dictionary<string, string[]> spendingNarratives = new Dictionary<string, string[]>
+        string[] narratives = GetSpendingNarratives(action.ToLower(), type, amount);
+        if (narratives.Length > 0)
         {
-            { "skip", new[] {
-                $"You call in a {type} favor to skip ahead.",
-                $"Your {type} connections help rearrange priorities.",
-                $"A {type} token smooths the way forward."
-            }},
-            { "purge", new[] {
-                $"You burn {amount} {type} tokens to clear your obligations.",
-                $"Your {type} relationships take the hit as you abandon the letter.",
-                $"The {type} network won't forget this betrayal."
-            }},
-            { "swap", new[] {
-                $"You leverage {type} influence to reorder deliveries.",
-                $"A few {type} tokens convince others to wait.",
-                $"Your {type} connections enable the switch."
-            }}
-        };
-
-        if (spendingNarratives.TryGetValue(action.ToLower(), out string[]? narratives))
-        {
-            // DDR-007: Deterministic selection based on amount
             int narrativeIndex = amount % narratives.Length;
             return narratives[narrativeIndex];
         }
-
         return $"You spend {amount} {type} tokens.";
+    }
+
+    private string[] GetSpendingNarratives(string action, ConnectionType type, int amount)
+    {
+        return action switch
+        {
+            "skip" => new[]
+            {
+                $"You call in a {type} favor to skip ahead.",
+                $"Your {type} connections help rearrange priorities.",
+                $"A {type} token smooths the way forward."
+            },
+            "purge" => new[]
+            {
+                $"You burn {amount} {type} tokens to clear your obligations.",
+                $"Your {type} relationships take the hit as you abandon the letter.",
+                $"The {type} network won't forget this betrayal."
+            },
+            "swap" => new[]
+            {
+                $"You leverage {type} influence to reorder deliveries.",
+                $"A few {type} tokens convince others to wait.",
+                $"Your {type} connections enable the switch."
+            },
+            _ => Array.Empty<string>()
+        };
     }
 
     /// <summary>
     /// Generate narrative for accepting a new standing obligation
-    /// DDR-007: Deterministic selection based on obligation name hash
+    /// DDR-007: Categorical selection based on obligation name
+    /// DOMAIN COLLECTION PRINCIPLE: Switch-based lookup instead of Dictionary
     /// </summary>
     public string GenerateObligationAcceptanceNarrative(StandingObligation obligation)
     {
-        Dictionary<string, string[]> acceptanceNarratives = new Dictionary<string, string[]>
+        string narrative = GetObligationAcceptanceNarrative(obligation.Name);
+        if (!string.IsNullOrEmpty(narrative))
         {
-            { "Trade Exclusivity", new[] {
-                "You sign the exclusive trade agreement, binding yourself to merchant guild rules.",
-                "The guild seal marks your new allegiance. Other traders eye you with suspicion.",
-                "\"Welcome to the guild,\" the merchant says. \"Remember - we take care of our own.\""
-            }},
-            { "Shadow Obligation", new[] {
-                "The shadowy figure nods. \"You're one of us now. There's no backing out.\"",
-                "A chill runs down your spine as you accept. The underworld has long memories.",
-                "\"Excellent choice,\" whispers the contact. \"We'll be in touch... frequently.\""
-            }},
-        };
-
-        // Try to find specific narratives for this obligation
-        foreach (string key in acceptanceNarratives.Keys)
-        {
-            if (obligation.Name.Contains(key, StringComparison.OrdinalIgnoreCase))
-            {
-                string[] narratives = acceptanceNarratives[key];
-                // DDR-007: Deterministic selection based on obligation name
-                int narrativeIndex = Math.Abs(obligation.Name.GetHashCode()) % narratives.Length;
-                return narratives[narrativeIndex];
-            }
+            return narrative;
         }
-
-        // Generic acceptance narrative
         return $"You accept the terms of {obligation.Name}. This will reshape how you conduct business.";
+    }
+
+    private string GetObligationAcceptanceNarrative(string obligationName)
+    {
+        if (obligationName.Contains("Trade Exclusivity", StringComparison.OrdinalIgnoreCase))
+        {
+            return "You sign the exclusive trade agreement, binding yourself to merchant guild rules.";
+        }
+        if (obligationName.Contains("Shadow Obligation", StringComparison.OrdinalIgnoreCase))
+        {
+            return "The shadowy figure nods. \"You're one of us now. There's no backing out.\"";
+        }
+        return null;
     }
 
     /// <summary>
@@ -286,9 +285,8 @@ public class NarrativeService
                 $"The {obligation.Name} contract burns in the fire. Your former associates will not forget this betrayal.",
                 $"With a heavy heart, you abandon {obligation.Name}. Trust, once broken, is hard to rebuild."
             };
-            // DDR-007: Deterministic selection based on obligation name
-            int narrativeIndex = Math.Abs(obligation.Name.GetHashCode()) % breakingNarratives.Length;
-            return breakingNarratives[narrativeIndex];
+            // DDR-007: Use first narrative (categorical selection, no hash-based pseudo-randomness)
+            return breakingNarratives[0];
         }
         else
         {

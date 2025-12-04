@@ -41,7 +41,7 @@ public static class LocationActionCatalog
         // ATMOSPHERIC ACTION (FALLBACK SCENE): No ChoiceTemplate, free action (no costs/rewards)
         if (location.Role == LocationRole.Connective || location.Role == LocationRole.Hub)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Travel hub role found - generating Travel action");
+            Console.WriteLine($"[LocationActionCatalog] Travel hub role found - generating Travel action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
@@ -58,7 +58,7 @@ public static class LocationActionCatalog
         // LocationPurpose.Commerce → Work action
         if (location.Purpose == LocationPurpose.Commerce)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Commerce purpose found - generating Work action");
+            Console.WriteLine($"[LocationActionCatalog] Commerce purpose found - generating Work action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
@@ -71,7 +71,7 @@ public static class LocationActionCatalog
             });
 
             // Commerce purpose → Job Board action (Core Loop Phase 3)
-            Console.WriteLine($"[LocationActionCatalog] ✅ Commerce purpose found - generating View Job Board action");
+            Console.WriteLine($"[LocationActionCatalog] Commerce purpose found - generating View Job Board action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
@@ -87,7 +87,7 @@ public static class LocationActionCatalog
         // LocationRole.Rest → Rest action (sleeping/recovery locations)
         if (location.Role == LocationRole.Rest)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Rest role found - generating Rest action");
+            Console.WriteLine($"[LocationActionCatalog] Rest role found - generating Rest action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,

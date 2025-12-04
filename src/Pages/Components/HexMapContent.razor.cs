@@ -203,13 +203,14 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get consistent color for venue (based on hash of venue name)
+        /// Get consistent color for venue based on VenueType enum
+        /// DDR-007: Categorical selection based on VenueType, no hash-based pseudo-randomness
         /// </summary>
         protected string GetVenueColorClass(Venue venue)
         {
             if (venue == null) return "";
-            int hash = Math.Abs(venue.Name.GetHashCode()) % 6;
-            return $"venue-color-{hash}";
+            int colorIndex = (int)venue.Type % 6;
+            return $"venue-color-{colorIndex}";
         }
     }
 }
