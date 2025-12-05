@@ -78,7 +78,7 @@ try
         }
         else
         {
-            Console.WriteLine("[Startup] Ollama not available at http://127.0.0.1:11434 - will use fallback narratives");
+            Console.WriteLine("[Startup] Ollama not available at http://localhost:11434 - will use fallback narratives");
             narrativeService?.SetOllamaAvailability(false);
         }
     }

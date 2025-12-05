@@ -278,7 +278,54 @@ Both AI narrative AND mechanical entities display in the UI. Consistency is mand
 
 ---
 
-### 8.2 Tests Skip (Ollama Not Available)
+### 8.2 Health Check Fails Despite Ollama Running
+
+**Symptoms:**
+- `[Startup] Ollama not available` even though Ollama is running in system tray
+- `curl http://127.0.0.1:11434/api/tags` times out or refuses connection
+- `curl http://localhost:11434/api/tags` succeeds
+
+**Root Cause: IPv4 vs IPv6 Binding**
+
+On Windows, Ollama binds to IPv6 (`::1`) by default, NOT IPv4 (`127.0.0.1`).
+
+| Address | Protocol | Works with Ollama? |
+|---------|----------|-------------------|
+| `localhost` | Resolves to both IPv4 and IPv6 | ✅ YES |
+| `127.0.0.1` | IPv4 only | ❌ NO |
+| `::1` | IPv6 only | ✅ YES |
+
+**Configuration Architecture (HIGHLANDER Compliant):**
+
+| Source | Purpose | Overrides? |
+|--------|---------|------------|
+| `OllamaConfiguration.cs` constants | SINGLE SOURCE OF TRUTH | N/A - this IS the truth |
+| `OLLAMA_BASE_URL` environment variable | CI/CD machine-specific override | Yes (for deployment only) |
+| `appsettings.json` | FORBIDDEN for Ollama config | N/A - not supported |
+
+**Resolution:**
+
+1. Verify compile-time default in `OllamaConfiguration.cs`:
+   ```csharp
+   public const string DefaultBaseUrl = "http://localhost:11434";
+   ```
+
+2. If CI/CD needs different URL, set environment variable:
+   ```bash
+   export OLLAMA_BASE_URL="http://your-ollama-host:11434"
+   ```
+
+3. Verify connectivity: `curl http://localhost:11434/api/tags`
+
+**Why `localhost` Not `127.0.0.1`:**
+- `localhost` resolves to both IPv4 (127.0.0.1) AND IPv6 (::1)
+- Ollama on Windows binds to IPv6 by default
+- `127.0.0.1` is IPv4-only, cannot reach IPv6 socket
+- Using `localhost` guarantees connectivity regardless of Ollama's binding
+
+---
+
+### 8.3 Tests Skip (Ollama Not Available)
 
 **Symptoms:**
 - `SKIPPED: Ollama not available`
@@ -304,7 +351,7 @@ Both AI narrative AND mechanical entities display in the UI. Consistency is mand
 
 ---
 
-### 8.3 AI Responses Too Long
+### 8.4 AI Responses Too Long
 
 **Symptom:** `Too long: 450 chars (max: 200)`
 
@@ -315,7 +362,7 @@ Both AI narrative AND mechanical entities display in the UI. Consistency is mand
 
 ---
 
-### 8.4 AI Invents Names
+### 8.5 AI Invents Names
 
 **Symptom:** Response contains names not in context (detected via manual review)
 
@@ -325,7 +372,7 @@ Both AI narrative AND mechanical entities display in the UI. Consistency is mand
 
 ---
 
-### 8.5 AI Ignores Context
+### 8.6 AI Ignores Context
 
 **Symptom:** `Context insufficiently referenced: 0/1 markers found`
 
