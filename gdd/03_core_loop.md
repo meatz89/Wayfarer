@@ -109,7 +109,55 @@ Your build reflects your values and playstyle. This IS character development.
 
 ---
 
-## 3.5 Strategic vs Tactical Layers
+## 3.5 How Loops Gate Each Other
+
+### The Travel Cost Gate
+
+A-Story progression requires travel to increasingly distant locations. This creates economic pressure that forces engagement with B/C stories.
+
+| Loop | Gates | Via |
+|------|-------|-----|
+| **MEDIUM** (B/C stories) | **LONG** (A-Story) | Travel resources |
+| **SHORT** (Encounters) | **MEDIUM** (B/C completion) | Resource costs/rewards |
+
+### The Rhythm
+
+```
+A-Story N completes (LONG)
+    ↓
+A-Story N+1 spawns at distance N+1 hexes
+    ↓
+Travel costs exceed current resources
+    ↓
+Engage B/C stories (MEDIUM) to earn resources
+    ↓
+Each B/C story contains SHORT loop encounters
+    ↓
+Resources accumulate
+    ↓
+Afford travel to A-Story N+1
+    ↓
+Route encounters (C-stories) during travel
+    ↓
+Arrive and experience A-Story N+1
+    ↓
+Repeat forever
+```
+
+### Why B/C Stories Gate A-Story
+
+| Design Goal | How Travel Gate Achieves It |
+|-------------|----------------------------|
+| **Prevent mindless clicking** | A-Story requires resources earned elsewhere |
+| **No soft-locks** | B/C stories always available to earn resources |
+| **Meaningful side content** | B/C stories are required, not optional padding |
+| **Infinite pacing** | Distance scales linearly; loop never ends |
+
+**See [05_content.md §5.7](05_content.md) for complete Travel Cost Gate design.**
+
+---
+
+## 3.6 Strategic vs Tactical Layers
 
 ### The Separation
 
@@ -135,5 +183,6 @@ Choices spawn challenges when player opts into tactical layer:
 
 ## Cross-References
 
+- **Travel Cost Gate**: See [05_content.md §5.7](05_content.md) for how B/C stories gate A-Story progression
 - **Challenge Mechanics**: See [04_systems.md](04_systems.md) for tactical layer details
 - **Resource Economy**: See [04_systems.md](04_systems.md) for how scarcity creates tension

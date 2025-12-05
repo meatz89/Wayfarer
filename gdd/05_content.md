@@ -272,7 +272,105 @@ B and C stories have relaxed rules:
 
 ---
 
-## 5.7 Scene Progression
+## 5.7 The Travel Cost Gate (Endless Story Design)
+
+### The Design Problem
+
+A-Story must never soft-lock (fallback always exists), yet players must not mindlessly click through the main story without engagement. How do we create meaningful pacing without hard gates?
+
+### The Solution: Distance Creates Resource Demand
+
+A-Story scenes spawn at locations that increase in distance from the world origin. Travel to those locations costs resources. B/C stories earn those resources.
+
+| Element | Rule |
+|---------|------|
+| **A-Story distance** | Scene N spawns at distance N hexes from origin |
+| **Travel cost** | 1 resource unit per hex (Stamina, Coins, or both) |
+| **Resource source** | B/C stories (deliveries, obligations, work) |
+
+### The Loop
+
+```
+Complete A-Story N at distance N
+    ↓
+A-Story N+1 spawns at distance N+1
+    ↓
+Travel to N+1 costs resources player may not have
+    ↓
+Player engages B/C stories to earn resources
+    ↓
+Player can now afford travel
+    ↓
+Travel to A-Story N+1 (C-story route encounters along the way)
+    ↓
+Experience A-Story N+1
+    ↓
+Repeat forever
+```
+
+### Story Category Relationships
+
+| Category | Role in Loop | Examples |
+|----------|--------------|----------|
+| **A-Story** | Primary narrative, spawns at increasing distance | Main quest scenes |
+| **B-Story** | Major side content, earns significant resources | NPC obligations, faction quests |
+| **C-Story** | Service/transactional, earns incremental resources | Work, deliveries, route encounters |
+
+**B/C stories include:**
+- Delivery jobs (one type of obligation)
+- NPC-commissioned obligations
+- Self-discovered obligations
+- Work actions
+- Route encounters during travel
+
+All B/C content contributes to resource accumulation that enables A-Story travel.
+
+### Route Encounters Are C-Stories
+
+When traveling to an A-Story location, the route contains C-story encounters:
+- Each route segment presents a situation
+- These are C-stories (route scope), not part of the A-Story
+- They cost/reward resources, affecting arrival state
+- Player must handle them to reach the destination
+
+**The journey to story IS content, not empty travel.**
+
+### No Soft-Lock Guarantee
+
+Even with zero resources, player can always progress:
+
+| State | Guaranteed Path |
+|-------|-----------------|
+| Zero coins | Work action (C-story) available at any location |
+| Zero stamina | Rest action restores stamina |
+| Negative Resolve | Fallback choices have no Resolve requirement |
+
+The gate is **economic pressure**, not **boolean lockout**. Under-prepared players take longer but are never stuck.
+
+### Why This Works
+
+| Principle | How Travel Gate Honors It |
+|-----------|---------------------------|
+| **No Soft-Locks** | B/C stories always available; player can always earn travel resources |
+| **Impossible Choices** | Pursue story now (under-resourced) vs prepare first (delayed gratification) |
+| **Perfect Information** | Distance and travel cost visible before commitment |
+| **Earned Scarcity** | Resources earned through B/C engagement, not given freely |
+| **Infinite Journey** | Distance scales linearly forever; loop never ends |
+
+### Distance Scaling
+
+| A-Story | Distance from Origin | Travel Cost (example) |
+|---------|---------------------|----------------------|
+| A1-A3 | 1-3 hexes | Minimal (tutorial) |
+| A4-A10 | 4-10 hexes | Moderate |
+| A11-A20 | 11-20 hexes | Significant |
+| A21+ | 21+ hexes | Substantial |
+
+As sequence increases, travel cost increases linearly. B/C story rewards also scale with location difficulty (distance from origin), maintaining the preparation-to-reward ratio.
+
+---
+
+## 5.8 Scene Progression
 
 Situations are ordered within scenes. Player experiences them sequentially.
 
@@ -292,7 +390,7 @@ Situations are ordered within scenes. Player experiences them sequentially.
 
 ---
 
-## 5.8 Situation Presentation Patterns
+## 5.9 Situation Presentation Patterns
 
 How situations appear depends on which entities they reference. Three distinct patterns exist.
 
@@ -352,7 +450,7 @@ The four-choice archetype guarantees at least one choice is always available (fa
 
 ---
 
-## 5.9 Choice Patterns by Category
+## 5.10 Choice Patterns by Category
 
 ### A-Story: Fallback Required
 
@@ -380,7 +478,7 @@ This enables narrative tension, gating, and consequences that A-Story cannot hav
 
 ---
 
-## 5.10 Text Generation Rules
+## 5.11 Text Generation Rules
 
 ### Two-Phase Creation Model
 
