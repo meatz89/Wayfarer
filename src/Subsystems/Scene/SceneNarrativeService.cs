@@ -26,9 +26,11 @@ public class SceneNarrativeService
     private const int InitialDelayMs = 1000; // 1 second, doubles each retry
     private const int SituationTimeoutSeconds = 30; // Increased from 20 for slow PCs
     private const int ChoiceLabelTimeoutSeconds = 10; // Increased from 5 for slow PCs
+    private const int BatchTimeoutMultiplier = 2; // Batch operations get 2x timeout
 
     // Availability flag set at startup - prevents 97s timeout when Ollama unavailable
-    private bool _isOllamaAvailable = false;
+    // Volatile ensures visibility across threads (UI thread vs background generation)
+    private volatile bool _isOllamaAvailable = false;
 
     public SceneNarrativeService(
         GameWorld gameWorld,
@@ -352,7 +354,7 @@ public class SceneNarrativeService
         List<ChoiceData> choicesData)
     {
         string prompt = _promptBuilder.BuildBatchChoiceLabelsPrompt(context, situation, choicesData);
-        int batchTimeoutSeconds = ChoiceLabelTimeoutSeconds * 2; // Longer timeout for batch
+        int batchTimeoutSeconds = ChoiceLabelTimeoutSeconds * BatchTimeoutMultiplier;
 
         for (int attempt = 1; attempt <= MaxRetries; attempt++)
         {
@@ -406,53 +408,91 @@ public class SceneNarrativeService
     /// <summary>
     /// Parse JSON response from batch choice label generation.
     /// Expected format: { "choices": ["label1", "label2", "label3", "label4"] }
+    ///
+    /// ARCHITECTURE: Uses BatchChoiceLabelsDTO per JSON → DTO → Parser pattern.
+    /// FAIL-FAST: Returns null on parse failure (caller handles fallback).
     /// </summary>
     private List<string> ParseBatchChoiceLabelsJson(string jsonResponse, int expectedCount)
     {
+        // Pre-process: Extract JSON from AI response artifacts
+        string json = ExtractJsonFromAIResponse(jsonResponse);
+        if (string.IsNullOrEmpty(json))
+        {
+            Console.WriteLine("[SceneNarrativeService] No JSON object found in AI response");
+            return null;
+        }
+
+        // Parse using DTO pattern - FAIL-FAST on malformed JSON
         try
         {
-            // Remove markdown code blocks if present
-            string json = jsonResponse;
-            if (json.Contains("```json"))
+            System.Text.Json.JsonSerializerOptions options = new System.Text.Json.JsonSerializerOptions
             {
-                int start = json.IndexOf("```json") + 7;
-                int end = json.LastIndexOf("```");
-                if (end > start)
-                    json = json.Substring(start, end - start).Trim();
-            }
-            else if (json.Contains("```"))
+                PropertyNameCaseInsensitive = true
+            };
+
+            BatchChoiceLabelsDTO dto = System.Text.Json.JsonSerializer.Deserialize<BatchChoiceLabelsDTO>(json, options);
+
+            // DTO deserialized but choices array missing or empty
+            if (dto == null || dto.Choices == null || dto.Choices.Count == 0)
             {
-                int start = json.IndexOf("```") + 3;
-                int end = json.LastIndexOf("```");
-                if (end > start)
-                    json = json.Substring(start, end - start).Trim();
+                Console.WriteLine("[SceneNarrativeService] DTO deserialized but choices array empty");
+                return null;
             }
 
-            // Extract JSON object from any surrounding text (handles "json { ... }" or "Here's the response: { ... }")
-            int jsonStart = json.IndexOf('{');
-            if (jsonStart > 0)
-                json = json.Substring(jsonStart);
-
-            // Parse JSON using System.Text.Json
-            using System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(json);
-            if (doc.RootElement.TryGetProperty("choices", out System.Text.Json.JsonElement choicesElement))
+            // Filter out empty strings and trim
+            List<string> labels = new List<string>();
+            foreach (string label in dto.Choices)
             {
-                List<string> labels = new List<string>();
-                foreach (System.Text.Json.JsonElement item in choicesElement.EnumerateArray())
-                {
-                    string label = item.GetString()?.Trim() ?? "";
-                    if (!string.IsNullOrEmpty(label))
-                        labels.Add(label);
-                }
-                return labels;
+                string trimmed = label?.Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    labels.Add(trimmed);
             }
+
+            return labels;
         }
         catch (System.Text.Json.JsonException ex)
         {
             Console.WriteLine($"[SceneNarrativeService] JSON parse error: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Extract JSON object from AI response that may contain markdown or explanatory text.
+    /// Handles: "```json {...} ```", "Here's the response: {...}", "json {...}"
+    /// </summary>
+    private string ExtractJsonFromAIResponse(string response)
+    {
+        if (string.IsNullOrEmpty(response))
+            return null;
+
+        string json = response;
+
+        // Remove markdown code blocks if present
+        if (json.Contains("```json"))
+        {
+            int start = json.IndexOf("```json") + 7;
+            int end = json.LastIndexOf("```");
+            if (end > start)
+                json = json.Substring(start, end - start).Trim();
+        }
+        else if (json.Contains("```"))
+        {
+            int start = json.IndexOf("```") + 3;
+            int end = json.LastIndexOf("```");
+            if (end > start)
+                json = json.Substring(start, end - start).Trim();
         }
 
-        return null;
+        // Extract JSON object from any surrounding text
+        int jsonStart = json.IndexOf('{');
+        if (jsonStart < 0)
+            return null; // No JSON object found
+
+        if (jsonStart > 0)
+            json = json.Substring(jsonStart);
+
+        return json.Trim();
     }
 
     /// <summary>
