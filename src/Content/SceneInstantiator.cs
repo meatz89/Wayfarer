@@ -85,8 +85,8 @@ public class SceneInstantiator
                 _gameWorld.CurrentDay,
                 _gameWorld.CurrentTimeBlock);
 
-            // Set SceneEntity reference for transition visualization in SpawnGraph
-            // Enables SpawnGraphBuilder to access Scene.SpawnRules.Transitions
+            // Set SceneEntity reference for ChoiceFlow visualization in SpawnGraph (arc42 §8.30)
+            // Enables SpawnGraphBuilder to access Scene.Template.SituationTemplates for flow control
             if (sceneSpawnNode != null)
             {
                 sceneSpawnNode.SceneEntity = scene;
