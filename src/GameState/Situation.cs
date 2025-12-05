@@ -256,10 +256,14 @@ public class Situation
     /// <summary>
     /// Runtime Choice instances created from Template.ChoiceTemplates during activation
     /// Part of Template/Instance pattern: ChoiceTemplate (immutable) → Choice (mutable)
-    /// Created in SceneInstantiator Pass 2B with:
-    /// - AI-generated Label (persisted, not regenerated)
-    /// - Pre-scaled costs/rewards (calculated once at activation)
-    /// - Template reference for accessing immutable archetype properties
+    ///
+    /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+    /// - Created in SceneInstantiator Pass 2B with MECHANICAL values:
+    ///   - Pre-scaled costs/rewards (calculated ONCE at scene activation)
+    ///   - Template reference for accessing immutable archetype properties
+    ///   - Placeholder Label from ActionTextTemplate
+    /// - AI Labels populated LAZILY by SituationFacade.ActivateSituationAsync()
+    ///   when player enters situation (regenerated on each re-entry)
     /// </summary>
     public List<Choice> Choices { get; set; } = new List<Choice>();
 

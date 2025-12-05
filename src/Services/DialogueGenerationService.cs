@@ -69,9 +69,8 @@ public class DialogueGenerationService
 
             if (options.Any())
             {
-                // DDR-007: Deterministic selection based on template ID
-                int deterministicIndex = Math.Abs(templateId.GetHashCode()) % options.Count;
-                return options[deterministicIndex];
+                // DDR-007: Use first option (categorical selection, no hash-based pseudo-randomness)
+                return options[0];
             }
         }
 
@@ -95,17 +94,9 @@ public class DialogueGenerationService
             List<string> profOptions = templates.NpcDescriptions.ProfessionBase[profKey];
             if (profOptions.Any())
             {
-                // DDR-007: Deterministic selection based on NPC name
-                int deterministicIndex = Math.Abs(npc.Name.GetHashCode()) % profOptions.Count;
-                elements.Add(profOptions[deterministicIndex]);
+                // DDR-007: Use first option (categorical selection, no hash-based pseudo-randomness)
+                elements.Add(profOptions[0]);
             }
-        }
-
-        // Add emotional modifiers
-        string stateKey = state.ToString();
-        if (templates.NpcDescriptions?.EmotionalModifiers?.ContainsKey(stateKey) == true)
-        {
-            Dictionary<string, List<string>> modifiers = templates.NpcDescriptions.EmotionalModifiers[stateKey];
         }
 
         return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";

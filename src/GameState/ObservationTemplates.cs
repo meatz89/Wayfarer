@@ -17,15 +17,11 @@ public class ObservationTemplates
         if (template == null)
             return "You notice nothing unusual.";
 
-        // DDR-007: Always use deterministic seed based on venue and tag
-        int deterministicSeed = seed > 0 ? seed : Math.Abs((venueId + tag.ToString()).GetHashCode());
+        // DDR-007: Use first template variation (categorical selection, no hash-based pseudo-randomness)
+        string templateText = template.Variations[0];
 
-        // Select template variation deterministically
-        int variationIndex = deterministicSeed % template.Variations.Count;
-        string templateText = template.Variations[variationIndex];
-
-        // Get location-specific detail deterministically
-        string detail = GetLocationDetail(tag, venueId, deterministicSeed);
+        // Get location-specific detail (uses first option)
+        string detail = GetLocationDetail(tag, venueId, 0);
 
         // Replace placeholder
         return templateText.Replace("{detail}", detail);

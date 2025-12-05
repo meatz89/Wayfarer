@@ -111,7 +111,7 @@ public static class GameWorldInitializer
         foreach (string file in jsonFiles)
         {
             File.Delete(file);
-            Console.WriteLine($"[Init]   ✅ Deleted {Path.GetFileName(file)}");
+            Console.WriteLine($"[Init]   Deleted {Path.GetFileName(file)}");
         }
 
         Console.WriteLine($"[Init] Content/Dynamic cleared - clean state achieved");

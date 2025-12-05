@@ -982,8 +982,8 @@ All game content flows through a two-pass generation pipeline. Hand-authored nar
 
 | Pass | Purpose | Timing | Output |
 |------|---------|--------|--------|
-| **Pass 1: Mechanical** | Generate choices, costs, rewards from archetypes | Parse-time | Concrete mechanical values |
-| **Pass 2: AI Narrative** | Generate flavor text from game context | Activation-time | Narrative persisted to entity |
+| **Pass 1: Mechanical** | Generate situations, choices from archetypes | Scene spawn | SituationTemplates + ChoiceTemplates |
+| **Pass 2: AI Narrative** | Generate flavor text from CURRENT context | Situation entry (lazy) | Regenerated each visit |
 
 ### Pass 1: Mechanical Generation
 
@@ -997,24 +997,47 @@ Categorical properties flow through archetypes to produce concrete mechanical co
 
 **Key Principle:** Archetypes are reusable across all contexts. Tutorial and late-game use identical archetype code; categorical properties create appropriate difficulty.
 
-### Pass 2: AI Narrative Enrichment
+### Pass 2: Lazy AI Narrative Enrichment
 
-After mechanical generation, AI receives complete game context and generates narrative:
+**Key Design Principle: Persistent vs Dynamic Narratives**
+
+| Entity Type | Narrative Behavior | Rationale |
+|-------------|-------------------|-----------|
+| **Locations, NPCs** | PERSISTENT - generated once, never changes | Names, descriptions are stable identity |
+| **Situations** | DYNAMIC - regenerated on each entry | Reflects CURRENT game state for authenticity |
+
+AI narrative generation is LAZY - deferred until the player actually enters a situation:
+
+| When | What Happens |
+|------|--------------|
+| Scene Spawn | Situations + Choices created mechanically. Choices have SCALED costs/consequences. No AI calls. |
+| Player Enters Situation | AI generates Situation.Description + Choice.Label with CURRENT context |
+| Player Re-enters Situation | AI REGENERATES all narrative text (mechanical values unchanged) |
+
+**Critical Distinction:**
+- **Mechanical values** (costs, requirements, consequences): Created at SCENE SPAWN, never change
+- **Narrative text** (descriptions, labels): Created at SITUATION ENTRY, regenerated on re-entry
+
+**Timing:** Pass 2 runs during `SituationFacade.ActivateSituationAsync()`, when player enters a situation.
 
 | Input | Processor | Output |
 |-------|-----------|--------|
-| Situation + ScenePromptContext | SceneNarrativeService | Description text |
+| Situation + ScenePromptContext | SceneNarrativeService | Situation.Description |
+| Choice + ScenePromptContext | SceneNarrativeService | Choice.Label (updates existing choice) |
 | NarrativeHints (tone, theme, style) | AI provider | Contextual flavor |
-
-**Key Principle:** Narrative is PERSISTED to the entity after generation. UI displays stored narrative, never regenerates.
-
-**Timing:** Pass 2 runs during `SceneInstantiator.ActivateScene()`, AFTER all Situations are mechanically complete.
 
 | Component | Responsibility |
 |-----------|----------------|
+| **SituationFacade.ActivateSituationAsync** | Orchestrate lazy generation on situation entry |
 | **ScenePromptBuilder** | Build AI prompt from ScenePromptContext (NPC, Location, time, weather, narrative hints) |
-| **SceneNarrativeService** | Orchestrate AI call with timeout, fallback to template-based generation |
+| **SceneNarrativeService** | Execute AI calls with timeout, fallback to template-based generation |
 | **OllamaClient** | Execute AI inference with streaming response |
+
+**Benefits of Lazy + Dynamic:**
+- Faster scene spawning (no AI blocking)
+- AI calls only for situations player actually visits
+- Choice labels reflect CURRENT player stats, relationships, time
+- Re-entering situation shows updated context (e.g., improved relationship)
 
 **Graceful Degradation:**
 
@@ -1027,7 +1050,7 @@ After mechanical generation, AI receives complete game context and generates nar
 **ScenePromptContext Contents:**
 - Entity references: NPC, Location, Player, Route (complete objects, not IDs)
 - Narrative hints: Tone, Theme, Context, Style (from SituationTemplate)
-- World state: TimeBlock, Weather, Day
+- World state: TimeBlock, Weather, Day (CURRENT values, not spawn-time)
 - Mechanical context: Archetype type, choice labels, domain
 
 **Fallback Generation:**

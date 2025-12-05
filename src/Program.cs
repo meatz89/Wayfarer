@@ -34,7 +34,6 @@ builder.Services.AddSingleton(initResult.GameWorld);
 builder.Services.AddSingleton(initResult.TimeManager);
 
 builder.Services.ConfigureServices();
-builder.Services.AddSingleton<IAICompletionProvider, OllamaClient>();
 
 Log.Logger = new LoggerConfiguration()
 .MinimumLevel.Information()
@@ -49,21 +48,49 @@ builder.Host.UseSerilog();
 
 WebApplication app = builder.Build();
 
-// Test Ollama connection on startup
+// Test Ollama connection and warm up model on startup
+// This prevents first-request failures when Ollama needs to load the model
+SceneNarrativeService narrativeService = app.Services.GetService<SceneNarrativeService>();
 try
 {
-    OllamaConfiguration? ollamaConfig = app.Services.GetService<OllamaConfiguration>();
-    if (ollamaConfig != null)
+    IAICompletionProvider aiProvider = app.Services.GetService<IAICompletionProvider>();
+    if (aiProvider != null)
     {
-        OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
-        if (ollamaClient != null)
+        Console.WriteLine("[Startup] Checking Ollama availability...");
+        bool isAvailable = await aiProvider.CheckHealthAsync(CancellationToken.None);
+        if (isAvailable)
         {
-            bool isAvailable = await ollamaClient.CheckHealthAsync(CancellationToken.None);
+            Console.WriteLine("[Startup] Ollama available, warming up model (this may take 10-30s on first run)...");
+            if (narrativeService != null)
+            {
+                bool warmupSuccess = await narrativeService.WarmupModelAsync(60);
+                if (warmupSuccess)
+                {
+                    Console.WriteLine("[Startup] Model warmup complete - AI narrative ready");
+                    narrativeService.SetOllamaAvailability(true);
+                }
+                else
+                {
+                    Console.WriteLine("[Startup] Model warmup failed - will use fallback narratives");
+                    narrativeService.SetOllamaAvailability(false);
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("[Startup] Ollama not available at http://127.0.0.1:11434 - will use fallback narratives");
+            narrativeService?.SetOllamaAvailability(false);
         }
     }
+    else
+    {
+        narrativeService?.SetOllamaAvailability(false);
+    }
 }
-catch (Exception)
+catch (Exception ex)
 {
+    Console.WriteLine($"[Startup] Ollama initialization error: {ex.Message} - will use fallback narratives");
+    narrativeService?.SetOllamaAvailability(false);
 }
 
 // Configure the HTTP request pipeline.

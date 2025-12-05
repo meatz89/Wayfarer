@@ -150,31 +150,6 @@ public class SceneNarrativeServiceTests
         Assert.Contains("Evening", narrative);
     }
 
-    // ========== SYNCHRONOUS METHOD TESTS ==========
-
-    [Fact]
-    public void GenerateSituationNarrative_Sync_ReturnsValidNarrative()
-    {
-        // Arrange
-        ScenePromptContext context = CreateContextWithLocationAndNPC();
-        NarrativeHints hints = CreateDefaultHints();
-
-        // Act
-        string narrative = _service.GenerateSituationNarrative(context, hints);
-
-        // Assert
-        Assert.NotNull(narrative);
-        Assert.NotEmpty(narrative);
-    }
-
-    [Fact]
-    public void GenerateSituationNarrative_Sync_WithNullContext_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(
-            () => _service.GenerateSituationNarrative(null, null));
-    }
-
     // ========== HELPER METHODS ==========
 
     private ScenePromptContext CreateContextWithLocationAndNPC()
@@ -199,7 +174,7 @@ public class SceneNarrativeServiceTests
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Midday,
-            CurrentWeather = "clear",
+            CurrentWeather = WeatherCondition.Clear,
             CurrentDay = 1,
             NPCBondLevel = 0
         };

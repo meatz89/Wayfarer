@@ -77,33 +77,30 @@ public class SpawnService
                 Console.WriteLine($"[SpawnService] Spawned situation '{spawnedSituation.Name}' added to scene");
 
                 // PROCEDURAL CONTENT TRACING: Record cascading situation spawn
-                if (_proceduralTracer.IsEnabled)
+                SceneSpawnNode parentSceneNode = _proceduralTracer.GetNodeForScene(parentSituation.ParentScene);
+                if (parentSceneNode != null)
                 {
-                    SceneSpawnNode parentSceneNode = _proceduralTracer.GetNodeForScene(parentSituation.ParentScene);
-                    if (parentSceneNode != null)
+                    // Push parent situation context so cascading situation links to it
+                    SituationSpawnNode parentSituationNode = _proceduralTracer.GetNodeForSituation(parentSituation);
+                    if (parentSituationNode != null)
                     {
-                        // Push parent situation context so cascading situation links to it
-                        SituationSpawnNode parentSituationNode = _proceduralTracer.GetNodeForSituation(parentSituation);
-                        if (parentSituationNode != null)
-                        {
-                            _proceduralTracer.PushSituationContext(parentSituationNode);
-                        }
+                        _proceduralTracer.PushSituationContext(parentSituationNode);
+                    }
 
-                        // Record situation spawn (auto-links to parent situation via context stack)
-                        // Note: SpawnRule doesn't differentiate Success/Failure, so we use SuccessSpawn
-                        // Consider enhancing SpawnRule to track trigger type if needed
-                        _proceduralTracer.RecordSituationSpawn(
-                            spawnedSituation,
-                            parentSceneNode,
-                            SituationSpawnTriggerType.SuccessSpawn,
-                            EntityResolutionContext.Empty()
-                        );
+                    // Record situation spawn (auto-links to parent situation via context stack)
+                    // Note: SpawnRule doesn't differentiate Success/Failure, so we use SuccessSpawn
+                    // Consider enhancing SpawnRule to track trigger type if needed
+                    _proceduralTracer.RecordSituationSpawn(
+                        spawnedSituation,
+                        parentSceneNode,
+                        SituationSpawnTriggerType.SuccessSpawn,
+                        EntityResolutionContext.Empty()
+                    );
 
-                        // Pop context after recording
-                        if (parentSituationNode != null)
-                        {
-                            _proceduralTracer.PopSituationContext();
-                        }
+                    // Pop context after recording
+                    if (parentSituationNode != null)
+                    {
+                        _proceduralTracer.PopSituationContext();
                     }
                 }
             }

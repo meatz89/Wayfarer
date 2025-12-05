@@ -146,7 +146,7 @@ public static class HexParser
             }
 
             validatedCount++;
-            Console.WriteLine($"[HexSync] ✅ Validated location '{location.Name}' at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
+            Console.WriteLine($"[HexSync] Validated location '{location.Name}' at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
         }
 
         Console.WriteLine($"[HexSync] Validated {validatedCount} locations with hex positions");
@@ -204,7 +204,7 @@ public static class HexParser
                 hexMap.Hexes.Add(hex);
                 hexesCreated++;
 
-                Console.WriteLine($"[HexGridCompleteness] ✅ Created hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) for location '{location.Name}'");
+                Console.WriteLine($"[HexGridCompleteness] Created hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) for location '{location.Name}'");
             }
         }
 

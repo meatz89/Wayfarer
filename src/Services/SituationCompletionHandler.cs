@@ -56,10 +56,7 @@ public class SituationCompletionHandler
         }
 
         // PROCEDURAL CONTENT TRACING: Mark situation completed in trace
-        if (_proceduralTracer.IsEnabled)
-        {
-            _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
-        }
+        _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
 
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
         // NEW ARCHITECTURE: Consequences applied from Consequence when choice executed, not from Situation
@@ -139,10 +136,7 @@ public class SituationCompletionHandler
             }
 
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
-            if (_proceduralTracer.IsEnabled)
-            {
-                _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
-            }
+            _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
         }
     }
 
@@ -203,10 +197,7 @@ public class SituationCompletionHandler
         }
 
         // PROCEDURAL CONTENT TRACING: Mark situation as failed in trace
-        if (_proceduralTracer.IsEnabled)
-        {
-            _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
-        }
+        _proceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
 
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
         if (situation.FailureSpawns != null && situation.FailureSpawns.Count > 0)
@@ -225,10 +216,7 @@ public class SituationCompletionHandler
             situation.RoutingDecision = routingDecision;
 
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
-            if (_proceduralTracer.IsEnabled)
-            {
-                _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
-            }
+            _proceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
         }
 
         // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess

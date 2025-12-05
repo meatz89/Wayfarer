@@ -461,7 +461,7 @@ public class LocationFacade
             // TWO-PASS: Pass 1 (mechanical) + Pass 2 (AI narrative)
             await _sceneInstantiator.ActivateSceneAsync(scene, activationContext);
 
-            Console.WriteLine($"[LocationFacade] ✅ Scene '{scene.DisplayName}' activated successfully (State: {scene.State})");
+            Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: {scene.State})");
         }
     }
 

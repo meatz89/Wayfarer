@@ -264,62 +264,109 @@ A "Refresh" button rebuilds the graph from current ProceduralContentTracer state
 
 ## Implementation Phases
 
-### Phase 1: Foundation
+### Phase 1: Foundation ✅ COMPLETE
 
 **Goal:** Basic canvas page that renders and allows pan/zoom
 
 Tasks:
-1. Add Z.Blazor.Diagrams NuGet package
-2. Configure services in Program.cs
-3. Create SpawnGraph.razor page with basic DiagramCanvas
-4. Add route and navigation link
-5. Verify pan/zoom works with placeholder nodes
+1. ✅ Add Z.Blazor.Diagrams NuGet package
+2. ✅ Configure services in Program.cs
+3. ✅ Create SpawnGraph.razor page with basic DiagramCanvas
+4. ✅ Add route and navigation link
+5. ✅ Verify pan/zoom works with placeholder nodes
 
-### Phase 2: Node Rendering
+### Phase 2: Node Rendering ✅ COMPLETE
 
 **Goal:** Custom node widgets render SpawnTrace data
 
 Tasks:
-1. Create SpawnGraphNodeModel base class
-2. Create Scene/Situation/Choice/Entity node model classes
-3. Create widget components for each node type
-4. Register widgets with diagram component
-5. Test with manually-created nodes
+1. ✅ Create SpawnGraphNodeModel base class
+2. ✅ Create Scene/Situation/Choice/Entity node model classes
+3. ✅ Create widget components for each node type
+4. ✅ Register widgets with diagram component
+5. ✅ Test with manually-created nodes
 
-### Phase 3: Graph Building
+### Phase 3: Graph Building ✅ COMPLETE
 
 **Goal:** Full graph builds from ProceduralContentTracer data
 
 Tasks:
-1. Create SpawnGraphBuilder service
-2. Implement traversal of RootScenes → Situations → Choices
-3. Implement entity node creation and deduplication
-4. Implement edge creation for all relationship types
-5. Integrate Dagre.js layout via JS interop
-6. Test with actual gameplay data
+1. ✅ Create SpawnGraphBuilder service
+2. ✅ Implement traversal of RootScenes → Situations → Choices
+3. ✅ Implement entity node creation and deduplication
+4. ✅ Implement edge creation for all relationship types
+5. ✅ Integrate Dagre.js layout via JS interop
+6. ✅ Test with actual gameplay data
 
-### Phase 4: Interactivity
+### Phase 4: Interactivity 🔶 PARTIAL
 
 **Goal:** Selection, detail panel, filtering
 
 Tasks:
-1. Implement node selection with visual highlight
-2. Create DetailPanel component
-3. Wire selection to detail panel display
-4. Add filtering toolbar (node types, categories, search)
-5. Implement "Fit to View" and "Refresh" buttons
+1. ✅ Implement node selection with visual highlight
+2. ✅ Create DetailPanel component
+3. ✅ Wire selection to detail panel display
+4. ✅ Add filtering toolbar (node types, categories, search)
+5. ✅ Implement "Fit to View" and "Refresh" buttons
+6. ⬜ Double-click Scene to zoom to subtree (NOT IMPLEMENTED)
 
-### Phase 5: Polish
+### Phase 5: Polish 🔶 PARTIAL
 
 **Goal:** Visual refinement and edge cases
 
 Tasks:
-1. Add icons to nodes (from game-icons.net)
-2. Refine color scheme and typography
-3. Handle empty graph state gracefully
-4. Add edge labels where helpful
-5. Performance testing with large graphs
-6. Add export as SVG/PNG (stretch goal)
+1. ⬜ Add icons to nodes (from game-icons.net) - NOT IMPLEMENTED
+2. ✅ Refine color scheme and typography
+3. ✅ Handle empty graph state gracefully
+4. ✅ Add edge labels showing entity resolution metadata (DISCOVERED/CREATED + filter properties)
+5. ⬜ Performance testing with large graphs - NOT VERIFIED
+6. ⬜ Add export as SVG/PNG (stretch goal) - NOT IMPLEMENTED
+
+---
+
+## Current Implementation Status
+
+### What Works
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Full-screen canvas at /spawngraph | ✅ Working | Pan/zoom functional |
+| Scene nodes (purple) | ✅ Working | Shows name, category, state |
+| Situation nodes (blue) | ✅ Working | Shows name, type, interaction type |
+| Choice nodes | ✅ Working | Shows action text (truncated) |
+| Entity nodes (Location/NPC) | ✅ Working | Orange (location), red (NPC) |
+| Hierarchy edges (solid) | ✅ Working | Scene→Situation→Choice |
+| Entity reference edges (dotted) | ✅ Working | Situation→Location/NPC |
+| Edge labels with resolution metadata | ✅ Working | Shows DISCOVERED/CREATED + filter properties |
+| Dagre.js automatic layout | ✅ Working | Left-to-right hierarchical |
+| Refresh button | ✅ Working | Rebuilds from current game state |
+| Fit to View button | ✅ Working | Zooms to show entire graph |
+| Node type filters | ✅ Working | Toggle Scenes/Situations/Choices/Entities |
+| Category filters | ✅ Working | Main/Side/Service |
+| State filters | ✅ Working | Active/Completed/Deferred |
+| Search | ✅ Working | Text search with highlighting |
+| Legend | ✅ Working | Collapsible legend panel |
+| Detail panel on selection | ✅ Working | Shows node properties |
+| Node count statistics | ✅ Working | Footer shows counts |
+
+### Known Gaps
+
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Double-click Scene to zoom subtree | ⬜ Missing | Medium |
+| Node icons (game-icons.net) | ⬜ Missing | Low |
+| Route entity nodes | ⬜ Not tested | Medium |
+| SpawnScene edges (Choice→Scene) | ⬜ Not tested | High |
+| SpawnSituation edges (cascade) | ⬜ Not tested | High |
+| Large graph performance | ⬜ Not verified | Medium |
+
+### Technical Implementation Notes
+
+**Path Matching for Edge Labels:**
+The JavaScript `findMatchingPath` function uses coordinate-based matching with a 250px tolerance to handle the offset between node CENTER positions (from C#) and SVG path START/END points (at node edges).
+
+**Entity Resolution Display:**
+Edge labels show `DISCOVERED` or `CREATED` prefix followed by the placement filter properties used (e.g., "Purpose=Commerce", "Profession=Innkeeper").
 
 ---
 

@@ -614,22 +614,15 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Get terrain segment cost (DDR-007: flat segment values)
-    /// Each terrain type costs a fixed number of segments to traverse
+    /// Get terrain segment cost (DDR-007: flat 1 segment per hex)
+    /// All terrain costs 1 segment to traverse for intuitive route difficulty
+    /// Segment count = hex distance, keeping tier thresholds (1-2, 3-4, 5+) meaningful
     /// </summary>
     private int GetTerrainSegmentCost(TerrainType terrain, TransportType transportType)
     {
-        return terrain switch
-        {
-            TerrainType.Plains => 1,           // Easy terrain: 1 segment
-            TerrainType.Road => 1,             // Fast terrain: 1 segment
-            TerrainType.Forest => transportType == TransportType.Cart ? 3 : 2,  // Moderate: 2 segments (3 for cart)
-            TerrainType.Mountains => 3,        // Difficult terrain: 3 segments
-            TerrainType.Swamp => 3,            // Difficult terrain: 3 segments
-            TerrainType.Water => 1,            // Easy for boats: 1 segment
-            TerrainType.Impassable => 99,      // Effectively impassable
-            _ => 1
-        };
+        // All terrain = 1 segment per hex (flat cost for intuitive difficulty calculation)
+        // Impassable terrain still blocks routes
+        return terrain == TerrainType.Impassable ? 99 : 1;
     }
 
     /// <summary>

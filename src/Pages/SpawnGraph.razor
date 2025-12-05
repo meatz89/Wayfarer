@@ -81,7 +81,7 @@
         </span>
     </div>
 
-    <div class="spawn-graph-canvas">
+    <div id="spawn-graph-canvas" class="spawn-graph-canvas">
         @if (IsLoading)
         {
             <div class="spawn-graph-loading">
@@ -236,7 +236,6 @@
         Diagram.RegisterComponent<SituationNodeModel, SituationNodeWidget>();
         Diagram.RegisterComponent<ChoiceNodeModel, ChoiceNodeWidget>();
         Diagram.RegisterComponent<EntityNodeModel, EntityNodeWidget>();
-        Diagram.RegisterComponent<SpawnGraphLinkModel, EntityLinkWidget>();
     }
 
     private async Task BuildGraphAsync()
@@ -259,6 +258,12 @@
 
         IsLoading = false;
         StateHasChanged();
+
+        if (result.Success)
+        {
+            await Task.Delay(100);
+            await GraphBuilder.AddLinkLabelsAsync(Diagram, "spawn-graph-canvas");
+        }
     }
 
     private void WireUpDoubleClickHandlers()

@@ -85,5 +85,107 @@ window.DagreLayout = {
         });
 
         return layoutResult;
+    },
+
+    addLinkLabels: function (containerId, linkMetadata) {
+        if (!linkMetadata || linkMetadata.length === 0) {
+            return;
+        }
+
+        var container = document.getElementById(containerId);
+        if (!container) {
+            console.error('DagreLayout.addLinkLabels: Container not found:', containerId);
+            return;
+        }
+
+        var svg = container.querySelector('svg');
+        if (!svg) {
+            console.error('DagreLayout.addLinkLabels: SVG not found in container');
+            return;
+        }
+
+        var existingLabels = svg.querySelectorAll('.link-label-group');
+        existingLabels.forEach(function (label) {
+            label.remove();
+        });
+
+        var linkPaths = svg.querySelectorAll('path');
+        var linkPathArray = Array.from(linkPaths);
+
+        linkMetadata.forEach(function (meta) {
+            if (!meta.label) {
+                return;
+            }
+
+            var matchedPath = DagreLayout.findMatchingPath(linkPathArray, meta.sourceX, meta.sourceY, meta.targetX, meta.targetY);
+            if (!matchedPath) {
+                return;
+            }
+
+            var pathLength = matchedPath.getTotalLength();
+            var midPoint = matchedPath.getPointAtLength(pathLength / 2);
+
+            var labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            labelGroup.setAttribute('class', 'link-label-group');
+            labelGroup.setAttribute('transform', 'translate(' + midPoint.x + ',' + midPoint.y + ')');
+
+            var textWidth = meta.label.length * 7 + 12;
+            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('class', 'link-label-bg ' + (meta.cssClass || ''));
+            rect.setAttribute('x', -textWidth / 2);
+            rect.setAttribute('y', -10);
+            rect.setAttribute('width', textWidth);
+            rect.setAttribute('height', 20);
+            rect.setAttribute('rx', 4);
+            rect.setAttribute('ry', 4);
+            rect.setAttribute('fill', meta.color || '#666');
+            rect.setAttribute('fill-opacity', '0.9');
+
+            var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('class', 'link-label-text');
+            text.setAttribute('x', 0);
+            text.setAttribute('y', 4);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('fill', 'white');
+            text.setAttribute('font-size', '11px');
+            text.setAttribute('font-weight', '500');
+            text.textContent = meta.label;
+
+            labelGroup.appendChild(rect);
+            labelGroup.appendChild(text);
+            svg.appendChild(labelGroup);
+        });
+    },
+
+    findMatchingPath: function (pathArray, sourceX, sourceY, targetX, targetY) {
+        var tolerance = 250;
+        var bestMatch = null;
+        var bestDistance = Infinity;
+
+        for (var i = 0; i < pathArray.length; i++) {
+            var path = pathArray[i];
+            var pathLength = path.getTotalLength();
+            if (pathLength === 0) continue;
+
+            var startPoint = path.getPointAtLength(0);
+            var endPoint = path.getPointAtLength(pathLength);
+
+            var sourceDistance = Math.sqrt(
+                Math.pow(startPoint.x - sourceX, 2) + Math.pow(startPoint.y - sourceY, 2)
+            );
+            var targetDistance = Math.sqrt(
+                Math.pow(endPoint.x - targetX, 2) + Math.pow(endPoint.y - targetY, 2)
+            );
+
+            var totalDistance = sourceDistance + targetDistance;
+
+            if (totalDistance < bestDistance && sourceDistance < tolerance && targetDistance < tolerance) {
+                bestDistance = totalDistance;
+                bestMatch = path;
+            }
+        }
+
+        return bestMatch;
     }
 };

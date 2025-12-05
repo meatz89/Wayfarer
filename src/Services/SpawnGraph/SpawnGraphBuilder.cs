@@ -14,7 +14,7 @@ public class SpawnGraphBuilder
 
     public async Task<SpawnGraphBuildResult> BuildGraphAsync(ProceduralContentTracer tracer, BlazorDiagram diagram)
     {
-        if (tracer == null || !tracer.IsEnabled || tracer.AllSceneNodes.Count == 0)
+        if (tracer == null || tracer.AllSceneNodes.Count == 0)
         {
             return new SpawnGraphBuildResult
             {
@@ -45,6 +45,40 @@ public class SpawnGraphBuilder
             GraphWidth = layoutResult.GraphWidth,
             GraphHeight = layoutResult.GraphHeight
         };
+    }
+
+    public async Task AddLinkLabelsAsync(BlazorDiagram diagram, string containerId)
+    {
+        List<LinkLabelMetadata> linkMetadata = new List<LinkLabelMetadata>();
+
+        foreach (Blazor.Diagrams.Core.Models.Base.BaseLinkModel link in diagram.Links)
+        {
+            if (link is SpawnGraphLinkModel spawnLink && !string.IsNullOrEmpty(spawnLink.Label))
+            {
+                Blazor.Diagrams.Core.Models.NodeModel sourceNode = spawnLink.Source?.Model as Blazor.Diagrams.Core.Models.NodeModel;
+                Blazor.Diagrams.Core.Models.NodeModel targetNode = spawnLink.Target?.Model as Blazor.Diagrams.Core.Models.NodeModel;
+
+                linkMetadata.Add(new LinkLabelMetadata
+                {
+                    Label = spawnLink.Label,
+                    Color = spawnLink.Color,
+                    CssClass = spawnLink.CssClass,
+                    SourceX = sourceNode?.Position?.X ?? 0,
+                    SourceY = sourceNode?.Position?.Y ?? 0,
+                    TargetX = targetNode?.Position?.X ?? 0,
+                    TargetY = targetNode?.Position?.Y ?? 0
+                });
+            }
+            else
+            {
+                linkMetadata.Add(new LinkLabelMetadata());
+            }
+        }
+
+        if (linkMetadata.Count > 0)
+        {
+            await JSRuntime.InvokeVoidAsync("DagreLayout.addLinkLabels", containerId, linkMetadata);
+        }
     }
 
     private DagreGraphData BuildDagreGraphData(ProceduralContentTracer tracer)
@@ -171,7 +205,17 @@ public class SpawnGraphBuilder
             {
                 if (situationIds.TryGetValue(situationNode, out string situationId))
                 {
-                    graphData.Edges.Add(new DagreEdge { Source = sceneId, Target = situationId });
+                    if (situationNode.ParentSituation != null)
+                    {
+                        if (situationIds.TryGetValue(situationNode.ParentSituation, out string parentSituationId))
+                        {
+                            graphData.Edges.Add(new DagreEdge { Source = parentSituationId, Target = situationId });
+                        }
+                    }
+                    else
+                    {
+                        graphData.Edges.Add(new DagreEdge { Source = sceneId, Target = situationId });
+                    }
                 }
             }
         }
@@ -226,6 +270,14 @@ public class SpawnGraphBuilder
                     if (sceneIds.TryGetValue(spawnedScene, out string sceneId))
                     {
                         graphData.Edges.Add(new DagreEdge { Source = choiceId, Target = sceneId });
+                    }
+                }
+
+                foreach (SituationSpawnNode spawnedSituation in choiceNode.SpawnedSituations)
+                {
+                    if (situationIds.TryGetValue(spawnedSituation, out string situationId))
+                    {
+                        graphData.Edges.Add(new DagreEdge { Source = choiceId, Target = situationId });
                     }
                 }
             }
@@ -343,7 +395,16 @@ public class SpawnGraphBuilder
 
             foreach (SituationSpawnNode situationNode in sceneNode.Situations)
             {
-                if (situationModelMap.TryGetValue(situationNode, out SituationNodeModel situationModel))
+                if (!situationModelMap.TryGetValue(situationNode, out SituationNodeModel situationModel)) continue;
+
+                if (situationNode.ParentSituation != null)
+                {
+                    if (situationModelMap.TryGetValue(situationNode.ParentSituation, out SituationNodeModel parentSituationModel))
+                    {
+                        diagram.Links.Add(new SpawnGraphLinkModel(parentSituationModel, situationModel, SpawnGraphLinkType.SpawnSituation));
+                    }
+                }
+                else
                 {
                     diagram.Links.Add(new SpawnGraphLinkModel(sceneModel, situationModel, SpawnGraphLinkType.Hierarchy));
                 }
@@ -526,7 +587,16 @@ public class SpawnGraphBuilder
 
             foreach (SituationSpawnNode situationSpawn in sceneSpawn.Situations)
             {
-                if (situationModelMap.TryGetValue(situationSpawn, out SituationNodeModel situationModel))
+                if (!situationModelMap.TryGetValue(situationSpawn, out SituationNodeModel situationModel)) continue;
+
+                if (situationSpawn.ParentSituation != null)
+                {
+                    if (situationModelMap.TryGetValue(situationSpawn.ParentSituation, out SituationNodeModel parentSituationModel))
+                    {
+                        diagram.Links.Add(new SpawnGraphLinkModel(parentSituationModel, situationModel, SpawnGraphLinkType.SpawnSituation));
+                    }
+                }
+                else
                 {
                     diagram.Links.Add(new SpawnGraphLinkModel(sceneModel, situationModel, SpawnGraphLinkType.Hierarchy));
                 }
@@ -713,4 +783,28 @@ public class DagrePoint
 
     [System.Text.Json.Serialization.JsonPropertyName("y")]
     public double Y { get; set; }
+}
+
+public class LinkLabelMetadata
+{
+    [System.Text.Json.Serialization.JsonPropertyName("label")]
+    public string Label { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("color")]
+    public string Color { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("cssClass")]
+    public string CssClass { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("sourceX")]
+    public double SourceX { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("sourceY")]
+    public double SourceY { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("targetX")]
+    public double TargetX { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("targetY")]
+    public double TargetY { get; set; }
 }

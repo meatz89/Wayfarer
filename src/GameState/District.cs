@@ -1,5 +1,7 @@
 public class District
 {
+    public static readonly District NoDistrict = new District() { Name = "No District", Description = "No District" };
+
     // HIGHLANDER: NO Id property - District identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }

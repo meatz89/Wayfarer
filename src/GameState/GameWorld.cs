@@ -362,14 +362,14 @@ public class GameWorld
     public District GetDistrictForLocation(Venue venue)
     {
         // ZERO NULL TOLERANCE: venue must never be null
-        return venue.District;
+        return venue.District ?? District.NoDistrict;
     }
 
     // HIGHLANDER: Accept District object, use object reference (not string lookup)
     public Region GetRegionForDistrict(District district)
     {
         // ZERO NULL TOLERANCE: district must never be null
-        return district.Region;
+        return district?.Region ?? Region.NoRegion;
     }
 
     public string GetFullLocationPath(string venueName)

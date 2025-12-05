@@ -35,7 +35,15 @@
 
         <!-- Choices Section -->
         <div class="scene-choices">
-            @if (Choices != null && Choices.Any())
+            @if (IsActivatingSituation)
+            {
+                <!-- LAZY NARRATIVE ACTIVATION: Loading state during AI generation -->
+                <div class="situation-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Preparing situation...</p>
+                </div>
+            }
+            else if (Choices != null && Choices.Any())
             {
                 @foreach (var choice in Choices)
                 {

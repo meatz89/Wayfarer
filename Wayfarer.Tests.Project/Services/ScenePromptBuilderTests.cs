@@ -195,7 +195,7 @@ public class ScenePromptBuilderTests
     {
         // Arrange
         ScenePromptContext context = CreateFullContext();
-        context.CurrentWeather = "rain";
+        context.CurrentWeather = WeatherCondition.Rain;
         NarrativeHints hints = CreateDefaultHints();
         Situation situation = CreateTestSituation();
 
@@ -253,7 +253,7 @@ public class ScenePromptBuilderTests
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Midday,
-            CurrentWeather = "clear",
+            CurrentWeather = WeatherCondition.Clear,
             CurrentDay = 1,
             NPCBondLevel = 0
         };

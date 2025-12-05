@@ -141,7 +141,7 @@ internal static class PackageLoaderValidation
                     $"Placement algorithm violated spatial constraints - venue.ContainsHex() returned false.");
             }
 
-            Console.WriteLine($"[SpatialValidation] ✅ Location '{location.Name}' correctly assigned to venue '{location.Venue.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R})");
+            Console.WriteLine($"[SpatialValidation] Location '{location.Name}' correctly assigned to venue '{location.Venue.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R})");
             validated++;
         }
 
