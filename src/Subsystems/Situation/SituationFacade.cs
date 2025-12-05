@@ -103,10 +103,10 @@ public class SituationFacade
         situation.Description = narrative;
         Console.WriteLine($"[SituationFacade]   AI description generated for '{situation.Name}'");
 
-        // ==================== PASS 2B: AI CHOICE LABELS ====================
-        // DYNAMIC: Generate AI labels for EXISTING choices (mechanical values unchanged)
-        // Choices were created at scene spawn with scaled costs/consequences
-        // Only the narrative Label property is updated here
+        // ==================== PASS 2B: BATCH AI CHOICE LABELS ====================
+        // BATCH GENERATION: Generate ALL choice labels in ONE AI call
+        // This ensures choices are narratively differentiated, not just mechanical variations
+        // The AI sees all mechanical contexts together and creates distinct approaches
 
         if (situation.Choices == null || situation.Choices.Count == 0)
         {
@@ -114,29 +114,41 @@ public class SituationFacade
             return;
         }
 
+        // Collect all choice data for batch generation
+        List<ChoiceData> choicesData = new List<ChoiceData>();
         foreach (Choice choice in situation.Choices)
         {
-            if (choice.Template == null)
+            if (choice.Template != null)
             {
-                Console.WriteLine($"[SituationFacade]     Choice has no template - keeping existing label");
-                continue;
+                choicesData.Add(new ChoiceData(choice.Template, choice.ScaledRequirement, choice.ScaledConsequence));
             }
-
-            // Generate AI label with CURRENT context
-            string label = await _sceneNarrativeService.GenerateChoiceLabelAsync(
-                promptContext,
-                situation,
-                choice.Template,
-                choice.ScaledRequirement,
-                choice.ScaledConsequence);
-
-            // Update label on existing choice (mechanical values unchanged)
-            choice.Label = label;
-
-            Console.WriteLine($"[SituationFacade]     Choice '{choice.Template.Id}' AI label: {label}");
         }
 
-        Console.WriteLine($"[SituationFacade]   AI labels generated for {situation.Choices.Count} choices");
+        if (choicesData.Count == 0)
+        {
+            Console.WriteLine($"[SituationFacade]   No choices with templates to label");
+            return;
+        }
+
+        // Single AI call generates all labels together (narrative differentiation)
+        List<string> batchLabels = await _sceneNarrativeService.GenerateBatchChoiceLabelsAsync(
+            promptContext,
+            situation,
+            choicesData);
+
+        // Apply labels to choices in order
+        int labelIndex = 0;
+        foreach (Choice choice in situation.Choices)
+        {
+            if (choice.Template != null && labelIndex < batchLabels.Count)
+            {
+                choice.Label = batchLabels[labelIndex];
+                Console.WriteLine($"[SituationFacade]     Choice '{choice.Template.Id}' batch label: {choice.Label}");
+                labelIndex++;
+            }
+        }
+
+        Console.WriteLine($"[SituationFacade]   Batch AI labels generated for {labelIndex} choices");
     }
 
     /// <summary>

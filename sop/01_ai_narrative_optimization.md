@@ -6,7 +6,7 @@
 |-------|-------|
 | **SOP Number** | SOP-01 |
 | **Title** | AI Narrative Optimization Pipeline |
-| **Version** | 2.1 |
+| **Version** | 2.2 |
 | **Effective Date** | 2025-12-05 |
 | **Last Reviewed** | 2025-12-05 |
 | **Owner** | Development Team |
@@ -29,9 +29,10 @@ This procedure defines the iterative process for improving AI-generated narrativ
 
 | Component | Description |
 |-----------|-------------|
-| Situation narratives | AI-generated scene descriptions |
+| Situation narratives | AI-generated scene descriptions WITH FRICTION (250-400 chars) |
+| Choice labels | AI-generated action labels via BATCH GENERATION |
 | Prompt templates | ScenePromptBuilder output |
-| Quality metrics | Length, context markers, entity consistency |
+| Quality metrics | Length, context markers, entity consistency, choice differentiation |
 | Test fixtures | Predefined scenarios for validation |
 
 ### Out of Scope
@@ -443,6 +444,84 @@ On Windows, Ollama binds to IPv6 (`::1`) by default, NOT IPv4 (`127.0.0.1`).
 | ForestPathEncounter | 125-136 | 94 | More concise |
 
 **Model Artifacts Discovered:** Gemma3 sometimes appends end-of-turn tokens. Added post-processing in `SceneNarrativeService.CleanAIResponse()`.
+
+---
+
+### Version 2.2 (2025-12-05): Friction + Batch Choice Generation
+
+**Problems Identified:**
+
+| Issue | Symptom | Root Cause |
+|-------|---------|------------|
+| No Friction | Situations were 50-120 chars of pure atmosphere | Prompt focused on "scene-setting ONLY" |
+| Isolated Choices | All 4 choices described same action with variations | 4 independent AI calls couldn't see each other |
+| Generic Labels | "Approach diplomatically" instead of specific actions | No situational friction to react to |
+
+**Structural Problem:**
+- Each choice generated in isolation (4 separate AI calls)
+- Choices looked like mechanical variations, not narrative decisions
+- Player had no reason to prefer one choice over another narratively
+
+**Solution: Two-Pass AI Generation with Batch Choices**
+
+| Pass | Purpose | Length | Output |
+|------|---------|--------|--------|
+| Pass 2A: Situation | Present FRICTION (problem/tension) | 250-400 chars | Scene + obstacle/tension |
+| Pass 2B: Batch Choices | Generate ALL 4 labels together | 5-12 words each | Distinct approaches |
+
+**Changes Made:**
+
+| File | Change |
+|------|--------|
+| `ScenePromptBuilder.cs` | `BuildSituationPrompt()` now requests 250-400 chars WITH FRICTION |
+| `ScenePromptBuilder.cs` | Added `BuildBatchChoiceLabelsPrompt()` for single-call batch generation |
+| `ScenePromptBuilder.cs` | Added `ChoiceData` class to carry choice mechanical context |
+| `SceneNarrativeService.cs` | Added `GenerateBatchChoiceLabelsAsync()` with JSON parsing |
+| `SituationFacade.cs` | Changed from foreach → single batch call |
+| `NarrativeTestFixtures.cs` | Updated `ExpectedLengthRange` from (50, 150) → (250, 400) |
+
+**New Prompt Philosophy:**
+
+1. **Situation with Friction:**
+   - FIRST: Set scene with vivid sensory detail
+   - THEN: Present the FRICTION (problem/obstacle/tension)
+   - END: Leave tension unresolved (choice comes next)
+
+2. **Batch Choice Labels:**
+   - AI sees ALL 4 choices with their mechanical requirements
+   - Stat requirements hint at approach: Insight=observe, Authority=demand, Cunning=trick
+   - Consequences show stakes
+   - AI differentiates narratively based on mechanical context
+
+**Expected Output Format (Batch Choices):**
+
+```json
+{
+  "choices": [
+    "Ask Martha about the weekly rate with a knowing smile",
+    "Demand the innkeeper's best room at standard fare",
+    "Suggest a mutually beneficial arrangement for lodging",
+    "Accept whatever room is available for the night"
+  ]
+}
+```
+
+**Results:**
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| Situation Length | 50-120 chars | 250-400 chars |
+| Situation Content | Pure atmosphere | Atmosphere + friction |
+| Choice Generation | 4 independent AI calls | 1 batch AI call |
+| Choice Labels | Mechanical variations | Distinct narrative approaches |
+
+**Lessons Learned:**
+
+1. **Friction Creates Agency:** Players need a PROBLEM to make a DECISION. Pure atmosphere leaves nothing to react to.
+
+2. **Batch = Differentiation:** When AI generates all choices together, it naturally creates distinct approaches. Independent calls produce variations of the same idea.
+
+3. **Mechanical Context Shapes Narrative:** Stat requirements aren't just numbers - they represent HOW the player approaches the situation. Insight = observant, Authority = commanding, etc.
 
 ---
 

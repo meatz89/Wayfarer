@@ -699,6 +699,14 @@ These layers MUST match. Changing one without the others creates:
 - Build: `cd src && dotnet build`
 - Test: `cd src && dotnet test`
 
+**Test Philosophy - What NOT to Test:**
+- **FORBIDDEN:** Tests that verify implementation details (prompt format, internal structure)
+- **FORBIDDEN:** Tests that will break when refining/iterating (prompt wording, CSS classes)
+- **REQUIRED:** Tests that verify OUTCOMES and BEHAVIOR (does AI output meet quality criteria?)
+- **REQUIRED:** Tests that catch regressions in functionality (does the feature work?)
+
+**The Principle:** Test WHAT the system produces, not HOW it produces it. Prompt text is designed to be refined - testing exact prompt wording creates tests that fail every time you improve. Test the quality of AI responses instead.
+
 ---
 
 # FILE SIZE LIMIT (1000 LINES MAX)

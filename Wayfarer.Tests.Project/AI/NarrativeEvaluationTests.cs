@@ -130,20 +130,6 @@ public class NarrativeEvaluationTests : IAsyncLifetime
         await EvaluateSituationNarrative(NarrativeTestFixtures.ForestPathEncounter());
     }
 
-    // ==================== CHOICE LABEL EVALUATION ====================
-
-    [Fact]
-    public async Task Evaluate_DiplomaticInnkeeperApproach()
-    {
-        await EvaluateChoiceLabel(NarrativeTestFixtures.DiplomaticInnkeeperApproach());
-    }
-
-    [Fact]
-    public async Task Evaluate_AuthoritativeGuardResponse()
-    {
-        await EvaluateChoiceLabel(NarrativeTestFixtures.AuthoritativeGuardResponse());
-    }
-
     // ==================== BATCH EVALUATION WITH JSON EXPORT ====================
 
     [Fact]
@@ -333,70 +319,6 @@ public class NarrativeEvaluationTests : IAsyncLifetime
 
         report.Passed = report.FailureReasons.Count == 0;
         return report;
-    }
-
-    private async Task EvaluateChoiceLabel(ChoiceLabelTestCase testCase)
-    {
-        if (!_ollamaAvailable)
-        {
-            _output.WriteLine($"SKIPPED: {testCase.Name} - Ollama not available");
-            return;
-        }
-
-        _output.WriteLine($"========== {testCase.Name} ==========\n");
-
-        // Set situation description for context
-        testCase.Situation.Description = "A tense moment of negotiation.";
-
-        // Get prompt through SERVICE (TEST/PRODUCTION PARITY)
-        string prompt = _narrativeService.GetChoiceLabelPrompt(
-            testCase.Context, testCase.Situation, testCase.ChoiceTemplate,
-            testCase.Requirement, testCase.Consequence);
-
-        _output.WriteLine("--- PROMPT (from SceneNarrativeService.GetChoiceLabelPrompt) ---");
-        _output.WriteLine(prompt);
-        _output.WriteLine("--- END PROMPT ---\n");
-
-        // Generate label through SERVICE
-        string label = await _narrativeService.GenerateChoiceLabelAsync(
-            testCase.Context, testCase.Situation, testCase.ChoiceTemplate,
-            testCase.Requirement, testCase.Consequence);
-
-        _output.WriteLine("--- AI RESPONSE ---");
-        _output.WriteLine(label);
-        _output.WriteLine("--- END RESPONSE ---\n");
-
-        // Evaluate quality
-        List<string> failures = new List<string>();
-
-        // Check expected elements
-        foreach (string element in testCase.ExpectedElements)
-        {
-            if (!label.Contains(element, StringComparison.OrdinalIgnoreCase))
-            {
-                failures.Add($"Missing expected element: '{element}'");
-            }
-        }
-
-        // Check word count
-        int wordCount = label.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
-        if (wordCount < testCase.ExpectedWordCountRange.Min)
-        {
-            failures.Add($"Too few words: {wordCount} (min: {testCase.ExpectedWordCountRange.Min})");
-        }
-        if (wordCount > testCase.ExpectedWordCountRange.Max)
-        {
-            failures.Add($"Too many words: {wordCount} (max: {testCase.ExpectedWordCountRange.Max})");
-        }
-
-        // Log quality assessment
-        _output.WriteLine("--- QUALITY ASSESSMENT ---");
-        _output.WriteLine($"Word count: {wordCount} (expected: {testCase.ExpectedWordCountRange.Min}-{testCase.ExpectedWordCountRange.Max})");
-        _output.WriteLine($"Expected elements found: {testCase.ExpectedElements.Count - failures.Count(f => f.Contains("Missing"))}/{testCase.ExpectedElements.Count}");
-        _output.WriteLine($"Failures: {(failures.Count == 0 ? "None" : string.Join(", ", failures))}");
-        _output.WriteLine("");
-
-        Assert.True(failures.Count == 0, string.Join("; ", failures));
     }
 
     private void LogContext(NarrativeTestCase testCase)

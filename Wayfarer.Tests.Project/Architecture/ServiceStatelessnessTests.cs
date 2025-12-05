@@ -79,6 +79,7 @@ public class ServiceStatelessnessTests
             .Where(v => !v.Contains("_facade"))         // Facade dependencies are okay
             .Where(v => !v.Contains("_resolver"))       // EntityResolver dependency is okay
             .Where(v => !v.Contains("_random"))         // Random is okay (deterministic via seed)
+            .Where(v => !v.Contains("_isOllamaAvailable")) // Startup config, not per-request state
             .ToList();
 
         Assert.Empty(violations);
