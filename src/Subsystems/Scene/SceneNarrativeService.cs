@@ -28,9 +28,9 @@ public class SceneNarrativeService
     private const int ChoiceLabelTimeoutSeconds = 10; // Increased from 5 for slow PCs
     private const int BatchTimeoutMultiplier = 2; // Batch operations get 2x timeout
 
-    // Availability flag set at startup - prevents 97s timeout when Ollama unavailable
-    // Volatile ensures visibility across threads (UI thread vs background generation)
-    private volatile bool _isOllamaAvailable = false;
+    // Availability flag set once at startup - prevents 97s timeout when Ollama unavailable
+    // Simple bool is fine: written once before any reads, .NET guarantees atomic bool read/write
+    private bool _isOllamaAvailable = false;
 
     public SceneNarrativeService(
         GameWorld gameWorld,
@@ -43,7 +43,7 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Set Ollama availability status. Called at startup after health check.
+    /// Set Ollama availability status. Called once at startup after health check.
     /// When false, AI generation methods skip retry loops and use fallback immediately.
     /// </summary>
     public void SetOllamaAvailability(bool isAvailable)
@@ -439,14 +439,20 @@ public class SceneNarrativeService
                 return null;
             }
 
-            // Filter out empty strings and trim
+            // Filter out empty strings and trim (log filtered entries for debugging)
             List<string> labels = new List<string>();
+            int filteredCount = 0;
             foreach (string label in dto.Choices)
             {
                 string trimmed = label?.Trim();
                 if (!string.IsNullOrEmpty(trimmed))
                     labels.Add(trimmed);
+                else
+                    filteredCount++;
             }
+
+            if (filteredCount > 0)
+                Console.WriteLine($"[SceneNarrativeService] Filtered {filteredCount} empty choice label(s)");
 
             return labels;
         }
@@ -538,14 +544,24 @@ public class SceneNarrativeService
         if (string.IsNullOrEmpty(response))
             return response;
 
-        // Remove markdown code blocks if present
-        response = response.Replace("```", "").Trim();
+        // Remove markdown code blocks at boundaries only (preserve internal backticks if any)
+        if (response.StartsWith("```"))
+        {
+            int endIndex = response.IndexOf('\n');
+            if (endIndex > 0)
+                response = response.Substring(endIndex + 1);
+            else
+                response = response.Substring(3);
+        }
+        if (response.TrimEnd().EndsWith("```"))
+            response = response.Substring(0, response.LastIndexOf("```"));
 
         // Remove model-specific artifacts (Gemma3 end tokens, etc.)
-        response = response.Replace("</end_of_turn>", "").Trim();
-        response = response.Replace("<end_of_turn>", "").Trim();
+        response = response.Replace("</end_of_turn>", "");
+        response = response.Replace("<end_of_turn>", "");
 
         // Remove leading/trailing quotes if wrapped
+        response = response.Trim();
         if (response.StartsWith("\"") && response.EndsWith("\""))
             response = response.Substring(1, response.Length - 2);
 
