@@ -37,10 +37,18 @@
         <div class="scene-choices">
             @if (IsActivatingSituation)
             {
-                <!-- LAZY NARRATIVE ACTIVATION: Loading state during AI generation -->
+                <!-- PROGRESSIVE LOADING: Waiting for situation description -->
                 <div class="situation-loading">
                     <div class="loading-spinner"></div>
                     <p>Preparing situation...</p>
+                </div>
+            }
+            else if (IsGeneratingChoices)
+            {
+                <!-- PROGRESSIVE LOADING: Description shown, generating choice labels in background -->
+                <div class="situation-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Considering your options...</p>
                 </div>
             }
             else if (Choices != null && Choices.Any())

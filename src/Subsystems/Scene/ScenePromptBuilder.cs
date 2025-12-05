@@ -13,17 +13,18 @@ using System.Text;
 public class ScenePromptBuilder
 {
     /// <summary>
-    /// Build AI prompt for generating Situation narrative description.
-    /// Includes entity context, narrative hints, and mechanical context.
+    /// Build AI prompt for generating Situation narrative description WITH FRICTION.
+    /// Creates 3-5 sentences (250-350 chars MAX) that present a problem or tension.
+    /// The situation should set up WHY the player needs to make a choice.
     /// </summary>
     public string BuildSituationPrompt(ScenePromptContext context, NarrativeHints hints, Situation situation)
     {
         StringBuilder prompt = new StringBuilder();
 
-        // System instruction
+        // System instruction - FRICTION-FOCUSED
         prompt.AppendLine("You are a narrative writer for a Victorian-era social adventure game.");
-        prompt.AppendLine("Generate ONE atmospheric sentence (50-120 characters). Strict limit.");
-        prompt.AppendLine("Use a single vivid sensory detail. Pure atmosphere, no action.");
+        prompt.AppendLine("Generate 3-5 sentences (250-350 characters MAX) that present a SITUATION WITH FRICTION.");
+        prompt.AppendLine("The player must face a problem, obstacle, or tension that requires a decision.");
         prompt.AppendLine();
 
         // World context
@@ -48,7 +49,7 @@ public class ScenePromptBuilder
             prompt.AppendLine();
         }
 
-        // NPC context
+        // NPC context - use NARRATIVE relationship descriptors, not mechanical terms
         if (context.NPC != null)
         {
             prompt.AppendLine("## Character Present");
@@ -57,7 +58,7 @@ public class ScenePromptBuilder
             prompt.AppendLine($"- Profession: {context.NPC.Profession}");
             prompt.AppendLine($"- Current State: {context.NPC.CurrentState}");
             if (context.NPCBondLevel != 0)
-                prompt.AppendLine($"- Relationship with player: Bond level {context.NPCBondLevel}");
+                prompt.AppendLine($"- Relationship: {FormatRelationshipNarratively(context.NPCBondLevel)}");
             prompt.AppendLine();
         }
 
@@ -106,40 +107,41 @@ public class ScenePromptBuilder
             prompt.AppendLine();
         }
 
-        // Output instruction
+        // Output instruction - FRICTION-FOCUSED
         prompt.AppendLine("## Output Rules");
-        prompt.AppendLine("1. ONE sentence only. 50-120 characters. Count carefully.");
-        prompt.AppendLine("2. Pure sensory atmosphere: sight, sound, smell, or touch.");
-        prompt.AppendLine("3. NO character actions or dialogue. Scene-setting ONLY.");
-        prompt.AppendLine("4. Vary your openings - avoid 'dust motes', 'the air', or common clichés.");
+        prompt.AppendLine("1. Write 3-5 sentences. STRICT LIMIT: 250-350 characters. Count EVERY character.");
+        prompt.AppendLine("2. FIRST: Set the scene with one vivid sensory detail.");
+        prompt.AppendLine("3. THEN: Present the FRICTION - what problem/obstacle/tension does the player face?");
+        prompt.AppendLine("4. The friction should make the player WANT to choose - there's something at stake.");
         prompt.AppendLine("5. Entity names: Use EXACT names from context or generic terms. NEVER invent.");
-        prompt.AppendLine("6. Plain text only. NO markdown, quotes, or formatting.");
+        prompt.AppendLine("6. Plain text ONLY. NO markdown, NO smart quotes (\"), NO curly quotes, NO asterisks, NO formatting.");
+        prompt.AppendLine("7. TONE PRIORITY: The Narrative Direction tone OVERRIDES weather for emotional atmosphere.");
+        prompt.AppendLine("8. End with the tension unresolved - the choice comes next.");
+        prompt.AppendLine("9. NEVER reference game mechanics (bond levels, stats, resources). Use NARRATIVE language only.");
 
         return prompt.ToString();
     }
 
     /// <summary>
-    /// Build AI prompt for generating Choice action label.
-    /// Contextualizes the mechanical choice template with situation narrative and entity context.
-    /// Generates 5-12 word action label that player clicks.
+    /// Build AI prompt for generating ALL choice labels in a single call.
+    /// Ensures choices are narratively differentiated based on mechanical context.
+    /// Returns JSON array format for parsing.
     /// </summary>
-    public string BuildChoiceLabelPrompt(
+    public string BuildBatchChoiceLabelsPrompt(
         ScenePromptContext context,
         Situation situation,
-        ChoiceTemplate choiceTemplate,
-        CompoundRequirement scaledRequirement,
-        Consequence scaledConsequence)
+        List<ChoiceData> choicesData)
     {
         StringBuilder prompt = new StringBuilder();
 
         prompt.AppendLine("You are a narrative writer for a Victorian-era social adventure game.");
-        prompt.AppendLine("Generate a SHORT action label (5-12 words) for a player choice button.");
-        prompt.AppendLine("The label should be a concrete action, not generic. Use the context provided.");
+        prompt.AppendLine("Generate action labels for ALL choices below IN ONE RESPONSE.");
+        prompt.AppendLine("Each choice must be NARRATIVELY DISTINCT - different approaches to the same situation.");
         prompt.AppendLine();
 
-        prompt.AppendLine("## Situation Context");
-        prompt.AppendLine($"- Description: {situation.Description}");
-        prompt.AppendLine($"- Type: {situation.Type}");
+        // Situation context (with friction)
+        prompt.AppendLine("## The Situation");
+        prompt.AppendLine(situation.Description);
         prompt.AppendLine();
 
         if (context.NPC != null)
@@ -155,53 +157,77 @@ public class ScenePromptBuilder
         {
             prompt.AppendLine("## Location");
             prompt.AppendLine($"- Name: {context.Location.Name}");
-            prompt.AppendLine($"- Purpose: {context.Location.Purpose}");
             prompt.AppendLine();
         }
 
-        prompt.AppendLine("## Choice Mechanics");
-        prompt.AppendLine($"- Template Action: {choiceTemplate.ActionTextTemplate}");
-        prompt.AppendLine($"- Action Type: {choiceTemplate.ActionType}");
-        prompt.AppendLine($"- Path Type: {choiceTemplate.PathType}");
+        // All choices with their mechanical context
+        prompt.AppendLine("## Choices to Label");
+        prompt.AppendLine("Each choice has different mechanical requirements and consequences.");
+        prompt.AppendLine("Use these differences to create DISTINCT narrative approaches:");
+        prompt.AppendLine();
 
-        if (scaledRequirement != null && scaledRequirement.OrPaths != null && scaledRequirement.OrPaths.Count > 0)
+        for (int i = 0; i < choicesData.Count; i++)
         {
-            prompt.AppendLine("- Requirements:");
-            foreach (OrPath path in scaledRequirement.OrPaths)
+            ChoiceData data = choicesData[i];
+            prompt.AppendLine($"### Choice {i + 1}: {data.Template.ActionTextTemplate}");
+            prompt.AppendLine($"- Path Type: {data.Template.PathType}");
+
+            // Requirements show WHAT STAT is needed - this shapes the approach
+            if (data.Requirement != null && data.Requirement.OrPaths != null && data.Requirement.OrPaths.Count > 0)
             {
-                if (path.InsightRequired.HasValue)
-                    prompt.AppendLine($"  * Insight: {path.InsightRequired}");
-                if (path.RapportRequired.HasValue)
-                    prompt.AppendLine($"  * Rapport: {path.RapportRequired}");
-                if (path.AuthorityRequired.HasValue)
-                    prompt.AppendLine($"  * Authority: {path.AuthorityRequired}");
-                if (path.DiplomacyRequired.HasValue)
-                    prompt.AppendLine($"  * Diplomacy: {path.DiplomacyRequired}");
-                if (path.CunningRequired.HasValue)
-                    prompt.AppendLine($"  * Cunning: {path.CunningRequired}");
+                prompt.AppendLine("- Requirements (stat needed = approach type):");
+                foreach (OrPath path in data.Requirement.OrPaths)
+                {
+                    if (path.InsightRequired.HasValue)
+                        prompt.AppendLine($"  * Insight {path.InsightRequired} = observant, analytical approach");
+                    if (path.RapportRequired.HasValue)
+                        prompt.AppendLine($"  * Rapport {path.RapportRequired} = friendly, empathetic approach");
+                    if (path.AuthorityRequired.HasValue)
+                        prompt.AppendLine($"  * Authority {path.AuthorityRequired} = commanding, status-based approach");
+                    if (path.DiplomacyRequired.HasValue)
+                        prompt.AppendLine($"  * Diplomacy {path.DiplomacyRequired} = tactful, negotiating approach");
+                    if (path.CunningRequired.HasValue)
+                        prompt.AppendLine($"  * Cunning {path.CunningRequired} = clever, manipulative approach");
+                }
             }
+
+            // Consequences show STAKES - cost vs reward
+            if (data.Consequence != null)
+            {
+                List<string> stakes = new List<string>();
+                if (data.Consequence.Coins != 0)
+                    stakes.Add($"Coins {(data.Consequence.Coins > 0 ? "+" : "")}{data.Consequence.Coins}");
+                if (data.Consequence.Health != 0)
+                    stakes.Add($"Health {(data.Consequence.Health > 0 ? "+" : "")}{data.Consequence.Health}");
+                if (data.Consequence.Resolve != 0)
+                    stakes.Add($"Resolve {(data.Consequence.Resolve > 0 ? "+" : "")}{data.Consequence.Resolve}");
+                if (stakes.Count > 0)
+                    prompt.AppendLine($"- Stakes: {string.Join(", ", stakes)}");
+            }
+            prompt.AppendLine();
         }
 
-        if (scaledConsequence != null)
-        {
-            prompt.AppendLine("- Consequences:");
-            if (scaledConsequence.Coins != 0)
-                prompt.AppendLine($"  * Coins: {(scaledConsequence.Coins > 0 ? "+" : "")}{scaledConsequence.Coins}");
-            if (scaledConsequence.Health != 0)
-                prompt.AppendLine($"  * Health: {(scaledConsequence.Health > 0 ? "+" : "")}{scaledConsequence.Health}");
-            if (scaledConsequence.Resolve != 0)
-                prompt.AppendLine($"  * Resolve: {(scaledConsequence.Resolve > 0 ? "+" : "")}{scaledConsequence.Resolve}");
-        }
-
+        // Output format
+        prompt.AppendLine("## Output Format");
+        prompt.AppendLine("Return a JSON object with a 'choices' array containing EXACTLY the labels in order:");
+        prompt.AppendLine("```json");
+        prompt.AppendLine("{");
+        prompt.AppendLine("  \"choices\": [");
+        prompt.AppendLine("    \"Label for choice 1 (5-12 words)\",");
+        prompt.AppendLine("    \"Label for choice 2 (5-12 words)\",");
+        prompt.AppendLine("    \"Label for choice 3 (5-12 words)\",");
+        prompt.AppendLine("    \"Label for choice 4 (5-12 words)\"");
+        prompt.AppendLine("  ]");
+        prompt.AppendLine("}");
+        prompt.AppendLine("```");
         prompt.AppendLine();
-        prompt.AppendLine("## Output Requirements");
-        prompt.AppendLine("Write a 5-12 word action label that:");
-        prompt.AppendLine("1. Is a concrete action (\"Ask Elena about lodging rates\" not \"Approach with diplomacy\")");
-        prompt.AppendLine("2. Uses the NPC's name if present");
-        prompt.AppendLine("3. Reflects the mechanical intent (negotiate, persuade, threaten, etc.)");
-        prompt.AppendLine("4. Matches the situation's mood and context");
-        prompt.AppendLine();
-        prompt.AppendLine("Output ONLY the action label text, no quotes or formatting.");
+        prompt.AppendLine("## Rules");
+        prompt.AppendLine("1. Each label is 5-12 words, a concrete action");
+        prompt.AppendLine("2. Use the NPC's name if present");
+        prompt.AppendLine("3. Make each choice feel like a DIFFERENT approach to the friction");
+        prompt.AppendLine("4. The stat requirement hints at HOW the player approaches (cunning=trick, authority=demand)");
+        prompt.AppendLine("5. NO generic labels like 'Approach diplomatically' - be SPECIFIC to the situation");
+        prompt.AppendLine("6. Output ONLY the JSON, no other text");
 
         return prompt.ToString();
     }
@@ -235,5 +261,41 @@ public class ScenePromptBuilder
             WeatherCondition.Clear => "Clear (fair weather)",
             _ => weather.ToString()
         };
+    }
+
+    /// <summary>
+    /// Convert numerical bond level to NARRATIVE relationship description.
+    /// Prevents AI from echoing game mechanics like "bond level 3".
+    /// </summary>
+    private string FormatRelationshipNarratively(int bondLevel)
+    {
+        return bondLevel switch
+        {
+            <= -3 => "openly hostile, bitter enemies",
+            -2 => "deeply distrustful, resentful",
+            -1 => "wary, somewhat suspicious",
+            0 => "neutral acquaintances",
+            1 => "friendly, on good terms",
+            2 => "warm rapport, genuine trust",
+            >= 3 => "close confidants, deep bond"
+        };
+    }
+}
+
+/// <summary>
+/// Data container for batch choice label generation.
+/// Holds the template and scaled mechanical values for a single choice.
+/// </summary>
+public class ChoiceData
+{
+    public ChoiceTemplate Template { get; set; }
+    public CompoundRequirement Requirement { get; set; }
+    public Consequence Consequence { get; set; }
+
+    public ChoiceData(ChoiceTemplate template, CompoundRequirement requirement, Consequence consequence)
+    {
+        Template = template;
+        Requirement = requirement;
+        Consequence = consequence;
     }
 }

@@ -26,8 +26,10 @@ public class SceneNarrativeService
     private const int InitialDelayMs = 1000; // 1 second, doubles each retry
     private const int SituationTimeoutSeconds = 30; // Increased from 20 for slow PCs
     private const int ChoiceLabelTimeoutSeconds = 10; // Increased from 5 for slow PCs
+    private const int BatchTimeoutMultiplier = 2; // Batch operations get 2x timeout
 
-    // Availability flag set at startup - prevents 97s timeout when Ollama unavailable
+    // Availability flag set once at startup - prevents 97s timeout when Ollama unavailable
+    // Simple bool is fine: written once before any reads, .NET guarantees atomic bool read/write
     private bool _isOllamaAvailable = false;
 
     public SceneNarrativeService(
@@ -41,7 +43,7 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Set Ollama availability status. Called at startup after health check.
+    /// Set Ollama availability status. Called once at startup after health check.
     /// When false, AI generation methods skip retry loops and use fallback immediately.
     /// </summary>
     public void SetOllamaAvailability(bool isAvailable)
@@ -63,17 +65,16 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Get the exact prompt that would be sent to AI for choice label generation.
+    /// Get the exact prompt that would be sent to AI for batch choice label generation.
     /// USE THIS IN TESTS to ensure test prompts match production prompts exactly.
+    /// HIGHLANDER: This is the ONLY way to generate choice labels - no single-choice API.
     /// </summary>
-    public string GetChoiceLabelPrompt(
+    public string GetBatchChoiceLabelsPrompt(
         ScenePromptContext context,
         Situation situation,
-        ChoiceTemplate choiceTemplate,
-        CompoundRequirement scaledRequirement,
-        Consequence scaledConsequence)
+        List<ChoiceData> choicesData)
     {
-        return _promptBuilder.BuildChoiceLabelPrompt(context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
+        return _promptBuilder.BuildBatchChoiceLabelsPrompt(context, situation, choicesData);
     }
 
     // ==================== EXTENDED GENERATION WITH METADATA ====================
@@ -298,74 +299,68 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// Generate AI choice label from entity context and mechanical properties.
-    /// Async method - tries AI generation with timeout, falls back to template-based.
+    /// Generate ALL choice labels in a single AI call for narrative differentiation.
+    /// Ensures choices are distinct approaches to the situation's friction.
     ///
-    /// CRITICAL: Called during LAZY ACTIVATION (SituationFacade.ActivateSituationAsync)
-    /// when player enters situation, NOT during scene spawn. Choice labels use
-    /// CURRENT situation context and are REGENERATED on each re-entry.
+    /// BATCH GENERATION PRINCIPLE:
+    /// - Situation provides the FRICTION (what problem must be addressed)
+    /// - All choices generated together see each other's mechanical context
+    /// - AI differentiates based on stat requirements (insight=observe, authority=demand, etc.)
+    /// - Results in narratively distinct choices, not just mechanical variations
     ///
-    /// Pattern: 5-second timeout (shorter than situations - labels are simpler)
+    /// Returns list of labels in the same order as input choicesData.
+    /// Falls back to template-based labels if AI generation fails.
     /// </summary>
-    /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
-    /// <param name="situation">The parent Situation (for narrative context)</param>
-    /// <param name="choiceTemplate">The ChoiceTemplate being instantiated</param>
-    /// <param name="scaledRequirement">Pre-scaled requirement</param>
-    /// <param name="scaledConsequence">Pre-scaled consequence</param>
-    /// <returns>Generated action label for Choice.Label</returns>
-    public async Task<string> GenerateChoiceLabelAsync(
+    public async Task<List<string>> GenerateBatchChoiceLabelsAsync(
         ScenePromptContext context,
         Situation situation,
-        ChoiceTemplate choiceTemplate,
-        CompoundRequirement scaledRequirement,
-        Consequence scaledConsequence)
+        List<ChoiceData> choicesData)
     {
         if (context == null)
             throw new ArgumentNullException(nameof(context));
         if (situation == null)
             throw new ArgumentNullException(nameof(situation));
-        if (choiceTemplate == null)
-            throw new ArgumentNullException(nameof(choiceTemplate));
+        if (choicesData == null || choicesData.Count == 0)
+            return new List<string>();
 
-        // FAST PATH: Skip AI if known unavailable (prevents timeout)
+        // FAST PATH: Skip AI if known unavailable
         if (!_isOllamaAvailable)
         {
-            return GenerateFallbackChoiceLabel(context, choiceTemplate);
+            Console.WriteLine("[SceneNarrativeService] Ollama unavailable - using fallback batch labels");
+            return GenerateFallbackBatchChoiceLabels(context, choicesData);
         }
 
         if (_aiProvider != null)
         {
-            string aiLabel = await TryGenerateAIChoiceLabelAsync(
-                context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
-            if (!string.IsNullOrEmpty(aiLabel))
+            List<string> aiLabels = await TryGenerateAIBatchChoiceLabelsAsync(context, situation, choicesData);
+            if (aiLabels != null && aiLabels.Count == choicesData.Count)
             {
-                Console.WriteLine($"[SceneNarrativeService] AI generated label for choice '{choiceTemplate.Id}'");
-                return aiLabel;
+                Console.WriteLine($"[SceneNarrativeService] AI generated {aiLabels.Count} batch labels");
+                return aiLabels;
             }
         }
 
-        Console.WriteLine($"[SceneNarrativeService] Using fallback label for choice '{choiceTemplate.Id}'");
-        return GenerateFallbackChoiceLabel(context, choiceTemplate);
+        Console.WriteLine("[SceneNarrativeService] Using fallback batch labels");
+        return GenerateFallbackBatchChoiceLabels(context, choicesData);
     }
 
     /// <summary>
-    /// Try AI choice label generation with retry and exponential backoff.
+    /// Try AI batch choice label generation with retry and exponential backoff.
+    /// Parses JSON response to extract ordered list of labels.
     /// </summary>
-    private async Task<string> TryGenerateAIChoiceLabelAsync(
+    private async Task<List<string>> TryGenerateAIBatchChoiceLabelsAsync(
         ScenePromptContext context,
         Situation situation,
-        ChoiceTemplate choiceTemplate,
-        CompoundRequirement scaledRequirement,
-        Consequence scaledConsequence)
+        List<ChoiceData> choicesData)
     {
-        string prompt = _promptBuilder.BuildChoiceLabelPrompt(
-            context, situation, choiceTemplate, scaledRequirement, scaledConsequence);
+        string prompt = _promptBuilder.BuildBatchChoiceLabelsPrompt(context, situation, choicesData);
+        int batchTimeoutSeconds = ChoiceLabelTimeoutSeconds * BatchTimeoutMultiplier;
 
         for (int attempt = 1; attempt <= MaxRetries; attempt++)
         {
             try
             {
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(ChoiceLabelTimeoutSeconds));
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(batchTimeoutSeconds));
 
                 StringBuilder responseBuilder = new StringBuilder();
                 await foreach (string token in _aiProvider.StreamCompletionAsync(prompt, cts.Token))
@@ -378,20 +373,25 @@ public class SceneNarrativeService
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    return result;
+                    List<string> labels = ParseBatchChoiceLabelsJson(result, choicesData.Count);
+                    if (labels != null && labels.Count == choicesData.Count)
+                    {
+                        return labels;
+                    }
+                    Console.WriteLine($"[SceneNarrativeService] Batch parse failed - expected {choicesData.Count} labels, got {labels?.Count ?? 0}");
                 }
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine($"[SceneNarrativeService] Choice label timeout ({ChoiceLabelTimeoutSeconds}s) on attempt {attempt}");
+                Console.WriteLine($"[SceneNarrativeService] Batch labels timeout ({batchTimeoutSeconds}s) on attempt {attempt}");
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"[SceneNarrativeService] Choice label HTTP error on attempt {attempt}: {ex.Message}");
+                Console.WriteLine($"[SceneNarrativeService] Batch labels HTTP error on attempt {attempt}: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[SceneNarrativeService] Choice label error on attempt {attempt}: {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine($"[SceneNarrativeService] Batch labels error on attempt {attempt}: {ex.GetType().Name}: {ex.Message}");
             }
 
             // Exponential backoff before retry
@@ -402,7 +402,117 @@ public class SceneNarrativeService
             }
         }
 
-        return string.Empty;
+        return null;
+    }
+
+    /// <summary>
+    /// Parse JSON response from batch choice label generation.
+    /// Expected format: { "choices": ["label1", "label2", "label3", "label4"] }
+    ///
+    /// ARCHITECTURE: Uses BatchChoiceLabelsDTO per JSON → DTO → Parser pattern.
+    /// FAIL-FAST: Returns null on parse failure (caller handles fallback).
+    /// </summary>
+    private List<string> ParseBatchChoiceLabelsJson(string jsonResponse, int expectedCount)
+    {
+        // Pre-process: Extract JSON from AI response artifacts
+        string json = ExtractJsonFromAIResponse(jsonResponse);
+        if (string.IsNullOrEmpty(json))
+        {
+            Console.WriteLine("[SceneNarrativeService] No JSON object found in AI response");
+            return null;
+        }
+
+        // Parse using DTO pattern - FAIL-FAST on malformed JSON
+        try
+        {
+            System.Text.Json.JsonSerializerOptions options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            BatchChoiceLabelsDTO dto = System.Text.Json.JsonSerializer.Deserialize<BatchChoiceLabelsDTO>(json, options);
+
+            // DTO deserialized but choices array missing or empty
+            if (dto == null || dto.Choices == null || dto.Choices.Count == 0)
+            {
+                Console.WriteLine("[SceneNarrativeService] DTO deserialized but choices array empty");
+                return null;
+            }
+
+            // Filter out empty strings and trim (log filtered entries for debugging)
+            List<string> labels = new List<string>();
+            int filteredCount = 0;
+            foreach (string label in dto.Choices)
+            {
+                string trimmed = label?.Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    labels.Add(trimmed);
+                else
+                    filteredCount++;
+            }
+
+            if (filteredCount > 0)
+                Console.WriteLine($"[SceneNarrativeService] Filtered {filteredCount} empty choice label(s)");
+
+            return labels;
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            Console.WriteLine($"[SceneNarrativeService] JSON parse error: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Extract JSON object from AI response that may contain markdown or explanatory text.
+    /// Handles: "```json {...} ```", "Here's the response: {...}", "json {...}"
+    /// </summary>
+    private string ExtractJsonFromAIResponse(string response)
+    {
+        if (string.IsNullOrEmpty(response))
+            return null;
+
+        string json = response;
+
+        // Remove markdown code blocks if present
+        if (json.Contains("```json"))
+        {
+            int start = json.IndexOf("```json") + 7;
+            int end = json.LastIndexOf("```");
+            if (end > start)
+                json = json.Substring(start, end - start).Trim();
+        }
+        else if (json.Contains("```"))
+        {
+            int start = json.IndexOf("```") + 3;
+            int end = json.LastIndexOf("```");
+            if (end > start)
+                json = json.Substring(start, end - start).Trim();
+        }
+
+        // Extract JSON object from any surrounding text
+        int jsonStart = json.IndexOf('{');
+        if (jsonStart < 0)
+            return null; // No JSON object found
+
+        if (jsonStart > 0)
+            json = json.Substring(jsonStart);
+
+        return json.Trim();
+    }
+
+    /// <summary>
+    /// Generate fallback batch choice labels from templates.
+    /// </summary>
+    private List<string> GenerateFallbackBatchChoiceLabels(ScenePromptContext context, List<ChoiceData> choicesData)
+    {
+        List<string> labels = new List<string>();
+        foreach (ChoiceData data in choicesData)
+        {
+            string label = GenerateFallbackChoiceLabel(context, data.Template);
+            labels.Add(label);
+        }
+        return labels;
     }
 
     /// <summary>
@@ -434,14 +544,24 @@ public class SceneNarrativeService
         if (string.IsNullOrEmpty(response))
             return response;
 
-        // Remove markdown code blocks if present
-        response = response.Replace("```", "").Trim();
+        // Remove markdown code blocks at boundaries only (preserve internal backticks if any)
+        if (response.StartsWith("```"))
+        {
+            int endIndex = response.IndexOf('\n');
+            if (endIndex > 0)
+                response = response.Substring(endIndex + 1);
+            else
+                response = response.Substring(3);
+        }
+        if (response.TrimEnd().EndsWith("```"))
+            response = response.Substring(0, response.LastIndexOf("```"));
 
         // Remove model-specific artifacts (Gemma3 end tokens, etc.)
-        response = response.Replace("</end_of_turn>", "").Trim();
-        response = response.Replace("<end_of_turn>", "").Trim();
+        response = response.Replace("</end_of_turn>", "");
+        response = response.Replace("<end_of_turn>", "");
 
         // Remove leading/trailing quotes if wrapped
+        response = response.Trim();
         if (response.StartsWith("\"") && response.EndsWith("\""))
             response = response.Substring(1, response.Length - 2);
 
