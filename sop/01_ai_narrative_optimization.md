@@ -6,7 +6,7 @@
 |-------|-------|
 | **SOP Number** | SOP-01 |
 | **Title** | AI Narrative Optimization Pipeline |
-| **Version** | 2.2 |
+| **Version** | 2.3 |
 | **Effective Date** | 2025-12-05 |
 | **Last Reviewed** | 2025-12-05 |
 | **Owner** | Development Team |
@@ -522,6 +522,56 @@ On Windows, Ollama binds to IPv6 (`::1`) by default, NOT IPv4 (`127.0.0.1`).
 2. **Batch = Differentiation:** When AI generates all choices together, it naturally creates distinct approaches. Independent calls produce variations of the same idea.
 
 3. **Mechanical Context Shapes Narrative:** Stat requirements aren't just numbers - they represent HOW the player approaches the situation. Insight = observant, Authority = commanding, etc.
+
+---
+
+### Version 2.3 (2025-12-05): Meta-Reference Prevention + Stricter Formatting
+
+**Problems Identified:**
+
+| Issue | Symptom | Root Cause |
+|-------|---------|------------|
+| Meta-references | AI echoes "bond level 3" in narrative | Prompt exposed game mechanics directly |
+| Smart quotes | Output contains `"` `"` curly quotes | No explicit formatting rule |
+| Length overflow | Responses 400-530 chars vs target 250-400 | Length instruction too soft |
+
+**Changes Made:**
+
+| File | Change |
+|------|--------|
+| `ScenePromptBuilder.cs` | Added `FormatRelationshipNarratively()` to convert bond levels to narrative descriptors |
+| `ScenePromptBuilder.cs` | NPC context now shows `Relationship: friendly, on good terms` instead of `Bond level 1` |
+| `ScenePromptBuilder.cs` | Output rule 6: Added explicit ban on smart quotes, curly quotes, asterisks |
+| `ScenePromptBuilder.cs` | Output rule 9: Added explicit ban on referencing game mechanics |
+| `ScenePromptBuilder.cs` | Tightened length limit from 250-400 to 250-350 with "STRICT" emphasis |
+
+**Relationship Descriptors (New):**
+
+| Bond Level | Narrative Description |
+|------------|----------------------|
+| <= -3 | openly hostile, bitter enemies |
+| -2 | deeply distrustful, resentful |
+| -1 | wary, somewhat suspicious |
+| 0 | neutral acquaintances |
+| 1 | friendly, on good terms |
+| 2 | warm rapport, genuine trust |
+| >= 3 | close confidants, deep bond |
+
+**Results:**
+
+| Issue | Before | After |
+|-------|--------|-------|
+| Meta-references | AI wrote "bond level" in narrative | **FIXED** - Uses narrative language |
+| Smart quotes | No explicit rule | Rule added (AI compliance varies) |
+| Length | 400-530 chars | 399-471 chars (AI limitation) |
+
+**Lessons Learned:**
+
+1. **Input Drives Output:** If the prompt contains game mechanics like "bond level 3", the AI echoes them. Convert to narrative BEFORE sending to AI.
+
+2. **Formatting Rules Are Soft:** Even with explicit "NO curly quotes" rule, AI models default to typographic characters. This is a model limitation, not a prompt problem.
+
+3. **Character Counting Is Approximate:** AI models cannot reliably count characters. Accept variance and use test thresholds (200-600) that allow flexibility while catching egregious violations.
 
 ---
 

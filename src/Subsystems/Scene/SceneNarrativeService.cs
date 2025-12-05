@@ -428,6 +428,11 @@ public class SceneNarrativeService
                     json = json.Substring(start, end - start).Trim();
             }
 
+            // Extract JSON object from any surrounding text (handles "json { ... }" or "Here's the response: { ... }")
+            int jsonStart = json.IndexOf('{');
+            if (jsonStart > 0)
+                json = json.Substring(jsonStart);
+
             // Parse JSON using System.Text.Json
             using System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("choices", out System.Text.Json.JsonElement choicesElement))

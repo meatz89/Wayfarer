@@ -29,8 +29,9 @@ public class SceneContentBase : ComponentBase, IDisposable
     protected bool IsStreamingComplete { get; set; } = false;
     private CancellationTokenSource _streamingCts;
 
-    // LAZY NARRATIVE ACTIVATION: Loading state during AI generation
+    // PROGRESSIVE LOADING: Separate states for description and choices
     protected bool IsActivatingSituation { get; set; } = false;
+    protected bool IsGeneratingChoices { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -39,30 +40,24 @@ public class SceneContentBase : ComponentBase, IDisposable
             Scene = Context.Scene;
             CurrentSituation = Context.CurrentSituation;
 
-            // LAZY NARRATIVE ACTIVATION: Generate description + choices when player enters situation
-            // This is Pass 2 + Pass 2B deferred from scene spawn time (arc42 §8.28)
-            // Narratives reflect CURRENT game state, regenerated on each entry
-            await ActivateCurrentSituationAsync();
+            // PROGRESSIVE LOADING: Phase 1 - Get description immediately
+            await ActivateSituationDescriptionAsync();
 
-            // Get choices for current situation (now populated by lazy activation)
-            LoadChoices();
-
-            // Start typewriter streaming for situation description
+            // Start typewriter NOW - player has something to read while choices generate
             await StartDescriptionStreaming();
+
+            // PROGRESSIVE LOADING: Phase 2 - Generate choices in background (fire-and-forget)
+            _ = GenerateChoicesInBackgroundAsync();
         }
 
         await base.OnParametersSetAsync();
     }
 
     /// <summary>
-    /// LAZY NARRATIVE ACTIVATION: Generate situation description + choices on entry
-    /// Deferred from scene spawn time to situation entry time (arc42 §8.28)
-    /// Benefits:
-    /// - Narratives reflect CURRENT game state (not spawn-time state)
-    /// - No wasted AI calls for unvisited situations
-    /// - Each re-entry regenerates narratives (dynamic storytelling)
+    /// PROGRESSIVE LOADING - PHASE 1: Generate situation description immediately.
+    /// Player sees description with typewriter effect while choices load in background.
     /// </summary>
-    private async Task ActivateCurrentSituationAsync()
+    private async Task ActivateSituationDescriptionAsync()
     {
         if (CurrentSituation == null)
             return;
@@ -74,19 +69,54 @@ public class SceneContentBase : ComponentBase, IDisposable
 
         try
         {
-            Console.WriteLine($"[SceneContent] Activating situation '{CurrentSituation.Name}' - generating narratives");
-            await SituationFacade.ActivateSituationAsync(CurrentSituation);
-            Console.WriteLine($"[SceneContent] Situation '{CurrentSituation.Name}' activated - {CurrentSituation.Choices.Count} choices created");
+            Console.WriteLine($"[SceneContent] Activating situation description '{CurrentSituation.Name}'");
+            await SituationFacade.ActivateSituationDescriptionAsync(CurrentSituation);
+            Console.WriteLine($"[SceneContent] Situation description ready for '{CurrentSituation.Name}'");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[SceneContent] ERROR activating situation: {ex.Message}");
-            // Fallback: situation keeps existing description/choices if activation fails
+            Console.WriteLine($"[SceneContent] ERROR activating situation description: {ex.Message}");
         }
         finally
         {
             IsActivatingSituation = false;
             StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// PROGRESSIVE LOADING - PHASE 2: Generate choice labels in background.
+    /// Runs AFTER description shown - player reads description while this generates.
+    /// Fire-and-forget pattern with UI update when complete.
+    /// </summary>
+    private async Task GenerateChoicesInBackgroundAsync()
+    {
+        if (CurrentSituation == null)
+            return;
+
+        // Show choices loading state
+        IsGeneratingChoices = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            Console.WriteLine($"[SceneContent] Generating choice labels for '{CurrentSituation.Name}' in background");
+            await SituationFacade.GenerateChoiceLabelsAsync(CurrentSituation);
+            Console.WriteLine($"[SceneContent] Choice labels ready for '{CurrentSituation.Name}' - {CurrentSituation.Choices?.Count ?? 0} choices");
+
+            // Load choices into UI
+            LoadChoices();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SceneContent] ERROR generating choice labels: {ex.Message}");
+            // Fallback: Load choices with existing/fallback labels
+            LoadChoices();
+        }
+        finally
+        {
+            IsGeneratingChoices = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -697,11 +727,11 @@ public class SceneContentBase : ComponentBase, IDisposable
             {
                 Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Name}'");
                 // Reload modal with next situation - no exit to world
-                // LAZY NARRATIVE ACTIVATION: Generate narratives for next situation
+                // PROGRESSIVE LOADING: Show description immediately, generate choices in background
                 CurrentSituation = nextSituation;
-                await ActivateCurrentSituationAsync();
-                LoadChoices();
+                await ActivateSituationDescriptionAsync();
                 await StartDescriptionStreaming();
+                _ = GenerateChoicesInBackgroundAsync();
                 StateHasChanged();
             }
             else

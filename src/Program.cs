@@ -50,48 +50,7 @@ WebApplication app = builder.Build();
 
 // Test Ollama connection and warm up model on startup
 // This prevents first-request failures when Ollama needs to load the model
-SceneNarrativeService narrativeService = app.Services.GetService<SceneNarrativeService>();
-try
-{
-    IAICompletionProvider aiProvider = app.Services.GetService<IAICompletionProvider>();
-    if (aiProvider != null)
-    {
-        Console.WriteLine("[Startup] Checking Ollama availability...");
-        bool isAvailable = await aiProvider.CheckHealthAsync(CancellationToken.None);
-        if (isAvailable)
-        {
-            Console.WriteLine("[Startup] Ollama available, warming up model (this may take 10-30s on first run)...");
-            if (narrativeService != null)
-            {
-                bool warmupSuccess = await narrativeService.WarmupModelAsync(60);
-                if (warmupSuccess)
-                {
-                    Console.WriteLine("[Startup] Model warmup complete - AI narrative ready");
-                    narrativeService.SetOllamaAvailability(true);
-                }
-                else
-                {
-                    Console.WriteLine("[Startup] Model warmup failed - will use fallback narratives");
-                    narrativeService.SetOllamaAvailability(false);
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("[Startup] Ollama not available at http://localhost:11434 - will use fallback narratives");
-            narrativeService?.SetOllamaAvailability(false);
-        }
-    }
-    else
-    {
-        narrativeService?.SetOllamaAvailability(false);
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"[Startup] Ollama initialization error: {ex.Message} - will use fallback narratives");
-    narrativeService?.SetOllamaAvailability(false);
-}
+await SetupOllamaNarrativeService(app);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -120,4 +79,50 @@ app.Run();
 static void OnApplicationExit(object sender, EventArgs e)
 {
     Log.CloseAndFlush();
+}
+
+static async Task SetupOllamaNarrativeService(WebApplication app)
+{
+    SceneNarrativeService narrativeService = app.Services.GetService<SceneNarrativeService>();
+    try
+    {
+        IAICompletionProvider aiProvider = app.Services.GetService<IAICompletionProvider>();
+        if (aiProvider != null)
+        {
+            Console.WriteLine("[Startup] Checking Ollama availability...");
+            bool isAvailable = await aiProvider.CheckHealthAsync(CancellationToken.None);
+            if (isAvailable)
+            {
+                Console.WriteLine("[Startup] Ollama available, warming up model (this may take 10-30s on first run)...");
+                if (narrativeService != null)
+                {
+                    bool warmupSuccess = await narrativeService.WarmupModelAsync(60);
+                    if (warmupSuccess)
+                    {
+                        Console.WriteLine("[Startup] Model warmup complete - AI narrative ready");
+                        narrativeService.SetOllamaAvailability(true);
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Startup] Model warmup failed - will use fallback narratives");
+                        narrativeService.SetOllamaAvailability(false);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("[Startup] Ollama not available at http://localhost:11434 - will use fallback narratives");
+                narrativeService?.SetOllamaAvailability(false);
+            }
+        }
+        else
+        {
+            narrativeService?.SetOllamaAvailability(false);
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Ollama initialization error: {ex.Message} - will use fallback narratives");
+        narrativeService?.SetOllamaAvailability(false);
+    }
 }

@@ -14,7 +14,7 @@ public class ScenePromptBuilder
 {
     /// <summary>
     /// Build AI prompt for generating Situation narrative description WITH FRICTION.
-    /// Creates 3-5 sentences (250-400 chars) that present a problem or tension.
+    /// Creates 3-5 sentences (250-350 chars MAX) that present a problem or tension.
     /// The situation should set up WHY the player needs to make a choice.
     /// </summary>
     public string BuildSituationPrompt(ScenePromptContext context, NarrativeHints hints, Situation situation)
@@ -23,7 +23,7 @@ public class ScenePromptBuilder
 
         // System instruction - FRICTION-FOCUSED
         prompt.AppendLine("You are a narrative writer for a Victorian-era social adventure game.");
-        prompt.AppendLine("Generate 3-5 sentences (250-400 characters) that present a SITUATION WITH FRICTION.");
+        prompt.AppendLine("Generate 3-5 sentences (250-350 characters MAX) that present a SITUATION WITH FRICTION.");
         prompt.AppendLine("The player must face a problem, obstacle, or tension that requires a decision.");
         prompt.AppendLine();
 
@@ -49,7 +49,7 @@ public class ScenePromptBuilder
             prompt.AppendLine();
         }
 
-        // NPC context
+        // NPC context - use NARRATIVE relationship descriptors, not mechanical terms
         if (context.NPC != null)
         {
             prompt.AppendLine("## Character Present");
@@ -58,7 +58,7 @@ public class ScenePromptBuilder
             prompt.AppendLine($"- Profession: {context.NPC.Profession}");
             prompt.AppendLine($"- Current State: {context.NPC.CurrentState}");
             if (context.NPCBondLevel != 0)
-                prompt.AppendLine($"- Relationship with player: Bond level {context.NPCBondLevel}");
+                prompt.AppendLine($"- Relationship: {FormatRelationshipNarratively(context.NPCBondLevel)}");
             prompt.AppendLine();
         }
 
@@ -109,14 +109,15 @@ public class ScenePromptBuilder
 
         // Output instruction - FRICTION-FOCUSED
         prompt.AppendLine("## Output Rules");
-        prompt.AppendLine("1. Write 3-5 sentences (250-400 characters). Count carefully.");
+        prompt.AppendLine("1. Write 3-5 sentences. STRICT LIMIT: 250-350 characters. Count EVERY character.");
         prompt.AppendLine("2. FIRST: Set the scene with one vivid sensory detail.");
         prompt.AppendLine("3. THEN: Present the FRICTION - what problem/obstacle/tension does the player face?");
         prompt.AppendLine("4. The friction should make the player WANT to choose - there's something at stake.");
         prompt.AppendLine("5. Entity names: Use EXACT names from context or generic terms. NEVER invent.");
-        prompt.AppendLine("6. Plain text only. NO markdown, quotes, or formatting.");
+        prompt.AppendLine("6. Plain text ONLY. NO markdown, NO smart quotes (\"), NO curly quotes, NO asterisks, NO formatting.");
         prompt.AppendLine("7. TONE PRIORITY: The Narrative Direction tone OVERRIDES weather for emotional atmosphere.");
         prompt.AppendLine("8. End with the tension unresolved - the choice comes next.");
+        prompt.AppendLine("9. NEVER reference game mechanics (bond levels, stats, resources). Use NARRATIVE language only.");
 
         return prompt.ToString();
     }
@@ -259,6 +260,24 @@ public class ScenePromptBuilder
             WeatherCondition.Snow => "Snow (cold, white blanket)",
             WeatherCondition.Clear => "Clear (fair weather)",
             _ => weather.ToString()
+        };
+    }
+
+    /// <summary>
+    /// Convert numerical bond level to NARRATIVE relationship description.
+    /// Prevents AI from echoing game mechanics like "bond level 3".
+    /// </summary>
+    private string FormatRelationshipNarratively(int bondLevel)
+    {
+        return bondLevel switch
+        {
+            <= -3 => "openly hostile, bitter enemies",
+            -2 => "deeply distrustful, resentful",
+            -1 => "wary, somewhat suspicious",
+            0 => "neutral acquaintances",
+            1 => "friendly, on good terms",
+            2 => "warm rapport, genuine trust",
+            >= 3 => "close confidants, deep bond"
         };
     }
 }

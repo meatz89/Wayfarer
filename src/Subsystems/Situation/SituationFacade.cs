@@ -44,55 +44,34 @@ public class SituationFacade
     }
 
     /// <summary>
-    /// LAZY NARRATIVE ACTIVATION - Generates AI narratives when player enters situation
+    /// LAZY NARRATIVE ACTIVATION - PHASE 1: Generate AI description only.
+    /// Called first when player enters situation - description appears immediately.
+    /// Choice labels generated separately in background via GenerateChoiceLabelsAsync().
     ///
     /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
     /// - Pass 1 (Scene Activation): MECHANICAL generation - Situations + Choices with scaled values
-    /// - Pass 2 (Situation Entry): AI NARRATIVE generation - LAZY, runs HERE
+    /// - Pass 2A (Situation Entry): AI DESCRIPTION generation - runs HERE
+    /// - Pass 2B (Background): AI CHOICE LABELS generation - runs in GenerateChoiceLabelsAsync()
     ///
-    /// WHAT THIS METHOD DOES:
-    /// - Generates AI Situation.Description (replaces template placeholder)
-    /// - Generates AI Choice.Label for each existing choice (replaces template placeholder)
-    /// - Does NOT recreate Choice instances (mechanical values already set at spawn)
-    ///
-    /// DYNAMIC REGENERATION:
-    /// - Called on EVERY situation entry (not cached)
-    /// - Narratives reflect CURRENT game state (NPC relationships, player stats, time)
-    /// - Enables dynamic storytelling that responds to player actions
+    /// PROGRESSIVE UX: Description shows immediately with typewriter while choices load in background.
     /// </summary>
-    public async Task ActivateSituationAsync(Situation situation)
+    public async Task ActivateSituationDescriptionAsync(Situation situation)
     {
         if (situation == null)
             throw new ArgumentNullException(nameof(situation));
 
         if (situation.Template == null)
         {
-            Console.WriteLine($"[SituationFacade] Situation '{situation.Name}' has no template - using existing description and labels");
+            Console.WriteLine($"[SituationFacade] Situation '{situation.Name}' has no template - using existing description");
             return;
         }
 
-        Console.WriteLine($"[SituationFacade] Activating situation '{situation.Name}' - generating AI narratives with current context");
-
-        // Get current player state
-        Player player = _gameWorld.GetPlayer();
+        Console.WriteLine($"[SituationFacade] Activating situation description '{situation.Name}'");
 
         // Build ScenePromptContext from CURRENT entity state
-        ScenePromptContext promptContext = new ScenePromptContext
-        {
-            NPC = situation.Npc,
-            Location = situation.Location,
-            Player = player,
-            Route = situation.Route,
-            ArchetypeId = situation.Template?.Id,
-            SceneDisplayName = situation.ParentScene?.DisplayName,
-            CurrentTimeBlock = _timeManager.CurrentTimeBlock,
-            CurrentWeather = _gameWorld.CurrentWeather,
-            CurrentDay = _timeManager.CurrentDay,
-            NPCBondLevel = situation.Npc?.BondStrength ?? 0
-        };
+        ScenePromptContext promptContext = BuildPromptContext(situation);
 
-        // ==================== PASS 2: AI SITUATION DESCRIPTION ====================
-        // DYNAMIC: Generate/regenerate description with CURRENT context
+        // ==================== PASS 2A: AI SITUATION DESCRIPTION ====================
         NarrativeHints hints = situation.NarrativeHints;
         string narrative = await _sceneNarrativeService.GenerateSituationNarrativeAsync(
             promptContext,
@@ -102,17 +81,37 @@ public class SituationFacade
         // Persist generated narrative to entity
         situation.Description = narrative;
         Console.WriteLine($"[SituationFacade]   AI description generated for '{situation.Name}'");
+    }
 
-        // ==================== PASS 2B: BATCH AI CHOICE LABELS ====================
-        // BATCH GENERATION: Generate ALL choice labels in ONE AI call
-        // This ensures choices are narratively differentiated, not just mechanical variations
-        // The AI sees all mechanical contexts together and creates distinct approaches
+    /// <summary>
+    /// LAZY NARRATIVE ACTIVATION - PHASE 2: Generate AI choice labels in background.
+    /// Called AFTER description is shown - player reads description while this runs.
+    ///
+    /// BATCH GENERATION: Generate ALL choice labels in ONE AI call.
+    /// This ensures choices are narratively differentiated, not just mechanical variations.
+    /// The AI sees all mechanical contexts together and creates distinct approaches.
+    /// </summary>
+    public async Task GenerateChoiceLabelsAsync(Situation situation)
+    {
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
+
+        if (situation.Template == null)
+        {
+            Console.WriteLine($"[SituationFacade] Situation '{situation.Name}' has no template - using existing labels");
+            return;
+        }
 
         if (situation.Choices == null || situation.Choices.Count == 0)
         {
             Console.WriteLine($"[SituationFacade]   Situation '{situation.Name}' has no choices to label");
             return;
         }
+
+        Console.WriteLine($"[SituationFacade] Generating choice labels for '{situation.Name}'");
+
+        // Build ScenePromptContext from CURRENT entity state
+        ScenePromptContext promptContext = BuildPromptContext(situation);
 
         // Collect all choice data for batch generation
         List<ChoiceData> choicesData = new List<ChoiceData>();
@@ -149,6 +148,29 @@ public class SituationFacade
         }
 
         Console.WriteLine($"[SituationFacade]   Batch AI labels generated for {labelIndex} choices");
+    }
+
+    /// <summary>
+    /// Build ScenePromptContext from CURRENT entity state for AI narrative generation.
+    /// Shared by both description and choice label generation.
+    /// </summary>
+    private ScenePromptContext BuildPromptContext(Situation situation)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        return new ScenePromptContext
+        {
+            NPC = situation.Npc,
+            Location = situation.Location,
+            Player = player,
+            Route = situation.Route,
+            ArchetypeId = situation.Template?.Id,
+            SceneDisplayName = situation.ParentScene?.DisplayName,
+            CurrentTimeBlock = _timeManager.CurrentTimeBlock,
+            CurrentWeather = _gameWorld.CurrentWeather,
+            CurrentDay = _timeManager.CurrentDay,
+            NPCBondLevel = situation.Npc?.BondStrength ?? 0
+        };
     }
 
     /// <summary>
