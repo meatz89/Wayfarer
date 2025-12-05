@@ -31,12 +31,6 @@ public class ProceduralContentTracer
     /// </summary>
     public List<ChoiceExecutionNode> AllChoiceNodes { get; private set; } = new List<ChoiceExecutionNode>();
 
-    /// <summary>
-    /// Enable/disable tracing (can disable for performance)
-    /// When false, all recording methods return immediately
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
-
     // ==================== ENTITY MAPPING (ConditionalWeakTable for state updates) ====================
 
     /// <summary>
@@ -83,8 +77,6 @@ public class ProceduralContentTracer
         int currentDay,
         TimeBlocks currentTimeBlock)
     {
-        if (!IsEnabled) return null;
-
         try
         {
             SceneSpawnNode node = new SceneSpawnNode
@@ -106,6 +98,8 @@ public class ProceduralContentTracer
                 SituationCount = scene.SituationCount,
                 IsProcedurallyGenerated = isProcedurallyGenerated
             };
+
+            Console.WriteLine($"[ProceduralContentTracer] RecordSceneSpawn: Recording scene '{node.DisplayName}' (Template: {sceneTemplateId}, State: {scene.State})");
 
             // Add to collections
             AllSceneNodes.Add(node);
@@ -152,8 +146,6 @@ public class ProceduralContentTracer
         SituationSpawnTriggerType spawnTrigger,
         EntityResolutionContext resolutionContext)
     {
-        if (!IsEnabled) return null;
-
         try
         {
             SituationSpawnNode node = new SituationSpawnNode
@@ -215,8 +207,6 @@ public class ProceduralContentTracer
         string actionText,
         bool playerMetRequirements)
     {
-        if (!IsEnabled) return null;
-
         try
         {
             ChoiceExecutionNode node = new ChoiceExecutionNode
@@ -268,8 +258,6 @@ public class ProceduralContentTracer
     /// </summary>
     public void UpdateSceneState(Scene scene, SceneState newState, DateTime timestamp)
     {
-        if (!IsEnabled) return;
-
         try
         {
             if (sceneToNode.TryGetValue(scene, out SceneSpawnNode node))
@@ -301,8 +289,6 @@ public class ProceduralContentTracer
     /// </summary>
     public void MarkSituationCompleted(Situation situation, bool? challengeSucceeded)
     {
-        if (!IsEnabled) return;
-
         try
         {
             if (situationToNode.TryGetValue(situation, out SituationSpawnNode node))
@@ -322,13 +308,11 @@ public class ProceduralContentTracer
 
     public void PushChoiceContext(ChoiceExecutionNode choiceNode)
     {
-        if (!IsEnabled) return;
         choiceContextStack.Push(choiceNode);
     }
 
     public void PopChoiceContext()
     {
-        if (!IsEnabled) return;
         if (choiceContextStack.Count > 0)
         {
             choiceContextStack.Pop();
@@ -337,19 +321,16 @@ public class ProceduralContentTracer
 
     public ChoiceExecutionNode GetCurrentChoiceContext()
     {
-        if (!IsEnabled) return null;
         return choiceContextStack.Count > 0 ? choiceContextStack.Peek() : null;
     }
 
     public void PushSituationContext(SituationSpawnNode situationNode)
     {
-        if (!IsEnabled) return;
         situationContextStack.Push(situationNode);
     }
 
     public void PopSituationContext()
     {
-        if (!IsEnabled) return;
         if (situationContextStack.Count > 0)
         {
             situationContextStack.Pop();
@@ -358,7 +339,6 @@ public class ProceduralContentTracer
 
     public SituationSpawnNode GetCurrentSituationContext()
     {
-        if (!IsEnabled) return null;
         return situationContextStack.Count > 0 ? situationContextStack.Peek() : null;
     }
 
@@ -369,7 +349,6 @@ public class ProceduralContentTracer
     /// </summary>
     public SceneSpawnNode GetNodeForScene(Scene scene)
     {
-        if (!IsEnabled) return null;
         sceneToNode.TryGetValue(scene, out SceneSpawnNode node);
         return node;
     }
@@ -379,7 +358,6 @@ public class ProceduralContentTracer
     /// </summary>
     public SituationSpawnNode GetNodeForSituation(Situation situation)
     {
-        if (!IsEnabled) return null;
         situationToNode.TryGetValue(situation, out SituationSpawnNode node);
         return node;
     }

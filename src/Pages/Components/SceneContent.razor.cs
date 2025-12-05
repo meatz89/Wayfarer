@@ -14,6 +14,7 @@ public class SceneContentBase : ComponentBase, IDisposable
     [Inject] protected GameOrchestrator GameOrchestrator { get; set; }
     [Inject] protected GameWorld GameWorld { get; set; }
     [Inject] protected SceneFacade SceneFacade { get; set; }
+    [Inject] protected SituationFacade SituationFacade { get; set; }
     [Inject] protected RewardApplicationService RewardApplicationService { get; set; }
     [Inject] protected SituationCompletionHandler SituationCompletionHandler { get; set; }
     [Inject] protected NarrativeStreamingService NarrativeStreamingService { get; set; }
@@ -28,6 +29,9 @@ public class SceneContentBase : ComponentBase, IDisposable
     protected bool IsStreamingComplete { get; set; } = false;
     private CancellationTokenSource _streamingCts;
 
+    // LAZY NARRATIVE ACTIVATION: Loading state during AI generation
+    protected bool IsActivatingSituation { get; set; } = false;
+
     protected override async Task OnParametersSetAsync()
     {
         if (Context != null && Context.IsValid)
@@ -35,7 +39,12 @@ public class SceneContentBase : ComponentBase, IDisposable
             Scene = Context.Scene;
             CurrentSituation = Context.CurrentSituation;
 
-            // Get choices for current situation
+            // LAZY NARRATIVE ACTIVATION: Generate description + choices when player enters situation
+            // This is Pass 2 + Pass 2B deferred from scene spawn time (arc42 §8.28)
+            // Narratives reflect CURRENT game state, regenerated on each entry
+            await ActivateCurrentSituationAsync();
+
+            // Get choices for current situation (now populated by lazy activation)
             LoadChoices();
 
             // Start typewriter streaming for situation description
@@ -43,6 +52,42 @@ public class SceneContentBase : ComponentBase, IDisposable
         }
 
         await base.OnParametersSetAsync();
+    }
+
+    /// <summary>
+    /// LAZY NARRATIVE ACTIVATION: Generate situation description + choices on entry
+    /// Deferred from scene spawn time to situation entry time (arc42 §8.28)
+    /// Benefits:
+    /// - Narratives reflect CURRENT game state (not spawn-time state)
+    /// - No wasted AI calls for unvisited situations
+    /// - Each re-entry regenerates narratives (dynamic storytelling)
+    /// </summary>
+    private async Task ActivateCurrentSituationAsync()
+    {
+        if (CurrentSituation == null)
+            return;
+
+        // Show loading state
+        IsActivatingSituation = true;
+        Choices.Clear();
+        StateHasChanged();
+
+        try
+        {
+            Console.WriteLine($"[SceneContent] Activating situation '{CurrentSituation.Name}' - generating narratives");
+            await SituationFacade.ActivateSituationAsync(CurrentSituation);
+            Console.WriteLine($"[SceneContent] Situation '{CurrentSituation.Name}' activated - {CurrentSituation.Choices.Count} choices created");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SceneContent] ERROR activating situation: {ex.Message}");
+            // Fallback: situation keeps existing description/choices if activation fails
+        }
+        finally
+        {
+            IsActivatingSituation = false;
+            StateHasChanged();
+        }
     }
 
     private async Task StartDescriptionStreaming()
@@ -284,7 +329,7 @@ public class SceneContentBase : ComponentBase, IDisposable
             ActionCardViewModel choiceVM = new ActionCardViewModel
             {
                 SourceTemplate = choiceTemplate, // HIGHLANDER: Store template reference for execution
-                Name = choice.Label, // AI-GENERATED LABEL from Pass 2B (persisted on Choice entity)
+                Name = choice.Label, // AI-GENERATED LABEL from lazy activation (regenerated each entry)
                 Description = "",
                 RequirementsMet = requirementsMet,
                 LockReason = lockReason,
@@ -521,17 +566,13 @@ public class SceneContentBase : ComponentBase, IDisposable
 
         // PROCEDURAL CONTENT TRACING: Record choice execution for ALL paths (instant + challenge)
         // UNIFIED ARCHITECTURE: Choice is a choice, whether instant or challenge
-        ChoiceExecutionNode choiceNode = null;
-        if (ProceduralTracer.IsEnabled)
-        {
-            SituationSpawnNode situationNode = ProceduralTracer.GetNodeForSituation(CurrentSituation);
-            choiceNode = ProceduralTracer.RecordChoiceExecution(
-                choiceTemplate,
-                situationNode,
-                choiceTemplate.ActionTextTemplate,
-                playerMetRequirements: true // Reached this point only if requirements met
-            );
-        }
+        SituationSpawnNode situationNode = ProceduralTracer.GetNodeForSituation(CurrentSituation);
+        ChoiceExecutionNode choiceNode = ProceduralTracer.RecordChoiceExecution(
+            choiceTemplate,
+            situationNode,
+            choiceTemplate.ActionTextTemplate,
+            playerMetRequirements: true // Reached this point only if requirements met
+        );
 
         // ROUTE BY ACTION TYPE: StartChallenge vs Instant
         if (choiceTemplate.ActionType == ChoiceActionType.StartChallenge)
@@ -611,7 +652,7 @@ public class SceneContentBase : ComponentBase, IDisposable
                 Console.WriteLine($"[HandleChoiceSelected.DEBUG]   SpawnNextMainStoryScene = {spawn.SpawnNextMainStoryScene}");
             }
             // PROCEDURAL CONTENT TRACING: Push context for instant consequence application
-            if (ProceduralTracer.IsEnabled && choiceNode != null)
+            if (choiceNode != null)
             {
                 ProceduralTracer.PushChoiceContext(choiceNode);
             }
@@ -624,7 +665,7 @@ public class SceneContentBase : ComponentBase, IDisposable
             finally
             {
                 // ALWAYS pop context (even on exception)
-                if (ProceduralTracer.IsEnabled && choiceNode != null)
+                if (choiceNode != null)
                 {
                     ProceduralTracer.PopChoiceContext();
                 }
@@ -656,8 +697,9 @@ public class SceneContentBase : ComponentBase, IDisposable
             {
                 Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Name}'");
                 // Reload modal with next situation - no exit to world
-                // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
+                // LAZY NARRATIVE ACTIVATION: Generate narratives for next situation
                 CurrentSituation = nextSituation;
+                await ActivateCurrentSituationAsync();
                 LoadChoices();
                 await StartDescriptionStreaming();
                 StateHasChanged();

@@ -50,6 +50,7 @@ WebApplication app = builder.Build();
 
 // Test Ollama connection and warm up model on startup
 // This prevents first-request failures when Ollama needs to load the model
+SceneNarrativeService narrativeService = app.Services.GetService<SceneNarrativeService>();
 try
 {
     IAICompletionProvider aiProvider = app.Services.GetService<IAICompletionProvider>();
@@ -60,24 +61,36 @@ try
         if (isAvailable)
         {
             Console.WriteLine("[Startup] Ollama available, warming up model (this may take 10-30s on first run)...");
-            SceneNarrativeService narrativeService = app.Services.GetService<SceneNarrativeService>();
             if (narrativeService != null)
             {
                 bool warmupSuccess = await narrativeService.WarmupModelAsync(60);
-                Console.WriteLine(warmupSuccess
-                    ? "[Startup] Model warmup complete - AI narrative ready"
-                    : "[Startup] Model warmup failed - will use fallback narratives");
+                if (warmupSuccess)
+                {
+                    Console.WriteLine("[Startup] Model warmup complete - AI narrative ready");
+                    narrativeService.SetOllamaAvailability(true);
+                }
+                else
+                {
+                    Console.WriteLine("[Startup] Model warmup failed - will use fallback narratives");
+                    narrativeService.SetOllamaAvailability(false);
+                }
             }
         }
         else
         {
             Console.WriteLine("[Startup] Ollama not available at http://127.0.0.1:11434 - will use fallback narratives");
+            narrativeService?.SetOllamaAvailability(false);
         }
+    }
+    else
+    {
+        narrativeService?.SetOllamaAvailability(false);
     }
 }
 catch (Exception ex)
 {
     Console.WriteLine($"[Startup] Ollama initialization error: {ex.Message} - will use fallback narratives");
+    narrativeService?.SetOllamaAvailability(false);
 }
 
 // Configure the HTTP request pipeline.

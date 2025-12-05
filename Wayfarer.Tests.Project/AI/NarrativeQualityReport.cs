@@ -83,7 +83,7 @@ public class ContextBreakdown
         ContextBreakdown breakdown = new ContextBreakdown
         {
             TimeBlock = context.CurrentTimeBlock.ToString(),
-            Weather = context.CurrentWeather ?? "",
+            Weather = context.CurrentWeather.ToString(),
             Day = context.CurrentDay
         };
 

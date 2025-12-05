@@ -41,7 +41,7 @@ public static class NarrativeTestFixtures
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Evening,
-            CurrentWeather = "rain",
+            CurrentWeather = WeatherCondition.Rain,
             CurrentDay = 3,
             NPCBondLevel = 0
         };
@@ -109,7 +109,7 @@ public static class NarrativeTestFixtures
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Midday,
-            CurrentWeather = "clear",
+            CurrentWeather = WeatherCondition.Clear,
             CurrentDay = 5,
             NPCBondLevel = -1
         };
@@ -182,7 +182,7 @@ public static class NarrativeTestFixtures
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Afternoon,
-            CurrentWeather = "fog",
+            CurrentWeather = WeatherCondition.Fog,
             CurrentDay = 7,
             NPCBondLevel = 1
         };
@@ -255,7 +255,7 @@ public static class NarrativeTestFixtures
             Location = location,
             NPC = npc,
             CurrentTimeBlock = TimeBlocks.Morning,
-            CurrentWeather = "clear",
+            CurrentWeather = WeatherCondition.Clear,
             CurrentDay = 12,
             NPCBondLevel = 2
         };
@@ -323,7 +323,7 @@ public static class NarrativeTestFixtures
         {
             Route = route,
             CurrentTimeBlock = TimeBlocks.Afternoon,
-            CurrentWeather = "wind",
+            CurrentWeather = WeatherCondition.Storm,
             CurrentDay = 4,
             NPCBondLevel = 0
         };

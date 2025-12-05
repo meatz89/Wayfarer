@@ -73,6 +73,19 @@ public class SceneInstantiator
 
         Console.WriteLine($"[SceneInstantiator] Created DEFERRED scene '{scene.DisplayName}' (State=Deferred, NO situations - created at activation)");
 
+        // PROCEDURAL CONTENT TRACING: Record scene spawn
+        // HIGHLANDER: All scene creations flow through CreateDeferredScene, so trace here ensures complete coverage
+        if (scene != null)
+        {
+            _proceduralTracer.RecordSceneSpawn(
+                scene,
+                template.Id,
+                !template.IsStarter,  // Starter scenes are authored, non-starters are procedural
+                SpawnTriggerType.Initial,  // Could be refined based on context if needed
+                _gameWorld.CurrentDay,
+                _gameWorld.CurrentTimeBlock);
+        }
+
         return scene;
     }
 
@@ -87,8 +100,12 @@ public class SceneInstantiator
     /// Scene transitions: Deferred → Active
     ///
     /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
-    /// - Pass 1: Mechanical generation (Situations, Choices, Costs, Rewards) - synchronous
-    /// - Pass 2: AI Narrative generation (Situation.Description) - async with 5s timeout
+    /// - Pass 1 (HERE): Situations created with resolved entities
+    /// - Pass 2B (HERE): Choices created with SCALED mechanical values (costs, consequences)
+    /// - Pass 2 (LAZY): AI NARRATIVE deferred to SituationFacade.ActivateSituationAsync()
+    ///   - Generates Situation.Description + Choice.Label when player enters situation
+    ///   - Narratives reflect CURRENT game state, not spawn-time state
+    ///   - Benefits: faster spawning, no wasted AI calls, dynamic storytelling
     /// </summary>
     public async Task ActivateSceneAsync(Scene scene, SceneSpawnContext context)
     {
@@ -269,77 +286,30 @@ public class SceneInstantiator
             scene.Situations.Add(situation);
 
             // PROCEDURAL CONTENT TRACING: Record situation spawn during scene activation
-            if (_proceduralTracer.IsEnabled)
+            SceneSpawnNode sceneNode = _proceduralTracer.GetNodeForScene(scene);
+            if (sceneNode != null)
             {
-                SceneSpawnNode sceneNode = _proceduralTracer.GetNodeForScene(scene);
-                if (sceneNode != null)
+                EntityResolutionContext resolutionContext = new EntityResolutionContext
                 {
-                    EntityResolutionContext resolutionContext = new EntityResolutionContext
-                    {
-                        LocationResolution = locationResolution,
-                        NpcResolution = npcResolution,
-                        RouteResolution = routeResolution
-                    };
-                    _proceduralTracer.RecordSituationSpawn(
-                        situation,
-                        sceneNode,
-                        SituationSpawnTriggerType.InitialScene,
-                        resolutionContext
-                    );
-                }
+                    LocationResolution = locationResolution,
+                    NpcResolution = npcResolution,
+                    RouteResolution = routeResolution
+                };
+                _proceduralTracer.RecordSituationSpawn(
+                    situation,
+                    sceneNode,
+                    SituationSpawnTriggerType.InitialScene,
+                    resolutionContext
+                );
             }
         }
 
-        // ==================== PASS 2: AI NARRATIVE GENERATION ====================
-        // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
-        // Pass 1 (above): Mechanical generation - Situations, Choices, Costs, Rewards
-        // Pass 2 (here): AI Narrative - Generate Situation.Description from entity context
-        //
-        // CRITICAL: All entities are resolved at this point. ScenePromptContext can access
-        // NPC, Location, Route properties for contextually appropriate narrative.
-        Console.WriteLine($"[SceneInstantiator] Starting Pass 2: AI Narrative Generation for {scene.Situations.Count} situations");
+        // ==================== PASS 2B: CHOICE INSTANCE CREATION ====================
+        // Create Choice instances with MECHANICAL values (scaled costs/consequences)
+        // AI NARRATIVE (labels) deferred to SituationFacade.ActivateSituationAsync()
+        Console.WriteLine($"[SceneInstantiator] Starting Pass 2B: Choice Instance Creation (mechanical only, AI labels deferred)");
 
         Player player = context.Player ?? _gameWorld.GetPlayer();
-
-        foreach (Situation situation in scene.Situations)
-        {
-            // Build ScenePromptContext from resolved entities
-            ScenePromptContext promptContext = new ScenePromptContext
-            {
-                NPC = situation.Npc,
-                Location = situation.Location,
-                Player = player,
-                Route = situation.Route,
-                ArchetypeId = scene.Template?.Id,
-                SceneDisplayName = scene.DisplayName,
-                CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-                CurrentWeather = _gameWorld.CurrentWeather,
-                CurrentDay = _gameWorld.CurrentDay,
-                NPCBondLevel = situation.Npc?.BondStrength ?? 0
-            };
-
-            // Generate narrative via AI (5s timeout, fallback to template-based)
-            string narrative = await _narrativeService.GenerateSituationNarrativeAsync(
-                promptContext,
-                situation.NarrativeHints,
-                situation);
-
-            // Persist generated narrative to entity
-            situation.Description = narrative;
-
-            Console.WriteLine($"[SceneInstantiator]   Narrative generated for '{situation.Name}'");
-        }
-
-        Console.WriteLine($"[SceneInstantiator] Pass 2 complete: AI narratives generated for all situations");
-
-        // ==================== PASS 2B: CHOICE INSTANCE CREATION ====================
-        // TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
-        // Pass 2B: Create Choice instances from ChoiceTemplates with:
-        //   - AI-generated labels (5s timeout, fallback to template)
-        //   - Pre-scaled requirements/consequences (calculated once, used for display AND execution)
-        //
-        // CRITICAL: Runs AFTER Pass 2 because choice labels reference Situation.Description
-        Console.WriteLine($"[SceneInstantiator] Starting Pass 2B: Choice Instance Creation");
 
         foreach (Situation situation in scene.Situations)
         {
@@ -355,21 +325,6 @@ public class SceneInstantiator
                 situation.Location,
                 player);
 
-            // Build ScenePromptContext for AI label generation (reuse from Pass 2)
-            ScenePromptContext promptContext = new ScenePromptContext
-            {
-                NPC = situation.Npc,
-                Location = situation.Location,
-                Player = player,
-                Route = situation.Route,
-                ArchetypeId = scene.Template?.Id,
-                SceneDisplayName = scene.DisplayName,
-                CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-                CurrentWeather = _gameWorld.CurrentWeather,
-                CurrentDay = _gameWorld.CurrentDay,
-                NPCBondLevel = situation.Npc?.BondStrength ?? 0
-            };
-
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
                 // Step 1: Apply scaling to requirements and consequences (calculated ONCE)
@@ -378,19 +333,15 @@ public class SceneInstantiator
                 Consequence scaledOnSuccess = scalingContext.ApplyToConsequence(choiceTemplate.OnSuccessConsequence);
                 Consequence scaledOnFailure = scalingContext.ApplyToConsequence(choiceTemplate.OnFailureConsequence);
 
-                // Step 2: Generate AI label (5s timeout, fallback to template)
-                string label = await _narrativeService.GenerateChoiceLabelAsync(
-                    promptContext,
-                    situation,
-                    choiceTemplate,
-                    scaledRequirement,
-                    scaledConsequence);
+                // Step 2: Use template label as placeholder (AI label generated lazily)
+                // LAZY NARRATIVE: Choice.Label will be populated by SituationFacade.ActivateSituationAsync()
+                string placeholderLabel = choiceTemplate.ActionTextTemplate ?? "Take action";
 
-                // Step 3: Create Choice instance
+                // Step 3: Create Choice instance with MECHANICAL values
                 Choice choice = new Choice
                 {
                     Template = choiceTemplate,
-                    Label = label,
+                    Label = placeholderLabel, // Placeholder - AI label generated at situation entry
                     ScaledRequirement = scaledRequirement,
                     ScaledConsequence = scaledConsequence,
                     ScaledOnSuccessConsequence = scaledOnSuccess,
@@ -400,13 +351,13 @@ public class SceneInstantiator
                 // Step 4: Add to Situation.Choices
                 situation.Choices.Add(choice);
 
-                Console.WriteLine($"[SceneInstantiator]     Choice '{choiceTemplate.Id}' created with label: {label}");
+                Console.WriteLine($"[SceneInstantiator]     Choice '{choiceTemplate.Id}' created (label pending AI generation)");
             }
 
             Console.WriteLine($"[SceneInstantiator]   Created {situation.Choices.Count} Choice instances for '{situation.Name}'");
         }
 
-        Console.WriteLine($"[SceneInstantiator] Pass 2B complete: Choice instances created for all situations");
+        Console.WriteLine($"[SceneInstantiator] Pass 2B complete: Choice instances created (AI narratives deferred to situation entry)");
 
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;

@@ -27,6 +27,9 @@ public class SceneNarrativeService
     private const int SituationTimeoutSeconds = 30; // Increased from 20 for slow PCs
     private const int ChoiceLabelTimeoutSeconds = 10; // Increased from 5 for slow PCs
 
+    // Availability flag set at startup - prevents 97s timeout when Ollama unavailable
+    private bool _isOllamaAvailable = false;
+
     public SceneNarrativeService(
         GameWorld gameWorld,
         IAICompletionProvider aiProvider,
@@ -35,6 +38,16 @@ public class SceneNarrativeService
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _aiProvider = aiProvider; // Can be null - graceful degradation
         _promptBuilder = promptBuilder ?? throw new ArgumentNullException(nameof(promptBuilder));
+    }
+
+    /// <summary>
+    /// Set Ollama availability status. Called at startup after health check.
+    /// When false, AI generation methods skip retry loops and use fallback immediately.
+    /// </summary>
+    public void SetOllamaAvailability(bool isAvailable)
+    {
+        _isOllamaAvailable = isAvailable;
+        Console.WriteLine($"[SceneNarrativeService] Ollama availability set to: {isAvailable}");
     }
 
     // ==================== PROMPT VISIBILITY FOR TEST PARITY ====================
@@ -186,6 +199,13 @@ public class SceneNarrativeService
             throw new ArgumentNullException(nameof(situation));
         // narrativeHints is optional - may be null for situations without template hints
 
+        // FAST PATH: Skip AI if known unavailable (prevents 97s timeout)
+        if (!_isOllamaAvailable)
+        {
+            Console.WriteLine($"[SceneNarrativeService] Ollama unavailable - using immediate fallback for '{situation.Name}'");
+            return GenerateFallbackSituationNarrative(context, narrativeHints);
+        }
+
         // Try AI generation if provider available
         if (_aiProvider != null)
         {
@@ -281,8 +301,9 @@ public class SceneNarrativeService
     /// Generate AI choice label from entity context and mechanical properties.
     /// Async method - tries AI generation with timeout, falls back to template-based.
     ///
-    /// CRITICAL: This is called during Pass 2B AFTER Situation.Description is generated.
-    /// Choice labels use situation context for narrative coherence.
+    /// CRITICAL: Called during LAZY ACTIVATION (SituationFacade.ActivateSituationAsync)
+    /// when player enters situation, NOT during scene spawn. Choice labels use
+    /// CURRENT situation context and are REGENERATED on each re-entry.
     ///
     /// Pattern: 5-second timeout (shorter than situations - labels are simpler)
     /// </summary>
@@ -305,6 +326,12 @@ public class SceneNarrativeService
             throw new ArgumentNullException(nameof(situation));
         if (choiceTemplate == null)
             throw new ArgumentNullException(nameof(choiceTemplate));
+
+        // FAST PATH: Skip AI if known unavailable (prevents timeout)
+        if (!_isOllamaAvailable)
+        {
+            return GenerateFallbackChoiceLabel(context, choiceTemplate);
+        }
 
         if (_aiProvider != null)
         {

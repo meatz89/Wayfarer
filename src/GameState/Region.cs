@@ -1,5 +1,7 @@
 public class Region
 {
+    public static readonly Region? NoRegion = new Region() { Name = "No Region", Description = "No Region" };
+
     // HIGHLANDER: NO Id property - Region identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }

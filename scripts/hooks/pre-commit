@@ -12,8 +12,9 @@ set -e
 echo "=== Architecture Compliance Check ==="
 echo ""
 
-# Get staged .cs files (excluding UI rendering files and tests)
-STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' | grep -v 'Tests\.' || true)
+# Get staged .cs files (excluding UI rendering files, tests, and visualization infrastructure)
+# SpawnGraph is visualization infrastructure with JS interop DTOs (not domain code)
+STAGED_CS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' | grep -v '\.razor\.cs$' | grep -v 'Tests\.' | grep -v 'SpawnGraph/' || true)
 STAGED_CS_ALL=$(git diff --cached --name-only --diff-filter=ACM | grep '\.cs$' || true)
 
 # Get staged documentation files (arc42, gdd, CLAUDE.md)
@@ -142,7 +143,8 @@ echo "[HIGHLANDER] Entity Identity Model..."
 # 3.1 Instance ID properties on domain entities
 # Exclude: Template files, DTOs, Cards (templates), CollectionEntries (entry classes), Sessions (ephemeral tracking)
 # Exclude: Parsers (may have parse-time helper classes with IDs for cross-reference)
-ENTITY_FILES=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services' | grep -v 'Template\|DTO\|/Cards/\|CollectionEntries\|Session\|Parser' || true)
+# Exclude: SpawnGraph (visualization infrastructure with JS interop DTOs)
+ENTITY_FILES=$(echo "$STAGED_CS" | grep -E 'GameState|Content|Services' | grep -v 'Template\|DTO\|/Cards/\|CollectionEntries\|Session\|Parser\|SpawnGraph' || true)
 if [ -n "$ENTITY_FILES" ]; then
     for file in $ENTITY_FILES; do
         if [ -f "$file" ]; then

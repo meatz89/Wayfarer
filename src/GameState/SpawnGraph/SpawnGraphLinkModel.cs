@@ -16,7 +16,6 @@ public class SpawnGraphLinkModel : LinkModel
     public SpawnGraphLinkType LinkType { get; }
     public string CssClass { get; }
     public string Label { get; }
-    public EntityResolutionMetadata Resolution { get; }
 
     public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType)
         : base(source, target)
@@ -27,10 +26,95 @@ public class SpawnGraphLinkModel : LinkModel
         Label = GetLabelForLinkType(linkType);
     }
 
-    public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType, EntityResolutionMetadata resolution)
-        : this(source, target, linkType)
+    public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType, EntityResolutionMetadata metadata)
+        : base(source, target)
     {
-        Resolution = resolution;
+        LinkType = linkType;
+        Color = GetColorForLinkType(linkType);
+        CssClass = GetCssClassForLinkType(linkType);
+        Label = BuildLabelFromMetadata(metadata) ?? GetLabelForLinkType(linkType);
+    }
+
+    private string BuildLabelFromMetadata(EntityResolutionMetadata metadata)
+    {
+        if (metadata == null || metadata.Filter == null)
+        {
+            return null;
+        }
+
+        string outcome = metadata.Outcome switch
+        {
+            EntityResolutionOutcome.Discovered => "DISCOVERED",
+            EntityResolutionOutcome.Created => "CREATED",
+            EntityResolutionOutcome.RouteDestination => "ROUTE",
+            _ => null
+        };
+
+        if (outcome == null)
+        {
+            return null;
+        }
+
+        List<string> properties = BuildPropertyList(metadata);
+        if (properties.Count == 0)
+        {
+            return outcome;
+        }
+
+        return outcome + ": " + string.Join(", ", properties);
+    }
+
+    private List<string> BuildPropertyList(EntityResolutionMetadata metadata)
+    {
+        List<string> properties = new List<string>();
+        PlacementFilterSnapshot filter = metadata.Filter;
+
+        if (filter.Purpose != null)
+        {
+            properties.Add("Purpose=" + filter.Purpose);
+        }
+        if (filter.Privacy != null)
+        {
+            properties.Add("Privacy=" + filter.Privacy);
+        }
+        if (filter.Safety != null)
+        {
+            properties.Add("Safety=" + filter.Safety);
+        }
+        if (filter.Activity != null)
+        {
+            properties.Add("Activity=" + filter.Activity);
+        }
+        if (filter.LocationRole != null)
+        {
+            properties.Add("Role=" + filter.LocationRole);
+        }
+        if (filter.PersonalityType != null)
+        {
+            properties.Add("Personality=" + filter.PersonalityType);
+        }
+        if (filter.Profession != null)
+        {
+            properties.Add("Profession=" + filter.Profession);
+        }
+        if (filter.SocialStanding != null)
+        {
+            properties.Add("Standing=" + filter.SocialStanding);
+        }
+        if (filter.StoryRole != null)
+        {
+            properties.Add("StoryRole=" + filter.StoryRole);
+        }
+        if (filter.Terrain != null)
+        {
+            properties.Add("Terrain=" + filter.Terrain);
+        }
+        if (filter.Structure != null)
+        {
+            properties.Add("Structure=" + filter.Structure);
+        }
+
+        return properties;
     }
 
     private string GetColorForLinkType(SpawnGraphLinkType linkType)

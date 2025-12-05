@@ -1191,10 +1191,7 @@ public class GameOrchestrator
                 scene.State = SceneState.Expired;
 
                 // PROCEDURAL CONTENT TRACING: Update scene state to Expired
-                if (_proceduralTracer.IsEnabled)
-                {
-                    _proceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
-                }
+                _proceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
             }
         }
     }
@@ -2029,7 +2026,7 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingSocialContext?.ChoiceExecution;
-        if (_proceduralTracer.IsEnabled && choiceNode != null)
+        if (choiceNode != null)
         {
             _proceduralTracer.PushChoiceContext(choiceNode);
         }
@@ -2056,7 +2053,7 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_proceduralTracer.IsEnabled && choiceNode != null)
+            if (choiceNode != null)
             {
                 _proceduralTracer.PopChoiceContext();
             }
@@ -2072,7 +2069,7 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingMentalContext?.ChoiceExecution;
-        if (_proceduralTracer.IsEnabled && choiceNode != null)
+        if (choiceNode != null)
         {
             _proceduralTracer.PushChoiceContext(choiceNode);
         }
@@ -2099,7 +2096,7 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_proceduralTracer.IsEnabled && choiceNode != null)
+            if (choiceNode != null)
             {
                 _proceduralTracer.PopChoiceContext();
             }
@@ -2115,7 +2112,7 @@ public class GameOrchestrator
     {
         // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
         ChoiceExecutionNode choiceNode = _gameWorld.PendingPhysicalContext?.ChoiceExecution;
-        if (_proceduralTracer.IsEnabled && choiceNode != null)
+        if (choiceNode != null)
         {
             _proceduralTracer.PushChoiceContext(choiceNode);
         }
@@ -2142,7 +2139,7 @@ public class GameOrchestrator
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_proceduralTracer.IsEnabled && choiceNode != null)
+            if (choiceNode != null)
             {
                 _proceduralTracer.PopChoiceContext();
             }

@@ -27,17 +27,116 @@ public class SituationFacade
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
     private readonly RewardApplicationService _rewardApplicationService;
+    private readonly SceneNarrativeService _sceneNarrativeService;
 
     public SituationFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
         TimeManager timeManager,
-        RewardApplicationService rewardApplicationService)
+        RewardApplicationService rewardApplicationService,
+        SceneNarrativeService sceneNarrativeService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
+        _sceneNarrativeService = sceneNarrativeService ?? throw new ArgumentNullException(nameof(sceneNarrativeService));
+    }
+
+    /// <summary>
+    /// LAZY NARRATIVE ACTIVATION - Generates AI narratives when player enters situation
+    ///
+    /// TWO-PASS PROCEDURAL GENERATION (arc42 §8.28):
+    /// - Pass 1 (Scene Activation): MECHANICAL generation - Situations + Choices with scaled values
+    /// - Pass 2 (Situation Entry): AI NARRATIVE generation - LAZY, runs HERE
+    ///
+    /// WHAT THIS METHOD DOES:
+    /// - Generates AI Situation.Description (replaces template placeholder)
+    /// - Generates AI Choice.Label for each existing choice (replaces template placeholder)
+    /// - Does NOT recreate Choice instances (mechanical values already set at spawn)
+    ///
+    /// DYNAMIC REGENERATION:
+    /// - Called on EVERY situation entry (not cached)
+    /// - Narratives reflect CURRENT game state (NPC relationships, player stats, time)
+    /// - Enables dynamic storytelling that responds to player actions
+    /// </summary>
+    public async Task ActivateSituationAsync(Situation situation)
+    {
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
+
+        if (situation.Template == null)
+        {
+            Console.WriteLine($"[SituationFacade] Situation '{situation.Name}' has no template - using existing description and labels");
+            return;
+        }
+
+        Console.WriteLine($"[SituationFacade] Activating situation '{situation.Name}' - generating AI narratives with current context");
+
+        // Get current player state
+        Player player = _gameWorld.GetPlayer();
+
+        // Build ScenePromptContext from CURRENT entity state
+        ScenePromptContext promptContext = new ScenePromptContext
+        {
+            NPC = situation.Npc,
+            Location = situation.Location,
+            Player = player,
+            Route = situation.Route,
+            ArchetypeId = situation.Template?.Id,
+            SceneDisplayName = situation.ParentScene?.DisplayName,
+            CurrentTimeBlock = _timeManager.CurrentTimeBlock,
+            CurrentWeather = _gameWorld.CurrentWeather,
+            CurrentDay = _timeManager.CurrentDay,
+            NPCBondLevel = situation.Npc?.BondStrength ?? 0
+        };
+
+        // ==================== PASS 2: AI SITUATION DESCRIPTION ====================
+        // DYNAMIC: Generate/regenerate description with CURRENT context
+        NarrativeHints hints = situation.NarrativeHints;
+        string narrative = await _sceneNarrativeService.GenerateSituationNarrativeAsync(
+            promptContext,
+            hints,
+            situation);
+
+        // Persist generated narrative to entity
+        situation.Description = narrative;
+        Console.WriteLine($"[SituationFacade]   AI description generated for '{situation.Name}'");
+
+        // ==================== PASS 2B: AI CHOICE LABELS ====================
+        // DYNAMIC: Generate AI labels for EXISTING choices (mechanical values unchanged)
+        // Choices were created at scene spawn with scaled costs/consequences
+        // Only the narrative Label property is updated here
+
+        if (situation.Choices == null || situation.Choices.Count == 0)
+        {
+            Console.WriteLine($"[SituationFacade]   Situation '{situation.Name}' has no choices to label");
+            return;
+        }
+
+        foreach (Choice choice in situation.Choices)
+        {
+            if (choice.Template == null)
+            {
+                Console.WriteLine($"[SituationFacade]     Choice has no template - keeping existing label");
+                continue;
+            }
+
+            // Generate AI label with CURRENT context
+            string label = await _sceneNarrativeService.GenerateChoiceLabelAsync(
+                promptContext,
+                situation,
+                choice.Template,
+                choice.ScaledRequirement,
+                choice.ScaledConsequence);
+
+            // Update label on existing choice (mechanical values unchanged)
+            choice.Label = label;
+
+            Console.WriteLine($"[SituationFacade]     Choice '{choice.Template.Id}' AI label: {label}");
+        }
+
+        Console.WriteLine($"[SituationFacade]   AI labels generated for {situation.Choices.Count} choices");
     }
 
     /// <summary>
