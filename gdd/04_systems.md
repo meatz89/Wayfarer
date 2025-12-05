@@ -297,7 +297,7 @@ Players experience AI narrative as seamless storytelling. They don't know (or ca
 
 See [arc42/08_crosscutting_concepts.md §8.28](../arc42/08_crosscutting_concepts.md#828-two-pass-procedural-generation) for the two-pass generation architecture.
 See [arc42/08_crosscutting_concepts.md §8.29](../arc42/08_crosscutting_concepts.md#829-ai-narrative-additive-principle) for the additive principle implementation.
-See [AI_NARRATIVE_OPTIMIZATION.md](../AI_NARRATIVE_OPTIMIZATION.md) for prompt optimization and quality validation workflow.
+See [SOP-01: AI Narrative Optimization](../sop/01_ai_narrative_optimization.md) for prompt optimization and quality validation workflow.
 
 ---
 
