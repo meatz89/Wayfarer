@@ -392,7 +392,7 @@ Displayed in UI (not regenerated)
 
 **Details:** See `arc42/08_crosscutting_concepts.md` §8.28
 
-**AI Narrative Optimization:** See `AI_NARRATIVE_OPTIMIZATION.md` for prompt optimization, testing methodology, and troubleshooting.
+**AI Narrative Optimization:** See `sop/01_ai_narrative_optimization.md` for the standard operating procedure on prompt optimization, testing methodology, and troubleshooting.
 
 ---
 

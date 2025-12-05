@@ -1150,7 +1150,7 @@ ScenePromptBuilder includes explicit rules:
 
 - §8.28 Two-Pass Procedural Generation (mechanical pass + narrative pass)
 - §8.24 Two-Phase Entity Creation (names persist after generation)
-- [AI_NARRATIVE_OPTIMIZATION.md](../AI_NARRATIVE_OPTIMIZATION.md) — Practical testing and prompt optimization workflow
+- [SOP-01: AI Narrative Optimization](../sop/01_ai_narrative_optimization.md) — Practical testing and prompt optimization workflow
 
 ---
 
