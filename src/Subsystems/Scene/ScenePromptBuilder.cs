@@ -114,6 +114,7 @@ public class ScenePromptBuilder
         prompt.AppendLine("4. Vary your openings - avoid 'dust motes', 'the air', or common clichés.");
         prompt.AppendLine("5. Entity names: Use EXACT names from context or generic terms. NEVER invent.");
         prompt.AppendLine("6. Plain text only. NO markdown, quotes, or formatting.");
+        prompt.AppendLine("7. TONE PRIORITY: The Narrative Direction tone OVERRIDES weather for emotional atmosphere.");
 
         return prompt.ToString();
     }

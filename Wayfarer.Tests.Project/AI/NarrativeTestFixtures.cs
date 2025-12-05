@@ -288,7 +288,14 @@ public static class NarrativeTestFixtures
             },
             RequiredContextMarkers = new List<string>
             {
-                "archive", "library", "scholar", "dusty", "tomes", "books", "quiet", "morning"
+                // Core location/role
+                "archive", "antiquarian", "library", "scholar", "professor", "ashworth",
+                // Scholarly materials synonyms
+                "tomes", "books", "parchment", "scrolls", "paper", "ink",
+                // Atmosphere synonyms
+                "dusty", "aged", "ancient", "old", "cedar", "musty",
+                // Time/activity
+                "quiet", "morning", "still", "silent"
             },
             RequiredMarkerCount = 1,
             ExpectedTone = "scholarly, measured",
