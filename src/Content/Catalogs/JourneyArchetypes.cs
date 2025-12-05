@@ -130,16 +130,7 @@ internal static class JourneyArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = offerSitId,
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition
-                {
-                    SourceSituationId = offerSitId,
-                    DestinationSituationId = negotiateSitId,
-                    Condition = TransitionCondition.Always
-                }
-            }
+            InitialSituationTemplateId = offerSitId
         };
 
         return new SceneArchetypeDefinition
@@ -260,14 +251,7 @@ internal static class JourneyArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = obstacle1SitId,
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = obstacle1SitId, DestinationSituationId = obstacle2SitId, Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = obstacle2SitId, DestinationSituationId = obstacle3SitId, Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = obstacle3SitId, DestinationSituationId = approachSitId, Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = approachSitId, DestinationSituationId = arrivalSitId, Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = obstacle1SitId
         };
 
         return new SceneArchetypeDefinition
@@ -352,12 +336,7 @@ internal static class JourneyArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = negotiateSitId,
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = negotiateSitId, DestinationSituationId = restSitId, Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = restSitId, DestinationSituationId = departSitId, Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = negotiateSitId
         };
 
         return new SceneArchetypeDefinition
@@ -396,8 +375,7 @@ internal static class JourneyArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Standalone,
-            InitialSituationId = situationId,
-            Transitions = new List<SituationTransition>()
+            InitialSituationTemplateId = situationId
         };
 
         return new SceneArchetypeDefinition

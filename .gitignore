@@ -374,3 +374,6 @@ FodyWeavers.xsd
 
 # Runtime-generated content (cleared on app restart)
 src/Content/Dynamic/
+
+# AI narrative evaluation test results (generated, not fixtures)
+**/AI/narrative_eval_*.json

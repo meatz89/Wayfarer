@@ -48,7 +48,10 @@ public static class PlayerActionParser
             Focus = dto.Focus,
             Hunger = dto.Hunger,
             Resolve = dto.Resolve,
-            FullRecovery = dto.FullRecovery
+            FullRecovery = dto.FullRecovery,
+            // Flow control (HIGHLANDER: all flow through choices)
+            NextSituationTemplateId = dto.NextSituationTemplateId,
+            IsTerminal = dto.IsTerminal
         };
     }
 

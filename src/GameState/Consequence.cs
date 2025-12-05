@@ -149,6 +149,24 @@ public class Consequence
     public List<SceneSpawnReward> ScenesToSpawn { get; init; } = new List<SceneSpawnReward>();
 
     // ============================================
+    // FLOW CONTROL (HIGHLANDER: all flow through choices)
+    // ============================================
+
+    /// <summary>
+    /// Template ID of next situation to activate within same scene.
+    /// Mutually exclusive with IsTerminal.
+    /// Uses 'set' to allow enrichment after initial creation (see EnrichFinalSituationChoices).
+    /// </summary>
+    public string NextSituationTemplateId { get; set; }
+
+    /// <summary>
+    /// When true, this choice ends the current scene.
+    /// Scene completion triggers any ScenesToSpawn rewards.
+    /// Uses 'set' to allow enrichment after initial creation (see EnrichFinalSituationChoices).
+    /// </summary>
+    public bool IsTerminal { get; set; }
+
+    // ============================================
     // QUERY METHODS (Pure projections, no side effects)
     // ============================================
 

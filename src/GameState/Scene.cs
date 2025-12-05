@@ -204,120 +204,68 @@ public class Scene
 
     /// <summary>
     /// Advance scene to next situation after completing current situation
-    /// Queries SpawnRules.Transitions for matching source, updates CurrentSituationId
-    /// If no valid transitions, marks scene as complete
+    /// HIGHLANDER: All flow control through Consequence (see arc42 §8.30)
+    /// - NextSituationTemplateId: explicit next situation
+    /// - IsTerminal: explicit scene end
+    /// - Sequential fallback: next in list if no explicit flow
     /// DOMAIN RESPONSIBILITY: Scene owns its state machine, not facades
     /// CONTEXT-AWARE: Compares contexts to determine routing (seamless cascade vs exit to world)
     /// </summary>
-    /// <param name="completedSituationId">Situation that was just completed</param>
-    /// <param name="gameWorld">GameWorld for situation lookup</param>
+    /// <param name="completedSituation">Situation that was just completed</param>
+    /// <param name="executedConsequence">Consequence that was executed (contains flow control)</param>
     /// <returns>Routing decision for UI (ContinueInScene, ExitToWorld, or SceneComplete)</returns>
-    public SceneRoutingDecision AdvanceToNextSituation(Situation completedSituation)
+    public SceneRoutingDecision AdvanceToNextSituation(Situation completedSituation, Consequence executedConsequence)
     {
         // HIGHLANDER: Scene has NO Id, Situation has NO Id - use TemplateId or Name
         Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advancing from situation '{completedSituation.Name}'");
 
-        // ZERO NULL TOLERANCE: SpawnRules and Transitions guaranteed non-null by scene initialization
-        if (SpawnRules!.Transitions!.Count == 0)
+        // CHOICE-DRIVEN FLOW: Check consequence for explicit flow control
+        // Priority: 1. IsTerminal, 2. NextSituationTemplateId, 3. Sequential fallback
+
+        // 1. IsTerminal - explicit scene end
+        if (executedConsequence?.IsTerminal == true)
         {
-            // No transitions defined - scene complete after first situation
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no transitions - marking as complete");
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' - consequence IsTerminal=true - marking as complete");
             CurrentSituationIndex = Situations.Count; // Out of bounds = complete
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }
 
-        // Find transition from completed situation (evaluates conditions)
-        SituationTransition transition = GetTransitionForCompletedSituation(completedSituation);
-
-        // ZERO NULL TOLERANCE: Transition lookup returns valid transition or marks scene complete
-        if (transition == null)
+        // 2. NextSituationTemplateId - explicit next situation
+        if (!string.IsNullOrEmpty(executedConsequence?.NextSituationTemplateId))
         {
-            // No valid transition - scene complete
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no valid transition - marking as complete");
-            CurrentSituationIndex = Situations.Count; // Out of bounds = complete
-            State = SceneState.Completed;
-            return SceneRoutingDecision.SceneComplete;
+            Situation nextSituation = Situations
+                .FirstOrDefault(s => s.TemplateId == executedConsequence.NextSituationTemplateId);
+
+            // FAIL-FAST: If consequence references non-existent situation, this is data error
+            if (nextSituation == null)
+            {
+                throw new InvalidOperationException(
+                    $"Scene '{TemplateId}' consequence references NextSituationTemplateId '{executedConsequence.NextSituationTemplateId}' which does not exist in Situations collection");
+            }
+
+            // Update CurrentSituationIndex
+            CurrentSituationIndex = Situations.IndexOf(nextSituation);
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advanced to explicit situation '{nextSituation.Name}' (index {CurrentSituationIndex})");
+
+            // Compare contexts to determine routing
+            SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' routing decision: {decision}");
+            return decision;
         }
 
-        // Valid transition found - find next situation by TemplateId match
-        Situation nextSituation = Situations
-            .FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId);
-
-        // FAIL-FAST: If transition references non-existent situation, this is data error
-        if (nextSituation == null)
-        {
-            throw new InvalidOperationException(
-                $"Scene '{TemplateId}' transition references destination '{transition.DestinationSituationId}' which does not exist in Situations collection");
-        }
-
-        // Update CurrentSituationIndex
-        CurrentSituationIndex = Situations.IndexOf(nextSituation);
-        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advanced to situation '{nextSituation.Name}' (index {CurrentSituationIndex})");
-
-        // Compare contexts to determine routing
-        SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
-        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' routing decision: {decision}");
-        return decision;
+        // HIGHLANDER VIOLATION: No explicit flow control - this is a data/generation error (arc42 §8.30)
+        // Every choice consequence MUST have either NextSituationTemplateId or IsTerminal=true
+        // NO SEQUENTIAL FALLBACK - all flow must be explicit
+        throw new InvalidOperationException(
+            $"Scene '{TemplateId}' situation '{completedSituation.Name}' completed but consequence has no explicit flow control. " +
+            "Every choice consequence must set NextSituationTemplateId (continue) or IsTerminal=true (end scene). " +
+            "Check archetype generators for missing flow control. (arc42 §8.30)");
     }
 
-    /// <summary>
-    /// Get transition for completed situation
-    /// Evaluates TransitionCondition to determine which transition applies
-    /// Supports conditional branching based on choice selection and challenge outcome
-    /// Helper for AdvanceToNextSituation()
-    /// </summary>
-    /// <param name="completedSituation">Situation that was just completed (with outcome tracking)</param>
-    /// <returns>Matching SituationTransition based on evaluated conditions, or null if no match</returns>
-    public SituationTransition GetTransitionForCompletedSituation(Situation completedSituation)
-    {
-        // ZERO NULL TOLERANCE: SpawnRules, Transitions, and completedSituation guaranteed non-null
-        // SpawnRules initialized during scene creation, completedSituation passed from caller
-
-        // Find all transitions from this source situation
-        // CRITICAL: Use TemplateId for matching (HIGHLANDER Pattern D)
-        // Template transitions reference template IDs, runtime situations have instance IDs
-        // TemplateId bridges template-defined rules to runtime instances
-        List<SituationTransition> candidateTransitions = SpawnRules.Transitions
-            .Where(t => t.SourceSituationId == completedSituation.TemplateId)
-            .ToList();
-
-        if (candidateTransitions.Count == 0)
-            return null;
-
-        // Evaluate conditions in priority order:
-        // 1. OnChoice (most specific)
-        // 2. OnSuccess/OnFailure (outcome-based)
-        // 3. Always (fallback)
-
-        // Check OnChoice transitions first (most specific)
-        // LastChoice can be null if situation completed without player choice (auto-advance)
-        if (completedSituation.LastChoice != null)
-        {
-            SituationTransition choiceTransition = candidateTransitions
-                .FirstOrDefault(t => t.Condition == TransitionCondition.OnChoice
-                                  && t.SpecificChoiceId == completedSituation.LastChoice.Id);
-            if (choiceTransition != null)
-                return choiceTransition;
-        }
-
-        // Check OnSuccess/OnFailure transitions (challenge outcome)
-        // LastChallengeSucceeded can be null if no challenge was attempted
-        if (completedSituation.LastChallengeSucceeded.HasValue)
-        {
-            TransitionCondition targetCondition = completedSituation.LastChallengeSucceeded.Value
-                ? TransitionCondition.OnSuccess
-                : TransitionCondition.OnFailure;
-
-            SituationTransition outcomeTransition = candidateTransitions
-                .FirstOrDefault(t => t.Condition == targetCondition);
-            if (outcomeTransition != null)
-                return outcomeTransition;
-        }
-
-        // Fallback to Always transition
-        return candidateTransitions.FirstOrDefault(t => t.Condition == TransitionCondition.Always);
-    }
+    // HIGHLANDER: GetTransitionForCompletedSituation method REMOVED (see arc42 §8.30)
+    // All flow control through Consequence.NextSituationTemplateId and IsTerminal
+    // Different choices can now lead to different situations within the same scene
 
     /// <summary>
     /// Check if scene is complete

@@ -73,12 +73,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_contact",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_contact", DestinationSituationId = $"{sceneId}_negotiate", Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = $"{sceneId}_negotiate", DestinationSituationId = $"{sceneId}_revelation", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_contact"
         };
 
         return new SceneArchetypeDefinition
@@ -133,11 +128,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_accuse",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_accuse", DestinationSituationId = $"{sceneId}_resolve", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_accuse"
         };
 
         return new SceneArchetypeDefinition
@@ -192,11 +183,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_crisis",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_crisis", DestinationSituationId = $"{sceneId}_decision", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_crisis"
         };
 
         return new SceneArchetypeDefinition
@@ -268,12 +255,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_dilemma",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_dilemma", DestinationSituationId = $"{sceneId}_choice", Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = $"{sceneId}_choice", DestinationSituationId = $"{sceneId}_consequence", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_dilemma"
         };
 
         return new SceneArchetypeDefinition
@@ -329,11 +311,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_settle",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_settle", DestinationSituationId = $"{sceneId}_reflect", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_settle"
         };
 
         return new SceneArchetypeDefinition
@@ -389,11 +367,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_encounter",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_encounter", DestinationSituationId = $"{sceneId}_converse", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_encounter"
         };
 
         return new SceneArchetypeDefinition
@@ -449,11 +423,7 @@ internal static class EncounterArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_browse",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_browse", DestinationSituationId = $"{sceneId}_study", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_browse"
         };
 
         return new SceneArchetypeDefinition

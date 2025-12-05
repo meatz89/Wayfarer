@@ -44,8 +44,8 @@ public class AStoryValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = $"sit{sequence}_1",
-                Transitions = new List<SituationTransition>()
+                InitialSituationTemplateId = $"sit{sequence}_1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
     }
@@ -192,8 +192,8 @@ public class AStoryValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "sit1_1",
-                Transitions = new List<SituationTransition>()
+                InitialSituationTemplateId = "sit1_1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
 
@@ -243,8 +243,8 @@ public class AStoryValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "sit1_1",
-                Transitions = new List<SituationTransition>()
+                InitialSituationTemplateId = "sit1_1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
 
@@ -300,8 +300,8 @@ public class AStoryValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "sit1_1",
-                Transitions = new List<SituationTransition>()
+                InitialSituationTemplateId = "sit1_1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
 
@@ -342,8 +342,8 @@ public class AStoryValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "sit1_1",
-                Transitions = new List<SituationTransition>()
+                InitialSituationTemplateId = "sit1_1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
 

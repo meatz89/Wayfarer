@@ -63,6 +63,13 @@ public class SceneSpawnNode
     // ==================== SCENE PROPERTIES ====================
 
     /// <summary>
+    /// Reference to spawned Scene entity for transition visualization
+    /// Enables SpawnGraphBuilder to access Scene.SpawnRules.Transitions
+    /// HIGHLANDER: Direct object reference for transition flow visualization
+    /// </summary>
+    public Scene SceneEntity { get; set; }
+
+    /// <summary>
     /// Story category (MainStory, SideStory, Service)
     /// </summary>
     public StoryCategory Category { get; set; }

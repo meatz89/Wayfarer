@@ -266,27 +266,12 @@ public static class SceneParser
         return new SituationSpawnRules
         {
             Pattern = pattern,
-            InitialSituationId = dto.InitialSituationId,
-            Transitions = dto.Transitions?.Select(ParseTransition).ToList() ?? new List<SituationTransition>()
+            InitialSituationTemplateId = dto.InitialSituationTemplateId
+            // HIGHLANDER: Transitions REMOVED (see arc42 §8.30)
+            // All flow control through Consequence.NextSituationTemplateId and IsTerminal
         };
     }
 
-    /// <summary>
-    /// Parse SituationTransitionDTO to SituationTransition domain entity
-    /// </summary>
-    private static SituationTransition ParseTransition(SituationTransitionDTO dto)
-    {
-        if (!Enum.TryParse<TransitionCondition>(dto.Condition, true, out TransitionCondition condition))
-        {
-            throw new InvalidDataException($"Invalid TransitionCondition value: '{dto.Condition}'");
-        }
-
-        return new SituationTransition
-        {
-            SourceSituationId = dto.SourceSituationId,
-            DestinationSituationId = dto.DestinationSituationId,
-            Condition = condition,
-            SpecificChoiceId = dto.SpecificChoiceId
-        };
-    }
+    // HIGHLANDER: ParseTransition method REMOVED (see arc42 §8.30)
+    // All flow control through Consequence.NextSituationTemplateId and IsTerminal
 }

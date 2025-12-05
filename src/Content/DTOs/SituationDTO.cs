@@ -55,12 +55,6 @@ public class SituationDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Parent situation ID that spawned this situation (for cascade chains)
-    /// null if this is a root situation (not spawned by another)
-    /// </summary>
-    public string ParentSituationId { get; set; }
-
-    /// <summary>
     /// Day when this situation was spawned
     /// </summary>
     public int? SpawnedDay { get; set; }

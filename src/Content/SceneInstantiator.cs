@@ -77,13 +77,20 @@ public class SceneInstantiator
         // HIGHLANDER: All scene creations flow through CreateDeferredScene, so trace here ensures complete coverage
         if (scene != null)
         {
-            _proceduralTracer.RecordSceneSpawn(
+            SceneSpawnNode sceneSpawnNode = _proceduralTracer.RecordSceneSpawn(
                 scene,
                 template.Id,
                 !template.IsStarter,  // Starter scenes are authored, non-starters are procedural
                 SpawnTriggerType.Initial,  // Could be refined based on context if needed
                 _gameWorld.CurrentDay,
                 _gameWorld.CurrentTimeBlock);
+
+            // Set SceneEntity reference for transition visualization in SpawnGraph
+            // Enables SpawnGraphBuilder to access Scene.SpawnRules.Transitions
+            if (sceneSpawnNode != null)
+            {
+                sceneSpawnNode.SceneEntity = scene;
+            }
         }
 
         return scene;
@@ -359,6 +366,12 @@ public class SceneInstantiator
 
         Console.WriteLine($"[SceneInstantiator] Pass 2B complete: Choice instances created (AI narratives deferred to situation entry)");
 
+        // NOTE: Situation flow is NOT pre-linked here
+        // HIGHLANDER: Scene.SpawnRules.Transitions is the SINGLE source of truth
+        // Scene.GetTransitionForCompletedSituation() evaluates transitions at runtime
+        // based on Situation.LastChoice and Situation.LastChallengeSucceeded
+        // This handles ALL condition types (Always, OnChoice, OnSuccess, OnFailure) in ONE code path
+
         // Set CurrentSituationIndex to 0 (first situation)
         scene.CurrentSituationIndex = 0;
         scene.SituationCount = scene.Situations.Count;
@@ -627,14 +640,7 @@ public class SceneInstantiator
             spawnRulesDto = new SituationSpawnRulesDTO
             {
                 Pattern = template.SpawnRules.Pattern.ToString(),
-                InitialSituationId = template.SpawnRules.InitialSituationId,
-                Transitions = template.SpawnRules.Transitions?.Select(t => new SituationTransitionDTO
-                {
-                    SourceSituationId = t.SourceSituationId,
-                    DestinationSituationId = t.DestinationSituationId,
-                    Condition = t.Condition.ToString(),
-                    SpecificChoiceId = t.SpecificChoiceId
-                }).ToList()
+                InitialSituationTemplateId = template.SpawnRules.InitialSituationTemplateId
             };
         }
 
