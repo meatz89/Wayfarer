@@ -62,23 +62,10 @@ public static class SceneTemplateValidator
 
         List<string> situationIds = template.SituationTemplates.Select(s => s.Id).ToList();
 
-        foreach (SituationTransition transition in template.SpawnRules.Transitions ?? Enumerable.Empty<SituationTransition>())
+        if (!string.IsNullOrEmpty(template.SpawnRules.InitialSituationTemplateId) &&
+            !situationIds.Contains(template.SpawnRules.InitialSituationTemplateId))
         {
-            if (!situationIds.Contains(transition.SourceSituationId))
-            {
-                errors.Add(new SceneValidationError("DEP_001", $"Transition references unknown source: {transition.SourceSituationId}"));
-            }
-
-            if (!situationIds.Contains(transition.DestinationSituationId))
-            {
-                errors.Add(new SceneValidationError("DEP_002", $"Transition references unknown destination: {transition.DestinationSituationId}"));
-            }
-        }
-
-        if (!string.IsNullOrEmpty(template.SpawnRules.InitialSituationId) &&
-            !situationIds.Contains(template.SpawnRules.InitialSituationId))
-        {
-            errors.Add(new SceneValidationError("DEP_003", $"InitialSituationId '{template.SpawnRules.InitialSituationId}' not found in situation list"));
+            errors.Add(new SceneValidationError("DEP_003", $"InitialSituationTemplateId '{template.SpawnRules.InitialSituationTemplateId}' not found in situation list"));
         }
     }
 
@@ -186,12 +173,7 @@ public static class SceneTemplateValidator
 
     private static bool IsFinalSituation(SituationTemplate situation, SituationSpawnRules rules)
     {
-        if (rules?.Transitions == null || !rules.Transitions.Any())
-        {
-            return true;
-        }
-
-        return !rules.Transitions.Any(t => t.SourceSituationId == situation.Id);
+        return true;
     }
 
     public static SceneValidationResult ValidateAStoryChain(List<SceneTemplate> allTemplates)

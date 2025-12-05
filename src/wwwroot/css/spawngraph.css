@@ -808,3 +808,14 @@
 .entity-link-group.link-route-dest path {
     stroke: #eab308 !important;
 }
+
+/* Transition links: Situation → Situation flow via Scene.SpawnRules.Transitions */
+.link-transition path {
+    stroke: #a855f7 !important;
+    stroke-dasharray: 5, 5;
+}
+
+.link-label-bg.bg-transition {
+    fill: rgba(168, 85, 247, 0.15);
+    stroke: rgba(168, 85, 247, 0.6);
+}

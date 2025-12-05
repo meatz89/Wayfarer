@@ -86,13 +86,10 @@ public class Situation
     /// </summary>
     public string TemplateId { get; set; }
 
-    /// <summary>
-    /// Parent situation that spawned this situation (for cascade chains)
-    /// null if this is a root situation (not spawned by another)
-    /// Enables tracking of situation hierarchies and dependencies
-    /// HIGHLANDER: Object reference ONLY, no ParentSituationId
-    /// </summary>
-    public Situation ParentSituation { get; set; }
+    // NOTE: ParentSituation and NextSituation properties REMOVED per HIGHLANDER principle
+    // Situation flow is determined SOLELY by Scene.SpawnRules.Transitions at runtime
+    // Scene.GetTransitionForCompletedSituation() evaluates conditions against LastChoice/LastChallengeSucceeded
+    // This is the SINGLE code path for determining next situation - no cached properties needed
 
     /// <summary>
     /// Lifecycle tracking (spawn and completion timestamps)

@@ -2,6 +2,7 @@
 /// DTO for SituationSpawnRules - defines cascade patterns between Situations
 /// Controls how Situations sequence, branch, and converge within a Scene
 /// Maps to SituationSpawnRules domain entity
+/// HIGHLANDER: Flow control now through Consequence.NextSituationTemplateId (arc42 §8.30)
 /// </summary>
 public class SituationSpawnRulesDTO
 {
@@ -16,13 +17,11 @@ public class SituationSpawnRulesDTO
     /// First Situation ID player sees when Scene activates
     /// References a SituationTemplate.Id within parent SceneTemplate
     /// </summary>
-    public string InitialSituationId { get; set; }
+    public string InitialSituationTemplateId { get; set; }
 
-    /// <summary>
-    /// Transition rules between Situations
-    /// Defines completion → next situation links
-    /// </summary>
-    public List<SituationTransitionDTO> Transitions { get; set; } = new List<SituationTransitionDTO>();
+    // HIGHLANDER: Transitions property REMOVED (arc42 §8.30)
+    // Flow control now through Consequence.NextSituationTemplateId and IsTerminal
+    // Different choices can lead to different situations within the same scene
 
     /// <summary>
     /// Condition determining when Scene is complete
@@ -31,34 +30,5 @@ public class SituationSpawnRulesDTO
     public string CompletionCondition { get; set; }
 }
 
-/// <summary>
-/// DTO for SituationTransition - link between two Situations
-/// Defines what happens when a Situation completes
-/// </summary>
-public class SituationTransitionDTO
-{
-    /// <summary>
-    /// Source Situation ID (where transition starts)
-    /// References a SituationTemplate.Id within same SceneTemplate
-    /// </summary>
-    public string SourceSituationId { get; set; }
-
-    /// <summary>
-    /// Destination Situation ID (where transition leads)
-    /// References a SituationTemplate.Id within same SceneTemplate
-    /// </summary>
-    public string DestinationSituationId { get; set; }
-
-    /// <summary>
-    /// Condition that triggers this transition
-    /// Values: "Always", "OnChoice", "OnSuccess", "OnFailure"
-    /// </summary>
-    public string Condition { get; set; } = "Always";
-
-    /// <summary>
-    /// Specific Choice identifier (if Condition is OnChoice)
-    /// References Choice.Id within SourceSituation
-    /// null for other condition types
-    /// </summary>
-    public string SpecificChoiceId { get; set; }
-}
+// HIGHLANDER: SituationTransitionDTO class DELETED (arc42 §8.30)
+// Flow control now through Consequence.NextSituationTemplateId and IsTerminal

@@ -13,19 +13,16 @@ public class SituationSpawnRules
     public SpawnPattern Pattern { get; set; } = SpawnPattern.Linear;
 
     /// <summary>
-    /// Initial Situation identifier (what player sees first)
-    /// References Situation.Id within Scene/SceneTemplate
+    /// Initial Situation template identifier (what player sees first)
+    /// References SituationTemplate.Id within SceneTemplate
     /// Scene starts with this Situation active
     /// TEMPLATE ID: Acceptable per ADR-007 (templates are immutable archetypes)
     /// </summary>
-    public string InitialSituationId { get; set; }
+    public string InitialSituationTemplateId { get; set; }
 
-    /// <summary>
-    /// List of transitions between Situations
-    /// Defines how completing one Situation leads to next
-    /// Empty list for Standalone pattern
-    /// </summary>
-    public List<SituationTransition> Transitions { get; set; } = new List<SituationTransition>();
+    // HIGHLANDER: Transitions property REMOVED (see arc42 §8.30)
+    // All flow control through Consequence.NextSituationTemplateId and IsTerminal
+    // Different choices can now lead to different situations within the same scene
 
     /// <summary>
     /// Completion condition identifier (optional)

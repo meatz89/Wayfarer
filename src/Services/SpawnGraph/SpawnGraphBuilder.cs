@@ -89,6 +89,7 @@ public class SpawnGraphBuilder
         Dictionary<SituationSpawnNode, string> situationIds = new Dictionary<SituationSpawnNode, string>();
         Dictionary<ChoiceExecutionNode, string> choiceIds = new Dictionary<ChoiceExecutionNode, string>();
         Dictionary<string, string> entityIds = new Dictionary<string, string>();
+        Dictionary<string, string> choiceTemplateIdToGraphId = new Dictionary<string, string>();
 
         int nodeIndex = 0;
 
@@ -126,6 +127,10 @@ public class SpawnGraphBuilder
         {
             string nodeId = "choice_" + nodeIndex++;
             choiceIds[choiceNode] = nodeId;
+            if (!string.IsNullOrEmpty(choiceNode.ChoiceId))
+            {
+                choiceTemplateIdToGraphId[choiceNode.ChoiceId] = nodeId;
+            }
 
             graphData.Nodes.Add(new DagreNode
             {
@@ -279,6 +284,38 @@ public class SpawnGraphBuilder
                     {
                         graphData.Edges.Add(new DagreEdge { Source = choiceId, Target = situationId });
                     }
+                }
+            }
+        }
+
+        // ChoiceFlow edges: Choice → Situation via Consequence.NextSituationTemplateId (arc42 §8.30)
+        foreach (SceneSpawnNode sceneNode in tracer.AllSceneNodes)
+        {
+            if (sceneNode.SceneEntity?.Template == null) continue;
+
+            // Build lookup: SituationTemplateId → SituationSpawnNode
+            Dictionary<string, SituationSpawnNode> templateIdToNode = new Dictionary<string, SituationSpawnNode>();
+            foreach (SituationSpawnNode sitNode in sceneNode.Situations)
+            {
+                if (!string.IsNullOrEmpty(sitNode.SituationTemplateId))
+                {
+                    templateIdToNode[sitNode.SituationTemplateId] = sitNode;
+                }
+            }
+
+            // For each situation template, check its choices for flow
+            foreach (SituationTemplate sitTemplate in sceneNode.SceneEntity.Template.SituationTemplates)
+            {
+                foreach (ChoiceTemplate choice in sitTemplate.ChoiceTemplates)
+                {
+                    // Find the graph ID for this choice template
+                    if (!choiceTemplateIdToGraphId.TryGetValue(choice.Id, out string choiceGraphId)) continue;
+
+                    // Check all three consequence paths for NextSituationTemplateId
+                    // Source is now the CHOICE, not the situation
+                    AddChoiceFlowEdge(choice.Consequence, choiceGraphId, templateIdToNode, situationIds, graphData);
+                    AddChoiceFlowEdge(choice.OnSuccessConsequence, choiceGraphId, templateIdToNode, situationIds, graphData);
+                    AddChoiceFlowEdge(choice.OnFailureConsequence, choiceGraphId, templateIdToNode, situationIds, graphData);
                 }
             }
         }
@@ -471,6 +508,49 @@ public class SpawnGraphBuilder
                 }
             }
         }
+
+        // Build lookup: ChoiceTemplateId → ChoiceNodeModel (for ChoiceFlow links)
+        Dictionary<string, ChoiceNodeModel> choiceTemplateIdToModel = new Dictionary<string, ChoiceNodeModel>();
+        foreach (ChoiceExecutionNode choiceNode in tracer.AllChoiceNodes)
+        {
+            if (!string.IsNullOrEmpty(choiceNode.ChoiceId) && choiceModelMap.TryGetValue(choiceNode, out ChoiceNodeModel model))
+            {
+                choiceTemplateIdToModel[choiceNode.ChoiceId] = model;
+            }
+        }
+
+        // ChoiceFlow links: Choice → Situation via Consequence.NextSituationTemplateId (arc42 §8.30)
+        foreach (SceneSpawnNode sceneNode in tracer.AllSceneNodes)
+        {
+            if (sceneNode.SceneEntity?.Template == null) continue;
+
+            // Build lookup: SituationTemplateId → SituationNodeModel
+            Dictionary<string, SituationNodeModel> templateIdToModel = new Dictionary<string, SituationNodeModel>();
+            foreach (SituationSpawnNode sitNode in sceneNode.Situations)
+            {
+                if (!string.IsNullOrEmpty(sitNode.SituationTemplateId) && situationModelMap.TryGetValue(sitNode, out SituationNodeModel model))
+                {
+                    templateIdToModel[sitNode.SituationTemplateId] = model;
+                }
+            }
+
+            // For each situation template, check its choices for flow
+            foreach (SituationTemplate sitTemplate in sceneNode.SceneEntity.Template.SituationTemplates)
+            {
+                foreach (ChoiceTemplate choice in sitTemplate.ChoiceTemplates)
+                {
+                    // Find the model for this choice template
+                    if (!choiceTemplateIdToModel.TryGetValue(choice.Id, out ChoiceNodeModel choiceModel)) continue;
+
+                    // Check all three consequence paths for NextSituationTemplateId
+                    // Source is now the CHOICE, not the situation
+                    AddChoiceFlowLink(choice.Consequence, choiceModel, templateIdToModel, diagram);
+                    AddChoiceFlowLink(choice.OnSuccessConsequence, choiceModel, templateIdToModel, diagram);
+                    AddChoiceFlowLink(choice.OnFailureConsequence, choiceModel, templateIdToModel, diagram);
+                }
+            }
+        }
+
     }
 
     private Point GetPositionFromLayout(Dictionary<string, DagreLayoutNode> positionMap, string nodeId, double fallbackX, double fallbackY)
@@ -664,6 +744,48 @@ public class SpawnGraphBuilder
             }
         }
 
+        // Build lookup: ChoiceTemplateId → ChoiceNodeModel (for ChoiceFlow links)
+        Dictionary<string, ChoiceNodeModel> choiceTemplateIdToModel = new Dictionary<string, ChoiceNodeModel>();
+        foreach (ChoiceExecutionNode choiceNode in tracer.AllChoiceNodes)
+        {
+            if (!string.IsNullOrEmpty(choiceNode.ChoiceId) && choiceModelMap.TryGetValue(choiceNode, out ChoiceNodeModel model))
+            {
+                choiceTemplateIdToModel[choiceNode.ChoiceId] = model;
+            }
+        }
+
+        // ChoiceFlow links: Choice → Situation via Consequence.NextSituationTemplateId (arc42 §8.30)
+        foreach (SceneSpawnNode sceneNode in tracer.AllSceneNodes)
+        {
+            if (sceneNode.SceneEntity?.Template == null) continue;
+
+            // Build lookup: SituationTemplateId → SituationNodeModel
+            Dictionary<string, SituationNodeModel> templateIdToModel = new Dictionary<string, SituationNodeModel>();
+            foreach (SituationSpawnNode sitNode in sceneNode.Situations)
+            {
+                if (!string.IsNullOrEmpty(sitNode.SituationTemplateId) && situationModelMap.TryGetValue(sitNode, out SituationNodeModel model))
+                {
+                    templateIdToModel[sitNode.SituationTemplateId] = model;
+                }
+            }
+
+            // For each situation template, check its choices for flow
+            foreach (SituationTemplate sitTemplate in sceneNode.SceneEntity.Template.SituationTemplates)
+            {
+                foreach (ChoiceTemplate choice in sitTemplate.ChoiceTemplates)
+                {
+                    // Find the model for this choice template
+                    if (!choiceTemplateIdToModel.TryGetValue(choice.Id, out ChoiceNodeModel choiceModel)) continue;
+
+                    // Check all three consequence paths for NextSituationTemplateId
+                    // Source is now the CHOICE, not the situation
+                    AddChoiceFlowLink(choice.Consequence, choiceModel, templateIdToModel, diagram);
+                    AddChoiceFlowLink(choice.OnSuccessConsequence, choiceModel, templateIdToModel, diagram);
+                    AddChoiceFlowLink(choice.OnFailureConsequence, choiceModel, templateIdToModel, diagram);
+                }
+            }
+        }
+
         int maxRow = Math.Max(Math.Max(sceneRow, situationRow), Math.Max(choiceRow, entityRow));
 
         return new SpawnGraphBuildResult
@@ -682,6 +804,47 @@ public class SpawnGraphBuilder
         if (string.IsNullOrEmpty(text)) return "Choice";
         if (text.Length <= maxLength) return text;
         return text.Substring(0, maxLength - 3) + "...";
+    }
+
+    /// <summary>
+    /// Add ChoiceFlow edge for layout if consequence has NextSituationTemplateId (arc42 §8.30)
+    /// </summary>
+    private void AddChoiceFlowEdge(
+        Consequence consequence,
+        string sourceId,
+        Dictionary<string, SituationSpawnNode> templateIdToNode,
+        Dictionary<SituationSpawnNode, string> situationIds,
+        DagreGraphData graphData)
+    {
+        if (consequence == null) return;
+        if (string.IsNullOrEmpty(consequence.NextSituationTemplateId)) return;
+
+        if (templateIdToNode.TryGetValue(consequence.NextSituationTemplateId, out SituationSpawnNode targetNode))
+        {
+            if (situationIds.TryGetValue(targetNode, out string targetId))
+            {
+                graphData.Edges.Add(new DagreEdge { Source = sourceId, Target = targetId });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Add ChoiceFlow link to diagram if consequence has NextSituationTemplateId (arc42 §8.30)
+    /// Source is the Choice node that triggered the flow, target is the Situation node
+    /// </summary>
+    private void AddChoiceFlowLink(
+        Consequence consequence,
+        ChoiceNodeModel sourceModel,
+        Dictionary<string, SituationNodeModel> templateIdToModel,
+        BlazorDiagram diagram)
+    {
+        if (consequence == null) return;
+        if (string.IsNullOrEmpty(consequence.NextSituationTemplateId)) return;
+
+        if (templateIdToModel.TryGetValue(consequence.NextSituationTemplateId, out SituationNodeModel targetModel))
+        {
+            diagram.Links.Add(new SpawnGraphLinkModel(sourceModel, targetModel, SpawnGraphLinkType.ChoiceFlow));
+        }
     }
 }
 

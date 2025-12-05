@@ -133,4 +133,19 @@ public class ConsequenceDTO
     /// Scenes to spawn as consequences (cascading narrative)
     /// </summary>
     public List<SceneSpawnRewardDTO> ScenesToSpawn { get; set; } = new List<SceneSpawnRewardDTO>();
+
+    // ============================================
+    // FLOW CONTROL (HIGHLANDER: all flow through choices)
+    // ============================================
+
+    /// <summary>
+    /// Template ID of next situation to activate within same scene.
+    /// Mutually exclusive with IsTerminal.
+    /// </summary>
+    public string NextSituationTemplateId { get; set; }
+
+    /// <summary>
+    /// When true, this choice ends the current scene.
+    /// </summary>
+    public bool IsTerminal { get; set; }
 }

@@ -80,11 +80,7 @@ internal static class ExplorationArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_negotiate",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_negotiate", DestinationSituationId = $"{sceneId}_audience", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_negotiate"
         };
 
         return new SceneArchetypeDefinition
@@ -153,12 +149,7 @@ internal static class ExplorationArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_search",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_search", DestinationSituationId = $"{sceneId}_analyze", Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = $"{sceneId}_analyze", DestinationSituationId = $"{sceneId}_conclude", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_search"
         };
 
         return new SceneArchetypeDefinition
@@ -211,11 +202,7 @@ internal static class ExplorationArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_approach",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_approach", DestinationSituationId = $"{sceneId}_interview", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_approach"
         };
 
         return new SceneArchetypeDefinition
@@ -268,11 +255,7 @@ internal static class ExplorationArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_locate",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_locate", DestinationSituationId = $"{sceneId}_acquire", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_locate"
         };
 
         return new SceneArchetypeDefinition
@@ -357,13 +340,7 @@ internal static class ExplorationArchetypes
         SituationSpawnRules spawnRules = new SituationSpawnRules
         {
             Pattern = SpawnPattern.Linear,
-            InitialSituationId = $"{sceneId}_suspect",
-            Transitions = new List<SituationTransition>
-            {
-                new SituationTransition { SourceSituationId = $"{sceneId}_suspect", DestinationSituationId = $"{sceneId}_proof", Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = $"{sceneId}_proof", DestinationSituationId = $"{sceneId}_expose", Condition = TransitionCondition.Always },
-                new SituationTransition { SourceSituationId = $"{sceneId}_expose", DestinationSituationId = $"{sceneId}_consequence", Condition = TransitionCondition.Always }
-            }
+            InitialSituationTemplateId = $"{sceneId}_suspect"
         };
 
         return new SceneArchetypeDefinition

@@ -104,14 +104,6 @@ public static class SituationParser
                 ?? gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId);
         }
 
-        // Resolve ParentSituation from ParentSituationId - needs to search all situations in all scenes
-        if (!string.IsNullOrEmpty(dto.ParentSituationId))
-        {
-            situation.ParentSituation = gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(s => s.Template?.Id == dto.ParentSituationId);
-        }
-
         // Parse situation cards (victory conditions)
         if (dto.SituationCards != null && dto.SituationCards.Any())
         {

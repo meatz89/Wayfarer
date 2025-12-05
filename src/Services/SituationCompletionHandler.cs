@@ -85,10 +85,14 @@ public class SituationCompletionHandler
 
         // PHASE 1.3: Scene state machine - advance to next situation
         // Scene owns its lifecycle, not facades
+        // HIGHLANDER: All flow control through Consequence (see arc42 §8.30)
         if (situation.ParentScene != null)
         {
             Scene scene = situation.ParentScene;
-            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation);
+
+            // Determine which consequence was executed based on choice and outcome
+            Consequence executedConsequence = GetExecutedConsequence(situation);
+            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation, executedConsequence);
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
@@ -207,10 +211,14 @@ public class SituationCompletionHandler
 
         // PHASE 1.3: Scene state machine - advance to next situation with OnFailure
         // Scene owns its lifecycle, not facades
+        // HIGHLANDER: All flow control through Consequence (see arc42 §8.30)
         if (situation.ParentScene != null)
         {
             Scene scene = situation.ParentScene;
-            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation);
+
+            // Determine which consequence was executed based on choice and outcome
+            Consequence executedConsequence = GetExecutedConsequence(situation);
+            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation, executedConsequence);
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
@@ -400,5 +408,51 @@ public class SituationCompletionHandler
             // Complete the obligation state management (activation, NPC relationships)
             _gameWorld.CompleteObligation(completedSituation.Obligation?.Id, _timeManager);
         }
+    }
+
+    /// <summary>
+    /// Determine which consequence was executed based on choice and challenge outcome.
+    /// HIGHLANDER: All flow control through Consequence (see arc42 §8.30).
+    /// NO FALLBACKS: Every situation completion must have a tracked choice.
+    /// Priority: 1. OnSuccessConsequence (if succeeded), 2. OnFailureConsequence (if failed), 3. Consequence (default)
+    /// </summary>
+    private Consequence GetExecutedConsequence(Situation situation)
+    {
+        // FAIL-FAST: No choice tracked is a data/generation error (arc42 §8.30)
+        // Every situation completion MUST come from a choice execution
+        // NO SEQUENTIAL FALLBACK - all flow must be explicit through consequences
+        if (situation.LastChoice == null)
+        {
+            throw new InvalidOperationException(
+                $"Situation '{situation.Name}' completed but no LastChoice tracked. " +
+                "Every situation completion must come from a choice execution. " +
+                "Check that choice execution sets Situation.LastChoice. (arc42 §8.30)");
+        }
+
+        ChoiceTemplate choice = situation.LastChoice;
+
+        // Challenge outcome determines which consequence path was taken
+        if (situation.LastChallengeSucceeded.HasValue)
+        {
+            if (situation.LastChallengeSucceeded.Value && choice.OnSuccessConsequence != null)
+            {
+                return choice.OnSuccessConsequence;
+            }
+            if (!situation.LastChallengeSucceeded.Value && choice.OnFailureConsequence != null)
+            {
+                return choice.OnFailureConsequence;
+            }
+        }
+
+        // No challenge outcome or no specific consequence - use default
+        // FAIL-FAST: Default consequence must exist
+        if (choice.Consequence == null)
+        {
+            throw new InvalidOperationException(
+                $"Situation '{situation.Name}' choice '{choice.ActionTextTemplate}' has no Consequence. " +
+                "Every choice must have a default Consequence with flow control. (arc42 §8.30)");
+        }
+
+        return choice.Consequence;
     }
 }

@@ -1154,6 +1154,139 @@ ScenePromptBuilder includes explicit rules:
 
 ---
 
+## 8.30 Choice-Driven Flow Unification (HIGHLANDER)
+
+**"All flow control through choices. Nothing else."**
+
+Every navigation decision within scenes flows through a single mechanism: the Consequence of executed choices. No parallel mechanisms.
+
+### The Problem
+
+Two mechanisms controlling situation/scene flow creates a HIGHLANDER violation:
+
+| Mechanism | Location | Controls |
+|-----------|----------|----------|
+| `Consequence.ScenesToSpawn` | On choice | Which scenes spawn next |
+| `Scene.SpawnRules.Transitions` | On scene | Which situation activates next |
+
+Different mechanisms mean split responsibility, inconsistent behavior potential, and inability to have different choices lead to different situations.
+
+### The Solution
+
+ALL flow control lives on Consequence. Each choice determines what happens next:
+
+| Flow Type | Property | Effect |
+|-----------|----------|--------|
+| **Within scene** | `NextSituationTemplateId` | Activates specific situation in same scene |
+| **New scene** | `ScenesToSpawn` | Spawns new scenes (existing mechanism) |
+| **End scene** | `IsTerminal` | Completes the current scene |
+
+### Why This Enables True Branching
+
+Previous architecture: ALL choices in a situation led to the SAME next situation (scene-level config determined flow).
+
+New architecture: EACH choice can lead to a DIFFERENT next situation within the same scene.
+
+| Architecture | Branching Capability |
+|--------------|---------------------|
+| **Scene-level transitions** | Linear: S1 → S2 → S3 (all choices lead to same place) |
+| **Choice-driven flow** | Branching: S1 → S2a OR S2b based on player choice |
+
+### The Consequence Hierarchy
+
+Choices already have three consequence slots. Flow control uses the same pattern:
+
+| Consequence Slot | When Applied | Flow Control |
+|------------------|--------------|--------------|
+| `Consequence` | Default outcome | Default flow path |
+| `OnSuccessConsequence` | Challenge succeeded | Success flow path |
+| `OnFailureConsequence` | Challenge failed | Failure flow path |
+
+Different outcomes can lead to different situations—same structure, new capability.
+
+### Mutual Exclusivity Rules
+
+Flow properties are mutually exclusive to prevent contradictory behavior:
+
+| Scenario | Valid | Rationale |
+|----------|-------|-----------|
+| NextSituationTemplateId alone | ✓ | Continue within scene |
+| ScenesToSpawn alone | ✓ | Spawn then implicit scene end |
+| IsTerminal alone | ✓ | End without spawning |
+| NextSituationTemplateId + IsTerminal | ✗ | Can't both continue AND end |
+| NextSituationTemplateId + ScenesToSpawn | ✗ | Can't both stay AND leave |
+| ScenesToSpawn + IsTerminal | ✓ | Spawn then explicit end |
+| None of above | ✗ | **FAIL-FAST exception** |
+
+### NO FALLBACKS (FAIL-FAST Enforcement)
+
+**Every choice consequence MUST have explicit flow control.** If a consequence reaches the scene flow handler without `NextSituationTemplateId`, `IsTerminal`, or `ScenesToSpawn`, the application throws an exception.
+
+| Missing Flow Control | Result |
+|---------------------|--------|
+| No explicit flow | `InvalidOperationException` at runtime |
+| Parser enrichment missed | Parse-time detection via `EnrichSituationFlowControl` |
+
+**Why no fallbacks?** Fallbacks hide authoring errors. If a choice leads nowhere, the player is stuck. Better to crash immediately so the developer fixes it.
+
+**Enrichment Pipeline:** `SceneTemplateParser.EnrichSituationFlowControl()` sets flow on ALL choices:
+- Non-final situations: `NextSituationTemplateId` → next situation in sequence
+- Final situations: `IsTerminal = true` → scene ends
+
+### SpawnGraph Visualization
+
+Choice-driven flow creates meaningful visualization:
+
+| Edge Type | Color | What It Shows |
+|-----------|-------|---------------|
+| **ChoiceFlow** | Purple (#a855f7) | Choice → next situation via NextSituationTemplateId |
+| **SpawnScene** | Green (#22c55e) | Choice → spawned scene via ScenesToSpawn |
+| **SpawnSituation** | Blue (#3b82f6) | Choice → spawned situation via cascading |
+| **Hierarchy** | Gray (#888888) | Parent-child relationships (Scene → Situation → Choice) |
+
+Players can see exactly which choices lead where—purple arrows show flow control, green arrows show scene spawning.
+
+### Catalog Generation Pattern
+
+Flow properties are set via parser enrichment after choice generation (see §8.28 Two-Pass Generation):
+
+| Stage | What Happens |
+|-------|--------------|
+| **Archetype catalogs** | Generate choices WITHOUT flow properties |
+| **`EnrichSituationFlowControl()`** | Parser sets `NextSituationTemplateId` or `IsTerminal` on ALL choices |
+| **MainStory enrichment** | Adds `SpawnNextMainStoryScene` to final situation choices |
+
+Flow control is ENRICHED by the parser, not hand-authored. The enrichment pipeline guarantees every choice has explicit flow.
+
+### Forbidden Patterns
+
+| Pattern | Why Forbidden |
+|---------|---------------|
+| `Scene.SpawnRules.Transitions` | Parallel mechanism, violates HIGHLANDER |
+| Scene-level flow configuration | Flow belongs on choices, not scenes |
+| Hand-authored transitions | Generated by archetypes, not JSON |
+| Implicit completion detection | Use explicit `IsTerminal` flag |
+| **Sequential fallback** | Hides errors, causes soft-locks |
+| Choices without flow properties | Must have explicit flow or crash |
+
+### Benefits
+
+| Benefit | How Achieved |
+|---------|--------------|
+| **HIGHLANDER compliance** | Single mechanism for all flow |
+| **True branching** | Different choices → different paths |
+| **Perfect information** | SpawnGraph shows actual choice-driven flow |
+| **Consistent patterns** | Same Consequence structure everywhere |
+| **Explicit intent** | `IsTerminal` states completion, no inference |
+
+### Cross-References
+
+- §8.1 HIGHLANDER Principle (single source of truth)
+- §8.28 Two-Pass Procedural Generation (archetype-based choice generation)
+- §8.8 Dual-Tier Action Architecture (Consequence as unified cost/reward)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

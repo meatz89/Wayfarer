@@ -422,9 +422,12 @@ dotnet_diagnostic.IDE0057.severity = none
 # IDE0270: Use coalesce expression
 dotnet_diagnostic.IDE0270.severity = none
 
+# IDE0120: Simplify LINQ expression
+dotnet_diagnostic.IDE0120.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_null_propagation = true:suggestion
+dotnet_style_null_propagation = true:none
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_auto_properties = true:suggestion
 dotnet_style_object_initializer = true:suggestion
@@ -452,3 +455,6 @@ dotnet_diagnostic.IDE0306.severity = none
 
 # IDE0305: Simplify collection initialization
 dotnet_diagnostic.IDE0305.severity = none
+
+# IDE0031: Use null propagation
+dotnet_diagnostic.IDE0031.severity = none

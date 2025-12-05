@@ -18,16 +18,8 @@ public class SceneTemplateValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "sit1",
-                Transitions = new List<SituationTransition>
-                {
-                    new()
-                    {
-                        SourceSituationId = "sit1",
-                        DestinationSituationId = "sit2",
-                        Condition = TransitionCondition.Always
-                    }
-                }
+                InitialSituationTemplateId = "sit1"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
     }
@@ -122,43 +114,15 @@ public class SceneTemplateValidatorTests
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_004");
     }
 
-    [Fact]
-    public void Validate_InvalidTransitionSource_ReturnsError()
-    {
-        var template = CreateValidTemplate();
-        template.SpawnRules.Transitions.Add(new SituationTransition
-        {
-            SourceSituationId = "invalid_source",
-            DestinationSituationId = "sit2"
-        });
-
-        SceneValidationResult result = SceneTemplateValidator.Validate(template);
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.Code == "DEP_001");
-    }
-
-    [Fact]
-    public void Validate_InvalidTransitionDestination_ReturnsError()
-    {
-        var template = CreateValidTemplate();
-        template.SpawnRules.Transitions.Add(new SituationTransition
-        {
-            SourceSituationId = "sit1",
-            DestinationSituationId = "invalid_destination"
-        });
-
-        SceneValidationResult result = SceneTemplateValidator.Validate(template);
-
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.Code == "DEP_002");
-    }
+    // HIGHLANDER: Transition validation tests REMOVED (arc42 §8.30)
+    // Flow control now through Consequence.NextSituationTemplateId and IsTerminal
+    // Invalid flow references validated at runtime via Scene.AdvanceToNextSituation()
 
     [Fact]
     public void Validate_InvalidInitialSituation_ReturnsError()
     {
         var template = CreateValidTemplate();
-        template.SpawnRules.InitialSituationId = "invalid_initial";
+        template.SpawnRules.InitialSituationTemplateId = "invalid_initial";
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
@@ -180,16 +144,8 @@ public class SceneTemplateValidatorTests
             SpawnRules = new SituationSpawnRules
             {
                 Pattern = SpawnPattern.Linear,
-                InitialSituationId = "invalid",
-                Transitions = new List<SituationTransition>
-                {
-                    new()
-                    {
-                        SourceSituationId = "sit1",
-                        DestinationSituationId = "sit2",
-                        Condition = TransitionCondition.Always
-                    }
-                }
+                InitialSituationTemplateId = "invalid"
+                // HIGHLANDER: Flow control through Consequence.NextSituationTemplateId (arc42 §8.30)
             }
         };
 

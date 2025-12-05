@@ -216,6 +216,10 @@ public class SceneTemplateParser
             RhythmPattern = rhythmPattern
         };
 
+        // HIGHLANDER: Explicit flow control for ALL scenes (arc42 §8.30)
+        // NO SEQUENTIAL FALLBACK - all flow must be explicit
+        EnrichSituationFlowControl(template);
+
         // A-STORY ENRICHMENT: Per CONTENT_ARCHITECTURE.md §8
         // "ALL final situation choices receive spawn reward for next A-scene"
         // HIGHLANDER: ONE enrichment path for ALL MainStory scenes
@@ -314,6 +318,25 @@ public class SceneTemplateParser
         if (dto == null)
             return new Consequence(); // No effects
 
+        // HIGHLANDER: Validate mutual exclusivity at DTO level (arc42 §8.30)
+        bool hasNextSituation = !string.IsNullOrEmpty(dto.NextSituationTemplateId);
+        List<SceneSpawnReward> scenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn);
+        bool hasSceneSpawn = scenesToSpawn.Count > 0;
+
+        if (hasNextSituation && dto.IsTerminal)
+        {
+            throw new InvalidDataException(
+                $"Consequence has both NextSituationTemplateId='{dto.NextSituationTemplateId}' and IsTerminal=true. " +
+                "These are mutually exclusive - a choice cannot both continue to next situation AND end the scene. (arc42 §8.30)");
+        }
+
+        if (hasNextSituation && hasSceneSpawn)
+        {
+            throw new InvalidDataException(
+                $"Consequence has both NextSituationTemplateId='{dto.NextSituationTemplateId}' and ScenesToSpawn ({scenesToSpawn.Count} scenes). " +
+                "These are mutually exclusive - a choice cannot both stay within scene AND spawn new scenes. (arc42 §8.30)");
+        }
+
         return new Consequence
         {
             // Resource changes (negative = cost, positive = reward)
@@ -342,7 +365,10 @@ public class SceneTemplateParser
             Achievements = ParseAchievements(dto.AchievementIds),
             Items = ParseItems(dto.ItemIds),
             ItemsToRemove = ParseItemsToRemove(dto.ItemsToRemove),
-            ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
+            ScenesToSpawn = scenesToSpawn,
+            // Flow control (HIGHLANDER: all flow through choices)
+            NextSituationTemplateId = dto.NextSituationTemplateId,
+            IsTerminal = dto.IsTerminal
         };
     }
 
@@ -610,39 +636,15 @@ public class SceneTemplateParser
         return new SituationSpawnRules
         {
             Pattern = pattern,
-            InitialSituationId = dto.InitialSituationId,
-            Transitions = ParseSituationTransitions(dto.Transitions, contextId),
+            InitialSituationTemplateId = dto.InitialSituationTemplateId,
+            // HIGHLANDER: Transitions REMOVED (see arc42 §8.30)
+            // All flow control through Consequence.NextSituationTemplateId and IsTerminal
             CompletionCondition = dto.CompletionCondition
         };
     }
 
-    /// <summary>
-    /// Parse SituationTransitions from DTOs
-    /// </summary>
-    private List<SituationTransition> ParseSituationTransitions(List<SituationTransitionDTO> dtos, string contextId)
-    {
-        if (dtos == null || !dtos.Any())
-            return new List<SituationTransition>();
-
-        List<SituationTransition> transitions = new List<SituationTransition>();
-        foreach (SituationTransitionDTO dto in dtos)
-        {
-            if (!Enum.TryParse<TransitionCondition>(dto.Condition, true, out TransitionCondition condition))
-            {
-                throw new InvalidDataException($"SceneTemplate '{contextId}' SituationTransition has invalid Condition: '{dto.Condition}'");
-            }
-
-            transitions.Add(new SituationTransition
-            {
-                SourceSituationId = dto.SourceSituationId,
-                DestinationSituationId = dto.DestinationSituationId,
-                Condition = condition,
-                SpecificChoiceId = dto.SpecificChoiceId
-            });
-        }
-
-        return transitions;
-    }
+    // HIGHLANDER: ParseSituationTransitions method REMOVED (see arc42 §8.30)
+    // All flow control through Consequence.NextSituationTemplateId and IsTerminal
 
     /// <summary>
     /// Parse TimeBlock enum from string
@@ -673,6 +675,67 @@ public class SceneTemplateParser
     }
 
     /// <summary>
+    /// HIGHLANDER: Set explicit flow control on ALL choices in ALL situations (arc42 §8.30)
+    /// NO SEQUENTIAL FALLBACK - every choice must specify where flow goes next.
+    /// - Non-final situations: NextSituationTemplateId points to next situation
+    /// - Final situations: IsTerminal = true (scene ends)
+    /// </summary>
+    private static void EnrichSituationFlowControl(SceneTemplate template)
+    {
+        if (template.SituationTemplates.Count == 0)
+            return;
+
+        for (int i = 0; i < template.SituationTemplates.Count; i++)
+        {
+            SituationTemplate situation = template.SituationTemplates[i];
+            bool isFinalSituation = (i == template.SituationTemplates.Count - 1);
+
+            foreach (ChoiceTemplate choice in situation.ChoiceTemplates)
+            {
+                EnrichChoiceFlowControl(choice.Consequence, situation, template, i, isFinalSituation);
+                EnrichChoiceFlowControl(choice.OnSuccessConsequence, situation, template, i, isFinalSituation);
+                EnrichChoiceFlowControl(choice.OnFailureConsequence, situation, template, i, isFinalSituation);
+            }
+        }
+
+        Console.WriteLine($"[FlowControl Enrichment] Enriched {template.SituationTemplates.Count} situations in scene '{template.Id}'");
+    }
+
+    /// <summary>
+    /// Set flow control on a single consequence.
+    /// MUTUAL EXCLUSIVITY: If consequence already has ScenesToSpawn, that implies scene transition - set IsTerminal.
+    /// Otherwise: non-final → NextSituationTemplateId, final → IsTerminal.
+    /// </summary>
+    private static void EnrichChoiceFlowControl(Consequence consequence, SituationTemplate situation, SceneTemplate template, int situationIndex, bool isFinalSituation)
+    {
+        if (consequence == null)
+            return;
+
+        // Skip if flow control already explicitly set
+        if (!string.IsNullOrEmpty(consequence.NextSituationTemplateId) || consequence.IsTerminal)
+            return;
+
+        // If consequence spawns scenes, it's implicitly terminal (leaving current scene)
+        if (consequence.ScenesToSpawn.Count > 0)
+        {
+            consequence.IsTerminal = true;
+            return;
+        }
+
+        if (isFinalSituation)
+        {
+            // Final situation - scene ends
+            consequence.IsTerminal = true;
+        }
+        else
+        {
+            // Non-final situation - point to next situation in sequence
+            SituationTemplate nextSituation = template.SituationTemplates[situationIndex + 1];
+            consequence.NextSituationTemplateId = nextSituation.Id;
+        }
+    }
+
+    /// <summary>
     /// Enrich MainStory final situation choices with SpawnNextMainStoryScene
     /// Per CONTENT_ARCHITECTURE.md §8: "ALL final situation choices receive spawn reward"
     /// HIGHLANDER: ONE enrichment path for ALL MainStory scenes
@@ -692,7 +755,9 @@ public class SceneTemplateParser
             {
                 choice.Consequence.ScenesToSpawn.Add(new SceneSpawnReward { SpawnNextMainStoryScene = true });
             }
-            Console.WriteLine($"[MainStory Enrichment] Choice '{choice.Id}' ScenesToSpawn after: {choice.Consequence.ScenesToSpawn.Count}");
+            // HIGHLANDER: Mark final situation choices as terminal (arc42 §8.30)
+            choice.Consequence.IsTerminal = true;
+            Console.WriteLine($"[MainStory Enrichment] Choice '{choice.Id}' ScenesToSpawn after: {choice.Consequence.ScenesToSpawn.Count}, IsTerminal: {choice.Consequence.IsTerminal}");
         }
 
         Console.WriteLine($"[MainStory Enrichment] Enriched {finalSituation.ChoiceTemplates.Count} choices in final situation '{finalSituation.Id}' for scene '{template.Id}'");

@@ -8,7 +8,8 @@ public enum SpawnGraphLinkType
     SpawnSituation,
     EntityLocation,
     EntityNpc,
-    EntityRoute
+    EntityRoute,
+    ChoiceFlow  // Choice → Situation via Consequence.NextSituationTemplateId (arc42 §8.30)
 }
 
 public class SpawnGraphLinkModel : LinkModel
@@ -33,6 +34,18 @@ public class SpawnGraphLinkModel : LinkModel
         Color = GetColorForLinkType(linkType);
         CssClass = GetCssClassForLinkType(linkType);
         Label = BuildLabelFromMetadata(metadata) ?? GetLabelForLinkType(linkType);
+    }
+
+    /// <summary>
+    /// Constructor for ChoiceFlow links with custom label (arc42 §8.30)
+    /// </summary>
+    public SpawnGraphLinkModel(NodeModel source, NodeModel target, SpawnGraphLinkType linkType, string customLabel)
+        : base(source, target)
+    {
+        LinkType = linkType;
+        Color = GetColorForLinkType(linkType);
+        CssClass = GetCssClassForLinkType(linkType);
+        Label = customLabel ?? GetLabelForLinkType(linkType);
     }
 
     private string BuildLabelFromMetadata(EntityResolutionMetadata metadata)
@@ -127,6 +140,7 @@ public class SpawnGraphLinkModel : LinkModel
             SpawnGraphLinkType.EntityLocation => "#f97316",
             SpawnGraphLinkType.EntityNpc => "#ef4444",
             SpawnGraphLinkType.EntityRoute => "#b45309",
+            SpawnGraphLinkType.ChoiceFlow => "#a855f7",  // Purple for choice-driven flow (arc42 §8.30)
             _ => "#888888"
         };
     }
@@ -141,6 +155,7 @@ public class SpawnGraphLinkModel : LinkModel
             SpawnGraphLinkType.EntityLocation => "link-entity-location",
             SpawnGraphLinkType.EntityNpc => "link-entity-npc",
             SpawnGraphLinkType.EntityRoute => "link-entity-route",
+            SpawnGraphLinkType.ChoiceFlow => "link-choice-flow",  // Choice-driven flow style (arc42 §8.30)
             _ => "link-hierarchy"
         };
     }
@@ -154,6 +169,7 @@ public class SpawnGraphLinkModel : LinkModel
             SpawnGraphLinkType.EntityLocation => "at",
             SpawnGraphLinkType.EntityNpc => "with",
             SpawnGraphLinkType.EntityRoute => "via",
+            SpawnGraphLinkType.ChoiceFlow => "→",  // Arrow for choice-driven flow (arc42 §8.30)
             _ => null
         };
     }

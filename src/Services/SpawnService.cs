@@ -186,8 +186,9 @@ public class SpawnService
             LifecycleStatus = LifecycleStatus.Selectable,
 
             // Spawn tracking
+            // NOTE: ParentSituation REMOVED - cascade parentage tracked by ProceduralContentTracer only
+            // HIGHLANDER: Situation flow determined by Scene.SpawnRules.Transitions, not situation properties
             Template = null,
-            ParentSituation = parentSituation, // Object reference, not ParentSituationId
             Lifecycle = new SpawnTracking
             {
                 SpawnedDay = _timeManager.CurrentDay,
