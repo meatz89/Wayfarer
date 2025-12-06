@@ -815,20 +815,22 @@ Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTempl
 | **Situations 1 to N-1** | Building | Choices GRANT stats (investment phase) |
 | **Situation N (final)** | Crisis | Stat-gated choices TEST accumulated investment |
 
-### Position-Based Rhythm
+### Rhythm Through Situation Structure
 
-Rhythm is derived from situation position within the scene, not from an explicit property:
+Rhythm is embodied in the SituationTemplate's ChoiceTemplates, not stored as a property:
 
-| Position | Rhythm | Choice Generation |
-|----------|--------|-------------------|
-| Situations 1 to N-1 | Building | Grants stats (no requirements) |
-| Situation N (final) | Crisis | Tests stats (stat-gated choices) |
+| Position | Rhythm | ChoiceTemplate Structure |
+|----------|--------|--------------------------|
+| Situations 1 to N-1 | Building | Choices grant stats (no requirements) |
+| Situation N (final) | Crisis | Choices test stats (stat-gated requirements) |
 
-The archetype generates N situations. Choice generation checks position to determine rhythm:
-- `IsFinalSituation(position, total)` → Crisis rhythm
-- Otherwise → Building rhythm
+When archetypes generate SituationTemplates, they create appropriate ChoiceTemplates based on position:
+- Earlier situations receive Building-structured choices (stat grants)
+- Final situation receives Crisis-structured choices (stat tests)
 
-**Implementation note:** Migration from per-scene RhythmPattern to position-based rhythm is tracked in `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3.
+The rhythm isn't a runtime check—it's baked into the choice definitions at generation time. No RhythmPattern property needed.
+
+**Implementation note:** Migration tracked in `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3.
 
 ### Two Distinct Systems
 

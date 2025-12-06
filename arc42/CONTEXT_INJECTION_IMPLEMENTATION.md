@@ -107,18 +107,20 @@ The narrative rhythm borrowed from The Life and Suffering of Sir Brante operates
 | **1 to N-1** | Building | Choices GRANT stats (investment phase) |
 | **N (final)** | Crisis | Stat-gated choices TEST investment |
 
-### Position-Based Rhythm
+### Rhythm Through Situation Structure
 
-Rhythm is derived from situation position, not from an explicit property:
+Rhythm is embodied in the SituationTemplate's ChoiceTemplates:
 
-| Input | Determines |
-|-------|------------|
-| **Position in scene** | Building vs Crisis rhythm |
-| **ArchetypeIntensity** | Recovery/Standard/Demanding (difficulty) |
+| Input | Effect |
+|-------|--------|
+| **Position in scene** | Determines choice structure at generation time |
+| **ArchetypeIntensity** | Recovery/Standard/Demanding (difficulty scaling) |
 
-Choice generation checks `IsFinalSituation(position, total)`:
-- Final situation → Crisis rhythm (test stats)
-- Other situations → Building rhythm (grant stats)
+Archetypes generate ChoiceTemplates appropriate to position:
+- Earlier situations → Building choices (stat grants)
+- Final situation → Crisis choices (stat tests)
+
+The rhythm is baked into the choice definitions—no RhythmPattern property needed.
 
 **Implementation note:** Migration tracked in `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3.
 
