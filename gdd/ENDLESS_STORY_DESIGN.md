@@ -452,27 +452,72 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 | Principle | Description |
 |-----------|-------------|
-| **Building → Checking** | A-stories alternate stat growth and stat tests (Sir Brante rhythm) |
-| **B-Consequence = Earned** | Spawns on A-story success; mandatory; continues narrative with same NPCs |
+| **Scene = Arc** | Each A-Story scene IS an arc; last situation is always Crisis; Building situations lead up |
+| **Template + Context** | SceneTemplates define structure (constant); context injection creates variety (variable) |
+| **B-Consequence = Earned** | Spawns when player takes stat-gated choice in Crisis; mandatory; same NPCs/locations |
 | **B-Sought = Fallback** | Player seeks out via job boards; opt-in; repeatable; prevents soft-lock |
 | **C = Natural Texture** | C-stories emerge from journey—not spawned, experienced |
-| **Narrative Continuity** | B-Consequence continues A-story threads with same characters/locations |
+| **Narrative Continuity** | B-Consequence continues A-story threads via categorical PlacementFilter matching |
 | **Travel Cost Gate** | Distance creates resource demand; B-stories fund travel |
 | **Three-Tier Income** | B-Consequence (premium) → B-Sought (reliable) → Atmospheric (safety net) |
-| **Terrain Variety** | Route choice = impossible choice (time vs stamina vs coins vs encounters) |
 
 ---
 
 ## Mechanical Definitions
 
+### Scene = Arc (The Core Model)
+
+Each A-Story **scene IS an arc**. Not "multiple scenes form an arc"—ONE scene = ONE arc.
+
+```
+SceneTemplate (pre-authored, parsed at game start)
+    │
+    ├── Situation 1: Building (stat growth, narrative setup)
+    ├── Situation 2: Building (investment accumulates)
+    ├── Situation 3: Building (stakes rise)
+    ├── ...
+    └── Situation N: CRISIS (stat-gated choices, B-Consequence triggers)
+                     ↑
+                     Always the LAST situation
+```
+
+### Template Constants vs Instance Variables
+
+| CONSTANT (per template) | VARIABLE (per instance) |
+|------------------------|------------------------|
+| Number of situations | NPCs (PlacementFilter resolution) |
+| Arc structure | Locations (PlacementFilter resolution) |
+| Mechanical flow baseline | Concrete stat values (context injection) |
+| Crisis position (always last) | Narrative flavor (AI generation) |
+
+**Why same template doesn't get stale:**
+- Different NPCs resolve each time (categorical matching)
+- Different locations based on player position
+- Different stat thresholds from player investment state
+- Different narrative from AI Pass 2
+
+### Procedural Selection + Context Injection
+
+```
+Game State + Player Choices + Anti-Repetition Rules
+    ↓
+Procedural Selection (deterministic)
+    ↓
+SceneTemplate chosen (defines structure)
+    ↓
+Context Injection (categorical properties)
+    ↓
+Scene Instance (unique experience)
+```
+
 | Concept | Mechanism | Status |
 |---------|-----------|--------|
-| **Building Phase** | `RhythmPattern.Building` on SceneTemplate | ✓ Exists |
-| **Checking Phase** | `RhythmPattern.Crisis` on SceneTemplate | ✓ Exists |
-| **B-Consequence Trigger** | Choice with `ScenesToSpawn` reward + stat requirements | ✓ Mechanism exists |
-| **Narrative Continuity** | EntityResolver + PlacementFilter categorical matching | ✓ Exists (HIGHLANDER) |
-| **Same NPC** | PlacementFilter: profession, personality + `SameVenue` proximity | ✓ Exists |
-| **Same Location** | PlacementFilter: purpose, privacy, safety + `SameVenue` proximity | ✓ Exists |
+| **SceneTemplate** | Pre-authored JSON, parsed at game start | ✓ Exists |
+| **Template Selection** | Procedural rules based on game state | ✓ Exists |
+| **Context Injection** | Categorical properties influence generation | ✓ Exists |
+| **Crisis Position** | Always last situation in A-Story scene | Design rule |
+| **B-Consequence Trigger** | Choice with `ScenesToSpawn` + stat requirements | ✓ Mechanism exists |
+| **Narrative Continuity** | EntityResolver + PlacementFilter | ✓ Exists (HIGHLANDER) |
 
 > **Note:** There is no "success/failure" dichotomy. Each choice has OR-requirements and consequences (positive, negative, or trade-offs). B-Consequence spawns when player takes a stat-gated choice vs fallback.
 

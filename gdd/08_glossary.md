@@ -126,14 +126,45 @@ The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3..
 
 **Building → Checking Rhythm (Sir Brante Pattern):**
 
-A-stories alternate between two phases, determined by the `RhythmPattern` enum on the SceneTemplate:
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
 
-| Phase | RhythmPattern | Player Experience |
-|-------|---------------|-------------------|
-| **Building** | `RhythmPattern.Building` | Situations that grow player stats through choices. Investment decisions accumulate. |
-| **Checking** | `RhythmPattern.Crisis` | Situations with stat-gated choices. Player's accumulated investment enables better options. |
+| Component | Role |
+|-----------|------|
+| **SceneTemplate** | Pre-authored definition parsed from JSON at game start. Defines arc length and structure. |
+| **Situations 1 to N-1** | Building situations—stat growth, investment, narrative setup |
+| **Situation N (final)** | Crisis situation—stat-gated choices that test accumulated investment |
 
-When player **takes a stat-gated choice** (meets the OR-requirements), a B-Consequence thread spawns—continuing the narrative with the same characters and locations, deepening the story the A-story established.
+**Arc Length Varies by Template:**
+
+Different SceneTemplates have different situation counts, creating natural variety:
+- Short arcs: 2-3 situations (quick buildup → crisis)
+- Medium arcs: 4-5 situations (substantial buildup → crisis)
+- Long arcs: 6+ situations (extended buildup → major crisis)
+
+**Why This Feels Non-Deterministic:**
+
+| Constant (per template) | Variable (per instance) |
+|-------------------------|------------------------|
+| Number of situations | NPCs (via PlacementFilter) |
+| Arc structure | Locations (via PlacementFilter) |
+| Mechanical flow baseline | Concrete stat values (via context) |
+| Crisis position (always last) | Narrative flavor (via AI generation) |
+
+The **procedural selection system** chooses which SceneTemplate to use based on:
+- Player's current state
+- Previous arc patterns (anti-repetition)
+- Narrative progression requirements
+- Game state categorical properties
+
+The **context injection** then supplies categorical properties that influence concrete mechanical construction. The same template plays out differently each time because:
+- Different NPCs resolve from PlacementFilters
+- Different locations based on player position
+- Different stat thresholds based on player investment
+- Different narrative from AI generation
+
+**Result:** Player cannot predict arc length (varies by template), and each instance feels fresh (context varies), but mechanical flow is guaranteed satisfying (template constants).
+
+When player **takes a stat-gated choice** in the Crisis situation (meets the OR-requirements), a B-Consequence thread spawns—continuing the narrative with the same characters and locations.
 
 > **Note:** There is no "success" or "failure" in the traditional sense. Each choice has OR-requirements (Sir Brante style) and consequences (positive, negative, or trade-offs). Taking a stat-gated choice vs taking the fallback choice leads to different consequences and different B-Consequence spawns.
 
