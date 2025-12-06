@@ -815,26 +815,20 @@ Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTempl
 | **Situations 1 to N-1** | Building | Choices GRANT stats (investment phase) |
 | **Situation N (final)** | Crisis | Stat-gated choices TEST accumulated investment |
 
-### Current Implementation: RhythmPattern
+### Position-Based Rhythm
 
-**Current state:** Code uses explicit `RhythmPattern` enum (Building, Crisis, Mixed) to determine choice generation. This property exists on SceneTemplate and is parsed from JSON content.
+Rhythm is derived from situation position within the scene, not from an explicit property:
 
-| RhythmPattern Value | Choice Generation |
-|---------------------|-------------------|
-| Building | Grants stats (investment) |
-| Crisis | Tests stats (stat-gated choices) |
-| Mixed | Combination of both |
+| Position | Rhythm | Choice Generation |
+|----------|--------|-------------------|
+| Situations 1 to N-1 | Building | Grants stats (no requirements) |
+| Situation N (final) | Crisis | Tests stats (stat-gated choices) |
 
-### Planned Migration: Position-Based
+The archetype generates N situations. Choice generation checks position to determine rhythm:
+- `IsFinalSituation(position, total)` → Crisis rhythm
+- Otherwise → Building rhythm
 
-**Target architecture:** Position within scene determines structure, not explicit property.
-
-| Position | Derived Structure |
-|----------|-------------------|
-| Situations 1 to N-1 | Building (by position) |
-| Situation N (final) | Crisis (by position) |
-
-**Migration status:** See `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3 for migration steps. Until migration complete, RhythmPattern remains authoritative.
+**Implementation note:** Migration from per-scene RhythmPattern to position-based rhythm is tracked in `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3.
 
 ### Two Distinct Systems
 
@@ -893,8 +887,7 @@ SceneSpawnResult → Intensity History → Select SceneTemplate
 | Location properties in selection | Selection uses intensity history only |
 | Player stats influencing selection | Game doesn't cushion poor play |
 | Different paths for authored vs procedural | Same mechanism for both |
-
-> **Note:** Scene-level RhythmPattern is currently used but planned for removal. See migration plan above.
+| Scene-level RhythmPattern property | Rhythm derived from position, not authored |
 
 ### B-Story Templates: Two Distinct Rhythms
 
