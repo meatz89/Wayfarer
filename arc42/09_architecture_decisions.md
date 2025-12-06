@@ -538,6 +538,65 @@ This ADR **SUPERSEDES** the clause in ADR-015 stating "Keep separate ActionCosts
 
 ---
 
+## ADR-019: Rhythm Through Situation Structure (Not Property)
+
+**Status:** Accepted
+
+**Context:**
+
+A-Story scenes follow the Sir Brante pattern: Building situations (stat grants) followed by a Crisis situation (stat tests). This "rhythm" must be represented somehow in the architecture.
+
+**Common Misunderstanding:**
+
+It's tempting to think of rhythm as a runtime derivation:
+- "Check situation position at query time"
+- "If final situation, use Crisis rhythm; otherwise Building"
+- "Position determines rhythm dynamically"
+
+This is **WRONG**. It conflates when rhythm is KNOWN with when it's APPLIED.
+
+**The Correct Model:**
+
+Rhythm is **embodied in the SituationTemplate's ChoiceTemplates** at generation time:
+
+| When | What Happens |
+|------|--------------|
+| **Generation time** | Archetype knows position, creates appropriate ChoiceTemplates |
+| **Parse time** | SituationTemplates already contain correctly-structured choices |
+| **Runtime** | No rhythm derivation needed—structure IS the rhythm |
+
+**Key Insight:**
+
+- SituationTemplates contain ChoiceTemplates (the choice definitions)
+- Earlier situations get Building-structured choices (stat grants, no requirements)
+- Final situation gets Crisis-structured choices (stat-gated requirements)
+- The rhythm isn't stored—it's expressed through the choice structure itself
+
+**Decision:**
+
+1. Rhythm is baked into ChoiceTemplates at archetype generation time
+2. No RhythmPattern property needed on SceneTemplate
+3. Position is known at generation time, not checked at runtime
+4. Structure IS the rhythm—no explicit property required
+
+**Consequences:**
+
+- (+) No runtime position checking needed
+- (+) Choice structure is self-documenting (look at choices to see rhythm)
+- (+) Archetypes have full control over per-situation choice structure
+- (+) No mismatch between stored property and actual choice structure
+- (-) Requires migration from existing RhythmPattern property
+
+**Migration:**
+
+See `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3 for removing RhythmPattern property. The property is redundant—rhythm is already expressed in choice structure.
+
+**Related:**
+- §8.25 Context Injection (Rhythm Through Situation Structure)
+- gdd/ENDLESS_STORY_DESIGN.md (Building → Crisis arc model)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement
