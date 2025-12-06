@@ -17,10 +17,10 @@
     │                              A-STORY (Main Narrative)                            │
     │                                                                                  │
     │   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐      │
-    │   │  BUILDING   │───▶│  BUILDING   │───▶│  BUILDING   │───▶│  CHECKING   │      │
+    │   │  BUILDING   │───▶│  BUILDING   │───▶│  BUILDING   │───▶│   CRISIS    │      │
     │   │  Situation  │    │  Situation  │    │  Situation  │    │  Situation  │      │
     │   │             │    │             │    │             │    │             │      │
-    │   │ +Insight    │    │ +Rapport    │    │ +Authority  │    │ HARD CHECK  │      │
+    │   │ +Insight    │    │ +Rapport    │    │ +Authority  │    │ STAT-GATED  │      │
     │   │ choice      │    │ choice      │    │ choice      │    │ Insight 8   │      │
     │   └─────────────┘    └─────────────┘    └─────────────┘    └──────┬──────┘      │
     │                                                                   │              │
@@ -96,7 +96,7 @@ flowchart TD
         A1[Building Situation 1<br/>Stat growth choices]
         A2[Building Situation 2<br/>Stat growth choices]
         A3[Building Situation 3<br/>Stat growth choices]
-        A4[Checking Situation<br/>Hard stat requirement]
+        A4[Crisis Situation<br/>Stat-gated choices]
 
         A1 --> A2 --> A3 --> A4
     end

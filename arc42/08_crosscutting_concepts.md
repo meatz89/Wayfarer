@@ -804,39 +804,39 @@ After all references established, generates PERSISTENT names stored on entity pr
 
 ## 8.25 Context Injection (HIGHLANDER Scene Generation)
 
-**"RhythmPattern drives selection. Location difficulty drives scaling. Never mixed."**
+**"Position drives structure. Location difficulty drives scaling. Never mixed."**
 
-### RhythmPattern Definitions
+### Scene = Arc Model
 
-Content rhythm controls how situations present choices to players:
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
 
-| Rhythm | Choice Structure | Player Experience |
-|--------|------------------|-------------------|
-| **Building** | All positive—choose which stat to gain | Identity formation |
-| **Crisis** | All negative—choose which loss to minimize | Test investments |
-| **Mixed** | Trade-offs—sacrifice for gain | Strategic decisions |
+| Position | Structure | Choice Generation |
+|----------|-----------|-------------------|
+| **Situations 1 to N-1** | Building | Choices GRANT stats (investment phase) |
+| **Situation N (final)** | Crisis | Stat-gated choices TEST accumulated investment |
 
-**Rhythm emerges from intensity history, not player state.** Player resources do NOT affect which rhythm is selected—the rhythm comes from PAST scenes, not CURRENT state.
+**Position determines structure, not an explicit RhythmPattern property.** The final situation of every A-Story scene is ALWAYS the Crisis.
 
 ### Two Distinct Systems
 
 | System | Input | When Applied | Controls |
 |--------|-------|--------------|----------|
-| **Scene Selection** | RhythmPattern + anti-repetition | Scene spawn trigger hit | Which archetype category |
+| **Template Selection** | Intensity history + anti-repetition | Scene spawn trigger hit | Which SceneTemplate |
 | **Choice Scaling** | Location difficulty (hex distance) | Situation created | Requirement/reward values |
 
 These systems are ORTHOGONAL. Selection doesn't know about scaling. Scaling doesn't influence selection.
 
-### Scene Selection: RhythmPattern Only
+### Template Selection
 
-Scene archetype selection uses ONLY:
+Scene template selection uses:
 
 | Input | Source | Purpose |
 |-------|--------|---------|
-| **RhythmPattern** | Computed from intensity history | Building → building archetypes; Crisis → crisis archetypes |
-| **Anti-Repetition** | Recent categories/archetypes | Avoid immediate repetition |
+| **Intensity History** | Completed scenes | Avoid intensity fatigue |
+| **Anti-Repetition** | Recent archetypes | Avoid immediate repetition |
+| **Narrative State** | Player progression | Match story context |
 
-**No other inputs influence selection.** Location context, player stats, tier—all REMOVED from selection.
+**No location context influences selection.** Location difficulty ONLY affects choice scaling.
 
 ### Choice Scaling: Location Difficulty
 
@@ -852,26 +852,29 @@ Scaling happens at instantiation—AFTER selection is complete.
 ### Context Flow
 
 ```
-SceneSpawnResult → RhythmPattern → Select Category → SceneTemplate
-                                                          ↓
-                              Location Difficulty → Choice Scaling
+SceneSpawnResult → Intensity History → Select SceneTemplate
+                                              ↓
+        SceneTemplate (defines arc structure: Building...Building...Crisis)
+                                              ↓
+                      Location Difficulty → Choice Scaling per Situation
 ```
 
 ### HIGHLANDER Compliance
 
 | Principle | How It's Upheld |
 |-----------|-----------------|
-| **Same selection logic** | RhythmPattern processed identically for authored/procedural |
+| **Same selection logic** | Template selection works identically for authored/procedural |
+| **Same arc structure** | Every scene contains Building situations + final Crisis |
 | **Same scaling logic** | Location difficulty applied identically to all choices |
-| **No source detection** | Selection doesn't know if context was authored or procedural |
 
 ### Forbidden Patterns
 
 | Pattern | Why It's Wrong |
 |---------|----------------|
-| Location properties in selection | Selection uses rhythm only |
+| Location properties in selection | Selection uses intensity history only |
 | Player stats influencing selection | Game doesn't cushion poor play |
 | Different paths for authored vs procedural | Same mechanism for both |
+| Scene-level RhythmPattern property | Position determines structure |
 
 **Cross-References:**
 - §8.4 Three-Tier Timing: Unified scene creation mechanism
@@ -992,7 +995,7 @@ Categorical properties flow through archetypes to produce concrete mechanical co
 | Input | Processor | Output |
 |-------|-----------|--------|
 | SceneArchetypeType + GenerationContext | SceneArchetypeCatalog | SituationTemplates with choices |
-| RhythmPattern | SituationArchetypeCatalog | Choice STRUCTURE (Building/Crisis/Mixed) |
+| Situation Position in Scene | SituationArchetypeCatalog | Choice STRUCTURE (Building=grant, Crisis=test) |
 | PowerDynamic, NPCDemeanor, Quality | GenerationContext scaling | Value ADJUSTMENTS (thresholds, costs) |
 
 **Key Principle:** Archetypes are reusable across all contexts. Tutorial and late-game use identical archetype code; categorical properties create appropriate difficulty.

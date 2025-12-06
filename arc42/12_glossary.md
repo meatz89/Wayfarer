@@ -8,7 +8,7 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
-| **ArchetypeIntensity** | Content categorization: Recovery, Standard, Demanding. Orthogonal to RhythmPattern. |
+| **ArchetypeIntensity** | Content categorization: Recovery, Standard, Demanding. Drives difficulty scaling; orthogonal to position-based arc structure. |
 | **A-Story** | Infinite main narrative (mandatory). Enum: MainStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **B-Consequence** | Reward from A-story success (mandatory). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **B-Sought** | Player-initiated quests (opt-in). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
@@ -26,7 +26,7 @@ Domain and technical terms used throughout this documentation.
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
-| **RhythmPattern** | Choice generation pattern determining HOW choices are structured: Building (stat grants, no requirements), Crisis (penalty avoidance), Mixed (standard trade-offs). Determines choice STRUCTURE, not archetype selection. Orthogonal to ArchetypeIntensity. |
+| **Building → Crisis Structure** | Scene arc model (Sir Brante pattern): positions 1 to N-1 are Building (stat grants), position N is Crisis (stat-gated test). Position determines structure, not explicit property. |
 | **Scene** | Mutable instance created from SceneTemplate at spawn-time; contains Situation instances (created at activation-time); lifecycle: Deferred → Active → Completed |
 | **SceneTemplate** | Immutable archetype containing SituationTemplates; created at parse-time; JSON uses `sceneTemplates` key, NEVER `scenes` |
 | **Situation** | Mutable instance created from SituationTemplate at activation-time; contains resolved entity references (Location, NPC, Route) |

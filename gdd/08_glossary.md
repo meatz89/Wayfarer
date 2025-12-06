@@ -124,7 +124,7 @@ A-Story, B-Story, and C-Story are distinguished by a **combination of properties
 ### A-Story
 The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. **Player cannot decline**—when an A-scene activates, engagement is mandatory. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
 
-**Building → Checking Rhythm (Sir Brante Pattern):**
+**Building → Crisis Rhythm (Sir Brante Pattern):**
 
 Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
 
@@ -268,7 +268,7 @@ The categories form an interconnected narrative and economic ecosystem:
 
 **The story causality:**
 ```
-A-Story (Building → Checking)
+A-Story (Building → Crisis)
     │
     ├── SUCCESS at check → B-Consequence spawns (mandatory)
     │                      └── Same NPCs, deeper story, premium rewards

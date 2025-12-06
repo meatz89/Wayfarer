@@ -31,21 +31,21 @@ Story categories are distinguished by a **combination of properties**, not a sin
 The primary narrative spine that never ends. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. **Player cannot decline**—when an A-scene activates, engagement is mandatory.
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
-- Uses the SAME selection logic as procedural content
-- Tutorial scenes emerge from authored RhythmPattern (not overrides)
+- Uses the SAME scene structure as procedural content
+- Each scene is an arc (Building situations → final Crisis)
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Uses the SAME selection logic as tutorial
-- RhythmPattern computed from intensity history
+- Uses the SAME scene structure as tutorial
+- Template selected via intensity history + anti-repetition
 - Never resolves, always deepens
 
-**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is RhythmPattern source:
+**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL structure. The ONLY difference is context source:
 
-| Content | RhythmPattern Source | Selection Logic |
-|---------|---------------------|-----------------|
-| Tutorial | Authored in SceneSpawnReward | Same |
-| Procedural | Computed from intensity history | Same |
+| Content | Context Source | Scene Structure |
+|---------|----------------|-----------------|
+| Tutorial | Authored in SceneSpawnReward | Building → Crisis arc |
+| Procedural | Computed from intensity history | Building → Crisis arc |
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
@@ -351,13 +351,14 @@ A-Story scenes spawn at locations that increase in distance from the world origi
 ### The Loop
 
 ```
-A-Story N: Building → Checking rhythm
+A-Story Scene N (one scene = one arc):
+    Building Situation 1 → Building Situation 2 → ... → Crisis Situation (final)
     ↓
-SUCCEED at hard stat check → B-Story spawns (reward thread)
+Take stat-gated choice in Crisis → B-Consequence spawns (reward thread)
     ↓
-B-Story: Continue narrative, earn great rewards
+B-Consequence: Continue narrative with same NPCs, earn premium rewards
     ↓
-A-Story N+1 spawns at distance N+1
+A-Story Scene N+1 spawns at distance N+1
     ↓
 Travel journey → C-Stories emerge naturally (route/location/NPC texture)
     ↓
@@ -369,7 +370,7 @@ Repeat forever
 ### Story Category Relationships
 
 Per the property matrix in §5.1:
-- **A-Story** is a resource SINK (travel costs) with Building → Checking rhythm
+- **A-Story** is a resource SINK (travel costs); each scene contains Building situations → final Crisis situation
 - **B-Consequence** is REWARD for A-story success (spawns automatically on stat check success)
 - **B-Sought** is FALLBACK income (player seeks out via job boards, NPC offers)
 - **C-Story** is world TEXTURE (emerges naturally from journey)

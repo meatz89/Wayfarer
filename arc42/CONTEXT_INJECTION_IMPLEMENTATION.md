@@ -21,22 +21,29 @@ These were conflated in scene selection logic, causing:
 
 ---
 
-## The Solution: Orthogonal Systems
+## The Solution: Scene = Arc Model
 
-### Two Independent Dimensions
+### Core Principle
+
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
+
+| Position | Structure | Purpose |
+|----------|-----------|---------|
+| **Situations 1 to N-1** | Building | Stat growth, investment, narrative setup |
+| **Situation N (final)** | Crisis | Stat-gated choices test accumulated investment |
+
+### Two Independent Systems
 
 | System | Purpose | Input | Applies To |
 |--------|---------|-------|------------|
-| **Scene Selection** | WHICH scene template to use | RhythmPattern ONLY | Template selection, archetype choice |
+| **Template Selection** | WHICH SceneTemplate to use | Intensity history + anti-repetition | Template choice |
 | **Choice Scaling** | HOW difficult the choices are | Location.Difficulty | Stat thresholds, resource costs |
 
-These systems are **ORTHOGONAL** - they never interact. A scene can be:
-- Building rhythm + High difficulty (gentle narrative, hard stats)
-- Crisis rhythm + Low difficulty (intense narrative, easy stats)
+These systems are **ORTHOGONAL** - they never interact. The same template can produce different difficulty experiences based on location.
 
 ### Context Injection Principle
 
-**RhythmPattern must be SET on SceneSpawnReward at CREATION time, never derived at consumption time.**
+**Context must be SET on SceneSpawnReward at CREATION time, never derived at consumption time.**
 
 | Content Type | When Context Set | By Whom |
 |--------------|------------------|---------|
@@ -65,13 +72,13 @@ Tier was the old representation of difficulty. It existed on:
 
 Code like `if (spawnReward.HasAuthoredContext)` violated the HIGHLANDER principle by branching on content origin.
 
-**Replaced by:** EnsureRhythmPatternSet() - computes and SETS on spawn reward if not already authored
+**Replaced by:** EnsureContextSet() - computes and SETS context on spawn reward if not already authored
 
 ### LocationSafety/LocationPurpose in Selection
 
-These categorical properties influenced scene selection, conflating location properties with narrative rhythm.
+These categorical properties influenced scene selection, conflating location properties with narrative structure.
 
-**Replaced by:** Pure RhythmPattern selection. Location properties used only for choice scaling.
+**Replaced by:** Pure intensity-history-based template selection. Location properties used only for choice scaling.
 
 ---
 
@@ -91,23 +98,31 @@ Clamped to [-3, +3] and applied to ALL stat requirements via RuntimeScalingConte
 
 ---
 
-## Sir Brante Rhythm Pattern
+## Building → Crisis Structure (Sir Brante Pattern)
 
-The narrative rhythm cycle borrowed from The Life and Suffering of Sir Brante:
+The narrative rhythm borrowed from The Life and Suffering of Sir Brante operates at the **situation level** within each scene:
 
-| Pattern | Player Experience | Choice Structure |
-|---------|-------------------|------------------|
-| **Building** | Accumulation, growth | All positive outcomes |
-| **Crisis** | Test, high stakes | Damage mitigation, fallback has penalty |
-| **Mixed** | Recovery, trade-offs | Standard choices |
+| Position | Structure | Choice Generation |
+|----------|-----------|-------------------|
+| **1 to N-1** | Building | Choices GRANT stats (investment phase) |
+| **N (final)** | Crisis | Stat-gated choices TEST investment |
 
-This drives WHICH archetypes are selected, not how hard they are.
+### Why Position, Not RhythmPattern Property
+
+Structure is determined by **situation position within the scene**, not by an explicit RhythmPattern property:
+
+| Input | Determines |
+|-------|------------|
+| **Position in scene** | Building vs Crisis structure |
+| **ArchetypeIntensity** | Recovery/Standard/Demanding (difficulty) |
+
+**Position drives structure. Intensity drives difficulty.** These are orthogonal.
 
 ---
 
 ## Implementation Order
 
-1. **EnsureRhythmPatternSet()** - SET context at creation, never derive at consumption
+1. **Scene = Arc structure** - Each scene contains Building situations + final Crisis
 2. **Remove HasAuthoredContext** - Forbidden by arc42 §8.28
 3. **Remove Tier from entities** - Replace with Location.Difficulty
 4. **Update derivation methods** - Use Location.Difficulty for Quality/Environment
@@ -120,24 +135,23 @@ This drives WHICH archetypes are selected, not how hard they are.
 
 ### For Content Authors
 - Tutorial scenes (A1-A10) behave exactly as authored
-- Procedural scenes (A11+) follow predictable rhythm
-- No hidden state derivation affecting behavior
+- Procedural scenes (A11+) follow predictable arc structure
+- SceneTemplate defines arc length and structure
 
 ### For Code Maintainers
 - HIGHLANDER: One code path for all content
-- Clear separation of concerns
+- Clear separation of concerns (position → structure, location → scaling)
 - Fail-fast on missing context
 
 ### For Players
-- Consistent narrative pacing
+- Consistent Building → Crisis narrative pacing within each scene
 - Difficulty scales with exploration distance
-- Same rhythm feels equally tight at all locations
+- Same arc structure feels appropriately tight at all locations
 
 ---
 
 ## See Also
 
-- `arc42/08_crosscutting_concepts.md` §8.28 (Context Injection)
-- `arc42/08_crosscutting_concepts.md` §8.26 (Sir Brante Rhythm Pattern)
-- `gdd/06_balance.md` §6.4 (Scene Selection via RhythmPattern)
-- `gdd/06_balance.md` §6.5 (Net Challenge Formula)
+- `arc42/08_crosscutting_concepts.md` §8.25 (Context Injection Pattern)
+- `gdd/08_glossary.md` (A-Story Building → Crisis Rhythm)
+- `gdd/06_balance.md` §6.4 (Scene = Arc Structure)
