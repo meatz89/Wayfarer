@@ -23,26 +23,23 @@ This document captures the implementation gaps and architectural decisions neede
 
 | Component | A-Story Status | B-Story Status | Required Action |
 |-----------|---------------|----------------|-----------------|
-| **Type Discrimination** | Clear `MainStory` category | Both B-types share `SideStory` | Add property to distinguish B-Consequence vs B-Sought |
+| **Structure-based Detection** | Position determines Building vs Crisis | Not implemented | Detect B-Consequence vs B-Sought from choice requirements |
 | **Parse-time Enrichment** | Enriches final choices with spawn rewards | None | Create enrichment for B-Story final situations |
 | **Validation Rules** | Validates template consistency | None | Create B-Story validation rules |
 | **Payoff Guarantee** | N/A | Not validated | Validate final situation has resource rewards |
 | **Completion Tracking** | Tracks sequence and intensity | None | Track B-Story completion state |
 | **Procedural Generation** | Full service exists | None | Consider procedural B-Story generation |
 
-### 1.3 B-Story Type Discrimination
+### 1.3 B-Story Type Detection (Structure-Based)
 
-**Current State:** Both B-Consequence and B-Sought use shared category with no distinguishing property.
+**Design Decision (RESOLVED):** A/B/C are meta game design definitions. In code, distinguish by STRUCTURE:
 
-**Design Decision Required:** How to distinguish at runtime?
+| B-Story Type | Intermediate Situation Choices | Detection |
+|--------------|-------------------------------|-----------|
+| **B-Consequence** | NO requirements | All choices have null/empty Requirement |
+| **B-Sought** | HAS requirements | At least one choice has non-null Requirement |
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **A) New enum values** | Clean discrimination, type-safe | Breaking change, affects all parsers |
-| **B) Add type property** to template | Non-breaking, explicit | Nullable for non-B stories, extra property |
-| **C) Derive from spawn context** | No schema change | Harder to validate at parse-time |
-
-**Recommendation:** Option B - Add explicit type property (nullable, only set for SideStory).
+No new enum or property needed. Validation detects the pattern from template structure.
 
 ### 1.4 B-Story Validation Requirements
 
@@ -122,20 +119,22 @@ If we remove RhythmPattern and use position:
 ### Phase 1: Fix Critical Blockers (Required First)
 
 1. **Implement final situation detection** - Replace stub with actual position detection
-2. **Add B-Story type discrimination** - Property to distinguish B-Consequence from B-Sought
-3. **Create B-Story enrichment path** - Ensure final situations have payoff
+2. **Create B-Story enrichment path** - Ensure final situations have payoff (resource rewards)
 
 ### Phase 2: B-Story Validation
 
-4. **Add B-Story validation rules** - BSTORY_001 through BSTORY_004
-5. **Validate payoff guarantee** - Final situation must have resource rewards
-6. **Validate rhythm compliance** - B-Consequence has no challenges, B-Sought has challenges
+3. **Add B-Story validation rules** - BSTORY_001 through BSTORY_004
+4. **Validate payoff guarantee** - Final situation must have resource rewards
+5. **Validate rhythm compliance** - B-Consequence has no choice requirements, B-Sought has requirements
 
-### Phase 3: Resolve RhythmPattern
+### Phase 3: RhythmPattern Migration (DECIDED: Remove It)
 
-7. **Decision point:** Keep RhythmPattern or migrate to position-based?
-8. **If keeping:** Update arc42 documentation to match reality
-9. **If removing:** Phased migration (JSON, DTOs, parsers, catalogs, services)
+6. **Update choice generation** - Use position + story category instead of RhythmPattern
+7. **Remove from GenerationContext** - Delete Rhythm property
+8. **Remove from SceneTemplate** - Delete RhythmPattern property
+9. **Remove from DTOs** - Delete RhythmPattern fields
+10. **Remove from JSON** - Delete rhythmPattern from tutorial scenes
+11. **Delete enum** - Remove RhythmPattern.cs
 
 ### Phase 4: B-Story Completion
 
@@ -145,40 +144,48 @@ If we remove RhythmPattern and use position:
 
 ---
 
-## Part 4: Design Questions to Resolve
+## Part 4: Design Decisions (RESOLVED)
 
-### Q1: B-Story Type Discrimination
+### Q1: B-Story Type Discrimination ✓ DECIDED
 
-**How should we distinguish B-Consequence from B-Sought at runtime?**
+**Decision:** A/B/C story categories are meta game design definitions. In code, use different STRUCTURES - no new enum needed.
 
-Options:
-- A) New type enum property on template
-- B) Separate enum values in story category
-- C) Derive from spawn context (who spawned this scene)
+**Implication:** B-Consequence vs B-Sought is distinguished by template structure:
+- B-Consequence templates: Intermediate situations have choices with NO requirements
+- B-Sought templates: Intermediate situations have choices WITH requirements
 
-### Q2: RhythmPattern Direction
+Validation rules detect the pattern from structure, not from an explicit type property.
 
-**Is the target architecture position-based or RhythmPattern-based?**
+### Q2: RhythmPattern Direction ✓ DECIDED
 
-- If position-based: Plan migration away from RhythmPattern
-- If RhythmPattern-based: Update documentation to match code
+**Decision:** Plan migration to position-based structure. Remove RhythmPattern.
 
-### Q3: B-Story Procedural Generation
+**Migration Strategy:**
+1. Implement position-based detection (IsFinalSituation)
+2. Update choice generation to use position + story category instead of RhythmPattern
+3. Remove RhythmPattern from GenerationContext
+4. Remove RhythmPattern from SceneTemplate
+5. Remove RhythmPattern from DTOs
+6. Remove rhythmPattern from JSON content
+7. Delete RhythmPattern enum
 
-**Do we need procedural B-Story generation?**
+### Q3: B-Story Procedural Generation (OPEN)
+
+**Still to decide:** Do we need procedural B-Story generation?
 
 - B-Consequence: Could use templates with placement filters for continuity
 - B-Sought: Could use job board templates with categorical scaling
 - Or: Hand-author B-Story templates only
 
-### Q4: B-Consequence Challenge Definition
+### Q4: B-Consequence Challenge Definition ✓ DECIDED
 
-**What exactly constitutes a "challenge" that B-Consequence must NOT have?**
+**Decision:** A "challenge" is defined by **choices having requirements**.
 
-- Resource costs (Time, Coins, Stamina)?
-- Stat tests (Insight check, Rapport check)?
-- Both?
-- Or: Any requirement with non-zero costs?
+**B-Consequence intermediate situations:** Choices must have NO requirements (no stat tests, no resource costs). Player already proved themselves in A-story Crisis.
+
+**B-Sought intermediate situations:** Choices SHOULD have requirements (stat tests, resource costs). Player is working for income.
+
+**Validation Rule:** Check `ChoiceTemplate.Requirement` - if any non-null requirement exists in intermediate B-Consequence situation, validation fails.
 
 ---
 
@@ -186,14 +193,19 @@ Options:
 
 ### Validation & Detection
 - Scene template validator - Fix final situation detection, add B-Story rules
+- Add structure-based B-Story type detection (check choice requirements)
 
 ### Enrichment
-- Scene template parser - Add B-Story enrichment path
+- Scene template parser - Add B-Story enrichment path for final situations
 
-### Types
-- Story-related enums - Consider B-Story type discrimination
-- Scene template entity - Add type property if needed
-- Scene template DTO - Add field for type
+### RhythmPattern Migration (Phase 3)
+- Choice generation catalogs - Use position + story category
+- Generation context - Remove Rhythm property
+- Scene template entity - Remove RhythmPattern property
+- Scene template DTO - Remove RhythmPattern field
+- Spawn reward DTO - Remove RhythmPatternContext field
+- Tutorial JSON - Remove rhythmPattern fields
+- RhythmPattern enum - DELETE
 
 ### Services
 - Situation completion handler - Add B-Story completion tracking
@@ -201,6 +213,7 @@ Options:
 ### Tests
 - New B-Story validation tests
 - Update existing scene template tests
+- Remove/update RhythmPattern compliance tests
 
 ---
 
@@ -208,15 +221,19 @@ Options:
 
 **Documentation is now consistent** - All GDD and arc42 documents correctly distinguish:
 - A-Story: Building → Crisis
-- B-Consequence: Narrative → Payoff (NO challenges)
-- B-Sought: Challenge → Payoff
+- B-Consequence: Narrative → Payoff (NO choice requirements)
+- B-Sought: Challenge → Payoff (HAS choice requirements)
 
-**Implementation gaps identified:**
-- 3 critical blockers (final situation stub, no enrichment, no validation)
-- 6 missing components (enum, enrichment, validation, payoff, tracking, generation)
-- 1 architectural contradiction (RhythmPattern in code vs position-based in docs)
+**Design decisions resolved:**
+- Q1: B-Story types distinguished by STRUCTURE (choice requirements), not enum
+- Q2: MIGRATE away from RhythmPattern to position-based
+- Q4: "Challenge" = choices with requirements
+
+**Implementation gaps:**
+- 2 critical blockers (final situation stub, no B-Story enrichment)
+- 5 missing components (structure detection, validation, payoff, tracking, generation)
 
 **Next session should:**
-1. Resolve design questions (Q1-Q4 above)
-2. Implement Phase 1 critical blockers
-3. Decide RhythmPattern direction
+1. Implement Phase 1: Fix IsFinalSituation, create B-Story enrichment
+2. Implement Phase 2: B-Story validation rules
+3. Begin Phase 3: RhythmPattern migration
