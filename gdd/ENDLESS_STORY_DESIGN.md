@@ -2,6 +2,8 @@
 
 **Purpose:** One-page overview for session continuity. Details live in referenced documents.
 
+> **Implementation Status:** Design documentation only. B-Story system has critical implementation gaps per `IMPLEMENTATION_PLAN_STORY_SYSTEM.md`. Do not author B-Story content until Phase 1-2 complete.
+
 ---
 
 ## High-Concept Flow Diagrams

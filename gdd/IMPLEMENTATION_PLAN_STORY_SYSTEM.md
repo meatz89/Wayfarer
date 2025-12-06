@@ -129,12 +129,22 @@ If we remove RhythmPattern and use position:
 
 ### Phase 3: RhythmPattern Migration (DECIDED: Remove It)
 
+**Pre-migration verification (REQUIRED):**
+- Snapshot current choice generation output for all tutorial scenes (A1-A10)
+- This establishes baseline for regression testing
+
+**Migration steps:**
 6. **Update choice generation** - Use position + story category instead of RhythmPattern
 7. **Remove from GenerationContext** - Delete Rhythm property
 8. **Remove from SceneTemplate** - Delete RhythmPattern property
 9. **Remove from DTOs** - Delete RhythmPattern fields
 10. **Remove from JSON** - Delete rhythmPattern from tutorial scenes
 11. **Delete enum** - Remove RhythmPattern.cs
+
+**Post-migration verification (REQUIRED):**
+- Compare choice generation output against pre-migration snapshot
+- Position-based structure must produce IDENTICAL choices for existing content
+- Any difference is a regression bug, not an expected change
 
 ### Phase 4: B-Story Completion
 

@@ -16,7 +16,7 @@ public enum StoryCategory
     MainStory,
 
     /// <summary>
-    /// Multi-scene quest arcs (B-stories)
+    /// Quest content providing resources (B-stories)
     /// One scene with 3-8 situations forming a complete arc.
     /// Player CHOOSES to engage via job board, NPC quest giver, or peculiar location.
     /// Can accept or decline. Can fail with consequences. No mandatory fallback.
