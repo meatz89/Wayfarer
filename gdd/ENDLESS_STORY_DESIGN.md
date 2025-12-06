@@ -4,15 +4,104 @@
 
 ---
 
+## High-Concept Flow Diagrams
+
+### Story Causality
+
+```mermaid
+flowchart TD
+    A[A-Story<br/>Building → Checking] -->|SUCCESS at check| B[B-Story Spawns]
+    A -->|JOURNEY to location| C[C-Story Emerges]
+
+    B -->|continues narrative| B2[Same Characters<br/>Same Locations]
+    B2 -->|great rewards| R[Resources for Travel]
+
+    C -->|natural texture| C2[Route Encounters<br/>Location Flavor<br/>NPC Moments]
+
+    R -->|funds| A2[Travel to Next A-Story]
+    A2 -->|distance N+1| A
+```
+
+### The A-Story Rhythm
+
+```mermaid
+flowchart LR
+    subgraph Building Phase
+        B1[Situation] -->|stat growth choice| B2[Stats Accumulate]
+        B2 --> B3[Situation]
+        B3 -->|stat growth choice| B4[Stats Accumulate]
+    end
+
+    subgraph Checking Phase
+        C1[Hard Stat Check]
+        C1 -->|SUCCESS| R[B-Story Reward]
+        C1 -->|FALLBACK| F[Progress, No Reward]
+    end
+
+    B4 --> C1
+    R --> N[Next Building Phase]
+    F --> N
+```
+
+### Economic Loop
+
+```mermaid
+flowchart TD
+    subgraph "Resource Sink"
+        A1[A-Story at Distance N]
+        T[Travel Cost]
+    end
+
+    subgraph "Resource Source"
+        B[B-Story Rewards]
+        W[Atmospheric Work<br/>Fallback]
+    end
+
+    subgraph "Texture Layer"
+        C[C-Stories<br/>Minor Resources]
+    end
+
+    A1 -->|requires| T
+    B -->|funds| T
+    W -->|funds slowly| T
+    T -->|journey creates| C
+
+    A1 -->|success spawns| B
+    T -->|arrive| A2[A-Story at Distance N+1]
+    A2 -->|repeat| A1
+```
+
+### Route Choice (Impossible Choice)
+
+```
+                    ┌─────────────────────────────────────────┐
+                    │           DESTINATION (A-Story)          │
+                    └─────────────────────────────────────────┘
+                                        ▲
+            ┌───────────────────────────┼───────────────────────────┐
+            │                           │                           │
+    ┌───────┴───────┐           ┌───────┴───────┐           ┌───────┴───────┐
+    │  ROAD (Safe)  │           │ FOREST (Fast) │           │MOUNTAIN(Direct)│
+    │───────────────│           │───────────────│           │───────────────│
+    │ Time: Long    │           │ Time: Medium  │           │ Time: Short   │
+    │ Stamina: Low  │           │ Stamina: High │           │ Stamina: V.High│
+    │ Coins: Tolls  │           │ Coins: Free   │           │ Coins: Free   │
+    │ C-Story: Law  │           │ C-Story: Ambush│          │ C-Story: Harsh│
+    └───────────────┘           └───────────────┘           └───────────────┘
+                                        ▲
+                                        │
+                            ┌───────────┴───────────┐
+                            │    ORIGIN (Player)    │
+                            └───────────────────────┘
+
+    Cannot optimize all dimensions. Pick your trade-off.
+```
+
+---
+
 ## The Core Insight
 
 A-Story creates B-Stories (success rewards) and C-Stories (journey texture). They are causally linked, not independent systems.
-
-```
-A-Story (Building → Checking)
-    ├── SUCCESS → B-Story (reward thread, same characters/locations)
-    └── JOURNEY → C-Story (natural emergence from travel)
-```
 
 ---
 
