@@ -202,7 +202,7 @@ public class HexRouteGenerator
 
     /// <summary>
     /// Assign MandatorySceneTemplate to Encounter segments at route generation time
-    /// Templates are filtered by StoryCategory.Service (transactional encounters)
+    /// Templates are filtered by StoryCategory.Encounter (C-story texture encounters)
     /// Actual Scene spawning happens in TravelManager when player reaches segment
     /// DDR-007: Template selection is deterministic based on route and segment properties
     /// </summary>
@@ -211,13 +211,13 @@ public class HexRouteGenerator
         if (route.Segments == null || route.Segments.Count == 0)
             return;
 
-        // Filter eligible templates by Category (Service = transactional encounters)
+        // Filter eligible templates by Category (Encounter = C-story texture)
         List<SceneTemplate> eligibleTemplates = _gameWorld.SceneTemplates
-            .Where(t => t.Category == StoryCategory.Service)
+            .Where(t => t.Category == StoryCategory.Encounter)
             .ToList();
 
         if (eligibleTemplates.Count == 0)
-            return; // No Service scene templates available yet
+            return; // No Encounter scene templates available yet
 
         foreach (RouteSegment segment in route.Segments.Where(s => s.Type == SegmentType.Encounter))
         {

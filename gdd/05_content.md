@@ -14,14 +14,14 @@ Story categories are distinguished by a **combination of properties**, not a sin
 
 | Property | A-Story | B-Story | C-Story |
 |----------|---------|---------|---------|
-| **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 1-2 situations |
 | **Repeatability** | One-time (sequential) | One-time (completable) | System-repeatable |
 | **Fallback Required** | Yes (every situation) | No | No |
 | **Can Fail** | Never | Yes | Yes |
 | **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
 | **Typical Scope** | World expansion | Venue depth | Location flavor |
 | **Player Agency** | Mandatory (cannot decline) | Opt-in (accept/decline) | Mandatory (cannot decline) |
-| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | No A/B scene at location |
+| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | Probabilistic at empty location |
 
 ### A-Story: The Infinite Main Thread
 
@@ -46,18 +46,25 @@ The primary narrative spine that never ends. Scenes chain sequentially (A1 → A
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
-### B-Story: Multi-Scene Arcs (Quests)
+### B-Story: Quest Arcs (One Scene, Multiple Situations)
 
-Multi-scene narrative arcs providing the **primary deliberate resource acquisition**. **Player chooses to engage**—B-stories are RPG quests that the player actively seeks out and can accept or decline. Spans 3-8 connected scenes forming a complete arc. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Significant resource rewards fund A-story travel.
+**One scene containing 3-8 situations** forming a complete quest arc. Provides the **primary deliberate resource acquisition**. **Player chooses to engage**—B-stories are RPG quests that the player actively seeks out and can accept or decline. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Significant resource rewards fund A-story travel.
+
+**Arc Structure:** Single Scene entity containing 3-8 Situations in sequence. Player progresses through situations within the scene. This reuses existing Scene-Situation infrastructure without needing a new entity type.
 
 **Discovery Sources:**
 - **Job Board** — Lists available opportunities at venues
 - **NPC Quest Giver** — Dialogue option to accept commission
 - **Peculiar Location** — Investigation reveals quest opportunity
 
-### C-Story: Single-Scene Encounters (Texture)
+### C-Story: Texture Encounters (Probabilistic Spawn)
 
-Single-scene encounters providing **world texture**, not economic engine. Spawns when player enters a location with no active A or B scene—the game creates flavor to prevent empty locations. **Player cannot decline or willingly spawn**—these are surprises that flesh out the world. Can fail without major consequences. May provide minor incidental rewards, but primary purpose is atmosphere. System can reuse C-scene archetypes (system-repeatable), but player has no control over availability.
+Single-scene encounters providing **world texture**, not economic engine. **Spawns probabilistically** when player enters a location with no active A or B scene. Spawn chance determined by combination of:
+- **Location properties** — Categorical dimensions (Purpose, Activity, Safety, etc.)
+- **Player state** — Tired, hungry, cold, injured
+- **World state** — Weather, time of day, recent events
+
+**Player cannot decline or willingly spawn**—these are surprises that flesh out the world. Can fail without major consequences. May provide minor incidental rewards, but primary purpose is atmosphere. System can reuse C-scene archetypes (system-repeatable), but player has no control over availability.
 
 **Examples:** Unexpected inn gossip, route weather hazard, merchant haggling moment, shrine blessing opportunity.
 

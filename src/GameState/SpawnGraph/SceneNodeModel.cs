@@ -6,7 +6,7 @@ public class SceneNodeModel : NodeModel
     public SceneSpawnNode SpawnNode { get; }
 
     public string DisplayName => SpawnNode?.DisplayName ?? "Scene";
-    public StoryCategory Category => SpawnNode?.Category ?? StoryCategory.Service;
+    public StoryCategory Category => SpawnNode?.Category ?? StoryCategory.Encounter;
     public SceneState CurrentState => SpawnNode?.CurrentState ?? SceneState.Active;
     public bool IsProcedurallyGenerated => SpawnNode?.IsProcedurallyGenerated ?? false;
     public int SituationCount => SpawnNode?.SituationCount ?? 0;
