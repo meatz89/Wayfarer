@@ -26,7 +26,8 @@ Domain and technical terms used throughout this documentation.
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
-| **Building → Crisis Structure** | Scene arc model (Sir Brante pattern): positions 1 to N-1 are Building (stat grants), position N is Crisis (stat-gated test). Position determines structure, not explicit property. |
+| **Building → Crisis Structure** | A-Story arc model (Sir Brante pattern): positions 1 to N-1 are Building (stat grants), position N is Crisis (stat-gated test). Position determines structure. |
+| **Challenge → Payoff Structure** | B-Story arc model: positions 1 to N-1 are Challenge (resource costs, skill tests), position N is Payoff (guaranteed resource reward). Resource acquisition cycle. |
 | **Scene** | Mutable instance created from SceneTemplate at spawn-time; contains Situation instances (created at activation-time); lifecycle: Deferred → Active → Completed |
 | **SceneTemplate** | Immutable archetype containing SituationTemplates; created at parse-time; JSON uses `sceneTemplates` key, NEVER `scenes` |
 | **Situation** | Mutable instance created from SituationTemplate at activation-time; contains resolved entity references (Location, NPC, Route) |

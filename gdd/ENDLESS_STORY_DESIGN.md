@@ -436,6 +436,125 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 ---
 
+## B-Story Rhythm: Challenge → Payoff
+
+B-Stories follow a distinct rhythm optimized for **resource acquisition**, not stat investment.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                     A-STORY vs B-STORY: DIFFERENT RHYTHMS                                │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                       A-STORY: BUILDING → CRISIS                                         │
+│                       (Stat Investment Cycle)                                            │
+│                                                                                          │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐              │
+│   │  BUILDING   │───▶│  BUILDING   │───▶│  BUILDING   │───▶│   CRISIS    │              │
+│   │  Situation  │    │  Situation  │    │  Situation  │    │  Situation  │              │
+│   │             │    │             │    │             │    │             │              │
+│   │ GRANTS      │    │ GRANTS      │    │ GRANTS      │    │ TESTS       │              │
+│   │ stats       │    │ stats       │    │ stats       │    │ stats       │              │
+│   └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘              │
+│                                                                                          │
+│   Purpose: Character GROWS through the arc                                               │
+│   Outcome: B-Consequence spawns when Crisis choice succeeds                             │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                       B-STORY: CHALLENGE → PAYOFF                                        │
+│                       (Resource Acquisition Cycle)                                       │
+│                                                                                          │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐              │
+│   │  CHALLENGE  │───▶│  CHALLENGE  │───▶│  CHALLENGE  │───▶│   PAYOFF    │              │
+│   │  Situation  │    │  Situation  │    │  Situation  │    │  Situation  │              │
+│   │             │    │             │    │             │    │             │              │
+│   │ COSTS       │    │ COSTS       │    │ COSTS       │    │ GRANTS      │              │
+│   │ resources   │    │ resources   │    │ resources   │    │ resources   │              │
+│   └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘              │
+│                                                                                          │
+│   Purpose: Player's WEALTH grows through the arc                                         │
+│   Outcome: Resources to fund A-story travel                                             │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why Different Rhythms?
+
+| Aspect | A-Story (Building → Crisis) | B-Story (Challenge → Payoff) |
+|--------|----------------------------|------------------------------|
+| **What accumulates** | Stats (character capability) | Resources (economic wealth) |
+| **Intermediate situations** | GRANT stats (investment) | COST resources/test skills |
+| **Final situation** | TEST accumulated stats | GRANT resources |
+| **Fallback required** | Yes (can never fail) | No (can fail) |
+| **Net resource flow** | Sink (travel costs) | Source (income) |
+
+### Challenge Situations (Position 1 to N-1)
+
+Challenge situations present **obstacles requiring effort, risk, or resources**:
+
+| Challenge Type | Example | Player Experience |
+|----------------|---------|-------------------|
+| **Resource Cost** | Pay informant, bribe guard | Spend coins to progress |
+| **Skill Test** | Investigate clues, negotiate | Test stats without investing |
+| **Time Investment** | Wait for contact, scout area | Spend Time blocks |
+| **Risk Acceptance** | Expose position, make enemies | Accept future complications |
+
+**No fallback safety valve** — B-Stories CAN fail. Player chose to engage; failure returns them to the world, not a dead end.
+
+### Payoff Situation (Position N, Final)
+
+The final situation **guarantees resource reward** upon successful completion:
+
+| Payoff Type | Example | Reward Pattern |
+|-------------|---------|----------------|
+| **Quest Completion** | Deliver cargo, complete escort | Coins + reputation |
+| **Investigation Result** | Report findings, solve mystery | Information + coins |
+| **Contract Fulfillment** | Satisfy employer requirements | Payment + relationship |
+| **Discovery Reward** | Find treasure, unlock secret | Items + coins |
+
+**Payoff is guaranteed** — Every B-Story template MUST end with resource grants. This is the "quest reward" pattern familiar from RPGs.
+
+### B-Consequence vs B-Sought Template Pools
+
+Both follow Challenge → Payoff rhythm, but use different template pools:
+
+| Type | Template Pool | Challenge Character | Payoff Character |
+|------|---------------|--------------------|--------------------|
+| **B-Consequence** | Continuation templates | Deepens A-story relationship | Premium rewards (mastery earned) |
+| **B-Sought** | Quest templates | Tests generic skills | Basic rewards (effort invested) |
+
+**B-Consequence challenges** involve the same NPCs from A-story — the challenges feel personal and narratively connected.
+
+**B-Sought challenges** involve new NPCs — the challenges feel like professional work, quest content.
+
+### Template Structure Examples
+
+**Short B-Story (2 situations):**
+```
+Challenge 1: Accept contract terms (costs Time)
+Payoff: Complete delivery (grants Coins)
+```
+
+**Standard B-Story (4 situations):**
+```
+Challenge 1: Negotiate with employer (tests Diplomacy)
+Challenge 2: Travel to location (costs Stamina)
+Challenge 3: Overcome obstacle (tests stat or costs resource)
+Payoff: Report success (grants Coins + reputation)
+```
+
+**Extended B-Story (6-8 situations):**
+```
+Challenge 1-2: Setup and investigation
+Challenge 3-4: Complications and setbacks
+Challenge 5-6: Resolution attempts
+Payoff: Major reward for sustained effort
+```
+
+---
+
 ## Detailed Documentation
 
 | Topic | Document | Section |
@@ -452,14 +571,16 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 | Principle | Description |
 |-----------|-------------|
+| **A-Story: Building → Crisis** | A-Story scenes follow stat investment cycle; Building GRANTS stats; Crisis TESTS them |
+| **B-Story: Challenge → Payoff** | B-Story scenes follow resource acquisition cycle; Challenge COSTS resources; Payoff GRANTS them |
+| **C-Story: Single Situation** | C-Stories are single-situation texture; no rhythm pattern needed |
 | **Scene = Arc** | Each A-Story scene IS an arc; last situation is always Crisis; Building situations lead up |
 | **Template + Context** | SceneTemplates define structure (constant); context injection creates variety (variable) |
 | **B-Consequence = Earned** | Spawns when player takes stat-gated choice in Crisis; mandatory; same NPCs/locations |
 | **B-Sought = Fallback** | Player seeks out via job boards; opt-in; repeatable; prevents soft-lock |
-| **C = Natural Texture** | C-stories emerge from journey—not spawned, experienced |
 | **Narrative Continuity** | B-Consequence continues A-story threads via categorical PlacementFilter matching |
 | **Travel Cost Gate** | Distance creates resource demand; B-stories fund travel |
-| **Three-Tier Income** | B-Consequence (premium) → B-Sought (reliable) → Atmospheric (safety net) |
+| **Payoff Guarantee** | Every B-Story MUST end with resource reward; this is enforced at template level |
 
 ---
 

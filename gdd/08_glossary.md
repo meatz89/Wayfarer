@@ -108,6 +108,7 @@ A-Story, B-Story, and C-Story are distinguished by a **combination of properties
 
 | Property | A-Story | B-Consequence | B-Sought | C-Story |
 |----------|---------|---------------|----------|---------|
+| **Rhythm Pattern** | Building → Crisis | Challenge → Payoff | Challenge → Payoff | None (single situation) |
 | **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 3-8 situations | One scene, 1-2 situations |
 | **Repeatability** | One-time (sequential) | One-time per trigger | System-repeatable | System-repeatable |
 | **Fallback Required** | Yes (every situation) | No | No | No |
@@ -170,7 +171,23 @@ When player **takes a stat-gated choice** in the Crisis situation (meets the OR-
 
 ### B-Story
 
-B-Stories provide resources that fund A-story travel. They come in **two distinct types** serving different purposes:
+B-Stories provide resources that fund A-story travel. They come in **two distinct types** serving different purposes.
+
+**Challenge → Payoff Rhythm (Resource Acquisition Cycle):**
+
+Unlike A-Stories which follow Building → Crisis (stat investment), B-Stories follow **Challenge → Payoff** (resource acquisition):
+
+| Position | Structure | Purpose |
+|----------|-----------|---------|
+| **Situations 1 to N-1** | Challenge | Cost resources or test skills (obstacles) |
+| **Situation N (final)** | Payoff | Grant resources (guaranteed reward) |
+
+**Why Different Rhythms:**
+- A-Story: Character GROWS (stats granted, then tested)
+- B-Story: Player's WEALTH grows (resources spent, then gained)
+- B-Stories are net positive resource flow by design
+
+**Payoff Guarantee:** Every B-Story template MUST end with resource reward. This is the RPG "quest completion" pattern—challenges lead to payoff.
 
 #### B-Consequence (Earned Reward)
 
