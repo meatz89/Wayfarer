@@ -15,13 +15,13 @@ A-story, B-story, C-story are CATEGORIES of scenes, not different data structure
 - Location activation filter
 - Embedded situation templates (ordered list)
 
-**Category Effects:**
+**Category Effects (Parse-Time):**
 
-| Category | Validation | Enrichment | Purpose |
-|----------|------------|------------|---------|
-| MainStory (A) | Fallback required in every situation | All final choices spawn next A-scene | World expansion |
-| SideStory (B) | None | None | Venue-scoped narrative |
-| Encounter (C) | None | None | Flavor, small moments |
+| Category | Validation | Enrichment |
+|----------|------------|------------|
+| MainStory (A) | Fallback required in every situation | All final choices spawn next A-scene |
+| SideStory (B) | None | None |
+| Encounter (C) | None | None |
 
 **HIGHLANDER Compliance:** One SceneArchetypeCatalog contains ALL reusable patterns. No separate A-story catalog.
 
@@ -38,17 +38,26 @@ A-story, B-story, C-story are CATEGORIES of scenes, not different data structure
 
 Both produce identical SceneTemplate structure. Runtime cannot distinguish.
 
-### Story Categories (What Content Does)
+### Story Categories (Property Combination)
 
-| Category | Purpose | Typical Scope | Can Fail? |
-|----------|---------|---------------|-----------|
-| **A-Story** | Extend the world | New venues, districts, regions, routes, NPCs | **NEVER** |
-| **B-Story** | Deeper narrative | Tends toward single venue | Yes |
-| **C-Story** | Small moments, flavor | Usually single location or NPC | Yes |
+Story categories are distinguished by a **combination of properties**, not a single axis:
 
-**A-Story is special.** Frieren principle: infinite, never-ending. Primary purpose is world expansion—creating new places to explore, new people to meet, new paths to travel. Player must ALWAYS be able to progress.
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 1-2 situations |
+| **Repeatability** | One-time (sequential) | One-time (completable) | System-repeatable |
+| **Fallback Required** | Yes (every situation) | No | No |
+| **Can Fail** | Never | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth | Location flavor |
+| **Player Agency** | Mandatory (cannot decline) | Opt-in (accept/decline) | Mandatory (cannot decline) |
+| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | Probabilistic at empty location |
 
-**B and C Stories have freedom.** They can create any entity type, but tend toward adding depth within existing world rather than expanding it. They can include challenges, requirements, and failure states.
+**A-Story is special.** Frieren principle: infinite, never-ending. Primary purpose is world expansion—creating new places to explore, new people to meet, new paths to travel. Player must ALWAYS be able to progress. **Player cannot decline.**
+
+**B-Story provides deliberate resource acquisition.** One scene with 3-8 situations forming a quest arc. Player actively seeks out via job boards, NPC quest givers, or peculiar locations. **Player can accept or decline.** Significant resource rewards fund A-story travel.
+
+**C-Story provides world texture.** Single-scene surprises that spawn probabilistically when no A/B scene is present. Spawn chance based on location properties, player state (tired/hungry/cold), and world state (weather). **Player cannot decline or willingly spawn.** Minor incidental rewards; primary purpose is atmosphere.
 
 ---
 
@@ -238,13 +247,7 @@ For MainStory category, parser applies special rules:
 
 ### World Expansion Purpose
 
-A-Story scenes are designed to CREATE new world content. B/C stories have full freedom but tend toward different patterns.
-
-| Category | Primary Focus | Typical Scope |
-|----------|---------------|---------------|
-| **A-Story** | World expansion | New venues, districts, regions, routes, significant NPCs |
-| **B-Story** | Narrative depth | Tends to work within single venue, adds locations and local NPCs |
-| **C-Story** | Flavor moments | Usually single location or NPC interaction |
+A-Story scenes are designed to CREATE new world content. B/C stories have full freedom but tend toward different patterns per the property matrix in §2.
 
 All categories CAN create any entity type. The distinction is tendency, not restriction. A-Story is the engine of world growth; B/C add depth to existing world.
 
@@ -642,15 +645,19 @@ Location.HexPosition is sole source of truth. One location per hex. Scene-create
 
 ### Story Category Separation
 
-| | A-Story | B/C Stories |
-|-|---------|-------------|
-| Purpose | World expansion | Narrative depth |
-| Typical scope | New venues, districts, regions | Tends toward existing venues |
-| Can fail? | Never | Yes |
-| Fallback required? | Yes | No |
-| Requirements allowed? | Limited (fallback must exist) | Unlimited |
+Story categories are distinguished by a combination of properties (see §2 for full matrix):
 
-Scope describes tendency, not restriction. All categories can create any entity type.
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| Structure | Infinite scene chain | One scene, 3-8 situations | One scene, 1-2 situations |
+| Repeatability | One-time | One-time | System-repeatable |
+| Can fail? | Never | Yes | Yes |
+| Fallback? | Required | No | No |
+| Resource flow | Sink | Source (significant) | Texture (minor) |
+| Player agency | Mandatory | Opt-in | Mandatory |
+| Spawn trigger | Previous A-scene | Player accepts | Probabilistic |
+
+Scope describes tendency, not restriction. All categories can create any entity type. A and C are mandatory when triggered; only B allows player choice.
 
 ### A-Story List-Based Progression
 

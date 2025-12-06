@@ -6,51 +6,117 @@ This document explains HOW content is organized and WHY the archetype-based syst
 
 ---
 
-## 5.1 Narrative Hierarchy: A/B/C Stories
+## 5.1 Story Categories: A/B/C
+
+Story categories are distinguished by a **combination of properties**, not a single axis. All three use identical Scene-Situation-Choice structure; category determines rules and validation.
+
+### Story Category Property Matrix
+
+| Property | A-Story | B-Consequence | B-Sought | C-Story |
+|----------|---------|---------------|----------|---------|
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 3-8 situations | One scene, 1-2 situations |
+| **Repeatability** | One-time (sequential) | One-time per trigger | System-repeatable | System-repeatable |
+| **Fallback Required** | Yes (every situation) | No | No | No |
+| **Can Fail** | Never | Yes | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (premium) | Source (basic) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth (continues A) | Venue/Location | Location flavor |
+| **Player Agency** | Mandatory | Mandatory (earned) | Opt-in | Mandatory |
+| **Spawn Trigger** | Previous A-scene completes | A-story choice success | Player acceptance | Natural journey emergence |
+| **Declinable** | No | No | Yes | No |
+
+> **Note:** Both B-types use `SideStory` enum. See [08_glossary.md](08_glossary.md) §Story Categories for full definitions.
 
 ### A-Story: The Infinite Main Thread
 
-The primary narrative spine that never ends:
+The primary narrative spine that never ends. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. **Player cannot decline**—when an A-scene activates, engagement is mandatory.
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
-- Uses the SAME selection logic as procedural content
-- Tutorial scenes emerge from authored RhythmPattern (not overrides)
-- SceneSpawnReward specifies: RhythmPattern only
-- Selection logic processes this identically to procedural
+- Uses the SAME scene structure as procedural content
+- Each scene is an arc (Building situations → final Crisis)
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
-- Uses the SAME selection logic as tutorial
-- RhythmPattern computed from intensity history
-- Anti-repetition filters recent categories/archetypes
+- Uses the SAME scene structure as tutorial
+- Template selected via intensity history + anti-repetition
 - Never resolves, always deepens
 
-**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is RhythmPattern source:
+**Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL structure. The ONLY difference is context source:
 
-| Content | RhythmPattern Source | Selection Logic |
-|---------|---------------------|-----------------|
-| Tutorial | Authored in SceneSpawnReward | Same |
-| Procedural | Computed from intensity history | Same |
-
-Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored RhythmPattern (Building) naturally flows through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes RhythmPattern.
+| Content | Context Source | Scene Structure |
+|---------|----------------|-----------------|
+| Tutorial | Authored in SceneSpawnReward | Building → Crisis arc |
+| Procedural | Computed from intensity history | Building → Crisis arc |
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
-### B-Stories: Major Side Content
+### B-Story: Two Types Serving Different Purposes
 
-Substantial optional narrative threads:
-- 3-8 scenes per B-story
-- Character arcs, faction storylines, thematic exploration
-- Run parallel to A-story
-- Player-initiated engagement
+B-stories provide resources that fund A-story travel. They come in **two distinct types**:
 
-### C-Stories: Minor Side Content
+#### B-Consequence (Earned Reward)
 
-Small narrative moments:
-- 1-2 scenes typically
-- World flavor, quick opportunities
-- Procedurally generated more easily
-- Organic encounters during travel
+**Spawns automatically when player succeeds at hard A-story stat checks.** This is the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+
+- **Cannot be declined** — just happens as consequence of success
+- **Continues A-story narrative** — same NPCs, same locations, deeper story
+- **Premium rewards** — major resources for demonstrated mastery
+- **One-time per trigger** — each A-story success can spawn its B-consequence once
+
+#### B-Sought (Player-Initiated)
+
+**Quest content the player actively seeks out.** Found through exploration, NPC conversations, job boards, and world discovery.
+
+- **Can be declined** — player chooses whether to engage
+- **Independent narrative** — new characters, new situations
+- **Basic rewards** — reliable income for effort invested
+- **System-repeatable** — job boards always have work available
+
+**Discovery Sources:**
+- **Job Board** — Lists available contracts at venues
+- **NPC Quest Giver** — Dialogue option to accept commission
+- **Exploration** — Discovering locations reveals opportunities
+
+#### Why Both Types Exist
+
+| Type | Purpose | Player Experience |
+|------|---------|-------------------|
+| B-Consequence | Rewards mastery | "My investment paid off" |
+| B-Sought | Prevents soft-lock | "I can always find work" |
+
+**Design Intent:** Skilled players receive B-Consequence automatically—they never need to grind. Struggling players can always find B-Sought work. Both paths fund A-story progression.
+
+### C-Story: Natural Journey Emergence
+
+Single-scene encounters providing **world texture**. C-stories are not spawned by explicit game mechanics—they **emerge naturally from the journey** that A and B stories create.
+
+**Natural Emergence Sources:**
+- **Travel routes** — Moving between A-story locations creates route encounters (terrain-themed)
+- **Location visits** — Being in a place creates opportunity for location flavor
+- **NPC interactions** — Meeting characters through A/B stories creates incidental moments
+
+**Player cannot decline or willingly spawn**—these are surprises that flesh out the world. The journey to story IS content. A and B stories create the context; C-stories fill the texture naturally.
+
+**Examples:** Forest ambush on route to distant A-story, inn gossip while resting, merchant haggling at market visited during B-story.
+
+**Key Insight:** C-stories are not a separate system. They are the natural consequence of A/B story journeys—terrain, locations, and NPCs responding to player presence.
+
+### Why These Categories?
+
+The categories form an interconnected narrative and economic ecosystem:
+
+| Category | Player Experience | Economic Role |
+|----------|------------------|---------------|
+| **A-Story** | "The main quest continues" | Resource SINK (travel costs) |
+| **B-Consequence** | "My success unlocked this" | Primary SOURCE (premium) |
+| **B-Sought** | "I need work, let me find some" | Reliable SOURCE (basic) |
+| **C-Story** | "The journey itself" | World TEXTURE (minor) |
+
+**The Economic Design:**
+- **Mastery Path:** Invest stats → succeed at checks → B-Consequence rewards fund travel automatically
+- **Fallback Path:** Use fallbacks → need resources → seek B-Sought work → earn travel funds
+- **Safety Net:** Atmospheric Work always available (last resort)
+
+**Key Insight:** B-Consequence rewards mastery (making grinding unnecessary for skilled players). B-Sought prevents soft-lock (ensuring resources are always obtainable). Together they create fair progression where skill is rewarded but never required.
 
 ---
 
@@ -255,24 +321,163 @@ See [arc42/08_crosscutting_concepts.md §8.4](../arc42/08_crosscutting_concepts.
 
 ### B/C Story Flexibility
 
-B and C stories have relaxed rules:
+B and C stories have relaxed rules compared to A-story:
 
 - Can require stats, resources, or completed prerequisites
 - Can include challenge paths without fallbacks
 - Can fail (scene marked Failed, not Completed)
-- Focus on narrative depth, not world expansion
+- Focus on resource generation and narrative depth
 
-| | A-Story | B/C Stories |
-|-|---------|-------------|
-| Purpose | World expansion | Narrative depth |
-| Typical scope | New venues, districts, regions | Existing venues |
-| Can fail? | Never | Yes |
-| Fallback required? | Yes | No |
-| Requirements allowed? | Limited (fallback must exist) | Unlimited |
+See §5.1 for the complete property matrix distinguishing A/B/C stories.
 
 ---
 
-## 5.7 Scene Progression
+## 5.7 The Travel Cost Gate (Endless Story Design)
+
+### The Design Problem
+
+A-Story must never soft-lock (fallback always exists), yet players must not mindlessly click through the main story without engagement. How do we create meaningful pacing without hard gates?
+
+### The Solution: Distance Creates Resource Demand
+
+A-Story scenes spawn at locations that increase in distance from the world origin. Travel to those locations costs resources. B/C stories earn those resources.
+
+| Element | Rule |
+|---------|------|
+| **A-Story distance** | Scene N spawns at distance N hexes from origin |
+| **Travel cost** | 1 resource unit per hex (Stamina, Coins, or both) |
+| **Resource source** | B/C stories (deliveries, obligations, work) |
+
+### The Loop
+
+```
+A-Story Scene N (one scene = one arc):
+    Building Situation 1 → Building Situation 2 → ... → Crisis Situation (final)
+    ↓
+Take stat-gated choice in Crisis → B-Consequence spawns (reward thread)
+    ↓
+B-Consequence: Continue narrative with same NPCs, earn premium rewards
+    ↓
+A-Story Scene N+1 spawns at distance N+1
+    ↓
+Travel journey → C-Stories emerge naturally (route/location/NPC texture)
+    ↓
+Arrive at A-Story N+1
+    ↓
+Repeat forever
+```
+
+### Story Category Relationships
+
+Per the property matrix in §5.1:
+- **A-Story** is a resource SINK (travel costs); each scene contains Building situations → final Crisis situation
+- **B-Consequence** is REWARD for A-story success (spawns automatically on stat check success)
+- **B-Sought** is FALLBACK income (player seeks out via job boards, NPC offers)
+- **C-Story** is world TEXTURE (emerges naturally from journey)
+- **Atmospheric Work** is the SAFETY NET (always available last resort)
+
+**Story Causality:**
+1. **A-Story** creates B-Consequence (success rewards) and C-stories (journey texture)
+2. **B-Consequence** continues A-story narrative with same characters/locations
+3. **B-Sought** provides reliable income through player initiative
+4. **C-Stories** are the natural consequence of travel, location visits, NPC interactions
+
+**Key Insight:** B-Consequence rewards mastery (skilled players never grind). B-Sought prevents soft-lock (struggling players always have options). They are not competing systems—they serve different players at different times.
+
+### Route Encounters Are C-Stories
+
+When traveling to an A-Story location, the route contains C-story encounters:
+- Each route segment presents a situation
+- These are C-stories (route scope), not part of the A-Story
+- They cost/reward resources, affecting arrival state
+- Player must handle them to reach the destination
+
+**The journey to story IS content, not empty travel.**
+
+### Terrain Shapes Route Cost and Encounters
+
+The hex grid uses categorical terrain properties that affect both travel cost and encounter themes.
+
+> **Note:** Values below represent design intent for relative scaling. Actual implementation uses Catalogue pattern (parse-time translation). See code for authoritative values.
+
+**Terrain Stamina Cost (Design Intent):**
+
+| Terrain | Relative Cost | Design Intent |
+|---------|--------------|---------------|
+| Road | Lowest | Easy travel corridors |
+| Plains | Low | Baseline open terrain |
+| Water | Low | Easy with boat |
+| Forest | Medium | Moderate difficulty |
+| Mountains | High | Hard terrain |
+| Swamp | High | Hard terrain |
+
+**Terrain Encounter Themes:**
+
+| Terrain | C-Story Themes | Example Encounters |
+|---------|----------------|-------------------|
+| Forest | Ambush, wildlife, foraging | Bandit toll, wolf pack, berry discovery |
+| Road | Trade, law, tolls | Merchant caravan, patrol checkpoint, cart hire |
+| Plains | Travelers, weather, exposure | Fellow travelers, storm shelter, lost direction |
+| Mountains | Climbing, isolation, altitude | Rockfall hazard, mountain shrine, altitude sickness |
+| Swamp | Disease, navigation, creatures | Quicksand, fever symptoms, hostile fauna |
+| Water | Weather, piracy, drowning | Storm at sea, pirate encounter, capsized boat |
+
+**Route Choice = Impossible Choice:**
+
+> **Implementation Status:** Multiple route alternatives is design intent. Current HexRouteGenerator finds single optimal path per transport type. Route choice UI and alternative path presentation is future work.
+
+Multiple route options create strategic trade-offs aligned with design pillars:
+
+| Route Type | Time | Stamina | Coins | Encounters |
+|------------|------|---------|-------|------------|
+| Safe (Roads) | Long | Low | Low/Tolls | Few, lawful |
+| Fast (Forest) | Medium | High | Free | Moderate, ambush risk |
+| Direct (Mountain) | Short | Very High | Free | Many, harsh conditions |
+| Paid (Transport) | Short | Low | High | Varies by service |
+
+Player cannot optimize all dimensions. A tired player (low stamina) must choose slow-safe OR pay coins for transport. A resource-poor player must risk the dangerous shortcut.
+
+**Transport Options:**
+
+| Transport | Coin Cost | Terrain Restrictions | Effect |
+|-----------|-----------|---------------------|--------|
+| Walking | 0 | None | Baseline |
+| Cart | Coins | Penalized in forest | Slower but cargo |
+| Horseback | Coins | Limited in forest/mountain | Faster |
+| Boat | Coins | Water only | Required for water |
+
+### No Soft-Lock Guarantee
+
+Even with zero resources, player can always progress:
+
+| State | Guaranteed Path |
+|-------|-----------------|
+| Zero coins | Work action (C-story) available at any location |
+| Zero stamina | Rest action restores stamina |
+| Negative Resolve | Fallback choices have no Resolve requirement |
+
+The gate is **economic pressure**, not **boolean lockout**. Under-prepared players take longer but are never stuck.
+
+### Why This Works
+
+| Principle | How Travel Gate Honors It |
+|-----------|---------------------------|
+| **No Soft-Locks** | B/C stories always available; player can always earn travel resources |
+| **Impossible Choices** | Route choice: fast/dangerous vs slow/safe vs paid/easy. Cannot optimize all. |
+| **Perfect Information** | Terrain, distance, and travel cost visible before route commitment |
+| **Earned Scarcity** | Resources earned through B/C engagement, not given freely |
+| **Infinite Journey** | Distance scales linearly forever; loop never ends |
+| **Terrain Variety** | Different terrains create thematically appropriate C-story encounters |
+
+### Distance Scaling Principle
+
+A-Story scene N spawns at approximately distance N from world origin. Travel cost scales linearly with distance. B/C story rewards also scale with location difficulty (distance from origin), maintaining the preparation-to-reward ratio.
+
+**The principle:** Farther A-story scenes require more resources to reach. More distant locations offer proportionally better B-story rewards. The ratio stays balanced—preparation requirements match available opportunities.
+
+---
+
+## 5.8 Scene Progression
 
 Situations are ordered within scenes. Player experiences them sequentially.
 
@@ -292,7 +497,7 @@ Situations are ordered within scenes. Player experiences them sequentially.
 
 ---
 
-## 5.8 Situation Presentation Patterns
+## 5.9 Situation Presentation Patterns
 
 How situations appear depends on which entities they reference. Three distinct patterns exist.
 
@@ -352,7 +557,7 @@ The four-choice archetype guarantees at least one choice is always available (fa
 
 ---
 
-## 5.9 Choice Patterns by Category
+## 5.10 Choice Patterns by Category
 
 ### A-Story: Fallback Required
 
@@ -380,7 +585,7 @@ This enables narrative tension, gating, and consequences that A-Story cannot hav
 
 ---
 
-## 5.10 Text Generation Rules
+## 5.11 Text Generation Rules
 
 ### Two-Phase Creation Model
 

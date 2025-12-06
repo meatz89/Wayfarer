@@ -100,13 +100,213 @@ Card-based persuasion. Build Momentum through dialogue. Session resource: Initia
 
 ---
 
-## Content Terms
+## Story Categories
+
+A-Story, B-Story, and C-Story are distinguished by a **combination of properties**, not a single axis. All three use identical Scene-Situation-Choice structure; category determines rules and validation.
+
+### Story Category Property Matrix
+
+| Property | A-Story | B-Consequence | B-Sought | C-Story |
+|----------|---------|---------------|----------|---------|
+| **Rhythm Pattern** | Building → Crisis | Narrative → Payoff | Challenge → Payoff | None (single situation) |
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 3-8 situations | One scene, 1-2 situations |
+| **Repeatability** | One-time (sequential) | One-time per trigger | System-repeatable | System-repeatable |
+| **Fallback Required** | Yes (every situation) | No | No | No |
+| **Can Fail** | Never | Yes | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (premium) | Source (basic) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth (continues A) | Venue/Location | Location flavor |
+| **Player Agency** | Mandatory | Mandatory (earned) | Opt-in | Mandatory |
+| **Spawn Trigger** | Previous A-scene completes | A-story choice success | Player acceptance | Natural emergence from journey |
+| **Declinable** | No | No | Yes | No |
+| **Purpose** | Main narrative | Depth + reward mastery | Income + anti-soft-lock | World texture |
+
+> **Note:** B-Consequence and B-Sought both use the `SideStory` enum value. They differ in spawn trigger and player agency, not in technical category.
+
+### A-Story
+The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. **Player cannot decline**—when an A-scene activates, engagement is mandatory. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
+
+**Building → Crisis Rhythm (Sir Brante Pattern):**
+
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
+
+| Component | Role |
+|-----------|------|
+| **SceneTemplate** | Pre-authored definition parsed from JSON at game start. Defines arc length and structure. |
+| **Situations 1 to N-1** | Building situations—stat growth, investment, narrative setup |
+| **Situation N (final)** | Crisis situation—stat-gated choices that test accumulated investment |
+
+**Arc Length Varies by Template:**
+
+Different SceneTemplates have different situation counts, creating natural variety:
+- Short arcs: 2-3 situations (quick buildup → crisis)
+- Medium arcs: 4-5 situations (substantial buildup → crisis)
+- Long arcs: 6+ situations (extended buildup → major crisis)
+
+**Why This Feels Non-Deterministic:**
+
+| Constant (per template) | Variable (per instance) |
+|-------------------------|------------------------|
+| Number of situations | NPCs (via PlacementFilter) |
+| Arc structure | Locations (via PlacementFilter) |
+| Mechanical flow baseline | Concrete stat values (via context) |
+| Crisis position (always last) | Narrative flavor (via AI generation) |
+
+The **procedural selection system** chooses which SceneTemplate to use based on:
+- Player's current state
+- Previous arc patterns (anti-repetition)
+- Narrative progression requirements
+- Game state categorical properties
+
+The **context injection** then supplies categorical properties that influence concrete mechanical construction. The same template plays out differently each time because:
+- Different NPCs resolve from PlacementFilters
+- Different locations based on player position
+- Different stat thresholds based on player investment
+- Different narrative from AI generation
+
+**Result:** Player cannot predict arc length (varies by template), and each instance feels fresh (context varies), but mechanical flow is guaranteed satisfying (template constants).
+
+When player **takes a stat-gated choice** in the Crisis situation (meets the OR-requirements), a B-Consequence thread spawns—continuing the narrative with the same characters and locations.
+
+> **Note:** There is no "success" or "failure" in the traditional sense. Each choice has OR-requirements (Sir Brante style) and consequences (positive, negative, or trade-offs). Taking a stat-gated choice vs taking the fallback choice leads to different consequences and different B-Consequence spawns.
 
 ### B-Story
-Major side content. 3-8 scenes per storyline. Optional, player-initiated, substantial character arcs.
+
+B-Stories provide resources that fund A-story travel. They come in **two distinct types** serving different purposes.
+
+**Two Distinct B-Story Rhythms:**
+
+B-Stories have two rhythms depending on type, but both end with guaranteed resource reward:
+
+| B-Type | Rhythm | Situations 1 to N-1 | Situation N |
+|--------|--------|---------------------|-------------|
+| **B-Consequence** | Narrative → Payoff | Story continuation (no challenges) | Premium reward |
+| **B-Sought** | Challenge → Payoff | Resource costs, skill tests | Basic reward |
+
+**Why Different Rhythms:**
+- **B-Consequence:** Player already proved themselves in A-story Crisis—this is the REWARD, not more work
+- **B-Sought:** Player chose to work for income—effort required, reward earned
+- Both are net positive resource flow by design
+
+**Payoff Guarantee:** Every B-Story template MUST end with resource reward. B-Consequence rewards mastery; B-Sought rewards effort.
+
+#### B-Consequence (Earned Reward)
+
+**Reward threads** spawned when player takes stat-gated A-story choices. These are the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+
+**Spawn Trigger Mechanics:**
+
+Each A-story choice can specify a B-Consequence scene to spawn. When player takes that choice (meets the OR-requirements), the B-Consequence spawns automatically. The choice's `ScenesToSpawn` reward references the B-Consequence template.
+
+| Player Action | Result |
+|---------------|--------|
+| Takes stat-gated choice (meets requirements) | B-Consequence spawns with premium rewards |
+| Takes fallback choice (no requirements) | No B-Consequence; progress continues |
+
+**Narrative Continuity Mechanics:**
+
+B-Consequence uses the existing EntityResolver + PlacementFilter system (HIGHLANDER). The B-Consequence SituationTemplates specify PlacementFilters matching the A-Story's entity categorical properties:
+
+- **Same NPC:** PlacementFilter matches profession, personality, social standing + `SameVenue` proximity
+- **Same Location:** PlacementFilter matches purpose, privacy, safety + `SameVenue` proximity
+- **Selection Strategy:** `HighestBond` for NPC ensures most narratively connected character returns
+
+If exact entity found → same character/location continues. If not found → equivalent entity created with same categorical profile. No ID storage needed—pure categorical matching.
+
+**Characteristics:**
+- **Cannot be declined:** Just happens as consequence of choice
+- **Continues A-story narrative:** Same NPCs, same locations, deeper story
+- **Premium rewards:** Major resources for demonstrated investment
+- **One-time per trigger:** Each A-story choice can spawn its B-consequence once
+
+**Why This Works:**
+- Rewards stat investment (Building phase has purpose)
+- Creates narrative continuity (A-story characters return via categorical matching)
+- Skilled players earn resources automatically
+- Feels earned, not randomly assigned
+
+#### B-Sought (Player-Initiated)
+
+**Quest content** the player actively seeks out when they need resources. Found through exploration, NPC conversations, job boards, and world discovery.
+
+**Characteristics:**
+- **Spawn Trigger:** Player acceptance (accepts quest, takes contract, agrees to help)
+- **Can be declined:** Player chooses whether to engage
+- **Independent narrative:** New characters, new situations
+- **Basic rewards:** Reliable income for effort invested
+- **System-repeatable:** Job boards always have work available
+
+**Sources:**
+- **Job Boards:** Always-available contracts (delivery, investigation, escort)
+- **NPC Offers:** Characters met during A/B stories offer work
+- **Exploration:** Discovering locations reveals opportunities
+- **Obligations:** Accepted contracts tracked as active quests
+
+**Why This Exists:**
+- Prevents soft-lock (player can always earn resources)
+- Rewards exploration (finding work is itself gameplay)
+- Player controls pacing (seek work when needed)
+- Traditional RPG quest familiarity
+
+#### The Two Types Together
+
+| Aspect | B-Consequence | B-Sought |
+|--------|---------------|----------|
+| **Player Experience** | "My success unlocked this" | "I need coins, let me find work" |
+| **Skill Reward** | Mastery → automatic rewards | Effort → earned income |
+| **Narrative Role** | Deepens A-story threads | Expands world knowledge |
+| **Economic Role** | Premium income for skilled | Safety net for all |
+
+**Design Intent:** Skilled players who invest in stats and succeed at checks receive B-Consequence scenes automatically—they never need to grind. Players who struggle can always find B-Sought content through job boards. Both paths lead to A-story progression; mastery is rewarded but never required.
 
 ### C-Story
-Minor side content. 1-2 scenes. World flavor, quick opportunities, organic encounters.
+Single-scene encounters providing **world texture**. These are not spawned by explicit game mechanics—they **emerge naturally from the journey** that A and B stories create.
+
+**Natural Emergence:**
+- **Travel routes** — Moving between A-story locations creates route encounters (terrain-themed)
+- **Location visits** — Being in a place creates opportunity for location flavor
+- **NPC interactions** — Meeting characters through A/B stories creates incidental moments
+
+**Player cannot decline or willingly spawn**—these are surprises that flesh out the world. The journey to story IS content. A and B stories create the context; C-stories fill the texture naturally.
+
+**Examples:** Forest ambush on route to distant A-story, inn gossip while resting, merchant haggling at market visited during B-story.
+
+**Key Insight:** C-stories are not a separate system. They are the natural consequence of A/B story journeys—terrain, locations, and NPCs responding to player presence.
+
+### Why These Categories?
+
+The categories form an interconnected narrative and economic ecosystem:
+
+| Category | Player Experience | Causal Relationship |
+|----------|------------------|---------------------|
+| **A-Story** | "The main quest continues" | Creates B-Consequence (success) and C-stories (journey) |
+| **B-Consequence** | "My success unlocked this" | Continues A-story with same NPCs/locations |
+| **B-Sought** | "I need resources, let me find work" | Available through exploration and job boards |
+| **C-Story** | "The journey itself" | Emerges from travel, locations, NPCs |
+
+**The story causality:**
+```
+A-Story (Building → Crisis)
+    │
+    ├── SUCCESS at check → B-Consequence spawns (mandatory)
+    │                      └── Same NPCs, deeper story, premium rewards
+    │
+    ├── JOURNEY creates → C-Stories emerge naturally
+    │                     └── Route, location, NPC texture
+    │
+    └── RESOURCE NEED → Player seeks B-Sought (optional)
+                        └── Job boards, NPC offers, exploration
+```
+
+**Economic Design:**
+- **Mastery Path:** Invest stats → succeed at checks → B-Consequence rewards fund travel automatically
+- **Fallback Path:** Use fallbacks → need resources → seek B-Sought work → earn travel funds
+- **Both paths work:** Skilled players never grind; struggling players never soft-lock
+
+**Key Insight:** B-Consequence rewards mastery (making grinding unnecessary for skilled players). B-Sought prevents soft-lock (ensuring resources are always obtainable). Together they create fair progression where skill is rewarded but never required.
+
+---
+
+## Content Terms
 
 ### Categorical Property
 Strongly-typed entity attribute with intentional domain meaning. Two types exist:

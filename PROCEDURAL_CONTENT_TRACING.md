@@ -693,7 +693,7 @@ Root Scene: A4 Investigation Begins
 ```css
 .scene-main-story { border-left-color: #f14c4c; } /* Red */
 .scene-side-story { border-left-color: #3794ff; } /* Blue */
-.scene-service { border-left-color: #89d185; } /* Green */
+.scene-encounter { border-left-color: #89d185; } /* Green */
 
 .situation-completed { background: #1e3a1e; } /* Dark green tint */
 .situation-failed { background: #3a1e1e; } /* Dark red tint */

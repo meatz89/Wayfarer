@@ -57,11 +57,11 @@ public class SceneTemplateParser
         // FAIL-FAST: Category is REQUIRED (no silent defaults)
         if (string.IsNullOrEmpty(dto.Category))
         {
-            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'category'. Valid values: MainStory, SideStory, Service");
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'category'. Valid values: MainStory, SideStory, Encounter");
         }
         if (!Enum.TryParse<StoryCategory>(dto.Category, true, out StoryCategory category))
         {
-            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Encounter");
         }
 
         // Validate MainStorySequence constraints
@@ -139,7 +139,7 @@ public class SceneTemplateParser
         Console.WriteLine($"[SceneGeneration] Categorical context: Category={category}, MainStorySequence={dto.MainStorySequence}, Rhythm={rhythmPattern}");
 
         // HIGHLANDER: Branch on category, call appropriate method
-        // MainStory scenes have a sequence number, Side/Service content does not
+        // MainStory scenes have a sequence number, SideStory/Encounter content does not
         SceneArchetypeDefinition archetypeDefinition;
         if (category == StoryCategory.MainStory)
         {
@@ -153,7 +153,7 @@ public class SceneTemplateParser
         }
         else
         {
-            // SideStory and Service have no sequence
+            // SideStory and Encounter have no sequence
             archetypeDefinition = _generationFacade.GenerateSideContentScene(
                 sceneArchetypeType,
                 contextNPC,

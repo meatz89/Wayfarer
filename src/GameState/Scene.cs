@@ -179,8 +179,8 @@ public class Scene
     /// <summary>
     /// Story category classification (copied from template)
     /// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
-    /// SideStory = B-story content (optional, unlocked by A-story)
-    /// Service = C-story content (repeatable transactional)
+    /// SideStory = B-story content (reward threads from A-story success)
+    /// Encounter = C-story content (natural emergence from journey)
     /// </summary>
     public StoryCategory Category { get; set; } = StoryCategory.SideStory;
 

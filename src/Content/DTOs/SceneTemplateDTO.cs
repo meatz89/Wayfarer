@@ -57,10 +57,10 @@ public class SceneTemplateDTO
 
     /// <summary>
     /// Story category for narrative role classification
-    /// Values: "MainStory", "SideStory", "Service"
+    /// Values: "MainStory", "SideStory", "Encounter"
     /// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
-    /// SideStory = B-story content (optional, unlocked by A-story)
-    /// Service = C-story content (repeatable transactional scenes)
+    /// SideStory = B-story content (reward threads from A-story success)
+    /// Encounter = C-story content (natural emergence from journey)
     /// Defaults to "SideStory" if not specified
     /// </summary>
     public string Category { get; set; }
@@ -69,7 +69,7 @@ public class SceneTemplateDTO
     /// Main story sequence number for A-story scenes
     /// 1-10 = Authored tutorial scenes (sequential progression)
     /// 11+ = Procedural continuation (infinite)
-    /// null = Not part of A-story (SideStory or Service content)
+    /// null = Not part of A-story (SideStory or Encounter content)
     /// Parser validation: Non-null value requires Category = "MainStory"
     /// </summary>
     public int? MainStorySequence { get; set; }

@@ -1,33 +1,35 @@
 
 /// <summary>
-/// Categorizes scene content by narrative role
-/// Main story progresses sequentially (A1-A10) then procedurally (A11+)
-/// Side stories provide optional content unlocked by A-story progression
-/// Service stories provide repeatable transactional content (inns, merchants, healers)
+/// Categorizes scene content by narrative role and player agency.
+/// A/B/C stories are distinguished by a combination of properties, not a single axis.
+/// All three use identical Scene-Situation-Choice structure; category determines rules and validation.
 /// </summary>
 public enum StoryCategory
 {
     /// <summary>
     /// Main narrative progression (A-stories)
-    /// Sequential authored tutorial (A1-A10) followed by infinite procedural continuation (A11+)
-    /// Linear progression: Each A-scene unlocks next A-scene upon completion
-    /// Guaranteed forward progression: Every situation has zero-requirement success path
+    /// Infinite sequential chain. Scenes chain: A1 → A2 → A3...
+    /// Fallback required in every situation. Can never fail.
+    /// Resource SINK (travel costs to reach). Player cannot decline.
+    /// Primary purpose: world expansion (venues, districts, regions, routes, NPCs).
     /// </summary>
     MainStory,
 
     /// <summary>
-    /// Optional side content (B-stories)
-    /// Unlocked by A-story progression (regions/NPCs revealed by A-scenes)
-    /// Non-linear: Can engage in any order once unlocked
-    /// No progression requirements: Can skip without blocking A-story
+    /// Quest content providing resources (B-stories)
+    /// One scene with 3-8 situations forming a complete arc.
+    /// Player CHOOSES to engage via job board, NPC quest giver, or peculiar location.
+    /// Can accept or decline. Can fail with consequences. No mandatory fallback.
+    /// Primary resource SOURCE. Significant rewards fund A-story travel.
     /// </summary>
     SideStory,
 
     /// <summary>
-    /// Repeatable service content (C-stories)
-    /// Transactional scenes: Inns, merchants, healers, bathhouses
-    /// Repeatable: Can engage multiple times
-    /// Resource-gated: Require coins/items but provide services
+    /// Single-scene texture encounters (C-stories)
+    /// Spawns probabilistically when player enters location with no active A/B scene.
+    /// Spawn chance based on: location properties, player state (tired/hungry/cold), world state (weather).
+    /// Player cannot decline or willingly spawn—surprises that flesh out the world.
+    /// World TEXTURE (minor rewards). System-repeatable but player has no control.
     /// </summary>
-    Service
+    Encounter
 }

@@ -207,12 +207,12 @@ Scene generation is deterministic based on what HAS HAPPENED, not what the playe
 
 **Correct Pattern:** Measure intensity of past scenes. If player has experienced several demanding situations, the next scene should be recovery. If player has had too much recovery, challenge them. The rhythm emerges from HISTORY, not current state.
 
-### What Drives Scene Selection
+### What Drives Template Selection
 
 | Factor | Purpose |
 |--------|---------|
-| **Rhythm Pattern** | Computed from intensity history; determines Building/Crisis/Mixed |
-| **Anti-Repetition** | Prevents immediate category repetition |
+| **Intensity History** | Computed from completed scenes; determines template intensity |
+| **Anti-Repetition** | Prevents immediate archetype repetition |
 
 **What does NOT drive selection:**
 - Location context (affects choice SCALING, not scene SELECTION)

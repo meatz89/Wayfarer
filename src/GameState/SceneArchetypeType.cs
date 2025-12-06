@@ -6,8 +6,8 @@
 /// </summary>
 public enum SceneArchetypeType
 {
-    // ==================== SERVICE PATTERNS (4) ====================
-    // Reusable patterns for transactional C-story content
+    // ==================== ENCOUNTER PATTERNS (4) ====================
+    // Reusable patterns for C-story content (natural emergence from journey)
 
     /// <summary>
     /// Inn lodging scene: negotiate → rest → depart

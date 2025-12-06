@@ -20,7 +20,7 @@ public static class ArchetypeCategorySelector
     /// PUBLIC: Called by SituationCompletionHandler for intensity tracking.
     ///
     /// FAIL-FAST: Throws for unknown archetypes to catch authoring errors.
-    /// Service patterns mapped to "Service" category (should not be tracked for A-story rhythm).
+    /// Encounter patterns mapped to "Encounter" category (should not be tracked for A-story rhythm).
     /// </summary>
     public static string MapArchetypeToCategory(SceneArchetypeType archetype)
     {
@@ -48,13 +48,13 @@ public static class ArchetypeCategorySelector
             SceneArchetypeType.CasualEncounter => "Peaceful",
             SceneArchetypeType.ScholarlyPursuit => "Peaceful",
 
-            // Service patterns - should NOT be tracked for A-story rhythm
+            // Encounter patterns - should NOT be tracked for A-story rhythm
             // If these reach intensity recording, it indicates a data authoring error
-            // (service pattern marked as MainStory category)
-            SceneArchetypeType.InnLodging => "Service",
-            SceneArchetypeType.ConsequenceReflection => "Service",
-            SceneArchetypeType.DeliveryContract => "Service",
-            SceneArchetypeType.RouteSegmentTravel => "Service",
+            // (encounter pattern marked as MainStory category)
+            SceneArchetypeType.InnLodging => "Encounter",
+            SceneArchetypeType.ConsequenceReflection => "Encounter",
+            SceneArchetypeType.DeliveryContract => "Encounter",
+            SceneArchetypeType.RouteSegmentTravel => "Encounter",
 
             // FAIL-FAST: Unknown archetype is a code error (enum extended without updating mapping)
             _ => throw new InvalidOperationException(
@@ -68,7 +68,7 @@ public static class ArchetypeCategorySelector
     /// PUBLIC: Called by SituationCompletionHandler for intensity tracking.
     ///
     /// FAIL-FAST: Throws for unknown archetypes to catch authoring errors.
-    /// Service patterns mapped to Standard (should not be tracked for A-story rhythm).
+    /// Encounter patterns mapped to Standard (should not be tracked for A-story rhythm).
     /// </summary>
     public static ArchetypeIntensity MapArchetypeToIntensity(SceneArchetypeType archetype)
     {
@@ -96,7 +96,7 @@ public static class ArchetypeCategorySelector
             SceneArchetypeType.UrgentDecision => ArchetypeIntensity.Demanding,
             SceneArchetypeType.MoralCrossroads => ArchetypeIntensity.Demanding,
 
-            // Service patterns - should NOT be tracked for A-story rhythm
+            // Encounter patterns - should NOT be tracked for A-story rhythm
             // If these reach intensity recording, it indicates a data authoring error
             SceneArchetypeType.InnLodging => ArchetypeIntensity.Standard,
             SceneArchetypeType.ConsequenceReflection => ArchetypeIntensity.Standard,

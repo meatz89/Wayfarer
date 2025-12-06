@@ -70,7 +70,7 @@ public class SceneSpawnNode
     public Scene SceneEntity { get; set; }
 
     /// <summary>
-    /// Story category (MainStory, SideStory, Service)
+    /// Story category (MainStory, SideStory, Encounter)
     /// </summary>
     public StoryCategory Category { get; set; }
 

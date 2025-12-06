@@ -120,7 +120,7 @@ public class SceneArchetypeNamingTests
     [Fact]
     public void SceneArchetypeType_Enum_ContainsExpectedPatterns()
     {
-        // Service patterns
+        // Encounter patterns
         Assert.True(Enum.IsDefined(typeof(SceneArchetypeType), SceneArchetypeType.InnLodging));
         Assert.True(Enum.IsDefined(typeof(SceneArchetypeType), SceneArchetypeType.DeliveryContract));
         Assert.True(Enum.IsDefined(typeof(SceneArchetypeType), SceneArchetypeType.RouteSegmentTravel));

@@ -804,39 +804,58 @@ After all references established, generates PERSISTENT names stored on entity pr
 
 ## 8.25 Context Injection (HIGHLANDER Scene Generation)
 
-**"RhythmPattern drives selection. Location difficulty drives scaling. Never mixed."**
+**"Location difficulty drives scaling. Story category drives structure."**
 
-### RhythmPattern Definitions
+### Scene = Arc Model
 
-Content rhythm controls how situations present choices to players:
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate:
 
-| Rhythm | Choice Structure | Player Experience |
-|--------|------------------|-------------------|
-| **Building** | All positive—choose which stat to gain | Identity formation |
-| **Crisis** | All negative—choose which loss to minimize | Test investments |
-| **Mixed** | Trade-offs—sacrifice for gain | Strategic decisions |
+| Position | Structure | Choice Generation |
+|----------|-----------|-------------------|
+| **Situations 1 to N-1** | Building | Choices GRANT stats (investment phase) |
+| **Situation N (final)** | Crisis | Stat-gated choices TEST accumulated investment |
 
-**Rhythm emerges from intensity history, not player state.** Player resources do NOT affect which rhythm is selected—the rhythm comes from PAST scenes, not CURRENT state.
+### Current Implementation: RhythmPattern
+
+**Current state:** Code uses explicit `RhythmPattern` enum (Building, Crisis, Mixed) to determine choice generation. This property exists on SceneTemplate and is parsed from JSON content.
+
+| RhythmPattern Value | Choice Generation |
+|---------------------|-------------------|
+| Building | Grants stats (investment) |
+| Crisis | Tests stats (stat-gated choices) |
+| Mixed | Combination of both |
+
+### Planned Migration: Position-Based
+
+**Target architecture:** Position within scene determines structure, not explicit property.
+
+| Position | Derived Structure |
+|----------|-------------------|
+| Situations 1 to N-1 | Building (by position) |
+| Situation N (final) | Crisis (by position) |
+
+**Migration status:** See `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3 for migration steps. Until migration complete, RhythmPattern remains authoritative.
 
 ### Two Distinct Systems
 
 | System | Input | When Applied | Controls |
 |--------|-------|--------------|----------|
-| **Scene Selection** | RhythmPattern + anti-repetition | Scene spawn trigger hit | Which archetype category |
+| **Template Selection** | Intensity history + anti-repetition | Scene spawn trigger hit | Which SceneTemplate |
 | **Choice Scaling** | Location difficulty (hex distance) | Situation created | Requirement/reward values |
 
 These systems are ORTHOGONAL. Selection doesn't know about scaling. Scaling doesn't influence selection.
 
-### Scene Selection: RhythmPattern Only
+### Template Selection
 
-Scene archetype selection uses ONLY:
+Scene template selection uses:
 
 | Input | Source | Purpose |
 |-------|--------|---------|
-| **RhythmPattern** | Computed from intensity history | Building → building archetypes; Crisis → crisis archetypes |
-| **Anti-Repetition** | Recent categories/archetypes | Avoid immediate repetition |
+| **Intensity History** | Completed scenes | Avoid intensity fatigue |
+| **Anti-Repetition** | Recent archetypes | Avoid immediate repetition |
+| **Narrative State** | Player progression | Match story context |
 
-**No other inputs influence selection.** Location context, player stats, tier—all REMOVED from selection.
+**No location context influences selection.** Location difficulty ONLY affects choice scaling.
 
 ### Choice Scaling: Location Difficulty
 
@@ -852,29 +871,51 @@ Scaling happens at instantiation—AFTER selection is complete.
 ### Context Flow
 
 ```
-SceneSpawnResult → RhythmPattern → Select Category → SceneTemplate
-                                                          ↓
-                              Location Difficulty → Choice Scaling
+SceneSpawnResult → Intensity History → Select SceneTemplate
+                                              ↓
+        SceneTemplate (defines arc structure: Building...Building...Crisis)
+                                              ↓
+                      Location Difficulty → Choice Scaling per Situation
 ```
 
 ### HIGHLANDER Compliance
 
 | Principle | How It's Upheld |
 |-----------|-----------------|
-| **Same selection logic** | RhythmPattern processed identically for authored/procedural |
+| **Same selection logic** | Template selection works identically for authored/procedural |
+| **Same arc structure** | Every scene contains Building situations + final Crisis |
 | **Same scaling logic** | Location difficulty applied identically to all choices |
-| **No source detection** | Selection doesn't know if context was authored or procedural |
 
 ### Forbidden Patterns
 
 | Pattern | Why It's Wrong |
 |---------|----------------|
-| Location properties in selection | Selection uses rhythm only |
+| Location properties in selection | Selection uses intensity history only |
 | Player stats influencing selection | Game doesn't cushion poor play |
 | Different paths for authored vs procedural | Same mechanism for both |
 
+> **Note:** Scene-level RhythmPattern is currently used but planned for removal. See migration plan above.
+
+### B-Story Templates: Two Distinct Rhythms
+
+**§8.25 applies ONLY to A-Story scenes.** B-Stories have two rhythms depending on type:
+
+| Story Type | Rhythm | Intermediate Situations | Final Situation |
+|------------|--------|------------------------|-----------------|
+| **A-Story** | Building → Crisis | GRANT stats | TEST stats |
+| **B-Consequence** | Narrative → Payoff | Story continuation (no challenges) | GRANT premium resources |
+| **B-Sought** | Challenge → Payoff | COST resources / test skills | GRANT basic resources |
+| **C-Story** | None | Single situation | (no arc) |
+
+**Why Different:**
+- **A-Story:** Character growth (stat investment cycle)
+- **B-Consequence:** Reward for A-story mastery—player already proved themselves, no additional challenges
+- **B-Sought:** Player works for income—effort required, reward earned
+- All B-Stories MUST end with payoff (guaranteed reward)
+
 **Cross-References:**
 - §8.4 Three-Tier Timing: Unified scene creation mechanism
+- gdd/ENDLESS_STORY_DESIGN.md §B-Story Rhythm: Two Distinct Rhythms
 
 ---
 
@@ -992,7 +1033,7 @@ Categorical properties flow through archetypes to produce concrete mechanical co
 | Input | Processor | Output |
 |-------|-----------|--------|
 | SceneArchetypeType + GenerationContext | SceneArchetypeCatalog | SituationTemplates with choices |
-| RhythmPattern | SituationArchetypeCatalog | Choice STRUCTURE (Building/Crisis/Mixed) |
+| Situation Position in Scene | SituationArchetypeCatalog | Choice STRUCTURE (Building=grant, Crisis=test) |
 | PowerDynamic, NPCDemeanor, Quality | GenerationContext scaling | Value ADJUSTMENTS (thresholds, costs) |
 
 **Key Principle:** Archetypes are reusable across all contexts. Tutorial and late-game use identical archetype code; categorical properties create appropriate difficulty.

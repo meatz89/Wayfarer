@@ -195,7 +195,7 @@ grep -rn "\.State = SceneState\." src/
 
 .scene-main-story { border-left-color: #f14c4c; }
 .scene-side-story { border-left-color: #3794ff; }
-.scene-service { border-left-color: #89d185; }
+.scene-encounter { border-left-color: #89d185; }
 
 .trace-node-collapsed > .trace-node-children {
     display: none;
@@ -274,7 +274,7 @@ else
                 <option value="">All Categories</option>
                 <option value="MainStory">Main Story</option>
                 <option value="SideStory">Side Story</option>
-                <option value="Service">Service</option>
+                <option value="Encounter">Encounter</option>
             </select>
 
             <label>Day:</label>

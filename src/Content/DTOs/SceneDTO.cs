@@ -92,7 +92,7 @@ public class SceneDTO
 
     /// <summary>
     /// Story category classification
-    /// Values: "MainStory", "SideStory", "Service"
+    /// Values: "MainStory", "SideStory", "Encounter"
     /// </summary>
     public string Category { get; set; }
 

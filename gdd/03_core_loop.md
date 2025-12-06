@@ -109,7 +109,65 @@ Your build reflects your values and playstyle. This IS character development.
 
 ---
 
-## 3.5 Strategic vs Tactical Layers
+## 3.5 How Loops Gate Each Other
+
+### The Travel Cost Gate
+
+A-Story progression requires travel to increasingly distant locations. This creates economic pressure that forces engagement with B-stories (quests the player seeks out).
+
+| Loop | Gates | Via |
+|------|-------|-----|
+| **MEDIUM** (B-stories / quests) | **LONG** (A-Story) | Travel resources |
+| **SHORT** (Encounters) | **MEDIUM** (Quest completion) | Resource costs/rewards |
+
+### The Rhythm
+
+```
+A-Story N completes (LONG)
+    ↓
+A-Story N+1 spawns at distance N+1 hexes
+    ↓
+Travel costs exceed current resources
+    ↓
+Player seeks B-Stories (job board, NPC quests) to earn resources
+    ↓
+Each B-story contains SHORT loop encounters
+    ↓
+Resources accumulate (or use Atmospheric Work as fallback)
+    ↓
+Afford travel to A-Story N+1
+    ↓
+C-story encounters during travel (world texture)
+    ↓
+Arrive and experience A-Story N+1
+    ↓
+Repeat forever
+```
+
+### How Each Category Contributes
+
+| Category | Player Agency | Economic Role |
+|----------|---------------|---------------|
+| **A-Story** | Mandatory | Resource SINK (travel costs) |
+| **B-Consequence** | Mandatory (earned) | Premium SOURCE (success rewards) |
+| **B-Sought** | Opt-in (seek out) | Reliable SOURCE (job boards) |
+| **C-Story** | Mandatory (journey) | World TEXTURE (minor rewards) |
+| **Atmospheric Work** | Always available | Safety net (last resort) |
+
+### Why Two B-Story Types
+
+| Type | Purpose | Player Experience |
+|------|---------|-------------------|
+| **B-Consequence** | Rewards mastery | "My stat investment paid off" |
+| **B-Sought** | Prevents soft-lock | "I can always find work" |
+
+Skilled players receive B-Consequence automatically—no grinding needed. Struggling players can always find B-Sought work via job boards. Both paths fund A-story travel.
+
+**See [05_content.md §5.7](05_content.md) for complete Travel Cost Gate design.**
+
+---
+
+## 3.6 Strategic vs Tactical Layers
 
 ### The Separation
 
@@ -135,5 +193,6 @@ Choices spawn challenges when player opts into tactical layer:
 
 ## Cross-References
 
+- **Travel Cost Gate**: See [05_content.md §5.7](05_content.md) for how B/C stories gate A-Story progression
 - **Challenge Mechanics**: See [04_systems.md](04_systems.md) for tactical layer details
 - **Resource Economy**: See [04_systems.md](04_systems.md) for how scarcity creates tension

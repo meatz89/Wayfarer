@@ -47,9 +47,9 @@
                 <input type="checkbox" @bind="ShowSideStory" @bind:after="ApplyFilters" />
                 Side
             </label>
-            <label class="filter-toggle category-service @(ShowService ? "active" : "")">
-                <input type="checkbox" @bind="ShowService" @bind:after="ApplyFilters" />
-                Service
+            <label class="filter-toggle category-encounter @(ShowEncounter ? "active" : "")">
+                <input type="checkbox" @bind="ShowEncounter" @bind:after="ApplyFilters" />
+                Encounter
             </label>
         </div>
         <span class="filter-separator">|</span>
@@ -155,7 +155,7 @@
 
     private bool ShowMainStory { get; set; } = true;
     private bool ShowSideStory { get; set; } = true;
-    private bool ShowService { get; set; } = true;
+    private bool ShowEncounter { get; set; } = true;
 
     private bool ShowActive { get; set; } = true;
     private bool ShowCompleted { get; set; } = true;
@@ -400,7 +400,7 @@
         {
             StoryCategory.MainStory => ShowMainStory,
             StoryCategory.SideStory => ShowSideStory,
-            StoryCategory.Service => ShowService,
+            StoryCategory.Encounter => ShowEncounter,
             _ => true
         };
 

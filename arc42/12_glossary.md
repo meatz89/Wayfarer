@@ -8,8 +8,12 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
-| **ArchetypeIntensity** | Content categorization for procedural archetypes: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Describes inherent challenge level of content, NOT player eligibility. Named to avoid collision with RhythmPattern values. Orthogonal to RhythmPattern. |
-| **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
+| **ArchetypeIntensity** | Content categorization: Recovery, Standard, Demanding. Drives difficulty scaling; orthogonal to position-based arc structure. |
+| **A-Story** | Infinite main narrative (mandatory). Enum: MainStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **B-Consequence** | Reward from A-story success (mandatory). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **B-Sought** | Player-initiated quests (opt-in). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **C-Story** | Journey texture (mandatory). Enum: Encounter. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **Story Category** | A/B/C classification. Property matrix in [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
 | **Categorical Property** | Strongly-typed enum describing entity identity or capability; parsed from JSON strings with fail-fast validation |
@@ -22,7 +26,9 @@ Domain and technical terms used throughout this documentation.
 | **Impossible Choice** | Design goal: player must choose between multiple suboptimal paths, revealing character through constraint |
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
-| **RhythmPattern** | Choice generation pattern determining HOW choices are structured: Building (stat grants, no requirements), Crisis (penalty avoidance), Mixed (standard trade-offs). Determines choice STRUCTURE, not archetype selection. Orthogonal to ArchetypeIntensity. |
+| **Building → Crisis Structure** | A-Story arc model (Sir Brante pattern): positions 1 to N-1 are Building (stat grants), position N is Crisis (stat-gated test). Position determines structure. |
+| **Challenge → Payoff Structure** | B-Sought arc model: positions 1 to N-1 are Challenge (resource costs, skill tests), position N is Payoff (guaranteed basic reward). Player works for income. |
+| **Narrative → Payoff Structure** | B-Consequence arc model: positions 1 to N-1 are Narrative (story continuation, no challenges), position N is Payoff (guaranteed premium reward). Reward for A-story mastery—player already proved themselves. |
 | **Scene** | Mutable instance created from SceneTemplate at spawn-time; contains Situation instances (created at activation-time); lifecycle: Deferred → Active → Completed |
 | **SceneTemplate** | Immutable archetype containing SituationTemplates; created at parse-time; JSON uses `sceneTemplates` key, NEVER `scenes` |
 | **Situation** | Mutable instance created from SituationTemplate at activation-time; contains resolved entity references (Location, NPC, Route) |

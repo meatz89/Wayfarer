@@ -192,7 +192,7 @@ Scene generation operates on TWO INDEPENDENT axes that combine freely:
 | **Confrontation** | Verbal dispute | Serious conflict | Life-threatening |
 | **Crisis** | Low-stakes choice | Meaningful dilemma | Life-or-death decision |
 
-**Critical Insight:** A Crisis scene can be Recovery intensity—the narrative climax happens, but the mechanical pressure is gentle. An Investigation scene can be Demanding intensity—gathering clues is mechanically punishing. Category and intensity are orthogonal.
+**Critical Insight:** Archetype category and intensity are orthogonal. An Investigation archetype can be Recovery intensity (easy clue-finding) or Demanding intensity (mechanically punishing pursuit). A Crisis archetype can be Recovery intensity (low-stakes choice) or Demanding intensity (life-or-death decision). The archetype category describes WHAT happens narratively; intensity describes HOW mechanically challenging it is.
 
 ### Situation Types (NOT Uniform Structure)
 
@@ -256,43 +256,41 @@ The player's CURRENT state is their responsibility. Bad choices have consequence
 
 **The Feeling:** Player senses the rhythm. "I've been gaining stats... something bad is coming." The anticipation creates tension even in peaceful moments.
 
-### Scene Selection Inputs (RhythmPattern Only)
+### Template Selection Inputs
 
-Scene selection uses ONLY two inputs:
+Template selection uses two inputs:
 
 | Input | Source | Purpose |
 |-------|--------|---------|
-| **RhythmPattern** | Computed from intensity history | Determines appropriate archetype category |
-| **Anti-Repetition** | Recent categories/archetypes | Prevents immediate repetition |
+| **Intensity History** | Completed scenes | Determines appropriate template intensity |
+| **Anti-Repetition** | Recent archetypes | Prevents immediate repetition |
 
-**RhythmPattern Computation (from Intensity History):**
+**Intensity History → Template Selection:**
 
-| History State | Computed RhythmPattern | Category Pool |
-|---------------|------------------------|---------------|
-| Intensity-heavy (many demanding scenes) | Building | Recovery archetypes |
-| Recovery-starved (long since recovery) | Building | Peaceful archetypes |
-| Balanced history | Mixed | Trade-off archetypes |
-| Full accumulation cycle complete | Crisis | Crisis/Confrontation archetypes |
+| History State | Template Selection | Result |
+|---------------|-------------------|--------|
+| Intensity-heavy (many demanding scenes) | Recovery templates | Lower thresholds, gentler choices |
+| Recovery-starved (long since recovery) | Standard templates | Balanced intensity |
+| Full accumulation cycle complete | Demanding templates | Higher thresholds, harder choices |
 
 **What Does NOT Influence Selection:**
-- Location safety, purpose, or difficulty (LEGACY—removed)
+- Location safety, purpose, or difficulty (affects scaling, not selection)
 - Player stats, Resolve, or resources
 - Story tier or sequence number
 - NPC demeanor or relationships
 
-Location difficulty affects CHOICE SCALING (stat requirements), not SCENE SELECTION.
+**Location difficulty affects CHOICE SCALING, not TEMPLATE SELECTION.**
 
-**How Tutorial Uses This:**
+**Scene = Arc Structure (All Templates):**
 
-Tutorial scenes specify RhythmPattern directly in SceneSpawnReward:
+Every selected template produces a scene with the same arc structure:
 
-| Tutorial Scene | Authored RhythmPattern | Selection Result |
-|----------------|------------------------|------------------|
-| A1: Introduction | Building | Social/Investigation |
-| A3: First challenge | Mixed | Confrontation |
-| A5: First crisis | Crisis | Crisis |
+| Position | Structure | Purpose |
+|----------|-----------|---------|
+| Situations 1 to N-1 | Building | Stat growth, investment accumulation |
+| Situation N (final) | Crisis | Stat-gated choices test investment |
 
-The selection logic doesn't know these are tutorial scenes. Same code path, different RhythmPattern input.
+Tutorial and procedural scenes use identical structure. The template determines arc length and intensity, not structure.
 
 ### OR-Type Requirements (Multiple Valid Paths)
 
@@ -521,82 +519,100 @@ The game maintains fairness through rhythm, not rescue:
 - Automatic recovery when Resolve is low
 - Removal of demanding content for unprepared players
 
-### RhythmPattern-Driven Scene Generation
+### Scene = Arc Structure
 
-Scene generation is controlled by **RhythmPattern** (Building/Crisis/Mixed), computed from **intensity history**, not from sequence position. This creates emergent narrative rhythm that responds to accumulated story weight.
+Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTemplate (pre-authored JSON, parsed at game start):
 
-**Axis 1: RhythmPattern (Choice STRUCTURE)**
+```
+SceneTemplate
+    ├── Situation 1: Building (stat growth, investment)
+    ├── Situation 2: Building (narrative setup)
+    ├── ...
+    └── Situation N: CRISIS (stat-gated choices, B-Consequence triggers)
+                     ↑ Always the FINAL situation
+```
 
-| RhythmPattern | Choice Generation | Player Experience |
-|---------------|-------------------|-------------------|
-| **Building** | 4 choices with NO requirements, each GRANTS a different stat | "Who am I becoming?" |
-| **Crisis** | 4 choices where stat/coin requirements gate escaping penalty | "Can I survive?" |
-| **Mixed** | 4 choices with standard trade-offs (requirements + costs) | "What do I value?" |
+**Situation Structure Types:**
 
-**Axis 2: ArchetypeIntensity (Content CHALLENGE)**
+| Position | Structure | Choice Generation | Player Experience |
+|----------|-----------|-------------------|-------------------|
+| **1 to N-1** | Building | Choices GRANT stats, minimal requirements | "Who am I becoming?" |
+| **N (final)** | Crisis | Stat-gated choices test accumulated investment | "Was my investment enough?" |
+
+**Template Selection is Procedural:**
+
+Which SceneTemplate is used depends on:
+- Player's current state
+- Previous arc patterns (anti-repetition)
+- Narrative progression requirements
+- Game state categorical properties
+
+**Axis: ArchetypeIntensity (Content CHALLENGE)**
 
 | Intensity | Mechanical Feel | Example Archetypes |
 |-----------|-----------------|-------------------|
-| **Recovery** | All positive outcomes, no requirements | QuietReflection, CasualEncounter |
-| **Standard** | Normal trade-offs, achievable requirements | Investigation, Social |
+| **Recovery** | All positive outcomes, gentle | QuietReflection, CasualEncounter |
+| **Standard** | Normal trade-offs, achievable | Investigation, Social |
 | **Demanding** | Tough requirements, real costs | Confrontation, Crisis |
 
-**These are ORTHOGONAL.** Same archetype + different RhythmPattern = different choice structures. A Crisis archetype with Building rhythm grants stats. A Social archetype with Crisis rhythm has penalty fallbacks.
+**Position determines structure, Intensity determines difficulty.** A Building situation with Demanding intensity still grants stats, but the narrative stakes are high. A Crisis situation with Recovery intensity still has stat-gated choices, but the consequences are gentle.
 
-### Intensity History Drives RhythmPattern
+### Intensity History Drives Template Selection
 
-RhythmPattern is COMPUTED from past scene intensity, not from sequence position:
+Which SceneTemplate is selected depends on intensity history, not sequence position:
 
-| Intensity History | Computed RhythmPattern |
-|-------------------|------------------------|
-| Many demanding scenes recently | **Building** (recovery needed) |
-| Long since last recovery | **Building** (accumulation opportunity) |
-| Balanced history | **Mixed** (standard trade-offs) |
-| Full accumulation cycle complete | **Crisis** (test investments) |
+| Intensity History | Template Selection Effect |
+|-------------------|--------------------------|
+| Many demanding scenes recently | Shorter arcs with Recovery intensity |
+| Long since last recovery | Medium arcs with stat accumulation focus |
+| Balanced history | Standard arc lengths |
+| Heavy investment phase complete | Longer arcs building to significant Crisis |
 
-**Anti-pattern:** Checking `if (MainStorySequence == 4)` violates archetype reusability. RhythmPattern emerges from history, not position.
+**Anti-pattern:** Checking `if (MainStorySequence == 4)` violates archetype reusability. Template selection emerges from history, not position.
 
-### Typical Emergent Pattern
+### Arc Length Creates Variety
 
-When intensity history is balanced, scenes tend to follow this flow (NOT a hardcoded rotation):
+Different SceneTemplates have different situation counts:
 
-| Typical Order | Category | Intensity | Why It Emerges |
-|---------------|----------|-----------|----------------|
-| After recovery | Investigation | Standard | Mixed rhythm, anti-repetition |
-| After investigation | Social | Standard | Mixed rhythm, relationship focus |
-| After moderate content | Confrontation | Demanding | Crisis rhythm building |
-| After demanding | Crisis | Demanding | Peak tension test |
-| After crisis | Investigation | Standard | Building rhythm (post-crisis recovery) |
-| After recovery investigation | Social | Standard | Building rhythm consolidation |
-| After second social | Confrontation | Demanding | Mixed rhythm tension |
-| After intensity buildup | **Peaceful** | **Recovery** | Building rhythm (earned respite) |
+| Arc Type | Situations | Player Experience |
+|----------|------------|-------------------|
+| Short (2-3) | Quick buildup → Crisis | Fast-paced, frequent tests |
+| Medium (4-5) | Substantial buildup → Crisis | Balanced investment/payoff |
+| Long (6+) | Extended buildup → Major Crisis | Epic narrative weight |
+
+The procedural system selects arc length based on:
+- Recent intensity patterns (anti-repetition)
+- Player resource state
+- Narrative progression needs
+
+**Result:** Player cannot predict when Crisis comes (arc length varies), but mechanical flow is always satisfying (template structure is sound).
 
 **Design rationale:**
-- Peaceful appears ~12.5% of the time through intensity history, not fixed positions
-- Heavy demanding history triggers Building rhythm with Peaceful category selection
-- Peaceful is EARNED through story structure, not given when player struggles
-- Category + RhythmPattern combine to produce appropriate choice structures
+- Recovery intensity scenes appear through intensity history, not fixed positions
+- Heavy demanding history triggers shorter arcs with gentler content
+- Peaceful moments are EARNED through story structure, not given when player struggles
+- Arc length + archetype category + intensity combine to create variety
 
-### Scene Selection Factors
+### Template Selection Factors
 
-Scene selection is deterministic: same inputs always produce same output.
+Template selection is deterministic: same inputs always produce same output.
 
 | Factor | Effect on Selection |
 |--------|---------------------|
-| **Intensity History** | Computes RhythmPattern (Building/Crisis/Mixed) |
-| **Anti-repetition** | Penalizes recently-used categories |
+| **Intensity History** | Determines appropriate template intensity |
+| **Anti-repetition** | Penalizes recently-used archetypes |
 
 **What does NOT influence selection:**
 - Location context (safety, purpose, difficulty)
 - Player stats, resources, or Resolve
 - Story sequence number
 
-Location properties affect CHOICE SCALING (stat requirements), not SCENE SELECTION. See §6.4 for authoritative definition.
+Location properties affect CHOICE SCALING (stat requirements), not TEMPLATE SELECTION. See §6.4 for authoritative definition.
 
 **Key Principles:**
 
-- **History Over State:** RhythmPattern reads PAST intensity, never reacts to PRESENT player state
-- **Peaceful is Earned:** Heavy demanding history triggers recovery scenes
+- **History Over State:** Selection reads PAST intensity, never reacts to PRESENT player state
+- **Peaceful is Earned:** Heavy demanding history triggers recovery templates
 - **Deterministic:** Same game state always produces same selection
 
 ### Context Injection Principle (HIGHLANDER Compliance)
@@ -613,12 +629,12 @@ Location properties affect CHOICE SCALING (stat requirements), not SCENE SELECTI
 Parser receives SceneDTO and produces Scene. Parser has no knowledge of source.
 
 **Orthogonal Systems:**
-- **Scene Selection:** Uses RhythmPattern + anti-repetition (determines WHICH archetype)
+- **Template Selection:** Uses intensity history + anti-repetition (determines WHICH template)
 - **Choice Scaling:** Uses Location.Difficulty (determines requirement VALUES)
 
-These systems are independent. RhythmPattern determines choice structure; Location.Difficulty scales the numbers within that structure.
+These systems are independent. Position in scene determines choice structure (Building vs Crisis); Location.Difficulty scales the numbers within that structure.
 
-See arc42/08 §8.28 for technical implementation pattern.
+See arc42/08 §8.25 for technical implementation pattern.
 
 **Choice Value Calculation SHOULD Consider:**
 
@@ -626,7 +642,7 @@ See arc42/08 §8.28 for technical implementation pattern.
 |--------|-------------|--------|----------------|
 | Player Strength | Sum of all 5 stats | Higher = more paths qualify, but also higher baseline difficulty | IMPLEMENTED (Player.TotalStatStrength) |
 | Location Difficulty | Hex distance from (0,0) / 5 | Further = higher requirements | IMPLEMENTED (LocationPlacementService) |
-| Situation Archetype | Investigation vs Crisis vs Peaceful | Archetypes have inherent difficulty | IMPLEMENTED (via RhythmPattern) |
+| Situation Position | Building vs Crisis | Position in scene determines structure | IMPLEMENTED (final = Crisis) |
 | NPC Demeanor | Friendly/Neutral/Hostile | Scales stat thresholds | IMPLEMENTED |
 | Environment Quality | Basic/Standard/Premium/Luxury | Scales resource costs | IMPLEMENTED |
 
