@@ -361,18 +361,20 @@ When traveling to an A-Story location, the route contains C-story encounters:
 
 ### Terrain Shapes Route Cost and Encounters
 
-The hex grid uses categorical terrain properties that affect both travel cost and encounter themes:
+The hex grid uses categorical terrain properties that affect both travel cost and encounter themes.
 
-**Terrain Stamina Cost:**
+> **Note:** Values below represent design intent for relative scaling. Actual implementation uses Catalogue pattern (parse-time translation). See code for authoritative values.
 
-| Terrain | Stamina/Hex | Design Intent |
-|---------|-------------|---------------|
-| Road | 0 | Easy travel corridors |
-| Plains | 1 | Baseline open terrain |
-| Water | 1 | Easy with boat |
-| Forest | 2 | Moderate difficulty |
-| Mountains | 3 | Hard terrain |
-| Swamp | 3 | Hard terrain |
+**Terrain Stamina Cost (Design Intent):**
+
+| Terrain | Relative Cost | Design Intent |
+|---------|--------------|---------------|
+| Road | Lowest | Easy travel corridors |
+| Plains | Low | Baseline open terrain |
+| Water | Low | Easy with boat |
+| Forest | Medium | Moderate difficulty |
+| Mountains | High | Hard terrain |
+| Swamp | High | Hard terrain |
 
 **Terrain Encounter Themes:**
 
@@ -386,6 +388,8 @@ The hex grid uses categorical terrain properties that affect both travel cost an
 | Water | Weather, piracy, drowning | Storm at sea, pirate encounter, capsized boat |
 
 **Route Choice = Impossible Choice:**
+
+> **Implementation Status:** Multiple route alternatives is design intent. Current HexRouteGenerator finds single optimal path per transport type. Route choice UI and alternative path presentation is future work.
 
 Multiple route options create strategic trade-offs aligned with design pillars:
 
