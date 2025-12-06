@@ -17,7 +17,7 @@ namespace Wayfarer.Tests.Subsystems.ProceduralContent;
 /// 5. Anti-repetition (-15 penalty) - tested in ArchetypeCategorySelectorTests
 ///
 /// UNIT TESTS ONLY: Integration tests were removed because:
-/// 1. Content/Core has authored A1-A3 templates using SERVICE patterns (InnLodging, DeliveryContract)
+/// 1. Content/Core has authored A1-A3 templates using ENCOUNTER patterns (InnLodging, DeliveryContract)
 /// 2. Procedural generation uses NARRATIVE patterns (Investigation, Social, Confrontation, Crisis)
 /// 3. Tests querying by MainStorySequence found AUTHORED content, not GENERATED content
 /// 4. This is CORRECT - tutorial uses different patterns intentionally

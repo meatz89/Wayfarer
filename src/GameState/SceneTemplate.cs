@@ -24,7 +24,7 @@ public class SceneTemplate
 
     /// <summary>
     /// Scene archetype type - the mechanical pattern for this scene.
-    /// HIGHLANDER: ONE enum for ALL scene archetypes (service + narrative patterns).
+    /// HIGHLANDER: ONE enum for ALL scene archetypes (encounter + narrative patterns).
     /// Used for anti-repetition tracking and narrative generation context.
     ///
     /// PRINCIPLE: This is a TYPE discriminator, not an ID (arc42 §8.3).
@@ -106,8 +106,8 @@ public class SceneTemplate
     /// <summary>
     /// Story category classification for narrative role
     /// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
-    /// SideStory = B-story content (optional, unlocked by A-story progression)
-    /// Service = C-story content (repeatable transactional scenes)
+    /// SideStory = B-story content (reward threads from A-story success)
+    /// Encounter = C-story content (natural emergence from journey)
     /// Defaults to SideStory for backward compatibility with existing content
     /// </summary>
     public StoryCategory Category { get; init; } = StoryCategory.SideStory;
@@ -116,7 +116,7 @@ public class SceneTemplate
     /// Main story sequence number for A-story scenes
     /// 1-10 = Authored tutorial scenes (A1-A10, sequential progression)
     /// 11+ = Procedural continuation (A11, A12, A13... infinity)
-    /// null = Not part of A-story (SideStory or Service content)
+    /// null = Not part of A-story (SideStory or Encounter content)
     /// CONSTRAINT: Non-null value requires Category = MainStory
     /// Used for A-story chain validation and sequence tracking
     /// </summary>

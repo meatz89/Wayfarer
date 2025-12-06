@@ -237,12 +237,12 @@ public class HexRouteGenerator
 
     /// <summary>
     /// Filter templates by danger rating category.
-    /// Templates are already filtered by Category=Service.
+    /// Templates are already filtered by Category=Encounter.
     /// Returns all eligible templates - danger-based selection uses weighted randomization.
     /// </summary>
     private List<SceneTemplate> FilterTemplatesByDanger(List<SceneTemplate> templates, int dangerRating)
     {
-        // All templates in pool are already filtered by Category=Service
+        // All templates in pool are already filtered by Category=Encounter
         // Scene difficulty now scales via Location.Difficulty at choice generation time (arc42 §8.28)
         // Return all eligible templates - deterministic selection handles distribution
         return templates;

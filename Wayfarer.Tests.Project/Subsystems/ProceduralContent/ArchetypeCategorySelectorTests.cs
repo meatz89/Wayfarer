@@ -42,16 +42,16 @@ public class ArchetypeCategorySelectorTests
     }
 
     [Theory]
-    [InlineData(SceneArchetypeType.InnLodging, "Service")]
-    [InlineData(SceneArchetypeType.ConsequenceReflection, "Service")]
-    [InlineData(SceneArchetypeType.DeliveryContract, "Service")]
-    [InlineData(SceneArchetypeType.RouteSegmentTravel, "Service")]
-    public void MapArchetypeToCategory_ServicePatterns_ReturnServiceCategory(
+    [InlineData(SceneArchetypeType.InnLodging, "Encounter")]
+    [InlineData(SceneArchetypeType.ConsequenceReflection, "Encounter")]
+    [InlineData(SceneArchetypeType.DeliveryContract, "Encounter")]
+    [InlineData(SceneArchetypeType.RouteSegmentTravel, "Encounter")]
+    public void MapArchetypeToCategory_EncounterPatterns_ReturnEncounterCategory(
         SceneArchetypeType archetype, string expectedCategory)
     {
-        // Service patterns should NOT be tracked for A-story rhythm
+        // Encounter patterns should NOT be tracked for A-story rhythm
         // If they reach intensity recording, it indicates a data authoring error
-        // (service pattern marked as MainStory category)
+        // (encounter pattern marked as MainStory category)
         string result = ArchetypeCategorySelector.MapArchetypeToCategory(archetype);
         Assert.Equal(expectedCategory, result);
     }
@@ -86,10 +86,10 @@ public class ArchetypeCategorySelectorTests
     [InlineData(SceneArchetypeType.ConsequenceReflection, ArchetypeIntensity.Standard)]
     [InlineData(SceneArchetypeType.DeliveryContract, ArchetypeIntensity.Standard)]
     [InlineData(SceneArchetypeType.RouteSegmentTravel, ArchetypeIntensity.Standard)]
-    public void MapArchetypeToIntensity_ServicePatterns_ReturnStandardIntensity(
+    public void MapArchetypeToIntensity_EncounterPatterns_ReturnStandardIntensity(
         SceneArchetypeType archetype, ArchetypeIntensity expectedIntensity)
     {
-        // Service patterns should NOT be tracked for A-story rhythm
+        // Encounter patterns should NOT be tracked for A-story rhythm
         // If they reach intensity recording, they default to Standard intensity
         ArchetypeIntensity result = ArchetypeCategorySelector.MapArchetypeToIntensity(archetype);
         Assert.Equal(expectedIntensity, result);
