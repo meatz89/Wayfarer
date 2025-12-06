@@ -804,7 +804,7 @@ After all references established, generates PERSISTENT names stored on entity pr
 
 ## 8.25 Context Injection (HIGHLANDER Scene Generation)
 
-**"Position drives structure. Location difficulty drives scaling. Never mixed."**
+**"Location difficulty drives scaling. Story category drives structure."**
 
 ### Scene = Arc Model
 
@@ -815,7 +815,26 @@ Each A-Story **scene IS an arc**. The arc structure is defined by the SceneTempl
 | **Situations 1 to N-1** | Building | Choices GRANT stats (investment phase) |
 | **Situation N (final)** | Crisis | Stat-gated choices TEST accumulated investment |
 
-**Position determines structure, not an explicit RhythmPattern property.** The final situation of every A-Story scene is ALWAYS the Crisis.
+### Current Implementation: RhythmPattern
+
+**Current state:** Code uses explicit `RhythmPattern` enum (Building, Crisis, Mixed) to determine choice generation. This property exists on SceneTemplate and is parsed from JSON content.
+
+| RhythmPattern Value | Choice Generation |
+|---------------------|-------------------|
+| Building | Grants stats (investment) |
+| Crisis | Tests stats (stat-gated choices) |
+| Mixed | Combination of both |
+
+### Planned Migration: Position-Based
+
+**Target architecture:** Position within scene determines structure, not explicit property.
+
+| Position | Derived Structure |
+|----------|-------------------|
+| Situations 1 to N-1 | Building (by position) |
+| Situation N (final) | Crisis (by position) |
+
+**Migration status:** See `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3 for migration steps. Until migration complete, RhythmPattern remains authoritative.
 
 ### Two Distinct Systems
 
@@ -874,7 +893,8 @@ SceneSpawnResult → Intensity History → Select SceneTemplate
 | Location properties in selection | Selection uses intensity history only |
 | Player stats influencing selection | Game doesn't cushion poor play |
 | Different paths for authored vs procedural | Same mechanism for both |
-| Scene-level RhythmPattern property | Position determines structure |
+
+> **Note:** Scene-level RhythmPattern is currently used but planned for removal. See migration plan above.
 
 ### B-Story Templates: Two Distinct Rhythms
 

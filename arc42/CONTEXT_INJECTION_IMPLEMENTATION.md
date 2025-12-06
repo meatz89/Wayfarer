@@ -107,16 +107,18 @@ The narrative rhythm borrowed from The Life and Suffering of Sir Brante operates
 | **1 to N-1** | Building | Choices GRANT stats (investment phase) |
 | **N (final)** | Crisis | Stat-gated choices TEST investment |
 
-### Why Position, Not RhythmPattern Property
+### Current vs Target Architecture
 
-Structure is determined by **situation position within the scene**, not by an explicit RhythmPattern property:
+**Current implementation:** Code uses explicit `RhythmPattern` property on SceneTemplate to determine choice generation (Building, Crisis, Mixed).
+
+**Target architecture:** Position within scene determines structure:
 
 | Input | Determines |
 |-------|------------|
 | **Position in scene** | Building vs Crisis structure |
 | **ArchetypeIntensity** | Recovery/Standard/Demanding (difficulty) |
 
-**Position drives structure. Intensity drives difficulty.** These are orthogonal.
+**Migration planned:** See `gdd/IMPLEMENTATION_PLAN_STORY_SYSTEM.md` Phase 3 for RhythmPattern removal steps.
 
 ---
 
@@ -140,7 +142,7 @@ Structure is determined by **situation position within the scene**, not by an ex
 
 ### For Code Maintainers
 - HIGHLANDER: One code path for all content
-- Clear separation of concerns (position → structure, location → scaling)
+- Clear separation of concerns (story category → structure, location → scaling)
 - Fail-fast on missing context
 
 ### For Players
