@@ -376,16 +376,11 @@ The gate is **economic pressure**, not **boolean lockout**. Under-prepared playe
 | **Earned Scarcity** | Resources earned through B/C engagement, not given freely |
 | **Infinite Journey** | Distance scales linearly forever; loop never ends |
 
-### Distance Scaling
+### Distance Scaling Principle
 
-| A-Story | Distance from Origin | Travel Cost (example) |
-|---------|---------------------|----------------------|
-| A1-A3 | 1-3 hexes | Minimal (tutorial) |
-| A4-A10 | 4-10 hexes | Moderate |
-| A11-A20 | 11-20 hexes | Significant |
-| A21+ | 21+ hexes | Substantial |
+A-Story scene N spawns at approximately distance N from world origin. Travel cost scales linearly with distance. B/C story rewards also scale with location difficulty (distance from origin), maintaining the preparation-to-reward ratio.
 
-As sequence increases, travel cost increases linearly. B/C story rewards also scale with location difficulty (distance from origin), maintaining the preparation-to-reward ratio.
+**The principle:** Farther A-story scenes require more resources to reach. More distant locations offer proportionally better B-story rewards. The ratio stays balanced—preparation requirements match available opportunities.
 
 ---
 
