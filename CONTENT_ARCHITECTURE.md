@@ -15,13 +15,13 @@ A-story, B-story, C-story are CATEGORIES of scenes, not different data structure
 - Location activation filter
 - Embedded situation templates (ordered list)
 
-**Category Effects:**
+**Category Effects (Parse-Time):**
 
-| Category | Validation | Enrichment | Purpose |
-|----------|------------|------------|---------|
-| MainStory (A) | Fallback required in every situation | All final choices spawn next A-scene | World expansion |
-| SideStory (B) | None | None | Venue-scoped narrative |
-| Encounter (C) | None | None | Flavor, small moments |
+| Category | Validation | Enrichment |
+|----------|------------|------------|
+| MainStory (A) | Fallback required in every situation | All final choices spawn next A-scene |
+| SideStory (B) | None | None |
+| Encounter (C) | None | None |
 
 **HIGHLANDER Compliance:** One SceneArchetypeCatalog contains ALL reusable patterns. No separate A-story catalog.
 
@@ -38,17 +38,25 @@ A-story, B-story, C-story are CATEGORIES of scenes, not different data structure
 
 Both produce identical SceneTemplate structure. Runtime cannot distinguish.
 
-### Story Categories (What Content Does)
+### Story Categories (Property Combination)
 
-| Category | Purpose | Typical Scope | Can Fail? |
-|----------|---------|---------------|-----------|
-| **A-Story** | Extend the world | New venues, districts, regions, routes, NPCs | **NEVER** |
-| **B-Story** | Deeper narrative | Tends toward single venue | Yes |
-| **C-Story** | Small moments, flavor | Usually single location or NPC | Yes |
+Story categories are distinguished by a **combination of properties**, not a single axis:
+
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
+| **Repeatability** | One-time (sequential) | One-time (completable) | Repeatable |
+| **Fallback Required** | Yes (every situation) | No | No |
+| **Can Fail** | Never | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (significant) | Source (incremental) |
+| **Typical Scope** | World expansion | Venue depth | Location/route |
+| **Player Initiation** | Automatic | Voluntary | Organic |
 
 **A-Story is special.** Frieren principle: infinite, never-ending. Primary purpose is world expansion—creating new places to explore, new people to meet, new paths to travel. Player must ALWAYS be able to progress.
 
-**B and C Stories have freedom.** They can create any entity type, but tend toward adding depth within existing world rather than expanding it. They can include challenges, requirements, and failure states.
+**B-Story provides substantial engagement.** Multi-scene arcs the player voluntarily initiates. Significant resource rewards fund A-story progression.
+
+**C-Story provides texture.** Single-scene encounters during routine play. Repeatable. Incremental resource rewards ensure player is never stuck.
 
 ---
 
@@ -238,13 +246,7 @@ For MainStory category, parser applies special rules:
 
 ### World Expansion Purpose
 
-A-Story scenes are designed to CREATE new world content. B/C stories have full freedom but tend toward different patterns.
-
-| Category | Primary Focus | Typical Scope |
-|----------|---------------|---------------|
-| **A-Story** | World expansion | New venues, districts, regions, routes, significant NPCs |
-| **B-Story** | Narrative depth | Tends to work within single venue, adds locations and local NPCs |
-| **C-Story** | Flavor moments | Usually single location or NPC interaction |
+A-Story scenes are designed to CREATE new world content. B/C stories have full freedom but tend toward different patterns per the property matrix in §2.
 
 All categories CAN create any entity type. The distinction is tendency, not restriction. A-Story is the engine of world growth; B/C add depth to existing world.
 
@@ -642,13 +644,15 @@ Location.HexPosition is sole source of truth. One location per hex. Scene-create
 
 ### Story Category Separation
 
-| | A-Story | B/C Stories |
-|-|---------|-------------|
-| Purpose | World expansion | Narrative depth |
-| Typical scope | New venues, districts, regions | Tends toward existing venues |
-| Can fail? | Never | Yes |
-| Fallback required? | Yes | No |
-| Requirements allowed? | Limited (fallback must exist) | Unlimited |
+Story categories are distinguished by a combination of properties (see §2 for full matrix):
+
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| Scene count | Infinite | Multi (3-8) | Single |
+| Repeatability | One-time | One-time | Repeatable |
+| Can fail? | Never | Yes | Yes |
+| Fallback? | Required | No | No |
+| Resource flow | Sink | Source (significant) | Source (incremental) |
 
 Scope describes tendency, not restriction. All categories can create any entity type.
 

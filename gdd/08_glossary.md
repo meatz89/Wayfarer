@@ -100,13 +100,43 @@ Card-based persuasion. Build Momentum through dialogue. Session resource: Initia
 
 ---
 
-## Content Terms
+## Story Categories
+
+A-Story, B-Story, and C-Story are distinguished by a **combination of properties**, not a single axis. All three use identical Scene-Situation-Choice structure; category determines rules and validation.
+
+### Story Category Property Matrix
+
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
+| **Repeatability** | One-time (sequential) | One-time (completable arc) | Repeatable |
+| **Fallback Required** | Yes (every situation) | No | No |
+| **Can Fail** | Never | Yes | Yes |
+| **Resource Flow** | Sink (travel costs to reach) | Source (significant rewards) | Source (incremental rewards) |
+| **Typical Scope** | World expansion | Venue depth | Location/route |
+| **Player Initiation** | Automatic (previous scene spawns next) | Voluntary (player accepts) | Organic (encountered during play) |
+
+### A-Story
+The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
 
 ### B-Story
-Major side content. 3-8 scenes per storyline. Optional, player-initiated, substantial character arcs.
+Multi-scene narrative arcs with substantial stakes. Player voluntarily initiates by accepting an obligation or engaging with discovered content. Spans 3-8 connected scenes forming a complete arc. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Provides significant resource rewards that fund A-story progression.
 
 ### C-Story
-Minor side content. 1-2 scenes. World flavor, quick opportunities, organic encounters.
+Single-scene encounters providing world texture. Encountered organically during play—route encounters during travel, service interactions at locations, opportunistic moments. Repeatable (same encounter type can occur multiple times). Can fail without major consequences. Provides incremental resource rewards. Examples: route hazards, inn services, merchant interactions, work opportunities.
+
+### Why Three Categories?
+
+The categories create the core gameplay loop:
+1. **A-Story** creates distant goals requiring travel resources
+2. **B-Story** provides substantial resource injections through meaningful engagement
+3. **C-Story** provides steady resource drip through routine activities
+
+This prevents mindless clicking through A-story (resource gate) while ensuring the player is never stuck (C-story always available).
+
+---
+
+## Content Terms
 
 ### Categorical Property
 Strongly-typed entity attribute with intentional domain meaning. Two types exist:

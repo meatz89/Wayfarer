@@ -9,7 +9,10 @@ Domain and technical terms used throughout this documentation.
 | Term | Definition |
 |------|------------|
 | **ArchetypeIntensity** | Content categorization for procedural archetypes: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Describes inherent challenge level of content, NOT player eligibility. Named to avoid collision with RhythmPattern values. Orthogonal to RhythmPattern. |
-| **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
+| **A-Story** | Story category: infinite sequential chain, fallback required, never fails, world expansion scope, resource sink. See gdd/08_glossary.md for full property matrix |
+| **B-Story** | Story category: multi-scene arc (3-8), one-time completable, can fail, venue scope, significant resource source. See gdd/08_glossary.md for full property matrix |
+| **C-Story** | Story category: single scene, repeatable, can fail, location/route scope, incremental resource source. See gdd/08_glossary.md for full property matrix |
+| **Story Category** | Classification (A/B/C) determining scene rules via property combination: scene count, repeatability, fallback requirement, failure possibility, resource flow, scope, initiation method. All categories use identical Scene-Situation-Choice structure |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
 | **Categorical Property** | Strongly-typed enum describing entity identity or capability; parsed from JSON strings with fail-fast validation |

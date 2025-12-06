@@ -6,23 +6,34 @@ This document explains HOW content is organized and WHY the archetype-based syst
 
 ---
 
-## 5.1 Narrative Hierarchy: A/B/C Stories
+## 5.1 Story Categories: A/B/C
+
+Story categories are distinguished by a **combination of properties**, not a single axis. All three use identical Scene-Situation-Choice structure; category determines rules and validation.
+
+### Story Category Property Matrix
+
+| Property | A-Story | B-Story | C-Story |
+|----------|---------|---------|---------|
+| **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
+| **Repeatability** | One-time (sequential) | One-time (completable) | Repeatable |
+| **Fallback Required** | Yes (every situation) | No | No |
+| **Can Fail** | Never | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (significant) | Source (incremental) |
+| **Typical Scope** | World expansion | Venue depth | Location/route |
+| **Player Initiation** | Automatic | Voluntary | Organic |
 
 ### A-Story: The Infinite Main Thread
 
-The primary narrative spine that never ends:
+The primary narrative spine that never ends. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs.
 
 **Phase 1: Tutorial Instantiation (A1-A10)**
 - Uses the SAME selection logic as procedural content
 - Tutorial scenes emerge from authored RhythmPattern (not overrides)
-- SceneSpawnReward specifies: RhythmPattern only
-- Selection logic processes this identically to procedural
 - 30-60 minutes of guided introduction
 
 **Phase 2: Procedural Continuation (A11+)**
 - Uses the SAME selection logic as tutorial
 - RhythmPattern computed from intensity history
-- Anti-repetition filters recent categories/archetypes
 - Never resolves, always deepens
 
 **Critical Principle (HIGHLANDER):** Tutorial and procedural content flow through IDENTICAL selection logic. The ONLY difference is RhythmPattern source:
@@ -32,25 +43,28 @@ The primary narrative spine that never ends:
 | Tutorial | Authored in SceneSpawnReward | Same |
 | Procedural | Computed from intensity history | Same |
 
-Tutorial A1 produces a Social scene NOT because of a "TargetCategory=Social" override, but because its authored RhythmPattern (Building) naturally flows through selection logic to produce Social. The logic doesn't know it's tutorial—it just processes RhythmPattern.
-
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
-### B-Stories: Major Side Content
+### B-Story: Multi-Scene Arcs
 
-Substantial optional narrative threads:
-- 3-8 scenes per B-story
-- Character arcs, faction storylines, thematic exploration
-- Run parallel to A-story
-- Player-initiated engagement
+Substantial narrative arcs the player voluntarily initiates. Spans 3-8 connected scenes forming a complete arc. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Provides significant resource rewards that fund A-story progression.
 
-### C-Stories: Minor Side Content
+**Examples:** NPC-commissioned obligations, faction questlines, character relationship arcs.
 
-Small narrative moments:
-- 1-2 scenes typically
-- World flavor, quick opportunities
-- Procedurally generated more easily
-- Organic encounters during travel
+### C-Story: Single-Scene Encounters
+
+Single-scene encounters providing world texture. Encountered organically during play—route encounters during travel, service interactions at locations, opportunistic moments. Repeatable (same encounter type can occur multiple times). Can fail without major consequences. Provides incremental resource rewards.
+
+**Examples:** Route hazards, inn services, merchant interactions, work opportunities, delivery completions.
+
+### Why Three Categories?
+
+The categories create the core gameplay loop:
+1. **A-Story** creates distant goals requiring travel resources (sink)
+2. **B-Story** provides substantial resource injections through meaningful engagement (major source)
+3. **C-Story** provides steady resource drip through routine activities (minor source)
+
+This prevents mindless clicking through A-story (resource gate) while ensuring the player is never stuck (C-story always available).
 
 ---
 
@@ -255,20 +269,14 @@ See [arc42/08_crosscutting_concepts.md §8.4](../arc42/08_crosscutting_concepts.
 
 ### B/C Story Flexibility
 
-B and C stories have relaxed rules:
+B and C stories have relaxed rules compared to A-story:
 
 - Can require stats, resources, or completed prerequisites
 - Can include challenge paths without fallbacks
 - Can fail (scene marked Failed, not Completed)
-- Focus on narrative depth, not world expansion
+- Focus on resource generation and narrative depth
 
-| | A-Story | B/C Stories |
-|-|---------|-------------|
-| Purpose | World expansion | Narrative depth |
-| Typical scope | New venues, districts, regions | Existing venues |
-| Can fail? | Never | Yes |
-| Fallback required? | Yes | No |
-| Requirements allowed? | Limited (fallback must exist) | Unlimited |
+See §5.1 for the complete property matrix distinguishing A/B/C stories.
 
 ---
 
@@ -310,18 +318,14 @@ Repeat forever
 
 ### Story Category Relationships
 
-| Category | Role in Loop | Examples |
-|----------|--------------|----------|
-| **A-Story** | Primary narrative, spawns at increasing distance | Main quest scenes |
-| **B-Story** | Major side content, earns significant resources | NPC obligations, faction quests |
-| **C-Story** | Service/transactional, earns incremental resources | Work, deliveries, route encounters |
+Per the property matrix in §5.1:
+- **A-Story** is a resource SINK (travel costs to reach distant scenes)
+- **B-Story** is a significant resource SOURCE (rewards fund travel)
+- **C-Story** is an incremental resource SOURCE (steady drip ensures player is never stuck)
 
-**B/C stories include:**
-- Delivery jobs (one type of obligation)
-- NPC-commissioned obligations
-- Self-discovered obligations
-- Work actions
-- Route encounters during travel
+**B/C story examples:**
+- B-Story: NPC-commissioned obligations, faction questlines, character arcs
+- C-Story: Work actions, delivery completions, route encounters, service interactions
 
 All B/C content contributes to resource accumulation that enables A-Story travel.
 
