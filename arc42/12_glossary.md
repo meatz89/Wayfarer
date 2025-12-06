@@ -8,11 +8,11 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
-| **ArchetypeIntensity** | Content categorization for procedural archetypes: Recovery (restoration-focused), Standard (moderate challenge), Demanding (resource test). Describes inherent challenge level of content, NOT player eligibility. Named to avoid collision with RhythmPattern values. Orthogonal to RhythmPattern. |
-| **A-Story** | Story category: infinite scene chain, fallback required, never fails, world expansion scope, resource sink, **mandatory** (player cannot decline). See gdd/08_glossary.md for full property matrix |
-| **B-Story** | Story category: one scene with 3-8 situations forming quest arc, one-time completable, can fail, venue scope, significant resource source, **opt-in** (player accepts/declines from job board, NPC, or location). See gdd/08_glossary.md for full property matrix |
-| **C-Story** | Story category: one scene with 1-2 situations, system-repeatable, can fail, location flavor scope, world texture (minor rewards), **mandatory** (player cannot decline—probabilistic spawn based on location/player/world state). See gdd/08_glossary.md for full property matrix |
-| **Story Category** | Classification (A/B/C) determining scene rules via property combination: structure, repeatability, fallback requirement, failure possibility, resource flow, scope, player agency, spawn trigger. All categories use identical Scene-Situation-Choice structure. A and C are mandatory; B is opt-in. Enum values: MainStory, SideStory, Encounter |
+| **ArchetypeIntensity** | Content categorization: Recovery, Standard, Demanding. Orthogonal to RhythmPattern. |
+| **A-Story** | Infinite main narrative (mandatory). Enum: MainStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **B-Story** | Reward thread from A-story success (opt-in). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **C-Story** | Journey texture (mandatory). Enum: Encounter. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **Story Category** | A/B/C classification. Property matrix in [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
 | **Categorical Property** | Strongly-typed enum describing entity identity or capability; parsed from JSON strings with fail-fast validation |
