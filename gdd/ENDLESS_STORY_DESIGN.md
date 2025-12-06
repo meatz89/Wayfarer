@@ -632,7 +632,8 @@ Payoff: Major reward for sustained effort
 | Principle | Description |
 |-----------|-------------|
 | **A-Story: Building → Crisis** | A-Story scenes follow stat investment cycle; Building GRANTS stats; Crisis TESTS them |
-| **B-Story: Challenge → Payoff** | B-Story scenes follow resource acquisition cycle; Challenge COSTS resources; Payoff GRANTS them |
+| **B-Consequence: Narrative → Payoff** | Reward for A-story mastery; NO challenges; story continues with same NPCs; GRANTS premium resources |
+| **B-Sought: Challenge → Payoff** | Player works for income; Challenge COSTS resources / tests skills; Payoff GRANTS basic resources |
 | **C-Story: Single Situation** | C-Stories are single-situation texture; no rhythm pattern needed |
 | **Scene = Arc** | Each A-Story scene IS an arc; last situation is always Crisis; Building situations lead up |
 | **Template + Context** | SceneTemplates define structure (constant); context injection creates variety (variable) |
