@@ -463,11 +463,31 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 ---
 
+## Mechanical Definitions
+
+| Concept | Mechanism | Status |
+|---------|-----------|--------|
+| **Building Phase** | `RhythmPattern.Building` on SceneTemplate | ✓ Exists |
+| **Checking Phase** | `RhythmPattern.Crisis` on SceneTemplate | ✓ Exists |
+| **B-Consequence Trigger** | Choice with `ScenesToSpawn` reward + stat requirements | ✓ Mechanism exists |
+| **Narrative Continuity** | EntityResolver + PlacementFilter categorical matching | ✓ Exists (HIGHLANDER) |
+| **Same NPC** | PlacementFilter: profession, personality + `SameVenue` proximity | ✓ Exists |
+| **Same Location** | PlacementFilter: purpose, privacy, safety + `SameVenue` proximity | ✓ Exists |
+
+> **Note:** There is no "success/failure" dichotomy. Each choice has OR-requirements and consequences (positive, negative, or trade-offs). B-Consequence spawns when player takes a stat-gated choice vs fallback.
+
+---
+
 ## Code References
 
 | Component | Values |
 |-----------|--------|
 | StoryCategory | MainStory, SideStory, Encounter |
+| RhythmPattern | Building, Crisis, Mixed |
+| PlacementProximity | SameLocation, SameVenue, SameDistrict, AdjacentLocation, etc. |
+| EntityResolver | Find-only queries using PlacementFilter |
+| PlacementFilter | Categorical filter specification (profession, personality, proximity) |
+| SceneInstantiator | Orchestrates find-or-create for entity resolution |
 
 ---
 
@@ -475,9 +495,8 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 | Gap | Status | Notes |
 |-----|--------|-------|
-| **B-Consequence spawn** | Design only | Need: A-story success → automatic SideStory spawn |
+| **B-Consequence authoring** | Design ready | Need: A-story choices with `ScenesToSpawn` pointing to SideStory templates |
 | **B-Sought discovery** | Design only | Need: Job boards, NPC offers, exploration rewards |
-| **Narrative continuity** | Design only | Need: Same NPCs/locations in B-Consequence |
 | **C-story emergence** | Partial | Currently hardcoded encounters, need terrain-aware selection |
 | **Distance-based A-story** | Design only | Need: A-story N spawns at distance N |
 | **Multiple routes** | Design only | Current: Single optimal path per transport type |

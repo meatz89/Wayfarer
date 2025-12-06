@@ -125,11 +125,17 @@ A-Story, B-Story, and C-Story are distinguished by a **combination of properties
 The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. **Player cannot decline**—when an A-scene activates, engagement is mandatory. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
 
 **Building → Checking Rhythm (Sir Brante Pattern):**
-A-stories alternate between two phases:
-- **Building Phase** — Situations that grow player stats through choices. Investment decisions accumulate.
-- **Checking Phase** — Hard stat checks that test the player's accumulated investment. Success unlocks rewards.
 
-When player **succeeds** at a hard stat check, a B-story thread spawns as reward—continuing the narrative with the same characters and locations, deepening the story the A-story established.
+A-stories alternate between two phases, determined by the `RhythmPattern` enum on the SceneTemplate:
+
+| Phase | RhythmPattern | Player Experience |
+|-------|---------------|-------------------|
+| **Building** | `RhythmPattern.Building` | Situations that grow player stats through choices. Investment decisions accumulate. |
+| **Checking** | `RhythmPattern.Crisis` | Situations with stat-gated choices. Player's accumulated investment enables better options. |
+
+When player **takes a stat-gated choice** (meets the OR-requirements), a B-Consequence thread spawns—continuing the narrative with the same characters and locations, deepening the story the A-story established.
+
+> **Note:** There is no "success" or "failure" in the traditional sense. Each choice has OR-requirements (Sir Brante style) and consequences (positive, negative, or trade-offs). Taking a stat-gated choice vs taking the fallback choice leads to different consequences and different B-Consequence spawns.
 
 ### B-Story
 
@@ -137,18 +143,36 @@ B-Stories provide resources that fund A-story travel. They come in **two distinc
 
 #### B-Consequence (Earned Reward)
 
-**Reward threads** spawned when player succeeds at hard A-story stat checks. These are the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+**Reward threads** spawned when player takes stat-gated A-story choices. These are the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+
+**Spawn Trigger Mechanics:**
+
+Each A-story choice can specify a B-Consequence scene to spawn. When player takes that choice (meets the OR-requirements), the B-Consequence spawns automatically. The choice's `ScenesToSpawn` reward references the B-Consequence template.
+
+| Player Action | Result |
+|---------------|--------|
+| Takes stat-gated choice (meets requirements) | B-Consequence spawns with premium rewards |
+| Takes fallback choice (no requirements) | No B-Consequence; progress continues |
+
+**Narrative Continuity Mechanics:**
+
+B-Consequence uses the existing EntityResolver + PlacementFilter system (HIGHLANDER). The B-Consequence SituationTemplates specify PlacementFilters matching the A-Story's entity categorical properties:
+
+- **Same NPC:** PlacementFilter matches profession, personality, social standing + `SameVenue` proximity
+- **Same Location:** PlacementFilter matches purpose, privacy, safety + `SameVenue` proximity
+- **Selection Strategy:** `HighestBond` for NPC ensures most narratively connected character returns
+
+If exact entity found → same character/location continues. If not found → equivalent entity created with same categorical profile. No ID storage needed—pure categorical matching.
 
 **Characteristics:**
-- **Spawn Trigger:** A-story choice success (stat check met, challenge won)
-- **Cannot be declined:** Just happens as consequence of success
+- **Cannot be declined:** Just happens as consequence of choice
 - **Continues A-story narrative:** Same NPCs, same locations, deeper story
-- **Premium rewards:** Major resources for demonstrated mastery
-- **One-time per trigger:** Each A-story success can spawn its B-consequence once
+- **Premium rewards:** Major resources for demonstrated investment
+- **One-time per trigger:** Each A-story choice can spawn its B-consequence once
 
 **Why This Works:**
-- Rewards stat investment (building has purpose)
-- Creates narrative continuity (A-story characters return)
+- Rewards stat investment (Building phase has purpose)
+- Creates narrative continuity (A-story characters return via categorical matching)
 - Skilled players earn resources automatically
 - Feels earned, not randomly assigned
 
