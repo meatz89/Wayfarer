@@ -319,19 +319,17 @@ A-Story scenes spawn at locations that increase in distance from the world origi
 ### The Loop
 
 ```
-Complete A-Story N at distance N
+A-Story N: Building → Checking rhythm
+    ↓
+SUCCEED at hard stat check → B-Story spawns (reward thread)
+    ↓
+B-Story: Continue narrative, earn great rewards
     ↓
 A-Story N+1 spawns at distance N+1
     ↓
-Travel to N+1 costs resources player may not have
+Travel journey → C-Stories emerge naturally (route/location/NPC texture)
     ↓
-Player engages B/C stories to earn resources
-    ↓
-Player can now afford travel
-    ↓
-Travel to A-Story N+1 (C-story route encounters along the way)
-    ↓
-Experience A-Story N+1
+Arrive at A-Story N+1
     ↓
 Repeat forever
 ```
@@ -339,17 +337,17 @@ Repeat forever
 ### Story Category Relationships
 
 Per the property matrix in §5.1:
-- **A-Story** is a resource SINK (travel costs to reach distant scenes)
-- **B-Story** is the PRIMARY resource SOURCE (quests player actively seeks)
-- **C-Story** is world TEXTURE (flavor, not economic driver)
+- **A-Story** is a resource SINK (travel costs) with Building → Checking rhythm
+- **B-Story** is REWARD for A-story success (spawns when player succeeds at hard stat checks)
+- **C-Story** is world TEXTURE (emerges naturally from journey)
 - **Atmospheric Work** is the FALLBACK (always available safety net)
 
-**How players earn travel resources:**
-1. **B-Stories (Primary)** — Player seeks job board, NPC quests, location investigations
-2. **Atmospheric Work (Fallback)** — Always available at Commercial locations
-3. **C-Stories (Incidental)** — May provide minor rewards, but not the economic driver
+**Story Causality:**
+1. **A-Story** creates B-stories (success rewards) and C-stories (journey texture)
+2. **B-Stories** continue the A-story narrative with same characters/locations
+3. **C-Stories** are the natural consequence of travel, location visits, NPC interactions
 
-The key insight: B-stories are **opt-in quests** the player deliberately pursues. C-stories are **surprises** that happen to the player. This distinction determines the economic loop.
+The key insight: B-stories are **earned rewards** for mastering stat checks. C-stories are **natural emergence** from the journey A-stories create. They are not independent systems—they are causally linked.
 
 ### Route Encounters Are C-Stories
 

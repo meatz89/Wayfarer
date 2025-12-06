@@ -15,10 +15,11 @@ A-Story must never soft-lock (fallback always exists), yet players must not mind
 | Decision | Outcome |
 |----------|---------|
 | A/B/C categories | Distinguished by **combination of 8 properties**, not single axis |
-| Player agency | A and C are **mandatory**; only B is **opt-in** |
-| Economic loop | A=sink, B=source, C=texture, Atmospheric Work=fallback |
-| B-Story structure | One scene with 3-8 situations (not multiple linked scenes) |
-| C-Story spawn | Probabilistic based on location, player state, world state |
+| A-Story rhythm | **Building → Checking** phases (Sir Brante pattern) |
+| B-Story spawn | **Reward for A-story success** at hard stat checks |
+| B-Story narrative | Continues A-story thread with **same characters/locations** |
+| C-Story emergence | **Natural consequence** of journey (travel, locations, NPCs) |
+| Story causality | A creates B (success) and C (journey); not independent systems |
 | Terrain | Affects both travel cost AND encounter themes |
 
 ---
@@ -45,8 +46,8 @@ A-Story must never soft-lock (fallback always exists), yet players must not mind
 | Can Fail | Never | Yes | Yes |
 | Resource Flow | Sink | Source (significant) | Texture (minor) |
 | Scope | World expansion | Venue depth | Location flavor |
-| Player Agency | Mandatory | Opt-in | Mandatory |
-| Spawn Trigger | Previous A-scene | Player accepts | Probabilistic |
+| Player Agency | Mandatory | Earned, then opt-in | Mandatory |
+| Spawn Trigger | Previous A-scene | A-story stat check success | Natural journey emergence |
 
 ### Implementation Notes
 
@@ -58,25 +59,26 @@ A-Story must never soft-lock (fallback always exists), yet players must not mind
 
 ---
 
-## The Economic Loop
+## Story Causality
 
 ```
-A-Story N completes
-    ↓
-A-Story N+1 spawns at distance N+1
-    ↓
-Travel costs exceed resources
-    ↓
-Player seeks B-Stories (quests)
-    ↓
-Resources accumulate
-    ↓
-Afford travel to A-Story N+1
-    ↓
-C-story encounters during travel
-    ↓
-Repeat forever
+A-Story (Building → Checking rhythm)
+    │
+    ├── SUCCEED at hard stat check
+    │       ↓
+    │   B-Story spawns (reward thread)
+    │       └── Continues narrative with same characters/locations
+    │       └── Great rewards fund travel
+    │
+    └── JOURNEY to A-Story location
+            ↓
+        C-Stories emerge naturally
+            └── Route encounters (terrain-themed)
+            └── Location flavor
+            └── NPC interactions
 ```
+
+**The economic consequence:** Mastery → B-stories → Rewards → Easier travel. Fallback path works but slower.
 
 ---
 
@@ -105,6 +107,7 @@ See [gdd/05_content.md §5.7](05_content.md) "Terrain Shapes Route Cost and Enco
 
 ## Open Questions (For Future Sessions)
 
-- B-story opportunity generation (what creates job board listings?)
+- B-story spawn mechanics (how does A-story success technically trigger B-story creation?)
+- B-story narrative continuity (how to ensure same characters/locations carry forward?)
 - Terrain-aware C-story archetype selection in code
 - Multiple route alternatives (A* currently finds single path)
