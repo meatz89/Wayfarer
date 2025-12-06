@@ -27,7 +27,8 @@ Domain and technical terms used throughout this documentation.
 | **Obligation** | Quest definition triggering scene spawning; drives narrative progression |
 | **Perfect Information** | Strategic layer principle: all costs/rewards visible before commitment |
 | **Building → Crisis Structure** | A-Story arc model (Sir Brante pattern): positions 1 to N-1 are Building (stat grants), position N is Crisis (stat-gated test). Position determines structure. |
-| **Challenge → Payoff Structure** | B-Story arc model: positions 1 to N-1 are Challenge (resource costs, skill tests), position N is Payoff (guaranteed resource reward). Resource acquisition cycle. |
+| **Challenge → Payoff Structure** | B-Sought arc model: positions 1 to N-1 are Challenge (resource costs, skill tests), position N is Payoff (guaranteed basic reward). Player works for income. |
+| **Narrative → Payoff Structure** | B-Consequence arc model: positions 1 to N-1 are Narrative (story continuation, no challenges), position N is Payoff (guaranteed premium reward). Reward for A-story mastery—player already proved themselves. |
 | **Scene** | Mutable instance created from SceneTemplate at spawn-time; contains Situation instances (created at activation-time); lifecycle: Deferred → Active → Completed |
 | **SceneTemplate** | Immutable archetype containing SituationTemplates; created at parse-time; JSON uses `sceneTemplates` key, NEVER `scenes` |
 | **Situation** | Mutable instance created from SituationTemplate at activation-time; contains resolved entity references (Location, NPC, Route) |

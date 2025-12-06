@@ -436,13 +436,13 @@ A-Story creates B-Consequence (success rewards) and C-Stories (journey texture).
 
 ---
 
-## B-Story Rhythm: Challenge → Payoff
+## B-Story Rhythms: Two Distinct Patterns
 
-B-Stories follow a distinct rhythm optimized for **resource acquisition**, not stat investment.
+B-Stories provide resource acquisition, but the **two types have different rhythms** based on how the player earned access:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                     A-STORY vs B-STORY: DIFFERENT RHYTHMS                                │
+│                           THREE STORY RHYTHMS                                            │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -463,28 +463,70 @@ B-Stories follow a distinct rhythm optimized for **resource acquisition**, not s
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                       B-STORY: CHALLENGE → PAYOFF                                        │
-│                       (Resource Acquisition Cycle)                                       │
+│                       B-CONSEQUENCE: NARRATIVE → PAYOFF                                  │
+│                       (Earned Reward — No Challenges)                                    │
+│                                                                                          │
+│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐              │
+│   │  NARRATIVE  │───▶│  NARRATIVE  │───▶│  NARRATIVE  │───▶│   PAYOFF    │              │
+│   │  Situation  │    │  Situation  │    │  Situation  │    │  Situation  │              │
+│   │             │    │             │    │             │    │             │              │
+│   │ CONTINUES   │    │ DEEPENS     │    │ RESOLVES    │    │ GRANTS      │              │
+│   │ story       │    │ character   │    │ thread      │    │ PREMIUM     │              │
+│   └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘              │
+│                                                                                          │
+│   Purpose: REWARD for A-story mastery — player already proved themselves               │
+│   Outcome: Premium resources + narrative depth (no additional tests)                    │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                       B-SOUGHT: CHALLENGE → PAYOFF                                       │
+│                       (Work for Income)                                                  │
 │                                                                                          │
 │   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐              │
 │   │  CHALLENGE  │───▶│  CHALLENGE  │───▶│  CHALLENGE  │───▶│   PAYOFF    │              │
 │   │  Situation  │    │  Situation  │    │  Situation  │    │  Situation  │              │
 │   │             │    │             │    │             │    │             │              │
-│   │ COSTS       │    │ COSTS       │    │ COSTS       │    │ GRANTS      │              │
-│   │ resources   │    │ resources   │    │ resources   │    │ resources   │              │
+│   │ COSTS       │    │ TESTS       │    │ REQUIRES    │    │ GRANTS      │              │
+│   │ resources   │    │ skills      │    │ effort      │    │ BASIC       │              │
 │   └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘              │
 │                                                                                          │
-│   Purpose: Player's WEALTH grows through the arc                                         │
-│   Outcome: Resources to fund A-story travel                                             │
+│   Purpose: Player WORKS for income — effort required, reward earned                     │
+│   Outcome: Basic resources to fund travel (quest completion pattern)                    │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Why Different Rhythms?
+### Why Two B-Story Rhythms?
 
-| Aspect | A-Story (Building → Crisis) | B-Story (Challenge → Payoff) |
-|--------|----------------------------|------------------------------|
-| **What accumulates** | Stats (character capability) | Resources (economic wealth) |
+| Aspect | B-Consequence (Narrative → Payoff) | B-Sought (Challenge → Payoff) |
+|--------|-----------------------------------|------------------------------|
+| **Entry** | Earned by A-story success | Player seeks out when needed |
+| **Challenge level** | NONE — this IS the reward | WORK required to earn payment |
+| **Intermediate situations** | Narrative continuation (no costs) | Obstacles (costs/tests) |
+| **Final situation** | Premium resources granted | Basic resources earned |
+| **Player experience** | "I earned this, now I collect" | "I need coins, let me work" |
+
+### The Key Insight
+
+**B-Consequence rewards mastery without punishing it:**
+- Player ALREADY proved themselves in A-Story Crisis
+- Demanding MORE work would punish success
+- Narrative situations continue the story WITHOUT additional challenges
+- Premium rewards flow naturally as consequence of prior investment
+
+**B-Sought requires effort because it's income, not reward:**
+- Player chose to seek work (opt-in)
+- Work SHOULD require effort — that's what "work" means
+- Challenges are the "job" part; payoff is the "payment"
+- Basic rewards proportional to effort invested
+
+### Rhythm Comparison
+
+| Aspect | A-Story | B-Consequence | B-Sought |
+|--------|---------|---------------|----------|
+| **Rhythm** | Building → Crisis | Narrative → Payoff | Challenge → Payoff |
+| **What accumulates** | Stats | Story depth | Effort/risk |
 | **Intermediate situations** | GRANT stats (investment) | COST resources/test skills |
 | **Final situation** | TEST accumulated stats | GRANT resources |
 | **Fallback required** | Yes (can never fail) | No (can fail) |
@@ -518,26 +560,44 @@ The final situation **guarantees resource reward** upon successful completion:
 
 ### B-Consequence vs B-Sought Template Pools
 
-Both follow Challenge → Payoff rhythm, but use different template pools:
+Different rhythms serve different purposes:
 
-| Type | Template Pool | Challenge Character | Payoff Character |
-|------|---------------|--------------------|--------------------|
-| **B-Consequence** | Continuation templates | Deepens A-story relationship | Premium rewards (mastery earned) |
-| **B-Sought** | Quest templates | Tests generic skills | Basic rewards (effort invested) |
+| Type | Rhythm | Template Pool | Intermediate Character | Payoff Character |
+|------|--------|---------------|------------------------|------------------|
+| **B-Consequence** | Narrative → Payoff | Continuation templates | Deepens A-story relationship (no cost) | Premium rewards (mastery earned) |
+| **B-Sought** | Challenge → Payoff | Quest templates | Tests skills / costs resources | Basic rewards (effort invested) |
 
-**B-Consequence challenges** involve the same NPCs from A-story — the challenges feel personal and narratively connected.
+**B-Consequence narrative** continues with the same NPCs from A-story — the story feels personal and narratively connected. NO challenges—player already proved themselves.
 
 **B-Sought challenges** involve new NPCs — the challenges feel like professional work, quest content.
 
 ### Template Structure Examples
 
-**Short B-Story (2 situations):**
+#### B-Consequence Templates (Narrative → Payoff)
+
+**Short (2 situations):**
+```
+Narrative 1: NPC reveals deeper context (no cost)
+Payoff: NPC grants reward for partnership (premium Coins + bond)
+```
+
+**Standard (4 situations):**
+```
+Narrative 1: NPC recounts events since A-story
+Narrative 2: Relationship deepens through dialogue
+Narrative 3: NPC shares secret or opportunity
+Payoff: Premium reward reflecting earned trust
+```
+
+#### B-Sought Templates (Challenge → Payoff)
+
+**Short (2 situations):**
 ```
 Challenge 1: Accept contract terms (costs Time)
 Payoff: Complete delivery (grants Coins)
 ```
 
-**Standard B-Story (4 situations):**
+**Standard (4 situations):**
 ```
 Challenge 1: Negotiate with employer (tests Diplomacy)
 Challenge 2: Travel to location (costs Stamina)
@@ -545,7 +605,7 @@ Challenge 3: Overcome obstacle (tests stat or costs resource)
 Payoff: Report success (grants Coins + reputation)
 ```
 
-**Extended B-Story (6-8 situations):**
+**Extended (6-8 situations):**
 ```
 Challenge 1-2: Setup and investigation
 Challenge 3-4: Complications and setbacks

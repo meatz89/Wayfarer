@@ -876,24 +876,26 @@ SceneSpawnResult → Intensity History → Select SceneTemplate
 | Different paths for authored vs procedural | Same mechanism for both |
 | Scene-level RhythmPattern property | Position determines structure |
 
-### B-Story Templates: Challenge → Payoff
+### B-Story Templates: Two Distinct Rhythms
 
-**§8.25 applies ONLY to A-Story scenes.** B-Stories use a different rhythm optimized for resource acquisition:
+**§8.25 applies ONLY to A-Story scenes.** B-Stories have two rhythms depending on type:
 
 | Story Type | Rhythm | Intermediate Situations | Final Situation |
 |------------|--------|------------------------|-----------------|
 | **A-Story** | Building → Crisis | GRANT stats | TEST stats |
-| **B-Story** | Challenge → Payoff | COST resources | GRANT resources |
+| **B-Consequence** | Narrative → Payoff | Story continuation (no challenges) | GRANT premium resources |
+| **B-Sought** | Challenge → Payoff | COST resources / test skills | GRANT basic resources |
 | **C-Story** | None | Single situation | (no arc) |
 
 **Why Different:**
-- A-Story creates character growth (stat investment cycle)
-- B-Story creates resource income (acquisition cycle)
-- B-Stories MUST end with payoff (guaranteed reward)
+- **A-Story:** Character growth (stat investment cycle)
+- **B-Consequence:** Reward for A-story mastery—player already proved themselves, no additional challenges
+- **B-Sought:** Player works for income—effort required, reward earned
+- All B-Stories MUST end with payoff (guaranteed reward)
 
 **Cross-References:**
 - §8.4 Three-Tier Timing: Unified scene creation mechanism
-- gdd/ENDLESS_STORY_DESIGN.md §B-Story Rhythm: Challenge → Payoff
+- gdd/ENDLESS_STORY_DESIGN.md §B-Story Rhythm: Two Distinct Rhythms
 
 ---
 
