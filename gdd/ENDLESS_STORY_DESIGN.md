@@ -137,38 +137,51 @@ flowchart TD
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                  THE MASTERY PLAYER                                      │
 │                                                                                          │
-│    "I invest in stats, succeed at checks, earn B-stories, travel easily"                │
+│    "I invest in stats, succeed at checks, earn B-Consequence, travel easily"            │
 │                                                                                          │
-│    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐        │
-│    │ A-Story  │───▶│ SUCCESS  │───▶│ B-Story  │───▶│ REWARDS  │───▶│ TRAVEL   │        │
-│    │ Building │    │ at Check │    │ Unlocked │    │ Abundant │    │ Easy     │        │
-│    └──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘        │
+│    ┌──────────┐    ┌──────────┐    ┌──────────────┐    ┌──────────┐    ┌──────────┐    │
+│    │ A-Story  │───▶│ SUCCESS  │───▶│ B-CONSEQUENCE│───▶│ PREMIUM  │───▶│ TRAVEL   │    │
+│    │ Building │    │ at Check │    │ (automatic)  │    │ REWARDS  │    │ Easy     │    │
+│    └──────────┘    └──────────┘    └──────────────┘    └──────────┘    └──────────┘    │
 │                                                                                          │
 │    Experience: Rich narrative depth, same characters return, world feels connected      │
 │    Pace: Fast progression, well-resourced                                               │
 │    Feel: "My choices matter, my investment pays off"                                    │
+│    Resource Strategy: B-Consequence provides everything needed — no grinding            │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                  THE FALLBACK PLAYER                                     │
 │                                                                                          │
-│    "I use fallbacks, never stuck, but progress slower without B-story rewards"          │
+│    "I use fallbacks, then seek B-Sought work to earn travel funds"                      │
 │                                                                                          │
-│    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐        │
-│    │ A-Story  │───▶│ FALLBACK │───▶│ No Extra │───▶│ Work for │───▶│ TRAVEL   │        │
-│    │ Building │    │ Choice   │    │ B-Story  │    │ Resources│    │ Harder   │        │
-│    └──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘        │
+│    ┌──────────┐    ┌──────────┐    ┌───────────┐    ┌───────────┐    ┌──────────┐      │
+│    │ A-Story  │───▶│ FALLBACK │───▶│ Need      │───▶│ B-SOUGHT  │───▶│ TRAVEL   │      │
+│    │ Building │    │ Choice   │    │ Resources │    │ Job Board │    │ Possible │      │
+│    └──────────┘    └──────────┘    └───────────┘    │ NPC Quest │    └──────────┘      │
+│                                                      └───────────┘                       │
 │                                                                                          │
-│    Experience: Main story only, must grind Atmospheric Work for travel funds            │
-│    Pace: Slower progression, resource-constrained                                        │
-│    Feel: "I can always progress, but I'm missing optional depth"                        │
+│    Experience: Main story + side quests, explores world for work opportunities          │
+│    Pace: Slower progression, must actively seek income                                  │
+│    Feel: "I can always find work, I control my pace"                                    │
+│    Resource Strategy: Job boards always have work — effort, not skill, required         │
+│                                                                                          │
+│    ┌───────────────────────────────────────────────────────────────────────────────┐    │
+│    │  LAST RESORT: Atmospheric Work                                                │    │
+│    │  If no B-Sought available nearby, simple Work action at Commercial locations  │    │
+│    │  Minimal rewards but NEVER soft-locked                                        │    │
+│    └───────────────────────────────────────────────────────────────────────────────┘    │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
                               BOTH PATHS ARE VALID
                               Neither player is stuck
                               Mastery is rewarded, not required
+
+                 B-Consequence = reward for skill (automatic premium income)
+                 B-Sought = fallback for effort (opt-in reliable income)
+                 Atmospheric = safety net (always available minimal income)
 ```
 
 ### World Expansion Through A-Story
@@ -225,18 +238,20 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │                                  RESOURCE SOURCES                                        │
 │                                                                                          │
-│   ┌─────────────────────────┐    ┌─────────────────────────┐    ┌─────────────────────┐ │
-│   │    B-STORY REWARDS      │    │   ATMOSPHERIC WORK      │    │    C-STORY MINOR    │ │
-│   │    (Primary Source)     │    │   (Fallback Safety)     │    │    (Incidental)     │ │
-│   │                         │    │                         │    │                     │ │
-│   │    ★★★★★ Coins          │    │    ★★☆☆☆ Coins          │    │    ★☆☆☆☆ Coins      │ │
-│   │    ★★★★☆ Stats          │    │    ☆☆☆☆☆ Stats          │    │    ★☆☆☆☆ Stats      │ │
-│   │    ★★★☆☆ Items          │    │    ☆☆☆☆☆ Items          │    │    ★☆☆☆☆ Items      │ │
-│   │                         │    │                         │    │                     │ │
-│   │    Earned by SUCCESS    │    │    Always available     │    │    Surprises        │ │
-│   │    at A-Story checks    │    │    at Commercial        │    │    during journey   │ │
-│   │                         │    │    locations            │    │                     │ │
-│   └─────────────────────────┘    └─────────────────────────┘    └─────────────────────┘ │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌───────────────────────────────┐  │
+│  │   B-CONSEQUENCE      │  │      B-SOUGHT        │  │   ATMOSPHERIC    │  C-STORY   │  │
+│  │   (Premium Source)   │  │   (Reliable Source)  │  │   (Safety Net)   │  (Minor)   │  │
+│  │                      │  │                      │  │                  │            │  │
+│  │  ★★★★★ Coins         │  │  ★★★☆☆ Coins         │  │  ★★☆☆☆ Coins     │ ★☆☆☆☆      │  │
+│  │  ★★★★☆ Stats         │  │  ★★☆☆☆ Stats         │  │  ☆☆☆☆☆ Stats     │ ★☆☆☆☆      │  │
+│  │  ★★★☆☆ Items         │  │  ★★☆☆☆ Items         │  │  ☆☆☆☆☆ Items     │ ★☆☆☆☆      │  │
+│  │                      │  │                      │  │                  │            │  │
+│  │  Earned by SUCCESS   │  │  Found at Job Boards │  │  Always at       │ Surprises  │  │
+│  │  at A-Story checks   │  │  NPC offers, quests  │  │  Commercial loc. │ on journey │  │
+│  │  CANNOT DECLINE      │  │  CAN DECLINE         │  │  Simple action   │ Mandatory  │  │
+│  └──────────────────────┘  └──────────────────────┘  └───────────────────────────────┘  │
+│                                                                                          │
+│  Mastery Player Path ───────────────▶│◀─────────────────── Fallback Player Path         │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
                                          │
@@ -357,7 +372,67 @@ flowchart TD
 
 ## The Core Insight
 
-A-Story creates B-Stories (success rewards) and C-Stories (journey texture). They are causally linked, not independent systems.
+A-Story creates B-Consequence (success rewards) and C-Stories (journey texture). B-Sought provides fallback income. They are causally linked, not independent systems.
+
+---
+
+## The Two B-Story Types
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                              B-STORY: TWO DISTINCT TYPES                                 │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                           B-CONSEQUENCE (Earned Reward)                                  │
+│                                                                                          │
+│    Spawn Trigger: A-story choice SUCCESS (stat check met, challenge won)                │
+│    Player Agency: MANDATORY — cannot decline, just happens                              │
+│    Narrative: CONTINUES A-story — same NPCs, same locations, deeper story              │
+│    Rewards: PREMIUM — major resources for demonstrated mastery                          │
+│    Repeatability: ONE-TIME per trigger                                                  │
+│                                                                                          │
+│    Sir Brante Pattern: Certain scenes only unlock from specific prior choices           │
+│                                                                                          │
+│    ┌──────────────┐         ┌──────────────┐         ┌──────────────┐                   │
+│    │   A-Story    │ SUCCESS │ B-Consequence│         │   Premium    │                   │
+│    │  Hard Check  │────────▶│   Spawns     │────────▶│   Rewards    │                   │
+│    │  Insight 8   │         │  (automatic) │         │ Same NPC etc │                   │
+│    └──────────────┘         └──────────────┘         └──────────────┘                   │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                             B-SOUGHT (Player-Initiated)                                  │
+│                                                                                          │
+│    Spawn Trigger: Player ACCEPTANCE (takes quest, accepts contract, agrees to help)     │
+│    Player Agency: OPT-IN — can decline, player controls engagement                      │
+│    Narrative: INDEPENDENT — new characters, new situations                              │
+│    Rewards: BASIC — reliable income for effort invested                                 │
+│    Repeatability: SYSTEM-REPEATABLE — job boards always have work                       │
+│                                                                                          │
+│    Anti-Soft-Lock: Player can always earn resources through available work              │
+│                                                                                          │
+│    ┌──────────────┐         ┌──────────────┐         ┌──────────────┐                   │
+│    │  Need Coins  │  SEEK   │   Job Board  │ ACCEPT  │   B-Sought   │                   │
+│    │  for Travel  │────────▶│   NPC Offer  │────────▶│   Scene      │                   │
+│    │              │         │   Discovery  │         │   Rewards    │                   │
+│    └──────────────┘         └──────────────┘         └──────────────┘                   │
+│                                                                                          │
+│    Sources: Job Boards, NPC Offers, Exploration, Accepted Obligations                   │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                              WHY BOTH TYPES EXIST                                        │
+│                                                                                          │
+│    B-Consequence: Rewards MASTERY — skilled players never need to grind                 │
+│    B-Sought: Prevents SOFT-LOCK — struggling players always have options                │
+│                                                                                          │
+│    Together: Skill is rewarded, but never required for progression                      │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -378,10 +453,12 @@ A-Story creates B-Stories (success rewards) and C-Stories (journey texture). The
 | Principle | Description |
 |-----------|-------------|
 | **Building → Checking** | A-stories alternate stat growth and stat tests (Sir Brante rhythm) |
-| **B = Earned Reward** | B-stories spawn when player succeeds at hard A-story checks |
+| **B-Consequence = Earned** | Spawns on A-story success; mandatory; continues narrative with same NPCs |
+| **B-Sought = Fallback** | Player seeks out via job boards; opt-in; repeatable; prevents soft-lock |
 | **C = Natural Texture** | C-stories emerge from journey—not spawned, experienced |
-| **Narrative Continuity** | B-stories continue A-story threads with same characters/locations |
-| **Travel Cost Gate** | Distance creates resource demand; B-story rewards fund travel |
+| **Narrative Continuity** | B-Consequence continues A-story threads with same characters/locations |
+| **Travel Cost Gate** | Distance creates resource demand; B-stories fund travel |
+| **Three-Tier Income** | B-Consequence (premium) → B-Sought (reliable) → Atmospheric (safety net) |
 | **Terrain Variety** | Route choice = impossible choice (time vs stamina vs coins vs encounters) |
 
 ---
@@ -394,9 +471,15 @@ A-Story creates B-Stories (success rewards) and C-Stories (journey texture). The
 
 ---
 
-## Open Questions
+## Implementation Gaps
 
-- B-story spawn mechanics (A-story success → B-story creation technically)
-- Narrative continuity (same characters/locations carrying forward)
-- Terrain-aware C-story archetype selection
-- Multiple route alternatives
+| Gap | Status | Notes |
+|-----|--------|-------|
+| **B-Consequence spawn** | Design only | Need: A-story success → automatic SideStory spawn |
+| **B-Sought discovery** | Design only | Need: Job boards, NPC offers, exploration rewards |
+| **Narrative continuity** | Design only | Need: Same NPCs/locations in B-Consequence |
+| **C-story emergence** | Partial | Currently hardcoded encounters, need terrain-aware selection |
+| **Distance-based A-story** | Design only | Need: A-story N spawns at distance N |
+| **Multiple routes** | Design only | Current: Single optimal path per transport type |
+
+See [08_glossary.md](08_glossary.md) §Story Categories for complete B-Consequence vs B-Sought distinction.

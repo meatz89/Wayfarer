@@ -148,20 +148,20 @@ Repeat forever
 
 | Category | Player Agency | Economic Role |
 |----------|---------------|---------------|
-| **A-Story** | Mandatory (cannot decline) | Resource SINK (travel costs) |
-| **B-Story** | Opt-in (accept/decline) | Primary resource SOURCE |
-| **C-Story** | Mandatory (surprise) | World TEXTURE (minor rewards) |
-| **Atmospheric Work** | Always available | Fallback safety net |
+| **A-Story** | Mandatory | Resource SINK (travel costs) |
+| **B-Consequence** | Mandatory (earned) | Premium SOURCE (success rewards) |
+| **B-Sought** | Opt-in (seek out) | Reliable SOURCE (job boards) |
+| **C-Story** | Mandatory (journey) | World TEXTURE (minor rewards) |
+| **Atmospheric Work** | Always available | Safety net (last resort) |
 
-### Why B-Stories Gate A-Story
+### Why Two B-Story Types
 
-| Design Goal | How Travel Gate Achieves It |
-|-------------|----------------------------|
-| **Prevent mindless clicking** | A-Story requires resources earned via B-story quests |
-| **No soft-locks** | Atmospheric Work always available as fallback |
-| **Meaningful side content** | B-stories are deliberately sought, not forced |
-| **World texture** | C-stories provide flavor without economic pressure |
-| **Infinite pacing** | Distance scales linearly; loop never ends |
+| Type | Purpose | Player Experience |
+|------|---------|-------------------|
+| **B-Consequence** | Rewards mastery | "My stat investment paid off" |
+| **B-Sought** | Prevents soft-lock | "I can always find work" |
+
+Skilled players receive B-Consequence automatically—no grinding needed. Struggling players can always find B-Sought work via job boards. Both paths fund A-story travel.
 
 **See [05_content.md §5.7](05_content.md) for complete Travel Cost Gate design.**
 

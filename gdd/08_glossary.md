@@ -106,16 +106,20 @@ A-Story, B-Story, and C-Story are distinguished by a **combination of properties
 
 ### Story Category Property Matrix
 
-| Property | A-Story | B-Story | C-Story |
-|----------|---------|---------|---------|
-| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 1-2 situations |
-| **Repeatability** | One-time (sequential) | One-time (completable arc) | System-repeatable |
-| **Fallback Required** | Yes (every situation) | No | No |
-| **Can Fail** | Never | Yes | Yes |
-| **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
-| **Typical Scope** | World expansion | Venue depth | Location flavor |
-| **Player Agency** | Mandatory | Earned, then opt-in | Mandatory |
-| **Spawn Trigger** | Previous A-scene completes | A-story stat check success | Natural emergence from journey |
+| Property | A-Story | B-Consequence | B-Sought | C-Story |
+|----------|---------|---------------|----------|---------|
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 3-8 situations | One scene, 1-2 situations |
+| **Repeatability** | One-time (sequential) | One-time per trigger | System-repeatable | System-repeatable |
+| **Fallback Required** | Yes (every situation) | No | No | No |
+| **Can Fail** | Never | Yes | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (premium) | Source (basic) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth (continues A) | Venue/Location | Location flavor |
+| **Player Agency** | Mandatory | Mandatory (earned) | Opt-in | Mandatory |
+| **Spawn Trigger** | Previous A-scene completes | A-story choice success | Player acceptance | Natural emergence from journey |
+| **Declinable** | No | No | Yes | No |
+| **Purpose** | Main narrative | Depth + reward mastery | Income + anti-soft-lock | World texture |
+
+> **Note:** B-Consequence and B-Sought both use the `SideStory` enum value. They differ in spawn trigger and player agency, not in technical category.
 
 ### A-Story
 The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. **Player cannot decline**—when an A-scene activates, engagement is mandatory. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
@@ -128,17 +132,59 @@ A-stories alternate between two phases:
 When player **succeeds** at a hard stat check, a B-story thread spawns as reward—continuing the narrative with the same characters and locations, deepening the story the A-story established.
 
 ### B-Story
-**Reward threads** spawned when player succeeds at hard A-story stat checks. One scene with 3-8 situations forming a complete arc that **continues the A-story narrative**—using the same characters and locations—to deepen the established story.
 
-**Earned, Then Opt-In:** B-stories are not random quests. They are **rewards for mastery**. Player who invests in stats and succeeds at checks earns access to these narrative branches. Once spawned, player can choose to pursue or defer.
+B-Stories provide resources that fund A-story travel. They come in **two distinct types** serving different purposes:
 
-**Arc Structure:** Single Scene entity containing 3-8 Situations in sequence. Great rewards at completion—significant resources that fund A-story travel.
+#### B-Consequence (Earned Reward)
+
+**Reward threads** spawned when player succeeds at hard A-story stat checks. These are the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+
+**Characteristics:**
+- **Spawn Trigger:** A-story choice success (stat check met, challenge won)
+- **Cannot be declined:** Just happens as consequence of success
+- **Continues A-story narrative:** Same NPCs, same locations, deeper story
+- **Premium rewards:** Major resources for demonstrated mastery
+- **One-time per trigger:** Each A-story success can spawn its B-consequence once
 
 **Why This Works:**
 - Rewards stat investment (building has purpose)
 - Creates narrative continuity (A-story characters return)
-- Provides economic engine (major resource source)
-- Can fail with consequences (stakes matter)
+- Skilled players earn resources automatically
+- Feels earned, not randomly assigned
+
+#### B-Sought (Player-Initiated)
+
+**Quest content** the player actively seeks out when they need resources. Found through exploration, NPC conversations, job boards, and world discovery.
+
+**Characteristics:**
+- **Spawn Trigger:** Player acceptance (accepts quest, takes contract, agrees to help)
+- **Can be declined:** Player chooses whether to engage
+- **Independent narrative:** New characters, new situations
+- **Basic rewards:** Reliable income for effort invested
+- **System-repeatable:** Job boards always have work available
+
+**Sources:**
+- **Job Boards:** Always-available contracts (delivery, investigation, escort)
+- **NPC Offers:** Characters met during A/B stories offer work
+- **Exploration:** Discovering locations reveals opportunities
+- **Obligations:** Accepted contracts tracked as active quests
+
+**Why This Exists:**
+- Prevents soft-lock (player can always earn resources)
+- Rewards exploration (finding work is itself gameplay)
+- Player controls pacing (seek work when needed)
+- Traditional RPG quest familiarity
+
+#### The Two Types Together
+
+| Aspect | B-Consequence | B-Sought |
+|--------|---------------|----------|
+| **Player Experience** | "My success unlocked this" | "I need coins, let me find work" |
+| **Skill Reward** | Mastery → automatic rewards | Effort → earned income |
+| **Narrative Role** | Deepens A-story threads | Expands world knowledge |
+| **Economic Role** | Premium income for skilled | Safety net for all |
+
+**Design Intent:** Skilled players who invest in stats and succeed at checks receive B-Consequence scenes automatically—they never need to grind. Players who struggle can always find B-Sought content through job boards. Both paths lead to A-story progression; mastery is rewarded but never required.
 
 ### C-Story
 Single-scene encounters providing **world texture**. These are not spawned by explicit game mechanics—they **emerge naturally from the journey** that A and B stories create.
@@ -154,26 +200,37 @@ Single-scene encounters providing **world texture**. These are not spawned by ex
 
 **Key Insight:** C-stories are not a separate system. They are the natural consequence of A/B story journeys—terrain, locations, and NPCs responding to player presence.
 
-### Why Three Categories?
+### Why These Categories?
 
-The categories form an interconnected narrative ecosystem:
+The categories form an interconnected narrative and economic ecosystem:
 
 | Category | Player Experience | Causal Relationship |
 |----------|------------------|---------------------|
-| **A-Story** | "The main quest continues" — building and checking | Creates B-stories (success rewards) and C-stories (journey texture) |
-| **B-Story** | "My success unlocked this" — earned reward | Continues A-story narrative with same characters/locations |
-| **C-Story** | "The journey itself" — natural texture | Emerges from travel, locations, NPCs established by A/B |
+| **A-Story** | "The main quest continues" | Creates B-Consequence (success) and C-stories (journey) |
+| **B-Consequence** | "My success unlocked this" | Continues A-story with same NPCs/locations |
+| **B-Sought** | "I need resources, let me find work" | Available through exploration and job boards |
+| **C-Story** | "The journey itself" | Emerges from travel, locations, NPCs |
 
 **The story causality:**
 ```
 A-Story (Building → Checking)
-    ├── SUCCESS at check → B-Story spawns (reward thread)
-    │                      └── Continues narrative, great rewards
-    └── JOURNEY creates → C-Stories emerge naturally
-                          └── Route, location, NPC texture
+    │
+    ├── SUCCESS at check → B-Consequence spawns (mandatory)
+    │                      └── Same NPCs, deeper story, premium rewards
+    │
+    ├── JOURNEY creates → C-Stories emerge naturally
+    │                     └── Route, location, NPC texture
+    │
+    └── RESOURCE NEED → Player seeks B-Sought (optional)
+                        └── Job boards, NPC offers, exploration
 ```
 
-**Economic consequence:** B-stories (earned through A-story mastery) provide major rewards. These fund travel to distant A-story locations. The player who invests in stats earns more B-story access, more rewards, easier travel. The fallback player (using fallbacks, never succeeding at checks) progresses slower but never gets stuck.
+**Economic Design:**
+- **Mastery Path:** Invest stats → succeed at checks → B-Consequence rewards fund travel automatically
+- **Fallback Path:** Use fallbacks → need resources → seek B-Sought work → earn travel funds
+- **Both paths work:** Skilled players never grind; struggling players never soft-lock
+
+**Key Insight:** B-Consequence rewards mastery (making grinding unnecessary for skilled players). B-Sought prevents soft-lock (ensuring resources are always obtainable). Together they create fair progression where skill is rewarded but never required.
 
 ---
 

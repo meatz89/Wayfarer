@@ -12,16 +12,19 @@ Story categories are distinguished by a **combination of properties**, not a sin
 
 ### Story Category Property Matrix
 
-| Property | A-Story | B-Story | C-Story |
-|----------|---------|---------|---------|
-| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 1-2 situations |
-| **Repeatability** | One-time (sequential) | One-time (completable) | System-repeatable |
-| **Fallback Required** | Yes (every situation) | No | No |
-| **Can Fail** | Never | Yes | Yes |
-| **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
-| **Typical Scope** | World expansion | Venue depth | Location flavor |
-| **Player Agency** | Mandatory (cannot decline) | Opt-in (accept/decline) | Mandatory (cannot decline) |
-| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | Probabilistic at empty location |
+| Property | A-Story | B-Consequence | B-Sought | C-Story |
+|----------|---------|---------------|----------|---------|
+| **Structure** | Infinite scene chain | One scene, 3-8 situations | One scene, 3-8 situations | One scene, 1-2 situations |
+| **Repeatability** | One-time (sequential) | One-time per trigger | System-repeatable | System-repeatable |
+| **Fallback Required** | Yes (every situation) | No | No | No |
+| **Can Fail** | Never | Yes | Yes | Yes |
+| **Resource Flow** | Sink (travel costs) | Source (premium) | Source (basic) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth (continues A) | Venue/Location | Location flavor |
+| **Player Agency** | Mandatory | Mandatory (earned) | Opt-in | Mandatory |
+| **Spawn Trigger** | Previous A-scene completes | A-story choice success | Player acceptance | Natural journey emergence |
+| **Declinable** | No | No | Yes | No |
+
+> **Note:** Both B-types use `SideStory` enum. See [08_glossary.md](08_glossary.md) §Story Categories for full definitions.
 
 ### A-Story: The Infinite Main Thread
 
@@ -46,45 +49,74 @@ The primary narrative spine that never ends. Scenes chain sequentially (A1 → A
 
 **Why infinite:** Eliminates ending pressure. No post-game awkwardness. Player chooses when to engage. The journey IS the destination.
 
-### B-Story: Quest Arcs (One Scene, Multiple Situations)
+### B-Story: Two Types Serving Different Purposes
 
-**One scene containing 3-8 situations** forming a complete quest arc. Provides the **primary deliberate resource acquisition**. **Player chooses to engage**—B-stories are RPG quests that the player actively seeks out and can accept or decline. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Significant resource rewards fund A-story travel.
+B-stories provide resources that fund A-story travel. They come in **two distinct types**:
 
-**Arc Structure:** Single Scene entity containing 3-8 Situations in sequence. Player progresses through situations within the scene. This reuses existing Scene-Situation infrastructure without needing a new entity type.
+#### B-Consequence (Earned Reward)
+
+**Spawns automatically when player succeeds at hard A-story stat checks.** This is the Sir Brante pattern—certain scenes only unlock because the player made specific choices that had specific requirements.
+
+- **Cannot be declined** — just happens as consequence of success
+- **Continues A-story narrative** — same NPCs, same locations, deeper story
+- **Premium rewards** — major resources for demonstrated mastery
+- **One-time per trigger** — each A-story success can spawn its B-consequence once
+
+#### B-Sought (Player-Initiated)
+
+**Quest content the player actively seeks out.** Found through exploration, NPC conversations, job boards, and world discovery.
+
+- **Can be declined** — player chooses whether to engage
+- **Independent narrative** — new characters, new situations
+- **Basic rewards** — reliable income for effort invested
+- **System-repeatable** — job boards always have work available
 
 **Discovery Sources:**
-- **Job Board** — Lists available opportunities at venues
+- **Job Board** — Lists available contracts at venues
 - **NPC Quest Giver** — Dialogue option to accept commission
-- **Peculiar Location** — Investigation reveals quest opportunity
+- **Exploration** — Discovering locations reveals opportunities
 
-### C-Story: Texture Encounters (Probabilistic Spawn)
+#### Why Both Types Exist
 
-Single-scene encounters providing **world texture**, not economic engine. **Spawns probabilistically** when player enters a location with no active A or B scene. Spawn chance determined by combination of:
-- **Location properties** — Categorical dimensions (Purpose, Activity, Safety, etc.)
-- **Player state** — Tired, hungry, cold, injured
-- **World state** — Weather, time of day, recent events
+| Type | Purpose | Player Experience |
+|------|---------|-------------------|
+| B-Consequence | Rewards mastery | "My investment paid off" |
+| B-Sought | Prevents soft-lock | "I can always find work" |
 
-**Player cannot decline or willingly spawn**—these are surprises that flesh out the world. Can fail without major consequences. May provide minor incidental rewards, but primary purpose is atmosphere. System can reuse C-scene archetypes (system-repeatable), but player has no control over availability.
+**Design Intent:** Skilled players receive B-Consequence automatically—they never need to grind. Struggling players can always find B-Sought work. Both paths fund A-story progression.
 
-**Examples:** Unexpected inn gossip, route weather hazard, merchant haggling moment, shrine blessing opportunity.
+### C-Story: Natural Journey Emergence
 
-### Why Three Categories?
+Single-scene encounters providing **world texture**. C-stories are not spawned by explicit game mechanics—they **emerge naturally from the journey** that A and B stories create.
 
-The categories serve distinct player experience purposes:
+**Natural Emergence Sources:**
+- **Travel routes** — Moving between A-story locations creates route encounters (terrain-themed)
+- **Location visits** — Being in a place creates opportunity for location flavor
+- **NPC interactions** — Meeting characters through A/B stories creates incidental moments
+
+**Player cannot decline or willingly spawn**—these are surprises that flesh out the world. The journey to story IS content. A and B stories create the context; C-stories fill the texture naturally.
+
+**Examples:** Forest ambush on route to distant A-story, inn gossip while resting, merchant haggling at market visited during B-story.
+
+**Key Insight:** C-stories are not a separate system. They are the natural consequence of A/B story journeys—terrain, locations, and NPCs responding to player presence.
+
+### Why These Categories?
+
+The categories form an interconnected narrative and economic ecosystem:
 
 | Category | Player Experience | Economic Role |
 |----------|------------------|---------------|
-| **A-Story** | "The main quest continues" — mandatory, expected | Resource SINK (travel costs) |
-| **B-Story** | "I'll take this job" — voluntary, sought out | Primary resource SOURCE |
-| **C-Story** | "Something happens" — surprise, unexpected | World TEXTURE (minor rewards) |
+| **A-Story** | "The main quest continues" | Resource SINK (travel costs) |
+| **B-Consequence** | "My success unlocked this" | Primary SOURCE (premium) |
+| **B-Sought** | "I need work, let me find some" | Reliable SOURCE (basic) |
+| **C-Story** | "The journey itself" | World TEXTURE (minor) |
 
-**The resource loop:**
-1. A-Story creates distant goals requiring travel resources
-2. Player **actively seeks** B-Stories (quests) to earn travel funds
-3. Atmospheric Work provides fallback safety net (always available)
-4. C-Stories provide world flavor along the way (not the economic driver)
+**The Economic Design:**
+- **Mastery Path:** Invest stats → succeed at checks → B-Consequence rewards fund travel automatically
+- **Fallback Path:** Use fallbacks → need resources → seek B-Sought work → earn travel funds
+- **Safety Net:** Atmospheric Work always available (last resort)
 
-This prevents mindless clicking through A-story (resource gate via B-stories) while ensuring the player is never stuck (Atmospheric Work always available).
+**Key Insight:** B-Consequence rewards mastery (making grinding unnecessary for skilled players). B-Sought prevents soft-lock (ensuring resources are always obtainable). Together they create fair progression where skill is rewarded but never required.
 
 ---
 
@@ -338,16 +370,18 @@ Repeat forever
 
 Per the property matrix in §5.1:
 - **A-Story** is a resource SINK (travel costs) with Building → Checking rhythm
-- **B-Story** is REWARD for A-story success (spawns when player succeeds at hard stat checks)
+- **B-Consequence** is REWARD for A-story success (spawns automatically on stat check success)
+- **B-Sought** is FALLBACK income (player seeks out via job boards, NPC offers)
 - **C-Story** is world TEXTURE (emerges naturally from journey)
-- **Atmospheric Work** is the FALLBACK (always available safety net)
+- **Atmospheric Work** is the SAFETY NET (always available last resort)
 
 **Story Causality:**
-1. **A-Story** creates B-stories (success rewards) and C-stories (journey texture)
-2. **B-Stories** continue the A-story narrative with same characters/locations
-3. **C-Stories** are the natural consequence of travel, location visits, NPC interactions
+1. **A-Story** creates B-Consequence (success rewards) and C-stories (journey texture)
+2. **B-Consequence** continues A-story narrative with same characters/locations
+3. **B-Sought** provides reliable income through player initiative
+4. **C-Stories** are the natural consequence of travel, location visits, NPC interactions
 
-The key insight: B-stories are **earned rewards** for mastering stat checks. C-stories are **natural emergence** from the journey A-stories create. They are not independent systems—they are causally linked.
+**Key Insight:** B-Consequence rewards mastery (skilled players never grind). B-Sought prevents soft-lock (struggling players always have options). They are not competing systems—they serve different players at different times.
 
 ### Route Encounters Are C-Stories
 

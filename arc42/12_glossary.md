@@ -10,7 +10,8 @@ Domain and technical terms used throughout this documentation.
 |------|------------|
 | **ArchetypeIntensity** | Content categorization: Recovery, Standard, Demanding. Orthogonal to RhythmPattern. |
 | **A-Story** | Infinite main narrative (mandatory). Enum: MainStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
-| **B-Story** | Reward thread from A-story success (opt-in). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **B-Consequence** | Reward from A-story success (mandatory). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
+| **B-Sought** | Player-initiated quests (opt-in). Enum: SideStory. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **C-Story** | Journey texture (mandatory). Enum: Encounter. See [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **Story Category** | A/B/C classification. Property matrix in [gdd/08_glossary.md](../gdd/08_glossary.md) |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
