@@ -9,6 +9,7 @@
 | `arc42/12_glossary.md` | Technical terminology | Any task - understand the vocabulary |
 | `gdd/08_glossary.md` | Game design terminology | Any task - understand game concepts |
 | `gdd/01_vision.md` | Design pillars, Requirement Inversion, Tier Hierarchy | Any task - understand WHY things exist |
+| `gdd/ENDLESS_STORY_DESIGN.md` | A/B/C story causality, Travel Cost Gate | Story/content tasks - understand narrative flow |
 
 ## Implementation Document
 
