@@ -129,21 +129,25 @@ If we remove RhythmPattern and use position:
 
 ### Phase 3: RhythmPattern Migration (DECIDED: Remove It)
 
+**See ADR-019** for the correct mental model before implementing.
+
+**Key Principle:** Rhythm is baked into ChoiceTemplates at generation time. Archetypes know position and create appropriate choices. No runtime derivation needed.
+
 **Pre-migration verification (REQUIRED):**
 - Snapshot current choice generation output for all tutorial scenes (A1-A10)
 - This establishes baseline for regression testing
 
 **Migration steps:**
-6. **Update choice generation** - Use position + story category instead of RhythmPattern
-7. **Remove from GenerationContext** - Delete Rhythm property
-8. **Remove from SceneTemplate** - Delete RhythmPattern property
+6. **Update archetypes** - Pass situation position to choice generation; create Building/Crisis choices based on position
+7. **Remove from GenerationContext** - Delete Rhythm property (archetypes use position directly)
+8. **Remove from SceneTemplate** - Delete RhythmPattern property (redundant—choices already reflect rhythm)
 9. **Remove from DTOs** - Delete RhythmPattern fields
 10. **Remove from JSON** - Delete rhythmPattern from tutorial scenes
 11. **Delete enum** - Remove RhythmPattern.cs
 
 **Post-migration verification (REQUIRED):**
 - Compare choice generation output against pre-migration snapshot
-- Position-based structure must produce IDENTICAL choices for existing content
+- Choices must be IDENTICAL (rhythm was already in structure, just removing redundant property)
 - Any difference is a regression bug, not an expected change
 
 ### Phase 4: B-Story Completion
@@ -168,16 +172,27 @@ Validation rules detect the pattern from structure, not from an explicit type pr
 
 ### Q2: RhythmPattern Direction ✓ DECIDED
 
-**Decision:** Plan migration to position-based structure. Remove RhythmPattern.
+**Decision:** Remove RhythmPattern property. Rhythm is embodied in choice structure.
+
+**Key Insight (see ADR-019):**
+
+Rhythm is NOT derived at runtime. It's baked into ChoiceTemplates at generation time:
+- Archetypes know situation position when generating
+- Earlier situations get Building-structured choices (stat grants)
+- Final situation gets Crisis-structured choices (stat tests)
+- Structure IS the rhythm—no property needed
+
+**Common Misunderstanding to Avoid:**
+- WRONG: "Check position at runtime to determine rhythm"
+- RIGHT: "Archetypes create appropriate choices at generation time"
 
 **Migration Strategy:**
-1. Implement position-based detection (IsFinalSituation)
-2. Update choice generation to use position + story category instead of RhythmPattern
-3. Remove RhythmPattern from GenerationContext
-4. Remove RhythmPattern from SceneTemplate
-5. Remove RhythmPattern from DTOs
-6. Remove rhythmPattern from JSON content
-7. Delete RhythmPattern enum
+1. Update archetypes to use position when generating ChoiceTemplates
+2. Remove RhythmPattern from GenerationContext
+3. Remove RhythmPattern from SceneTemplate
+4. Remove RhythmPattern from DTOs
+5. Remove rhythmPattern from JSON content
+6. Delete RhythmPattern enum
 
 ### Q3: B-Story Procedural Generation (OPEN)
 
@@ -208,10 +223,11 @@ Validation rules detect the pattern from structure, not from an explicit type pr
 ### Enrichment
 - Scene template parser - Add B-Story enrichment path for final situations
 
-### RhythmPattern Migration (Phase 3)
-- Choice generation catalogs - Use position + story category
-- Generation context - Remove Rhythm property
-- Scene template entity - Remove RhythmPattern property
+### RhythmPattern Migration (Phase 3) — See ADR-019
+- Scene/Situation archetypes - Pass position to choice generation
+- Choice generation catalogs - Create Building/Crisis choices based on position
+- Generation context - Remove Rhythm property (archetypes use position)
+- Scene template entity - Remove RhythmPattern property (redundant)
 - Scene template DTO - Remove RhythmPattern field
 - Spawn reward DTO - Remove RhythmPatternContext field
 - Tutorial JSON - Remove rhythmPattern fields
@@ -236,8 +252,10 @@ Validation rules detect the pattern from structure, not from an explicit type pr
 
 **Design decisions resolved:**
 - Q1: B-Story types distinguished by STRUCTURE (choice requirements), not enum
-- Q2: MIGRATE away from RhythmPattern to position-based
+- Q2: Remove RhythmPattern—rhythm is baked into choice structure at generation time (see ADR-019)
 - Q4: "Challenge" = choices with requirements
+
+**Critical: Read ADR-019 before Phase 3** — Common misunderstanding is thinking rhythm is derived at runtime. It's not. Archetypes know position and create appropriate choices. Structure IS the rhythm.
 
 **Implementation gaps:**
 - 2 critical blockers (final situation stub, no B-Story enrichment)
