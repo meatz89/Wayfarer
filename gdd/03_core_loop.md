@@ -113,12 +113,12 @@ Your build reflects your values and playstyle. This IS character development.
 
 ### The Travel Cost Gate
 
-A-Story progression requires travel to increasingly distant locations. This creates economic pressure that forces engagement with B/C stories.
+A-Story progression requires travel to increasingly distant locations. This creates economic pressure that forces engagement with B-stories (quests the player seeks out).
 
 | Loop | Gates | Via |
 |------|-------|-----|
-| **MEDIUM** (B/C stories) | **LONG** (A-Story) | Travel resources |
-| **SHORT** (Encounters) | **MEDIUM** (B/C completion) | Resource costs/rewards |
+| **MEDIUM** (B-stories / quests) | **LONG** (A-Story) | Travel resources |
+| **SHORT** (Encounters) | **MEDIUM** (Quest completion) | Resource costs/rewards |
 
 ### The Rhythm
 
@@ -129,28 +129,38 @@ A-Story N+1 spawns at distance N+1 hexes
     ↓
 Travel costs exceed current resources
     ↓
-Engage B/C stories (MEDIUM) to earn resources
+Player seeks B-Stories (job board, NPC quests) to earn resources
     ↓
-Each B/C story contains SHORT loop encounters
+Each B-story contains SHORT loop encounters
     ↓
-Resources accumulate
+Resources accumulate (or use Atmospheric Work as fallback)
     ↓
 Afford travel to A-Story N+1
     ↓
-Route encounters (C-stories) during travel
+C-story encounters during travel (world texture)
     ↓
 Arrive and experience A-Story N+1
     ↓
 Repeat forever
 ```
 
-### Why B/C Stories Gate A-Story
+### How Each Category Contributes
+
+| Category | Player Agency | Economic Role |
+|----------|---------------|---------------|
+| **A-Story** | Mandatory (cannot decline) | Resource SINK (travel costs) |
+| **B-Story** | Opt-in (accept/decline) | Primary resource SOURCE |
+| **C-Story** | Mandatory (surprise) | World TEXTURE (minor rewards) |
+| **Atmospheric Work** | Always available | Fallback safety net |
+
+### Why B-Stories Gate A-Story
 
 | Design Goal | How Travel Gate Achieves It |
 |-------------|----------------------------|
-| **Prevent mindless clicking** | A-Story requires resources earned elsewhere |
-| **No soft-locks** | B/C stories always available to earn resources |
-| **Meaningful side content** | B/C stories are required, not optional padding |
+| **Prevent mindless clicking** | A-Story requires resources earned via B-story quests |
+| **No soft-locks** | Atmospheric Work always available as fallback |
+| **Meaningful side content** | B-stories are deliberately sought, not forced |
+| **World texture** | C-stories provide flavor without economic pressure |
 | **Infinite pacing** | Distance scales linearly; loop never ends |
 
 **See [05_content.md §5.7](05_content.md) for complete Travel Cost Gate design.**

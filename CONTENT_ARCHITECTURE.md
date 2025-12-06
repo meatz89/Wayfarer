@@ -45,18 +45,19 @@ Story categories are distinguished by a **combination of properties**, not a sin
 | Property | A-Story | B-Story | C-Story |
 |----------|---------|---------|---------|
 | **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
-| **Repeatability** | One-time (sequential) | One-time (completable) | Repeatable |
+| **Repeatability** | One-time (sequential) | One-time (completable) | System-repeatable |
 | **Fallback Required** | Yes (every situation) | No | No |
 | **Can Fail** | Never | Yes | Yes |
-| **Resource Flow** | Sink (travel costs) | Source (significant) | Source (incremental) |
-| **Typical Scope** | World expansion | Venue depth | Location/route |
-| **Player Initiation** | Automatic | Voluntary | Organic |
+| **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth | Location flavor |
+| **Player Agency** | Mandatory (cannot decline) | Opt-in (accept/decline) | Mandatory (cannot decline) |
+| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | No A/B scene at location |
 
-**A-Story is special.** Frieren principle: infinite, never-ending. Primary purpose is world expansion—creating new places to explore, new people to meet, new paths to travel. Player must ALWAYS be able to progress.
+**A-Story is special.** Frieren principle: infinite, never-ending. Primary purpose is world expansion—creating new places to explore, new people to meet, new paths to travel. Player must ALWAYS be able to progress. **Player cannot decline.**
 
-**B-Story provides substantial engagement.** Multi-scene arcs the player voluntarily initiates. Significant resource rewards fund A-story progression.
+**B-Story provides deliberate resource acquisition.** Multi-scene quest arcs the player actively seeks out via job boards, NPC quest givers, or peculiar locations. **Player can accept or decline.** Significant resource rewards fund A-story travel.
 
-**C-Story provides texture.** Single-scene encounters during routine play. Repeatable. Incremental resource rewards ensure player is never stuck.
+**C-Story provides world texture.** Single-scene surprises that spawn when no A/B scene is present—the game prevents empty locations. **Player cannot decline or willingly spawn.** Minor incidental rewards; primary purpose is atmosphere.
 
 ---
 
@@ -649,12 +650,13 @@ Story categories are distinguished by a combination of properties (see §2 for f
 | Property | A-Story | B-Story | C-Story |
 |----------|---------|---------|---------|
 | Scene count | Infinite | Multi (3-8) | Single |
-| Repeatability | One-time | One-time | Repeatable |
+| Repeatability | One-time | One-time | System-repeatable |
 | Can fail? | Never | Yes | Yes |
 | Fallback? | Required | No | No |
-| Resource flow | Sink | Source (significant) | Source (incremental) |
+| Resource flow | Sink | Source (significant) | Texture (minor) |
+| Player agency | Mandatory | Opt-in | Mandatory |
 
-Scope describes tendency, not restriction. All categories can create any entity type.
+Scope describes tendency, not restriction. All categories can create any entity type. A and C are mandatory when triggered; only B allows player choice.
 
 ### A-Story List-Based Progression
 

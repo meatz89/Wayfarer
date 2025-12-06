@@ -109,30 +109,47 @@ A-Story, B-Story, and C-Story are distinguished by a **combination of properties
 | Property | A-Story | B-Story | C-Story |
 |----------|---------|---------|---------|
 | **Scene Count** | Infinite chain | Multi-scene arc (3-8) | Single scene |
-| **Repeatability** | One-time (sequential) | One-time (completable arc) | Repeatable |
+| **Repeatability** | One-time (sequential) | One-time (completable arc) | System-repeatable |
 | **Fallback Required** | Yes (every situation) | No | No |
 | **Can Fail** | Never | Yes | Yes |
-| **Resource Flow** | Sink (travel costs to reach) | Source (significant rewards) | Source (incremental rewards) |
-| **Typical Scope** | World expansion | Venue depth | Location/route |
-| **Player Initiation** | Automatic (previous scene spawns next) | Voluntary (player accepts) | Organic (encountered during play) |
+| **Resource Flow** | Sink (travel costs) | Source (significant) | Texture (minor) |
+| **Typical Scope** | World expansion | Venue depth | Location flavor |
+| **Player Agency** | Mandatory (cannot decline) | Opt-in (accept/decline) | Mandatory (cannot decline) |
+| **Spawn Trigger** | Previous A-scene completes | Player accepts quest | No A/B scene at location |
 
 ### A-Story
-The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
+The infinite main narrative spine. Scenes chain sequentially (A1 → A2 → A3...). Every situation requires a fallback choice guaranteeing forward progress. Primary purpose is world expansion—creating new venues, districts, regions, routes, and NPCs. Can never fail. **Player cannot decline**—when an A-scene activates, engagement is mandatory. Phase 1 (A1-A10) is authored tutorial; Phase 2 (A11+) is procedurally generated.
 
 ### B-Story
-Multi-scene narrative arcs with substantial stakes. Player voluntarily initiates by accepting an obligation or engaging with discovered content. Spans 3-8 connected scenes forming a complete arc. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Provides significant resource rewards that fund A-story progression.
+Multi-scene narrative arcs providing the primary deliberate resource acquisition. **Player chooses to engage**—B-stories spawn from job boards, NPC quest givers, or investigating peculiar locations. Player can accept or decline. Spans 3-8 connected scenes forming a complete arc. Can include requirements on all choices (no mandatory fallback). Can fail with consequences. Typically works within a single venue, adding narrative depth. Significant resource rewards fund A-story travel.
+
+**Discovery Sources:**
+- **Job Board** — Lists available opportunities at venues
+- **NPC Quest Giver** — Dialogue option to accept commission
+- **Peculiar Location** — Investigation reveals quest opportunity
 
 ### C-Story
-Single-scene encounters providing world texture. Encountered organically during play—route encounters during travel, service interactions at locations, opportunistic moments. Repeatable (same encounter type can occur multiple times). Can fail without major consequences. Provides incremental resource rewards. Examples: route hazards, inn services, merchant interactions, work opportunities.
+Single-scene encounters providing **world texture**, not economic engine. Spawns when player enters a location with no active A or B scene—the game creates flavor to prevent empty locations. **Player cannot decline or willingly spawn**—these are surprises that flesh out the world. Can fail without major consequences. May provide minor incidental rewards, but primary purpose is atmosphere. System can reuse C-scene archetypes (system-repeatable), but player has no control over availability.
+
+**Examples:** Unexpected inn gossip, route weather hazard, merchant haggling moment, shrine blessing opportunity.
 
 ### Why Three Categories?
 
-The categories create the core gameplay loop:
-1. **A-Story** creates distant goals requiring travel resources
-2. **B-Story** provides substantial resource injections through meaningful engagement
-3. **C-Story** provides steady resource drip through routine activities
+The categories serve distinct player experience purposes:
 
-This prevents mindless clicking through A-story (resource gate) while ensuring the player is never stuck (C-story always available).
+| Category | Player Experience | Economic Role |
+|----------|------------------|---------------|
+| **A-Story** | "The main quest continues" — mandatory, expected | Resource SINK (travel costs) |
+| **B-Story** | "I'll take this job" — voluntary, sought out | Primary resource SOURCE |
+| **C-Story** | "Something happens" — surprise, unexpected | World TEXTURE (minor rewards) |
+
+**The resource loop:**
+1. A-Story creates distant goals requiring travel resources
+2. Player **actively seeks** B-Stories (quests) to earn travel funds
+3. Atmospheric Work provides fallback safety net (always available)
+4. C-Stories provide world flavor along the way (not the economic driver)
+
+This prevents mindless clicking through A-story (resource gate via B-stories) while ensuring the player is never stuck (Atmospheric Work always available).
 
 ---
 
