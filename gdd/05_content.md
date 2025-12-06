@@ -361,6 +361,54 @@ When traveling to an A-Story location, the route contains C-story encounters:
 
 **The journey to story IS content, not empty travel.**
 
+### Terrain Shapes Route Cost and Encounters
+
+The hex grid uses categorical terrain properties that affect both travel cost and encounter themes:
+
+**Terrain Stamina Cost:**
+
+| Terrain | Stamina/Hex | Design Intent |
+|---------|-------------|---------------|
+| Road | 0 | Easy travel corridors |
+| Plains | 1 | Baseline open terrain |
+| Water | 1 | Easy with boat |
+| Forest | 2 | Moderate difficulty |
+| Mountains | 3 | Hard terrain |
+| Swamp | 3 | Hard terrain |
+
+**Terrain Encounter Themes:**
+
+| Terrain | C-Story Themes | Example Encounters |
+|---------|----------------|-------------------|
+| Forest | Ambush, wildlife, foraging | Bandit toll, wolf pack, berry discovery |
+| Road | Trade, law, tolls | Merchant caravan, patrol checkpoint, cart hire |
+| Plains | Travelers, weather, exposure | Fellow travelers, storm shelter, lost direction |
+| Mountains | Climbing, isolation, altitude | Rockfall hazard, mountain shrine, altitude sickness |
+| Swamp | Disease, navigation, creatures | Quicksand, fever symptoms, hostile fauna |
+| Water | Weather, piracy, drowning | Storm at sea, pirate encounter, capsized boat |
+
+**Route Choice = Impossible Choice:**
+
+Multiple route options create strategic trade-offs aligned with design pillars:
+
+| Route Type | Time | Stamina | Coins | Encounters |
+|------------|------|---------|-------|------------|
+| Safe (Roads) | Long | Low | Low/Tolls | Few, lawful |
+| Fast (Forest) | Medium | High | Free | Moderate, ambush risk |
+| Direct (Mountain) | Short | Very High | Free | Many, harsh conditions |
+| Paid (Transport) | Short | Low | High | Varies by service |
+
+Player cannot optimize all dimensions. A tired player (low stamina) must choose slow-safe OR pay coins for transport. A resource-poor player must risk the dangerous shortcut.
+
+**Transport Options:**
+
+| Transport | Coin Cost | Terrain Restrictions | Effect |
+|-----------|-----------|---------------------|--------|
+| Walking | 0 | None | Baseline |
+| Cart | Coins | Penalized in forest | Slower but cargo |
+| Horseback | Coins | Limited in forest/mountain | Faster |
+| Boat | Coins | Water only | Required for water |
+
 ### No Soft-Lock Guarantee
 
 Even with zero resources, player can always progress:
@@ -378,10 +426,11 @@ The gate is **economic pressure**, not **boolean lockout**. Under-prepared playe
 | Principle | How Travel Gate Honors It |
 |-----------|---------------------------|
 | **No Soft-Locks** | B/C stories always available; player can always earn travel resources |
-| **Impossible Choices** | Pursue story now (under-resourced) vs prepare first (delayed gratification) |
-| **Perfect Information** | Distance and travel cost visible before commitment |
+| **Impossible Choices** | Route choice: fast/dangerous vs slow/safe vs paid/easy. Cannot optimize all. |
+| **Perfect Information** | Terrain, distance, and travel cost visible before route commitment |
 | **Earned Scarcity** | Resources earned through B/C engagement, not given freely |
 | **Infinite Journey** | Distance scales linearly forever; loop never ends |
+| **Terrain Variety** | Different terrains create thematically appropriate C-story encounters |
 
 ### Distance Scaling Principle
 
